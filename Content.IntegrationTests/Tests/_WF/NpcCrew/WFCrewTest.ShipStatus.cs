@@ -1,5 +1,6 @@
 #nullable enable
 using System.Numerics;
+using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Server.Shuttles.Components;
 using Content.Shared._WF.NpcCrew;
@@ -54,6 +55,9 @@ public sealed partial class WFCrewTest
             // Destroy stops for a ship with nobody left alive; Deter also gives up on a distant one.
             var status = Server.System<WFCrewShipStatusSystem>();
             Assert.That(status.ShouldDisengage(wreck, crewed), Is.True, "Nobody is left alive aboard.");
+            SEntMan.AddComponent<WFCrewHuntedHullComponent>(crewed);
+            Assert.That(status.ShouldDisengage(wreck, crewed), Is.False, "Leaving a hunted hull doesn't call off the attack.");
+            SEntMan.RemoveComponent<WFCrewHuntedHullComponent>(crewed);
             status.SetPolicy(ship, WFCrewDisengage.Deter, 5);
             Assert.That(status.ShouldDisengage(ship, wreck), Is.True, "Beyond the deterrence range.");
             Assert.That(status.ShouldDisengage(ship, wreck, range: false), Is.False);

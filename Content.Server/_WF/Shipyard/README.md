@@ -9,6 +9,9 @@ responder ship voucher, the MMC Dredger (`WFDredger`), a salvage ship sold at th
 (`WFCarabela`), a salvage frigate with a mobile drydock sold at the civilian shipyard beside the Caracara, and the
 Reach (`WFReach`), a crewed civilian capital ship with a full set of departments.
 
+If a sold ship's copy fails to save, `ShipyardSystem.WFStripUnsavable` takes off the components that won't save and
+tries once more, so one bad entity aboard doesn't lose the ship. The seller is paid either way.
+
 `VesselShipyardTest` holds the checks that apply to every vessel grid, so ship tests belong there rather than in
 tests for one ship: each vessel must load as a shuttle with every hardpoint-only gun mounted on a hardpoint.
 
@@ -27,6 +30,7 @@ share from its slot, or from the counter of a trader hosting it (`ShipyardHostCa
 - [`Content.Server/_WF/Shipyard/PowerChargeSystem.Wolfgate.cs`](PowerChargeSystem.Wolfgate.cs)
 - [`Content.Server/_WF/Shipyard/ShipyardSystem.WolfgateDeed.cs`](ShipyardSystem.WolfgateDeed.cs)
 - [`Content.Server/_WF/Shipyard/ShipyardSystem.WolfgateTrader.cs`](ShipyardSystem.WolfgateTrader.cs)
+- [`Content.Server/_WF/Shipyard/ShipyardSystem.WolfgateUnsavable.cs`](ShipyardSystem.WolfgateUnsavable.cs)
 - [`Content.Server/_WF/Shipyard/ShipyardWolfgateEvents.cs`](ShipyardWolfgateEvents.cs)
 - [`Content.Server/_WF/Shipyard/UsedShipMarketComponent.cs`](UsedShipMarketComponent.cs)
 - [`Content.Server/_WF/Shipyard/UsedShipMarketSystem.cs`](UsedShipMarketSystem.cs)
@@ -36,6 +40,8 @@ share from its slot, or from the counter of a trader hosting it (`ShipyardHostCa
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/Shipyard/IronmanShipPurchaseTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shipyard/IronmanShipPurchaseTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Shipyard/ShipPurchaseTitleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shipyard/ShipPurchaseTitleTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Shipyard/UsedShipContainedUnsavableTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shipyard/UsedShipContainedUnsavableTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shipyard/UsedShipReinitTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shipyard/UsedShipReinitTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shipyard/VesselShipyardTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shipyard/VesselShipyardTest.cs)
 
@@ -84,5 +90,6 @@ share from its slot, or from the counter of a trader hosting it (`ShipyardHostCa
 - [`Resources/Prototypes/_Mono/Roles/Jobs/ViperGroup/commander.yml`](../../../Resources/Prototypes/_Mono/Roles/Jobs/ViperGroup/commander.yml): VG commanders start with a voucher for their Wolf
 - [`Resources/Prototypes/_NF/Entities/Objects/Devices/Misc/ship_vouchers.yml`](../../../Resources/Prototypes/_NF/Entities/Objects/Devices/Misc/ship_vouchers.yml): Judges can redeem Roswell with the standard station guard voucher
 - [`Resources/Prototypes/_NF/Entities/Structures/Machines/Computers/computers_shipyard.yml`](../../../Resources/Prototypes/_NF/Entities/Structures/Machines/Computers/computers_shipyard.yml): cash in a destroyed console drops instead of being deleted
+- [`Resources/SharedMaps/_Mono/Shuttles/Civilian/guppy.yml`](../../../Resources/SharedMaps/_Mono/Shuttles/Civilian/guppy.yml): Saved with its air filled in; the starter ship spawned as vacuum.
 
 <!-- WOLFGATE-GENERATED END -->

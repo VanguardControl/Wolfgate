@@ -18,7 +18,7 @@ public sealed record WFTradeShortage(EntityUid? Grid, string Group, float Factor
 /// Every so often a station runs short of a group of goods, or the whole sector booms for one, and pays more for it
 /// for a while. Keeps prices moving when no campaign is running.
 /// </summary>
-public sealed class WFTradeShortageSystem : EntitySystem
+public sealed partial class WFTradeShortageSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _proto = default!;

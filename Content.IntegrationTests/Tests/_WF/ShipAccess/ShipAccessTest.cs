@@ -298,10 +298,11 @@ public sealed class ShipAccessTest
         var map = await pair.CreateTestMap();
         var grid = map.Grid.Owner;
 
-        EntityUid door = default, buyer = default;
+        EntityUid door = default, buyer = default, turbine = default;
         await server.WaitPost(() =>
         {
             door = entMan.SpawnEntity(DoorProto, map.GridCoords);
+            turbine = entMan.SpawnEntity("TurbineUnaffiliatedSmall", map.GridCoords);
             (buyer, _) = SpawnPersonWithCard(entMan, hands, map, "Ada Vance", 1);
             entMan.EnsureComponent<ShuttleDeedComponent>(grid);
             // Mono's own reader, as its purchase sweep leaves it; this module keeps it switched off.
@@ -356,6 +357,12 @@ public sealed class ShipAccessTest
             {
                 foreach (var uid in new[] { door, laterDoor, locker })
                     Assert.That(ReaderLocked(entMan, uid), Is.False, $"Unlocking must restore the reader on {entMan.ToPrettyString(uid)}.");
+
+                // Feedback report 372: a Captain-locked turbine admits the ship's owner on an unlocked ship.
+                var turbineReader = entMan.GetComponent<AccessReaderComponent>(turbine);
+                Assert.That(ReaderLocked(entMan, turbine), Is.False);
+                Assert.That(turbineReader.AccessLists.Single(), Does.Contain(new ProtoId<AccessLevelPrototype>("Captain")));
+                Assert.That(entMan.System<AccessReaderSystem>().IsAllowed(buyer, turbine), Is.True, "The owner's card must open the turbine's lock.");
             });
         });
 
@@ -753,11 +760,11 @@ public sealed class ShipAccessTest
                 Assert.That(Find<Label>(screen, "ReadOnlyLabel").Visible, Is.False, "The deed holder's tab is not read-only.");
                 Assert.That(Find<CheckBox>(screen, "LockedCheck").Visible, Is.True, "The deed holder can flip the lock.");
                 Assert.That(Find<OptionButton>(screen, "ShipModeButton").Visible, Is.True);
-                Assert.That(Find<OptionButton>(screen, "ShipModeButton").ItemCount, Is.EqualTo(2), "Civilian owners choose Private or Crew.");
+                Assert.That(Find<OptionButton>(screen, "ShipModeButton").ItemCount, Is.EqualTo(3), "Civilian owners choose Private, Crew or Company.");
                 Assert.That(Find<OptionButton>(screen, "ShipModeButton").GetItemId(1), Is.EqualTo((int) WFShipAccessMode.Crew));
                 Assert.That(Find<OptionButton>(screen, "ShipModeButton").ToolTip, Does.Contain("Crew Setup"));
                 Assert.That(Find<BoxContainer>(screen, "AllDoorsBox").Visible, Is.True, "The deed holder gets the set-all control.");
-                Assert.That(Find<OptionButton>(screen, "AllDoorsRuleButton").ItemCount, Is.EqualTo(8), "Every rule is offered for all doors.");
+                Assert.That(Find<OptionButton>(screen, "AllDoorsRuleButton").ItemCount, Is.EqualTo(9), "Every rule is offered for all doors.");
             });
         });
 

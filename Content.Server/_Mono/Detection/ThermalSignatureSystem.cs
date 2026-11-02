@@ -22,7 +22,7 @@ public sealed partial class ThermalSignatureSystem : EntitySystem
 
     private const float UpdateIntervalSeconds = 1f;
     private static readonly TimeSpan UpdateInterval = TimeSpan.FromSeconds(UpdateIntervalSeconds);
-    private TimeSpan _nextUpdateTime;
+    private TimeSpan _nextUpdateTime = TimeSpan.FromSeconds(0.8); // WOLFGATE(Performance): off the tick other one-second systems run on
 
     private const float HeatChangeThreshold = 1.02f;
 

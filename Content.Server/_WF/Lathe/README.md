@@ -37,6 +37,7 @@ use, editing queued totals), `FabricationSiloMenu` and `LatheMenu.Wolfgate`.
 - [`Content.Shared/_WF/Lathe/LatheUpdateState.Wolfgate.cs`](../../../Content.Shared/_WF/Lathe/LatheUpdateState.Wolfgate.cs)
 - [`Content.Shared/_WF/Lathe/SharedFabricationSiloSystem.cs`](../../../Content.Shared/_WF/Lathe/SharedFabricationSiloSystem.cs)
 - [`Content.Shared/_WF/Lathe/SharedFabricationSiloSystem.Filling.cs`](../../../Content.Shared/_WF/Lathe/SharedFabricationSiloSystem.Filling.cs)
+- [`Content.Shared/_WF/Lathe/SharedFabricationSiloSystem.Parts.cs`](../../../Content.Shared/_WF/Lathe/SharedFabricationSiloSystem.Parts.cs)
 - [`Content.Shared/_WF/Lathe/SharedFabricationSiloSystem.Whitelist.cs`](../../../Content.Shared/_WF/Lathe/SharedFabricationSiloSystem.Whitelist.cs)
 - [`Content.Shared/_WF/Lathe/SharedLatheSystem.Wolfgate.cs`](../../../Content.Shared/_WF/Lathe/SharedLatheSystem.Wolfgate.cs)
 - [`Content.Shared/_WF/Lathe/SharedOreSiloSystem.Wolfgate.cs`](../../../Content.Shared/_WF/Lathe/SharedOreSiloSystem.Wolfgate.cs)
@@ -56,6 +57,7 @@ use, editing queued totals), `FabricationSiloMenu` and `LatheMenu.Wolfgate`.
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/Lathe/FabricationSiloTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lathe/FabricationSiloTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Lathe/LathePartMatchTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lathe/LathePartMatchTest.cs)
 
 ### Prototypes
 
@@ -75,6 +77,9 @@ use, editing queued totals), `FabricationSiloMenu` and `LatheMenu.Wolfgate`.
 
 ## Non-modular edits
 
+- [`Content.Client/Lathe/LatheSystem.cs`](../../../Content.Client/Lathe/LatheSystem.cs)
+  - recipe part matching
+  - variants and other stacks of a part count, as the server counts them
 - [`Content.Client/Lathe/UI/LatheBoundUserInterface.cs`](../../../Content.Client/Lathe/UI/LatheBoundUserInterface.cs)
   - send edited queue totals
   - pass the printing batch and recipe readiness to the menu
@@ -87,6 +92,7 @@ use, editing queued totals), `FabricationSiloMenu` and `LatheMenu.Wolfgate`.
   - count reagents in the linked chemical silo
   - queue cards with editable totals, updated in place
   - fixed icon size so recipe and queue rows line up
+  - variants and other stacks of a part count, as the server counts them
 - [`Content.Client/Lathe/UI/RecipeControl.xaml`](../../../Content.Client/Lathe/UI/RecipeControl.xaml): availability subtitle, clipped name and queue affordance
 - [`Content.Client/Lathe/UI/RecipeControl.xaml.cs`](../../../Content.Client/Lathe/UI/RecipeControl.xaml.cs): recipes stay queueable while supplies are missing
 - [`Content.Client/Materials/UI/MaterialStorageControl.xaml.cs`](../../../Content.Client/Materials/UI/MaterialStorageControl.xaml.cs)
@@ -94,6 +100,7 @@ use, editing queued totals), `FabricationSiloMenu` and `LatheMenu.Wolfgate`.
   - moved above
 - [`Content.Client/Materials/UI/OreSiloMenu.xaml.cs`](../../../Content.Client/Materials/UI/OreSiloMenu.xaml.cs): list filling is static so fabrication silo windows share it; the parameter keeps the field's name so the body is unchanged
 - [`Content.Server/Lathe/LatheSystem.cs`](../../Lathe/LatheSystem.cs)
+  - a lathe saved mid-print loads with no recipe and would never start again
   - cap the batch size
   - queued jobs wait for supplies; batch size and queue length are capped
   - skip blocked batches without dropping them
@@ -103,6 +110,7 @@ use, editing queued totals), `FabricationSiloMenu` and `LatheMenu.Wolfgate`.
   - a queued batch waiting for supplies is not being fabricated
   - add the printing batch and recipe readiness
   - count parts in the linked parts silo
+- [`Content.Shared/Lathe/LatheComponent.cs`](../../../Content.Shared/Lathe/LatheComponent.cs): the queue isn't saved, since a batch can't serialize and a queued lathe made ship copies throw
 - [`Content.Shared/Lathe/LatheMessages.cs`](../../../Content.Shared/Lathe/LatheMessages.cs): partial for silo state
 - [`Content.Shared/Lathe/SharedLatheSystem.cs`](../../../Content.Shared/Lathe/SharedLatheSystem.cs): count the linked chemical silo
 - [`Resources/Locale/en-US/lathe/ui/lathe-menu.ftl`](../../../Resources/Locale/en-US/lathe/ui/lathe-menu.ftl)

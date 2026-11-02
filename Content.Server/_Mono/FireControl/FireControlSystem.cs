@@ -1,3 +1,14 @@
+// WOLFGATE: restore the licence header removed by Kill Spdx
+// SPDX-FileCopyrightText: 2025 Ark
+// SPDX-FileCopyrightText: 2025 Redrover1760
+// SPDX-FileCopyrightText: 2025 RikuTheKiller
+// SPDX-FileCopyrightText: 2025 ScyronX
+// SPDX-FileCopyrightText: 2025 ark1368
+// SPDX-FileCopyrightText: 2025 sleepyyapril
+// SPDX-FileCopyrightText: 2025 starch
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // Copyright Rane (elijahrane@gmail.com) 2025
 // All rights reserved. Relicensed under AGPL with permission
 
@@ -503,6 +514,10 @@ public sealed partial class FireControlSystem : EntitySystem
         direction = Vector2.Normalize(direction);
 
         if (!TryComp<FireControllableComponent>(weapon, out var fireControlComponent))
+            return false;
+
+        // WOLFGATE(ShipCombat): a gun with a turn rate turns toward the target and holds fire until laid on it.
+        if (_fireRotateQuery.HasComp(weapon) && !_wfTraverse.TryLay(weapon, coords, direction))
             return false;
 
         // Check for obstacles in the firing direction

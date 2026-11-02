@@ -35,6 +35,10 @@ public sealed partial class WoundBleedingSystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private WoundSystem _wounds = default!;
     [Dependency] private Content.Shared._WF.Wolfmed.Wounds.WolfmedBleedGateSystem _wfBleedGate = default!; // WOLFGATE(Wolfmed)
+    // WOLFGATE(Performance) START: clotting deadlines are checked four times a second, not every tick
+    private static readonly TimeSpan WFClotScanInterval = TimeSpan.FromSeconds(0.25);
+    private TimeSpan _wfNextClotScan;
+    // WOLFGATE END
 
     public override void Initialize()
     {
@@ -142,9 +146,18 @@ public sealed partial class WoundBleedingSystem : EntitySystem
         if (!_net.IsServer)
             return;
 
+        // WOLFGATE(Performance) START: clotting deadlines are checked four times a second, not every tick
+        if (_timing.CurTime < _wfNextClotScan)
+            return;
+        _wfNextClotScan = _timing.CurTime + WFClotScanInterval;
+        // WOLFGATE END
+
         var query = EntityQueryEnumerator<WoundBleedingComponent, WoundComponent>();
         while (query.MoveNext(out var uid, out var bleeding, out var wound))
         {
+            if (WFRemoveClottedSystemicBleed(uid, bleeding, wound)) // WOLFGATE(Wolfmed): a clotted systemic bleed left an untreatable wound
+                continue;
+
             if (bleeding.AutomaticClottingAt is not { } deadline || _timing.CurTime < deadline)
                 continue;
 
@@ -174,6 +187,9 @@ public sealed partial class WoundBleedingSystem : EntitySystem
             return false;
 
         bleeding.BleedingSeverity = FixedPoint2.Max(FixedPoint2.Zero, bleeding.BleedingSeverity - amount);
+        if (WFRemoveStoppedSystemicBleed((wound.Owner, wound.Comp), bleeding)) // WOLFGATE(Wolfmed): a stopped systemic bleed left an untreatable wound
+            return true;
+
         // WOLFGATE(Wolfmed): gauze that stops a bleed stays on the wound as a dressing. Removing the component here let the
         // next severity change re-roll the bleed at full strength, and left nothing for the limb overlay to show.
         if (dressing)

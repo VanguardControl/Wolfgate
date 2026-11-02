@@ -1009,7 +1009,9 @@ public sealed partial class ShuttleSystem
             foreach (var child in toKnock)
             {
                 // goob edit - stunmeta
-                _stuns.TryKnockdown(child, _hyperspaceKnockdownTime, true, _statusQuery.Get(child));
+                // WOLFGATE: FTLKnockdownImmune, dropped by Monolith#3414, stops the knockdown again
+                if (!HasComp<Content.Server._NF.Shuttles.Components.FTLKnockdownImmuneComponent>(child))
+                    _stuns.TryKnockdown(child, _hyperspaceKnockdownTime, true, _statusQuery.Get(child));
 
                 // WOLFGATE START: the jump knocks crew down but never throws them off the grid; only leaving it strands you
                 // On open-framed ships most of the deck is lattice, so crew were flung into space on every jump.

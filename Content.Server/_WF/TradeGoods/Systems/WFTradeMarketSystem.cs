@@ -17,8 +17,11 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.TradeGoods.Systems;
 
-/// <summary>A chute's live quote for one good: its base price, what it pays now and the reason players see.</summary>
-public readonly record struct WFTradeQuote(int Base, int Amount, float Factor, LocId Reason);
+/// <summary>
+/// A chute's live quote for one good: its base price, what it pays now, the reason players see and whether selling at it
+/// leaves the price where it is.
+/// </summary>
+public readonly record struct WFTradeQuote(int Base, int Amount, float Factor, LocId Reason, bool NoGlut = false);
 
 /// <summary>
 /// Station markets for the trade-goods chutes. Each chute grid keeps a pressure per good that sales raise and time
@@ -101,7 +104,7 @@ public sealed partial class WFTradeMarketSystem : EntitySystem
             return cached;
 
         int? value = null;
-        if (_proto.TryIndex<EntityPrototype>(cash, out var proto) && proto.TryGetComponent<StackComponent>(out var stack, _factory))
+        if (_proto.TryIndex<EntityPrototype>(cash, out var proto) && proto.TryComp<StackComponent>(out var stack, _factory))
             value = stack.Count;
 
         _cashValues[cash] = value;
@@ -136,6 +139,13 @@ public sealed partial class WFTradeMarketSystem : EntitySystem
 
         _supplied[(grid, good)] = _timing.CurTime + Profile(grid).HalfLife;
         AddScarcity(grid, good, -amount);
+    }
+
+    /// <summary>Clears a good's pressure at a market, back to its full price.</summary>
+    public void ResetPressure(EntityUid grid, string good)
+    {
+        if (TryComp<WFTradeMarketComponent>(grid, out var market))
+            market.Pressure.Remove(good);
     }
 
     /// <summary>Crates of a good delivered to a market this round.</summary>
@@ -203,7 +213,7 @@ public sealed partial class WFTradeMarketSystem : EntitySystem
                          : supplied && pressure >= SuppliedSales * profile.PerSale ? "wf-trade-reason-supplied"
                          : pressure < GluttedPressure ? "wf-trade-reason-steady"
                          : "wf-trade-reason-glutted");
-        return new WFTradeQuote(basePrice, amount, amount / (float) basePrice, reason);
+        return new WFTradeQuote(basePrice, amount, amount / (float) basePrice, reason, ev.NoGlut);
     }
 
     /// <summary>
@@ -226,7 +236,7 @@ public sealed partial class WFTradeMarketSystem : EntitySystem
 
             amount = quote.Amount;
             var profile = Profile(grid);
-            if (!profile.ContrabandGoods.Contains(good))
+            if (!quote.NoGlut && !profile.ContrabandGoods.Contains(good))
                 AddPressure(grid, good, profile.PerSaleOverrides.GetValueOrDefault(good, profile.PerSale));
             if (quote.Factor < LowQuote && Best(good, grid) is { } best)
             {

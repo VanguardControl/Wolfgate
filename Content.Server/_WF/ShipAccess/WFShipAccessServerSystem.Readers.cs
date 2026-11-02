@@ -196,6 +196,11 @@ public sealed partial class WFShipAccessServerSystem
                 foreach (var key in ship.Comp.CrewKeys)
                     keys.Add(_access.ToRecordKey(key));
             }
+            if (ship.Comp.Mode == WFShipAccessMode.Company)
+            {
+                foreach (var key in ship.Comp.CompanyKeys)
+                    keys.Add(_access.ToRecordKey(key));
+            }
             backup.Locked = false;
             backup.OwnLists = true;
             CommitReader(reader);
@@ -228,6 +233,11 @@ public sealed partial class WFShipAccessServerSystem
                 foreach (var key in ship.Comp.CrewKeys)
                     keys.Add(_access.ToRecordKey(key));
                 break;
+            case WFDoorAccessRule.Company:
+                keys.UnionWith(owners);
+                foreach (var key in ship.Comp.CompanyKeys)
+                    keys.Add(_access.ToRecordKey(key));
+                break;
             case WFDoorAccessRule.Players:
             case WFDoorAccessRule.PlayersOrCode:
                 keys.UnionWith(owners);
@@ -242,6 +252,11 @@ public sealed partial class WFShipAccessServerSystem
                 if (ship.Comp.Mode == WFShipAccessMode.Crew)
                 {
                     foreach (var key in ship.Comp.CrewKeys)
+                        keys.Add(_access.ToRecordKey(key));
+                }
+                if (ship.Comp.Mode == WFShipAccessMode.Company)
+                {
+                    foreach (var key in ship.Comp.CompanyKeys)
                         keys.Add(_access.ToRecordKey(key));
                 }
 
@@ -265,7 +280,13 @@ public sealed partial class WFShipAccessServerSystem
     /// <summary>Doors (not firelocks), lockers and lockable buttons: what ship access covers.</summary>
     private bool IsShipReader(EntityUid uid)
     {
-        return IsRuledDoor(uid) || HasComp<EntityStorageComponent>(uid) || IsLockableSwitch(uid) || IsLockedReactor(uid);
+        return IsRuledDoor(uid) || HasComp<EntityStorageComponent>(uid) || IsLockableSwitch(uid) || IsLockedReactor(uid) || IsLockedTurbine(uid);
+    }
+
+    /// <summary>A gas turbine with a lock, which nobody aboard could open while it asked for Captain access alone.</summary>
+    private bool IsLockedTurbine(EntityUid uid)
+    {
+        return HasComp<TurbineComponent>(uid) && HasComp<LockComponent>(uid);
     }
 
     /// <summary>A door that can take a rule of its own. Firelocks answer to the atmosphere, not the owner.</summary>

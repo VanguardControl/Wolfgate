@@ -28,7 +28,7 @@ public sealed partial class WFMarketCartridgeComponent : Component;
 /// Pushes the Market app's state to every open copy every few seconds and when one opens. UI state reaches every client
 /// near the PDA, so a holder who sees the hidden markets gets a public copy there and the full one sent to the viewers.
 /// </summary>
-public sealed class WFMarketCartridgeSystem : EntitySystem
+public sealed partial class WFMarketCartridgeSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _proto = default!;
@@ -110,7 +110,7 @@ public sealed class WFMarketCartridgeSystem : EntitySystem
             if (!underground && _market.IsHiddenChute(chute)
                 || _market.Shunned(chute, seller)
                 || _vendingPurchase.WasPurchasedOnGrid(crate, grid)
-                || !_market.WouldPassHaul(chute, crate))
+                || _market.CheckSeal(chute, crate) != null)
                 continue;
 
             var amount = special ? _special.Price(chute, crate) : _market.Quote(chute, good, crate, seller)?.Amount;
@@ -281,7 +281,7 @@ public sealed class WFMarketCartridgeSystem : EntitySystem
 
         foreach (var rush in _rush.Active)
         {
-            Add(new WFMarketAlert(Loc.GetString("wf-market-alert-rush", ("station", Name(rush.Grid)),
+            Add(new WFMarketAlert(Loc.GetString("wf-market-alert-rush", ("bulk", rush.Bulk), ("station", Name(rush.Grid)),
                 ("left", rush.Remaining), ("count", rush.Total), ("goods", Loc.GetString(rush.Goods)), ("factor", WFTradeMarketSystem.Shown(rush.Factor))), rush.Ends, true), Name(rush.Grid));
         }
 

@@ -139,6 +139,8 @@ refresh of everyone.
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/Feedback/FeedbackTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Feedback/FeedbackTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Feedback/PlayerReportFixesTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Feedback/PlayerReportFixesTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Feedback/WFFeedbackBatch1101Test.cs`](../../../Content.IntegrationTests/Tests/_WF/Feedback/WFFeedbackBatch1101Test.cs)
 
 ### Localization
 

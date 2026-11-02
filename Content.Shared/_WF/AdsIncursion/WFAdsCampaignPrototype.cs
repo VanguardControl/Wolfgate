@@ -72,6 +72,18 @@ public sealed partial class WFAdsCampaignPrototype : IPrototype
     [DataField]
     public List<int> Interdicts = new() { 0, 1, 1, 1, 2, 2 };
 
+    /// <summary>How long a warned ship may keep mining in held space before it counts as a declared threat.</summary>
+    [DataField]
+    public TimeSpan MiningGrace = TimeSpan.FromSeconds(30);
+
+    /// <summary>How long a warned ship must stay off the rocks before its warning and mining time are forgotten.</summary>
+    [DataField]
+    public TimeSpan MiningForget = TimeSpan.FromMinutes(5);
+
+    /// <summary>How long after its last mining a declared miner still counts as a threat to ADS ships launched since.</summary>
+    [DataField]
+    public TimeSpan MiningGrudge = TimeSpan.FromMinutes(15);
+
     /// <summary>How long a node stands, from its founding or its last sentinel, before the next sentinel sets out.</summary>
     [DataField]
     public TimeSpan SentinelInterval = TimeSpan.FromMinutes(15);

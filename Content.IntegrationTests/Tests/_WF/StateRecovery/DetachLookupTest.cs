@@ -1,4 +1,5 @@
 #nullable enable
+using Content.IntegrationTests.Tests._WF.EngineCompat;
 using System.Collections.Generic;
 using System.Numerics;
 using Content.Client._WF.StateRecovery;
@@ -67,7 +68,7 @@ public sealed class DetachLookupTest
                 {
                     if (!em.TryGetComponent(uid, out TransformComponent? xform))
                         found.Add($"{em.ToPrettyString(owner)} holds deleted {uid}");
-                    else if (lookup.GetCurrentBroadphase(xform)?.Owner != owner)
+                    else if (lookup.GetCurrentBroadphase(xform)?.Uid() != owner)
                         found.Add($"{em.ToPrettyString(owner)} holds {em.ToPrettyString(uid)}, which is not on it");
                 }
             }

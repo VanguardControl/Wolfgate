@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Numerics;
+using System.Threading.Tasks;
 using Content.Server._Mono.Shuttles.Components;
 using Content.Server._WF.ShipAccess;
 using Content.Server.Physics.Controllers;
@@ -20,6 +21,12 @@ using Content.Shared.Shuttles.Components;
 using Content.Shared.Station.Components;
 using Content.Shared.UserInterface;
 using Robust.Shared.EntitySerialization;
+using Robust.Shared.Map.Components;
+using Robust.Shared.Serialization;
+using Robust.Shared.Serialization.Markdown;
+using Robust.Shared.Serialization.Markdown.Mapping;
+using YamlDotNet.Core;
+using YamlDotNet.RepresentationModel;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._NF.Shipyard.Systems;
@@ -60,7 +67,7 @@ public sealed partial class ShipyardSystem
         if (!_prototypeManager.TryIndex(consoleProto, out var proto))
             return false;
 
-        if (!proto.TryGetComponent<ActivatableUIComponent>(out var activatable, _wfComponentFactory)
+        if (!proto.TryComp<ActivatableUIComponent>(out var activatable, _wfComponentFactory)
             || activatable.Key is not ShipyardConsoleUiKey key)
         {
             Log.Error($"{consoleProto} is not a shipyard console: no ActivatableUI shipyard key.");
@@ -323,13 +330,32 @@ public sealed partial class ShipyardSystem
     public bool TrySaveShip(EntityUid grid, List<EntityUid> carry, [NotNullWhen(true)] out string? data)
     {
         data = null;
+        if (!TrySaveShipDeferred(grid, carry, out var writing))
+            return false;
 
-        using var writer = new StringWriter();
+        data = writing.GetAwaiter().GetResult();
+        return data != null;
+    }
+
+    /// <summary>
+    /// Serialises a grid now, which has to happen on the main thread, and writes the YAML text on a worker so a big
+    /// ship doesn't hold up the tick for it. The task gives null if the write failed.
+    /// </summary>
+    public bool TrySaveShipDeferred(EntityUid grid, List<EntityUid> carry, [NotNullWhen(true)] out Task<string?>? writing)
+    {
+        writing = null;
+
+        if (!HasComp<MapGridComponent>(grid) || HasComp<MapComponent>(grid))
+        {
+            Log.Error($"{ToPrettyString(grid)} is not a plain grid, so it can't be copied for resale.");
+            return false;
+        }
 
         // Ignore: a docked ship points at the station's docks, and none of that comes with it.
         var options = SerializationOptions.Default;
         options.MissingEntityBehaviour = MissingEntityBehaviour.Ignore;
         options.LogAutoInclude = null;
+        options.Category = FileCategory.Grid;
 
         var lifted = new List<EntityPrototype>();
         foreach (var uid in carry)
@@ -341,10 +367,27 @@ public sealed partial class ShipyardSystem
         foreach (var proto in lifted)
             proto.MapSavable = true;
 
+        MappingDataNode node;
         try
         {
-            if (!_mapLoader.TrySaveGrid(grid, writer, options))
+            FileCategory category;
+            try
+            {
+                (node, category) = _mapLoader.SerializeEntitiesRecursive([grid], options);
+            }
+            catch (Exception e)
+            {
+                // One bad component shouldn't lose the ship: take off what won't save and try once more.
+                Log.Warning($"Copying {ToPrettyString(grid)} for resale failed, so looking for what won't save: {e.Message}");
+                WFStripUnsavable(grid, options);
+                (node, category) = _mapLoader.SerializeEntitiesRecursive([grid], options);
+            }
+
+            if (category != FileCategory.Grid)
+            {
+                Log.Error($"Failed to copy {ToPrettyString(grid)} for resale as a grid. Output: {category}");
                 return false;
+            }
         }
         catch (Exception e)
         {
@@ -357,7 +400,23 @@ public sealed partial class ShipyardSystem
                 proto.MapSavable = false;
         }
 
-        data = writer.ToString();
+        var name = ToPrettyString(grid).ToString();
+        writing = Task.Run(() =>
+        {
+            try
+            {
+                using var writer = new StringWriter();
+                var stream = new YamlStream { new YamlDocument(node.ToYaml()) };
+                stream.Save(new YamlMappingFix(new Emitter(writer)), false);
+                return (string?) writer.ToString();
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Failed to write the copy of {name} for resale: {e}");
+                return null;
+            }
+        });
+
         return true;
     }
 

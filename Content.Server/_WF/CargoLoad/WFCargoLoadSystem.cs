@@ -23,7 +23,7 @@ namespace Content.Server._WF.CargoLoad;
 /// in space, cargo counts against planet lift through <see cref="WFGridLiftLoadEvent"/>, and a heavy hold spools FTL
 /// longer. Anchors (grids that cannot fly) bound a set, so ships at one station never share a penalty.
 /// </summary>
-public sealed class WFCargoLoadSystem : EntitySystem
+public sealed partial class WFCargoLoadSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _proto = default!;
@@ -34,7 +34,8 @@ public sealed class WFCargoLoadSystem : EntitySystem
     public static readonly ProtoId<WFCargoLoadPrototype> DefaultProfile = "WFCargoLoadDefault";
     private static readonly TimeSpan SweepInterval = TimeSpan.FromSeconds(1);
 
-    private TimeSpan _nextSweep;
+    /// <summary>Starts part way through the second, off the tick other one-second systems run on.</summary>
+    private TimeSpan _nextSweep = TimeSpan.FromSeconds(0.1);
     private readonly Dictionary<EntityUid, float> _loads = new();
     private readonly Dictionary<EntityUid, float> _stored = new();
     private readonly HashSet<EntityUid> _touched = new();
@@ -113,9 +114,9 @@ public sealed class WFCargoLoadSystem : EntitySystem
         if (_proto.TryIndex<MaterialPrototype>(material, out var proto)
             && proto.StackEntity is { } stack
             && _proto.TryIndex(stack, out var item)
-            && item.TryGetComponent<WFCargoMassComponent>(out var cargo, _factory)
+            && item.TryComp<WFCargoMassComponent>(out var cargo, _factory)
             && cargo.PerUnit > 0f
-            && item.TryGetComponent<PhysicalCompositionComponent>(out var composition, _factory)
+            && item.TryComp<PhysicalCompositionComponent>(out var composition, _factory)
             && composition.MaterialComposition.TryGetValue(material, out var units)
             && units > 0)
             weight = cargo.PerUnit / units;
@@ -242,7 +243,7 @@ public sealed class WFCargoLoadSystem : EntitySystem
         var docks = AllEntityQuery<DockingComponent, TransformComponent>();
         while (docks.MoveNext(out _, out var dock, out var xform))
         {
-            if (dock.DockedWith is not { } other || !TryComp<TransformComponent>(other, out var otherXform))
+            if (dock.DockedWith is not { } other || !TryComp(other, out TransformComponent? otherXform))
                 continue;
 
             if (!_links.TryGetValue(xform.ParentUid, out var list))

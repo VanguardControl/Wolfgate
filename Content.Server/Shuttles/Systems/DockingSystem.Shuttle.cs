@@ -421,10 +421,23 @@ public sealed partial class DockingSystem
 
     public List<Entity<DockingComponent>> GetDocks(EntityUid uid)
     {
-        _dockingSet.Clear();
-        _lookup.GetChildEntities(uid, _dockingSet);
+        // WOLFGATE(Performance) START: read the dock index instead of walking every entity on the grid
+        // _dockingSet.Clear();
+        // _lookup.GetChildEntities(uid, _dockingSet);
+        //
+        // return _dockingSet.ToList();
+        var docks = new List<Entity<DockingComponent>>();
+        if (_wfDockIndex.DocksOn(uid) is not { } indexed)
+            return docks;
 
-        return _dockingSet.ToList();
+        foreach (var dock in indexed)
+        {
+            if (TryComp<DockingComponent>(dock, out var comp))
+                docks.Add((dock, comp));
+        }
+
+        return docks;
+        // WOLFGATE END
     }
 
     /// <summary>

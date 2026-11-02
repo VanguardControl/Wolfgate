@@ -12,6 +12,8 @@ namespace Content.Client._WF.ShipShields;
 /// <summary>Draws cached hull fields with hex cells and bounded impact-color sampling.</summary>
 public sealed class WFShipShieldOverlay : Overlay
 {
+    private static readonly ProtoId<ShaderPrototype> WFShipShieldShimmerProto = "WFShipShieldShimmer";
+
     private readonly IEntityManager _entities;
     private readonly SharedTransformSystem _transforms;
     private readonly IGameTiming _timing;
@@ -31,7 +33,7 @@ public sealed class WFShipShieldOverlay : Overlay
         _transforms = entities.System<SharedTransformSystem>();
         _timing = timing;
         _impacts = impacts;
-        _shader = prototypes.Index<ShaderPrototype>("WFShipShieldShimmer").Instance();
+        _shader = prototypes.Index<ShaderPrototype>(WFShipShieldShimmerProto).Instance();
         ZIndex = 8;
     }
 
@@ -164,7 +166,7 @@ public sealed class WFShipShieldOverlay : Overlay
                 Shader.SetParameter("shuntDirection", new Vector2(MathF.Cos(direction), MathF.Sin(direction)));
                 Shader.SetParameter("shuntConcentration", concentration);
                 Shader.SetParameter("shuntCosHalfArc", MathF.Cos(arc * 0.5f));
-                Shader.SetParameter("shuntBoost", 1f + concentration * (MathF.Tau / arc - 1f));
+                Shader.SetParameter("shuntBoost", WFShipShieldShuntMath.PeakStrength(concentration, arc));
                 _shuntCenter = center;
                 _shuntDirection = direction;
                 _shuntConcentration = concentration;

@@ -51,7 +51,10 @@ public sealed partial class WFTradeMarketPrototype : IPrototype
     [DataField]
     public float ModifierCap = 2.5f;
 
-    /// <summary>How far a crate must be hauled from where it was made before a chute takes it, in metres.</summary>
+    /// <summary>
+    /// How far a crate must be hauled from where it was made to earn haul rewards (freight bonus, war-effort credits, traffic), and
+    /// how far a priority delivery's destination sits from its origin, in metres. Chutes still take nearer crates.
+    /// </summary>
     [DataField]
     public float MinHaulDistance = 3000f;
 
@@ -157,6 +160,10 @@ public sealed partial class WFTradeMarketPrototype : IPrototype
     /// <summary>How long between one rush order and the next.</summary>
     [DataField]
     public Vector2i RushMinutes = new(20, 35);
+
+    /// <summary>How long between one bulk order and the next.</summary>
+    [DataField]
+    public Vector2i BulkMinutes = new(30, 60);
 
     /// <summary>How long between one priority consignment and the next.</summary>
     [DataField]
@@ -290,6 +297,13 @@ public sealed partial class WFTradeRushPrototype : IPrototype
 
     [DataField]
     public float MaxFactor = 2.25f;
+
+    /// <summary>
+    /// A big order for a full hold: posted on <see cref="WFTradeMarketPrototype.BulkMinutes"/>, not with rush orders,
+    /// clearing its goods' sale pressure at the station, and its crates add none.
+    /// </summary>
+    [DataField]
+    public bool Bulk;
 
     [DataField(required: true)]
     public LocId Goods;

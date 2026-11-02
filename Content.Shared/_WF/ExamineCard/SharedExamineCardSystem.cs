@@ -1,3 +1,4 @@
+using Content.Shared._WF.Companies;
 using Content.Shared.Access.Systems;
 using Content.Shared.Damage;
 using Content.Shared.DetailExaminable;
@@ -55,13 +56,10 @@ public abstract partial class SharedExamineCardSystem : EntitySystem
             State = CompOrNull<MobStateComponent>(target)?.CurrentState ?? MobState.Alive,
         };
 
-        var faceVisible = examiner == target;
-        if (!faceVisible)
-        {
-            var see = new SeeIdentityAttemptEvent();
-            RaiseLocalEvent(target, see);
-            faceVisible = !see.Cancelled;
-        }
+        // Your own card too, so you see the disguise everyone else sees.
+        var see = new SeeIdentityAttemptEvent();
+        RaiseLocalEvent(target, see);
+        var faceVisible = !see.Cancelled;
 
         var trueName = Name(target);
         if (faceVisible)
@@ -95,6 +93,15 @@ public abstract partial class SharedExamineCardSystem : EntitySystem
             card.IdName = string.IsNullOrWhiteSpace(id.Comp.FullName) ? null : id.Comp.FullName;
             card.IdJob = id.Comp.LocalizedJobTitle;
             card.JobIcon = id.Comp.JobIcon;
+            // The ID carries these, so a predicted card shows the company rank straight away.
+            if (TryComp<WFCompanyIdComponent>(id, out var company))
+            {
+                card.Company = $"[{company.Tag}] {company.Company}";
+                card.CompanyRank = company.Rank;
+                card.CompanyId = company.CompanyId;
+            }
+            if (TryComp<WFCompanyRankIconComponent>(id, out var rankIcon))
+                card.CompanyRankId = rankIcon.RankId;
             card.Stamp = !faceVisible
                 ? ExamineCardStamp.Unverified
                 : string.Equals(card.IdName?.Trim(), trueName.Trim(), StringComparison.OrdinalIgnoreCase)

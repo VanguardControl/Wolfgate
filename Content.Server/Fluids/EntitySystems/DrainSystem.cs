@@ -1,5 +1,6 @@
 using Content.Server.DoAfter;
 using Content.Server.Popups;
+using Content.Shared._WF.Performance; // WOLFGATE(Performance)
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Audio;
 using Content.Shared.Chemistry.Components.SolutionManager;
@@ -15,6 +16,7 @@ using Content.Shared.Verbs;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
+using Robust.Shared.Timing; // WOLFGATE(Performance)
 using Robust.Shared.Utility;
 
 namespace Content.Server.Fluids.EntitySystems;
@@ -36,7 +38,8 @@ public sealed partial class DrainSystem : SharedDrainSystem
 
     // Mono
     private float _updateInterval = 1f;
-    private float _updateAccumulator = 0f;
+    // private float _updateAccumulator = 0f; // WOLFGATE(Performance): each drain takes its own tick
+    [Dependency] private IGameTiming _wfTiming = default!; // WOLFGATE(Performance)
 
     public override void Initialize()
     {
@@ -121,16 +124,23 @@ public sealed partial class DrainSystem : SharedDrainSystem
         base.Update(frameTime);
 
         // Mono
-        _updateAccumulator += frameTime;
-        if (_updateAccumulator < _updateInterval)
-            return;
-        _updateAccumulator -= _updateInterval;
+        // WOLFGATE(Performance) START: each drain takes its own tick of the second, not all on one
+        // _updateAccumulator += frameTime;
+        // if (_updateAccumulator < _updateInterval)
+        //     return;
+        // _updateAccumulator -= _updateInterval;
+        var period = WFTickSpread.Period(_wfTiming, _updateInterval);
+        var tick = _wfTiming.CurTick;
 
         var managerQuery = GetEntityQuery<SolutionContainerManagerComponent>();
 
         var query = EntityQueryEnumerator<DrainComponent>();
         while (query.MoveNext(out var uid, out var drain))
         {
+            if (!WFTickSpread.Due(uid, tick, period) || _wfTiming.CurTime < drain.WFIdleUntil)
+                continue;
+            // WOLFGATE END
+
             if (!managerQuery.TryGetComponent(uid, out var manager))
                 continue;
 
@@ -157,6 +167,7 @@ public sealed partial class DrainSystem : SharedDrainSystem
 
                 if (_puddles.Count == 0 && drainSolution.Volume <= 0)
                 {
+                    drain.WFIdleUntil = _wfTiming.CurTime + TimeSpan.FromSeconds(5); // WOLFGATE(Performance): a dry drain searches less often
                     _ambientSoundSystem.SetAmbience(uid, false);
                     continue;
                 }

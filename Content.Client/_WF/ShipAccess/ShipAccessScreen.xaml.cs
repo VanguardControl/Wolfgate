@@ -37,6 +37,7 @@ public sealed partial class ShipAccessScreen : BoxContainer
         WFDoorAccessRule.Default,
         WFDoorAccessRule.OwnerOnly,
         WFDoorAccessRule.Crew,
+        WFDoorAccessRule.Company,
         WFDoorAccessRule.Players,
         WFDoorAccessRule.Code,
         WFDoorAccessRule.PlayersOrCode,
@@ -168,6 +169,7 @@ public sealed partial class ShipAccessScreen : BoxContainer
         WfRefitInstruments();
     }
 
+#pragma warning disable CS0672, CS0618 // Dispose is still how the engine tears a control down, and this cleanup depends on it.
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
@@ -177,6 +179,7 @@ public sealed partial class ShipAccessScreen : BoxContainer
         _client.CodesReceived -= OnCodes;
         _client.AlertReceived -= OnAlert;
     }
+#pragma warning restore CS0672, CS0618
 
     /// <summary>Codes are only held while the tab is open.</summary>
     protected override void VisibilityChanged(bool newVisible)
@@ -252,7 +255,8 @@ public sealed partial class ShipAccessScreen : BoxContainer
         if (comp != null)
         {
             sb.Append(comp.OwnerName).Append('|').Append(comp.Mode.ToString()).Append('|').Append(comp.Locked).Append('|')
-                .Append(comp.CrewName).Append('|').Append(comp.CrewKeys.Count).Append('|');
+                .Append(comp.CrewName).Append('|').Append(comp.CrewKeys.Count).Append('|')
+                .Append(comp.CompanyName).Append('|').Append(comp.CompanyKeys.Count).Append('|');
             foreach (var entry in comp.AllowList)
                 sb.Append(entry.Key).Append(',').Append(entry.Name).Append(',').Append(entry.Label).Append(',').Append(entry.Builder).Append(';');
         }
@@ -418,6 +422,7 @@ public sealed partial class ShipAccessScreen : BoxContainer
         ModeLabel.Text = Loc.GetString(mode switch
         {
             WFShipAccessMode.Crew => "ship-access-mode-crew",
+            WFShipAccessMode.Company => "ship-access-mode-company",
             WFShipAccessMode.Faction => "ship-access-mode-faction",
             _ => "ship-access-mode-private",
         });
@@ -426,18 +431,21 @@ public sealed partial class ShipAccessScreen : BoxContainer
         ShipModeButton.Clear();
         ShipModeButton.AddItem(Loc.GetString("ship-access-mode-private"), (int) WFShipAccessMode.Private);
         ShipModeButton.AddItem(Loc.GetString("ship-access-mode-crew"), (int) WFShipAccessMode.Crew);
+        ShipModeButton.AddItem(Loc.GetString("ship-access-mode-company"), (int) WFShipAccessMode.Company);
         if (faction)
             ShipModeButton.AddItem(Loc.GetString("ship-access-mode-faction"), (int) WFShipAccessMode.Faction);
         ShipModeButton.SelectId((int) mode);
         ShipModeButton.ToolTip = Loc.GetString("ship-access-mode-hint") + "\n" + (comp?.CrewName == null
             ? Loc.GetString("ship-access-no-crew")
-            : Loc.GetString("ship-access-linked-crew", ("name", comp.CrewName), ("count", comp.CrewKeys.Count)));
+            : Loc.GetString("ship-access-linked-crew", ("name", comp.CrewName), ("count", comp.CrewKeys.Count)))
+            + "\n" + (comp?.CompanyName == null ? Loc.GetString("ship-access-no-company")
+                : Loc.GetString("ship-access-linked-company", ("name", comp.CompanyName), ("count", comp.CompanyKeys.Count)));
         ModeLabel.ToolTip = ShipModeButton.ToolTip;
         OwnerLabel.ToolTip = OwnerLabel.Text;
         LockedLabel.Text = comp == null ? "-" : Loc.GetString(comp.Locked ? "ship-access-locked-yes" : "ship-access-locked-no");
 
         _builderChecks.Clear();
-        AllowListContainer.DisposeAllChildren();
+        AllowListContainer.RemoveAllChildren();
         if (comp != null)
         {
             foreach (var entry in comp.AllowList)
@@ -450,7 +458,7 @@ public sealed partial class ShipAccessScreen : BoxContainer
     private void RebuildNearby(bool isOwner, List<NearbyPerson> nearby)
     {
         NearbyBox.Visible = isOwner;
-        NearbyContainer.DisposeAllChildren();
+        NearbyContainer.RemoveAllChildren();
         foreach (var person in nearby)
             NearbyContainer.AddChild(NearbyRow(person));
 
@@ -463,7 +471,7 @@ public sealed partial class ShipAccessScreen : BoxContainer
         DoorNoneLabel.Visible = selected == null;
         DoorBox.Visible = selected != null;
         _doorPlayerChecks.Clear();
-        DoorPlayersContainer.DisposeAllChildren();
+        DoorPlayersContainer.RemoveAllChildren();
         if (selected == null)
             return;
 
@@ -661,6 +669,7 @@ public sealed partial class ShipAccessScreen : BoxContainer
         {
             WFDoorAccessRule.OwnerOnly => "owner-only",
             WFDoorAccessRule.Crew => "crew",
+            WFDoorAccessRule.Company => "company",
             WFDoorAccessRule.Players => "players",
             WFDoorAccessRule.Code => "code",
             WFDoorAccessRule.PlayersOrCode => "players-or-code",

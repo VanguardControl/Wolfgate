@@ -2,7 +2,7 @@
 
 Crew Setup lets players organize a Crashlanded, Ship or Faction Crew start together before the round, or launch a new start mid-round. Hosts control public access, private requests, codes, direct invitations and whether survivors may join after launch. Each member chooses their own character through the existing character selector and selects their own permitted job.
 
-The lobby retains the repository's menu column, character hero, docked chat and bottom information strip. Crew Setup sits directly above an equally sized red/green READY button before the round. READY opens a chooser with Start a crew (Default), which opens Crew Setup, or Ready up normally (Legacy), which uses saved job preferences after leaving any current crew. Closing the chooser does not change readiness, and READY — Cancel clears existing readiness directly. Mid-round there is one Join Round button, offering Crew (Default) for scenario setup or Standard (Legacy) for station jobs. Crew setup uses a distinct accent colour. The hero yields space to the menu at narrow widths, and secondary options remain accessible by scrolling. The footer measures its link text, including Changelog (new), instead of clipping it to a fixed height. Lobby and crew preparation panels are translucent, while text stays opaque and the full-screen background remains clear.
+The lobby retains the repository's menu column, character hero, docked chat and bottom information strip. Crew Setup sits directly above an equally sized red/green READY button before the round. READY opens a chooser with Crew, which opens Crew Setup, or Station Roles, which uses saved job preferences after leaving any current crew. Closing the chooser does not change readiness, and READY — Cancel clears existing readiness directly. Mid-round there is one Join Round button, offering Crew for scenario setup or Station Roles for station jobs. Crew setup uses a distinct accent colour. The hero yields space to the menu at narrow widths, and secondary options remain accessible by scrolling. The footer measures its link text, including Changelog (new), instead of clipping it to a fixed height. Lobby and crew preparation panels are translucent, while text stays opaque and the full-screen background remains clear.
 
 Compact crew rows appear below Leave Server and open full details when clicked; the welcome information is pinned below the scrolling menu. The setup browser uses the same rows, with Crews and Create tabs. Leader portraits show only public appearance, with existing job icons used throughout. Hosts can name their crew, write a plain-text description of up to 512 characters and switch between eligible crew types before launch without recreating it. Descriptions appear in crew details and can be edited in Who can join, including after launch. Changing type clears the vessel choice and readiness while retaining members, compatible roles and admission settings. Editing a character clears both normal and crew readiness. Once a player belongs to a crew, its preparation, ship, crew and access sections replace the browsing navigation across the top. The ship page places selection and departure controls beside a flexible preview without a page scrollbar; ship descriptions and preview controls have tooltips. Selectors and buttons wrap long text, pages scroll at smaller sizes, and confirmation and red Leave Crew buttons stay visible. Confirmation closes setup after the server accepts readiness or a mid-round join, including explicit ship purchase consent.
 
@@ -38,6 +38,10 @@ Launched crews show how they are doing. Each spawned member's roster entry reads
 
 Every scenario card, crew detail and crew row shows a colour-coded difficulty from `WFRoundSetupPolicy.Difficulty`: Ship and Faction Crew are Normal (green), Crashlanded Very Hard (orange), Down With Ye' Ship! Impossible (red). Easy (blue) and Hard (yellow) exist for later scenarios.
 
+Players already in the round can form or join a crew without respawning (live members). Crew Setup's Create tab offers them one choice, Formed Crew: it starts at once around the host's current character, with no launch or purchase, and picks up a ship from a member's deed under Your ship. Live members can join Formed crews and launched Ship crews by request, invitation or open access; they take a free opening as a label only, keep their ID, job and gear, and get the crew radio, leader arrow, status tracking and crew ship access. Hosts can remove live members. Unspawned players join a Formed crew only once it has a ship to spawn on. Rules live in `WFRoundSetupPolicy.AllowsLiveMembers`; the server side is `WFRoundSetupSystem.Live`.
+
+Hosts turn on Looking for crew in Who can join. A crew shows as recruiting only while outsiders could take an opening (Public or Request access, late joining on, a free slot); recruiting crews sort to the top of every crew list with a slow pulsing border. Post for crew sends a 200-character in-character posting, at most every 10 minutes, as a Crew Board chat line and a bottom-right card to every connected player outside a crew who could join it. The card's View opens the crew in Crew Setup; Mute sets the client setting `wf.round_setup.show_postings` to false. Postings go to the admin log, and `crewunpost <id>` withdraws one. The server side is `WFRoundSetupSystem.Postings`; the card is `WFCrewPostingCardSystem`.
+
 Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSystem`, `WFDoomedScenarioSystem`, `WFShipScenarioSystem`, and the client Crew Setup window.
 
 <!-- WOLFGATE-GENERATED START -->
@@ -57,15 +61,20 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.Server/_WF/RoundSetup/WFCrashScenarioSystem.Effects.cs`](WFCrashScenarioSystem.Effects.cs)
 - [`Content.Server/_WF/RoundSetup/WFCrashScenarioSystem.Equipment.cs`](WFCrashScenarioSystem.Equipment.cs)
 - [`Content.Server/_WF/RoundSetup/WFCrashScenarioSystem.Flight.cs`](WFCrashScenarioSystem.Flight.cs)
+- [`Content.Server/_WF/RoundSetup/WFCrewUnpostCommand.cs`](WFCrewUnpostCommand.cs)
 - [`Content.Server/_WF/RoundSetup/WFDoomedScenarioComponent.cs`](WFDoomedScenarioComponent.cs)
 - [`Content.Server/_WF/RoundSetup/WFDoomedScenarioSystem.cs`](WFDoomedScenarioSystem.cs)
 - [`Content.Server/_WF/RoundSetup/WFPlayerCrewRadioComponent.cs`](WFPlayerCrewRadioComponent.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Broadcast.cs`](WFRoundSetupSystem.Broadcast.cs)
+- [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Companies.cs`](WFRoundSetupSystem.Companies.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.cs`](WFRoundSetupSystem.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Demo.cs`](WFRoundSetupSystem.Demo.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Factions.cs`](WFRoundSetupSystem.Factions.cs)
+- [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Hangar.cs`](WFRoundSetupSystem.Hangar.cs)
+- [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Live.cs`](WFRoundSetupSystem.Live.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Notifications.cs`](WFRoundSetupSystem.Notifications.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Payments.cs`](WFRoundSetupSystem.Payments.cs)
+- [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Postings.cs`](WFRoundSetupSystem.Postings.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Roles.cs`](WFRoundSetupSystem.Roles.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Saved.cs`](WFRoundSetupSystem.Saved.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.ShipAccess.cs`](WFRoundSetupSystem.ShipAccess.cs)
@@ -88,6 +97,7 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 
 - [`Content.Shared/_WF/RoundSetup/WFCrashCountdownClock.cs`](../../../Content.Shared/_WF/RoundSetup/WFCrashCountdownClock.cs)
 - [`Content.Shared/_WF/RoundSetup/WFCrashCountdownEvent.cs`](../../../Content.Shared/_WF/RoundSetup/WFCrashCountdownEvent.cs)
+- [`Content.Shared/_WF/RoundSetup/WFCrewPostingEvent.cs`](../../../Content.Shared/_WF/RoundSetup/WFCrewPostingEvent.cs)
 - [`Content.Shared/_WF/RoundSetup/WFCrewSignalEvent.cs`](../../../Content.Shared/_WF/RoundSetup/WFCrewSignalEvent.cs)
 - [`Content.Shared/_WF/RoundSetup/WFCrewStatus.cs`](../../../Content.Shared/_WF/RoundSetup/WFCrewStatus.cs)
 - [`Content.Shared/_WF/RoundSetup/WFFactionCrewPolicy.cs`](../../../Content.Shared/_WF/RoundSetup/WFFactionCrewPolicy.cs)
@@ -107,7 +117,9 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.Client/_WF/RoundSetup/WFCrashCountdownHudSystem.cs`](../../../Content.Client/_WF/RoundSetup/WFCrashCountdownHudSystem.cs)
 - [`Content.Client/_WF/RoundSetup/WFCrewHudSystem.cs`](../../../Content.Client/_WF/RoundSetup/WFCrewHudSystem.cs)
 - [`Content.Client/_WF/RoundSetup/WFCrewLocatorHud.cs`](../../../Content.Client/_WF/RoundSetup/WFCrewLocatorHud.cs)
+- [`Content.Client/_WF/RoundSetup/WFCrewPostingCardSystem.cs`](../../../Content.Client/_WF/RoundSetup/WFCrewPostingCardSystem.cs)
 - [`Content.Client/_WF/RoundSetup/WFLobbyLayout.cs`](../../../Content.Client/_WF/RoundSetup/WFLobbyLayout.cs)
+- [`Content.Client/_WF/RoundSetup/WFRecruitingGlow.cs`](../../../Content.Client/_WF/RoundSetup/WFRecruitingGlow.cs)
 - [`Content.Client/_WF/RoundSetup/WFRoundJoinChoiceWindow.cs`](../../../Content.Client/_WF/RoundSetup/WFRoundJoinChoiceWindow.cs)
 - [`Content.Client/_WF/RoundSetup/WFRoundSetupClientSystem.cs`](../../../Content.Client/_WF/RoundSetup/WFRoundSetupClientSystem.cs)
 - [`Content.Client/_WF/RoundSetup/WFRoundSetupCrewRow.cs`](../../../Content.Client/_WF/RoundSetup/WFRoundSetupCrewRow.cs)
@@ -119,6 +131,7 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Identity.cs`](../../../Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Identity.cs)
 - [`Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Invitations.cs`](../../../Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Invitations.cs)
 - [`Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Layout.cs`](../../../Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Layout.cs)
+- [`Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Live.cs`](../../../Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Live.cs)
 - [`Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Loadouts.cs`](../../../Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Loadouts.cs)
 - [`Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Payments.cs`](../../../Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Payments.cs)
 - [`Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Preview.cs`](../../../Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Preview.cs)
@@ -153,12 +166,14 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Comms.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Comms.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Factions.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Factions.cs)
+- [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Live.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Live.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Payments.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Payments.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.ShipAssignment.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.ShipAssignment.cs)
 
 ### Unit tests
 
 - [`Content.Tests/_WF/RoundSetup/WFCrashCountdownClockTest.cs`](../../../Content.Tests/_WF/RoundSetup/WFCrashCountdownClockTest.cs)
+- [`Content.Tests/_WF/RoundSetup/WFCrewRecruitingPolicyTest.cs`](../../../Content.Tests/_WF/RoundSetup/WFCrewRecruitingPolicyTest.cs)
 - [`Content.Tests/_WF/RoundSetup/WFCrewStatusPolicyTest.cs`](../../../Content.Tests/_WF/RoundSetup/WFCrewStatusPolicyTest.cs)
 - [`Content.Tests/_WF/RoundSetup/WFFactionCrewPolicyTest.cs`](../../../Content.Tests/_WF/RoundSetup/WFFactionCrewPolicyTest.cs)
 - [`Content.Tests/_WF/RoundSetup/WFRoundSetupPolicyTest.cs`](../../../Content.Tests/_WF/RoundSetup/WFRoundSetupPolicyTest.cs)
@@ -186,6 +201,7 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Resources/Locale/en-US/_WF/RoundSetup/join-flow.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/join-flow.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/lobby-panel.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/lobby-panel.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/preview.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/preview.ftl)
+- [`Resources/Locale/en-US/_WF/RoundSetup/recruiting.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/recruiting.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/round-setup.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/round-setup.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/server.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/server.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/ship-assignment.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/ship-assignment.ftl)

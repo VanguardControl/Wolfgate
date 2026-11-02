@@ -78,7 +78,7 @@ public sealed partial class ShipShieldsSystem
     private void FollowWolfgateShieldGrid(EntityUid shield, EntityUid grid)
     {
         if (TerminatingOrDeleted(shield) || TerminatingOrDeleted(grid) ||
-            !TryComp<TransformComponent>(grid, out var gridTransform))
+            !TryComp(grid, out TransformComponent? gridTransform))
             return;
         if (gridTransform.MapUid == null || gridTransform.MapID == MapId.Nullspace)
         {
@@ -86,8 +86,10 @@ public sealed partial class ShipShieldsSystem
             return;
         }
         var origin = _transformSystem.ToMapCoordinates(new EntityCoordinates(grid, Vector2.Zero));
-        _transformSystem.SetCoordinates(shield, _transformSystem.ToCoordinates(origin));
-        _transformSystem.SetWorldRotation(shield, _transformSystem.GetWorldRotation(grid));
+        // One call, so a ship's move costs the shield one move event and one lookup update rather than two.
+        var coordinates = _transformSystem.ToCoordinates(origin);
+        var rotation = _transformSystem.GetWorldRotation(grid) - _transformSystem.GetWorldRotation(coordinates.EntityId);
+        _transformSystem.SetCoordinates(shield, Transform(shield), coordinates, rotation);
     }
 
     /// <summary>Passes shots from the protected ship and other protected autonomous fire.</summary>

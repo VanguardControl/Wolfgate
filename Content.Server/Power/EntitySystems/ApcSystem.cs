@@ -50,6 +50,10 @@ public sealed partial class ApcSystem : EntitySystem
 
     public override void Update(float deltaTime)
     {
+        // WOLFGATE(Performance): every APC is walked for a UI refresh or a deferred state update that can wait a tick or two
+        if (_gameTiming.CurTick.Value % 3 != 2)
+            return;
+
         var query = EntityQueryEnumerator<ApcComponent, PowerNetworkBatteryComponent, UserInterfaceComponent>();
         while (query.MoveNext(out var uid, out var apc, out var battery, out var ui))
         {

@@ -76,7 +76,18 @@ public sealed class ExamineCardTest
             });
 
             card = cards.BuildCard(mob, mob);
-            Assert.That(card.Name, Is.EqualTo(name), "you always know your own face");
+            Assert.That(card.Name, Is.Null, "your own card hides your name behind a mask too");
+
+            Assert.That(inventory.TryUnequip(mob, "id", silent: true, force: true));
+            card = cards.BuildCard(mob, viewer);
+            Assert.Multiple(() =>
+            {
+                Assert.That(card.Stamp, Is.EqualTo(ExamineCardStamp.NoId));
+                Assert.That(card.Name, Is.Null, "a mask hides the name without an ID as well");
+                Assert.That(card.IdName, Is.Null);
+            });
+
+            card = cards.BuildCard(mob, mob);
 
             var validated = Shared._WF.Genitals.Profile.GenitalProfileValidator.ValidateOrgans(
                 Shared._WF.Genitals.Profile.GenitalProfile.Empty.WithNsfwText(new string('x', 5000)), server.ProtoMan);

@@ -160,6 +160,10 @@ wf-ads-sweep-destroyed-held = ADS sweep destroyed at {$callsign}. { $paid ->
 # Said to a ship the ADS sends an interdictor to query, and on the common channel
 wf-ads-interdict-warning = DISARMAMENT DIRECTIVE. ADS interdictor closing on {$ship} to query it, bearing {$bearing}, {$range} km.
 
+# Said to a ship mining a rock in held space, then to one that went on mining
+wf-ads-mining-warning = DIRECTIVE. {$ship}, these resources are protected. Cease mining or your vessel will be logged as a threat.
+wf-ads-mining-declared = THREAT LOGGED. {$ship} ignored a cease-mining directive and will be made combat-ineffective.
+
 # Challenges on cells another faction holds; $holder is that faction
 wf-ads-challenge-launched = ADS interdictor under way to {$callsign}, contesting space held by the {$holder}. {$range} km bearing {$bearing} from {$station}.
 wf-ads-challenge-won = {$callsign} has fallen to the Automated Defense System.

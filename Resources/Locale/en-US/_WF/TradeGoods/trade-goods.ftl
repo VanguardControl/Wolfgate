@@ -1,8 +1,5 @@
 wf-trade-chute-local-goods = This chute only takes goods shipped in from elsewhere.
 wf-trade-chute-not-bought = This chute doesn't buy that. Its manifest lists what it takes.
-wf-trade-refuse-made-here = Made on this station. Haul it at least {$distance} km away before selling it here.
-wf-trade-refuse-too-close = Made too close to this market. Haul it at least {$distance} km before selling here.
-wf-trade-refuse-unknown = No record of where this was made, so it now counts as made here. Haul it about {$distance} km before selling.
 wf-trade-refuse-shunned = The merchant won't buy from someone who hurt them.
 wf-trade-refuse-unsealed = The fence only takes sealed freight off the haulers.
 
@@ -30,6 +27,7 @@ wf-trade-reason-relief = relief
 wf-trade-reason-war = war demand
 wf-trade-reason-raid = raid alert
 wf-trade-reason-rush = rush order
+wf-trade-reason-bulk = bulk order
 wf-trade-reason-sealed = sealed freight
 wf-trade-reason-salvage = salvage bonus
 wf-trade-reason-defector = enemy buyer
@@ -56,9 +54,18 @@ wf-trade-blockade-landed = {$station} is blockaded. It pays up to {$factor}x for
 wf-trade-blockade-broken = The blockade of {$station} was broken by traffic: {$ships}.
 wf-trade-blockade-driven-off = The blockade fleet off {$station} was driven off.
 wf-trade-relief-name = running the blockade of {$station}
-wf-trade-rush-start = RUSH: {$station} needs {$count} crates of {$goods} within {$minutes} minutes, paying {$factor}x.
-wf-trade-rush-filled = Rush order filled at {$station}: {$fills}.
-wf-trade-rush-expired = The rush order for {$goods} at {$station} ran out.
+wf-trade-rush-start = { $bulk ->
+        [true] BULK ORDER
+       *[false] RUSH
+    }: {$station} needs {$count} crates of {$goods} within {$minutes} minutes, paying {$factor}x.
+wf-trade-rush-filled = { $bulk ->
+        [true] Bulk order
+       *[false] Rush order
+    } filled at {$station}: {$fills}.
+wf-trade-rush-expired = The { $bulk ->
+        [true] bulk order
+       *[false] rush order
+    } for {$goods} at {$station} ran out.
 wf-trade-freight-supplied = {$ship} delivered {$goods} to {$station}.
 wf-trade-freight-lost = {$station}'s {$run} never arrived. Its goods are short there.
 
@@ -125,7 +132,10 @@ wf-market-alert-kind-deal = DEAL
 wf-market-alert-kind-traffic = TRAFFIC
 wf-market-alert-kind-warning = WARNING
 wf-market-alert-kind-personal = FOR YOU
-wf-market-alert-rush = RUSH {$station}: {$left} of {$count} crates of {$goods} wanted at {$factor}x
+wf-market-alert-rush = { $bulk ->
+        [true] BULK ORDER
+       *[false] RUSH
+    } {$station}: {$left} of {$count} crates of {$goods} wanted at {$factor}x
 wf-market-alert-consignment = Priority delivery: collect a crate at {$origin} and take it to {$station}'s chute. Pays {$value} on time.
 wf-market-alert-consignment-carried = Priority delivery to {$station} is aboard {$ship}. Pays {$value} on time.
 wf-market-alert-relief = {$station} pays relief rates ({$factor}x) while the blockade is contested; ships that break it split {$bounty}

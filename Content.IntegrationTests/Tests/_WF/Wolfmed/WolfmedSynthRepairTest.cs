@@ -26,7 +26,9 @@ using Content.Shared.Interaction;
 using Content.Shared.Item.ItemToggle;
 using Content.Shared.Preferences;
 using Content.Shared.Standing;
+using Content.Shared.Verbs;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Localization;
 using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.Wolfmed;
@@ -38,6 +40,8 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 [TestFixture]
 public sealed class WolfmedSynthRepairTest : WolfmedGameTest
 {
+    private static readonly ProtoId<DamageTypePrototype> ShockProto = "Shock";
+
     public override PoolSettings PoolSettings => PsDisconnected;
 
     /// <summary>Reported: a synthetic human flopped to the floor on spawn, with the downed HUD up.</summary>
@@ -202,6 +206,29 @@ public sealed class WolfmedSynthRepairTest : WolfmedGameTest
         });
     }
 
+    /// <summary>The surgery that replaces a servo can only be opened from a verb on the tool in hand.</summary>
+    [Test]
+    public async Task CoilOpensSurgeryOnSelfTest()
+    {
+        var map = await CreateTestMap();
+
+        await Server.WaitAssertion(() =>
+        {
+            var body = SEntMan.SpawnEntity("MobIPC", map.GridCoords);
+            var coil = SEntMan.SpawnEntity("CableApcStack", map.GridCoords);
+            Assert.That(SEntMan.System<SharedHandsSystem>().TryPickupAnyHand(body, coil, checkActionBlocker: false));
+            Assert.That(SEntMan.System<StandingStateSystem>().Down(body, dropHeldItems: false), Is.True);
+
+            var text = Loc.GetString("surgery-verb-text");
+            var verb = SEntMan.System<SharedVerbSystem>().GetLocalVerbs(body, body, typeof(UtilityVerb))
+                .FirstOrDefault(v => v.Text == text);
+            Assert.That(verb, Is.Not.Null, "a coil in hand offers no surgery on a synth's own body.");
+
+            verb!.Act!();
+            Assert.That(SEntMan.System<SharedUserInterfaceSystem>().IsUiOpen(body, SurgeryUIKey.Key, body), Is.True);
+        });
+    }
+
     /// <summary>Shock on a synth left Cellular damage that only nanites, which nothing makes, could repair.</summary>
     [Test]
     public async Task SynthShockLeavesNoCellularTest()
@@ -212,7 +239,7 @@ public sealed class WolfmedSynthRepairTest : WolfmedGameTest
         {
             var body = SEntMan.SpawnEntity("MobSynth", map.GridCoords);
             var torso = Part(body, BodyPartType.Torso);
-            var shock = new DamageSpecifier(SProtoMan.Index<DamageTypePrototype>("Shock"), 30);
+            var shock = new DamageSpecifier(SProtoMan.Index<DamageTypePrototype>(ShockProto), 30);
             Assert.That(SEntMan.System<WoundDamageRoutingSystem>()
                 .TryApplyPartDamage(body, torso, shock, ignoreResistances: true), Is.True);
             Assert.That(SEntMan.GetComponent<DamageableComponent>(body).Damage.DamageDict.GetValueOrDefault("Cellular"),

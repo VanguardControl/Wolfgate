@@ -71,6 +71,9 @@ public sealed partial class WFRoundSetupWindow
             StyleClasses = { "WFRoundSetupSurface" },
             Children = { layout },
         });
+        var company = new Button { Text = Text("company-open"), HorizontalAlignment = HAlignment.Right, ToolTip = Text("company-open-help") };
+        company.OnPressed += _ => _entities.System<Content.Client._WF.Companies.WFCompanyClientSystem>().OpenWindow();
+        layout.AddChild(company);
         layout.AddChild(_navigation);
         layout.AddChild(_message);
         _pageScroll.AddChild(_body);
@@ -165,7 +168,7 @@ public sealed partial class WFRoundSetupWindow
             if (own == null)
             {
                 _navigation.AddChild(NavigationButton("flow-browse", () => Navigate(SetupView.Browse), _view == SetupView.Browse));
-                _navigation.AddChild(NavigationButton("flow-create", OpenCreate, _view is SetupView.Create or SetupView.Saved, !state.CanJoin));
+                _navigation.AddChild(NavigationButton("flow-create", OpenCreate, _view is SetupView.Create or SetupView.Saved, !state.CanJoin && !state.CanJoinLive));
             }
             switch (_view)
             {
@@ -204,7 +207,8 @@ public sealed partial class WFRoundSetupWindow
         _body.AddChild(Heading("browse"));
         var lobbies = state.Lobbies.Where(lobby => lobby.Id != state.OwnLobby)
             .OrderByDescending(lobby => state.Invitations.Any(invitation => invitation.Id == lobby.Id))
-            .ThenBy(lobby => lobby.Started).ToArray();
+            .ThenByDescending(lobby => state.OwnCompany != null && lobby.CompanyId == state.OwnCompany)
+            .ThenByDescending(lobby => lobby.Recruiting).ThenBy(lobby => lobby.Started).ToArray();
         var selected = lobbies.FirstOrDefault(lobby => lobby.Id == _focusedLobby);
         if (selected != null)
         {
@@ -214,6 +218,7 @@ public sealed partial class WFRoundSetupWindow
         else
         {
             _focusedLobby = null;
+            _body.AddChild(new Companies.WFCompanyQuickJoin(true));
             _body.AddChild(Description(lobbies.Length == 0 ? "empty" : "browse-help"));
             foreach (var lobby in lobbies)
                 _body.AddChild(LobbyListing(lobby, state.Invitations.Any(invitation => invitation.Id == lobby.Id)));
@@ -227,6 +232,11 @@ public sealed partial class WFRoundSetupWindow
     /// <summary>Shows full-width scenario briefs with one explicit create action per scenario.</summary>
     private void BuildScenarios(WFRoundSetupState state)
     {
+        if (!state.CanJoin && state.CanJoinLive)
+        {
+            BuildFormedScenario();
+            return;
+        }
         var load = Button("load-saved-scenario", () => { _selectedSavedId = null; Navigate(SetupView.Saved); },
             state.SavedSetups.Length == 0, "saved-empty-help");
         load.Name = "RoundSetupLoadSaved";
@@ -239,6 +249,7 @@ public sealed partial class WFRoundSetupWindow
         _body.AddChild(crewName);
         crewName.ToolTip = Text("crew-title-help");
         _body.AddChild(DescriptionEditor(_newDescription, value => _newDescription = value));
+        BuildCreateCompany(state);
         foreach (var scenario in new[] { WFRoundScenario.Ship, WFRoundScenario.Crashlanded, WFRoundScenario.FactionShip, WFRoundScenario.Doomed })
         {
             var card = Column(8);
@@ -269,6 +280,7 @@ public sealed partial class WFRoundSetupWindow
                 card.AddChild(Description(unavailableReason));
             var create = Button("create", () => SendRequest(new WFRoundSetupRequest(WFRoundSetupAction.Create)
             {
+                CompanyId = CreateCompany(state),
                 Scenario = scenario,
                 Faction = scenario == WFRoundScenario.FactionShip ? _newFaction : WFCrewFaction.None,
                 Title = _newTitle,
@@ -333,12 +345,15 @@ public sealed partial class WFRoundSetupWindow
                     _pageScroll.VScrollEnabled = false;
                     if (!lobby.Started)
                         BuildScenarioSelector(state, lobby);
+                    BuildCrewCompanyRow(lobby, state);
                     BuildMemberSetup(state, lobby, member);
                     break;
                 }
                 _body.AddChild(CrewIdentity(lobby));
                 if (host && !lobby.Started)
                     BuildScenarioSelector(state, lobby);
+                if (host)
+                    BuildCrewCompanyRow(lobby, state);
                 _body.AddChild(WFScenarioDifficultyLabel.Create(lobby.Scenario));
                 _body.AddChild(Description(ScenarioDescription(lobby.Scenario)));
                 if (member is { Spawned: false } && state.CanJoin)
@@ -397,12 +412,12 @@ public sealed partial class WFRoundSetupWindow
                 : !player.Connected ? Text("member-disconnected-status", ("status", Text(MemberStatusKey(true, player.Ready, player.Status))))
                 : Text(MemberStatusKey(player.Spawned, player.Ready, player.Status));
             var content = Column(6);
-            content.AddChild(Row(WFRoundSetupCrewRow.JobIcon(player.Job), PlainDescription(player.UserId == lobby.Host && lobby.Portrait != null ? lobby.Portrait.Name : player.Name)));
+            content.AddChild(Row(WFRoundSetupCrewRow.JobIcon(player.Job, player.RankId), PlainDescription(player.UserId == lobby.Host && lobby.Portrait != null ? lobby.Portrait.Name : player.Name)));
             content.AddChild(PlainDescription(Text("member-info", ("job", MemberRoleName(lobby, player)), ("status", status))));
             if (host && player.UserId != lobby.Host)
             {
                 var actions = FlowRow(Button("transfer", () => SendTarget(WFRoundSetupAction.TransferHost, lobby.Id, player.UserId)));
-                if (!player.Spawned)
+                if (!player.Spawned || player.Live)
                     actions.AddChild(Button("kick", () => SendTarget(WFRoundSetupAction.Kick, lobby.Id, player.UserId)));
                 content.AddChild(actions);
             }

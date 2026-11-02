@@ -1,5 +1,6 @@
 using Content.Server._WF.Wolfmed.Gore;
 using Content.Shared._Onyx.Wounds;
+using Content.Shared._WF.Performance;
 using Content.Shared._WF.Wolfmed.CCVar;
 using Content.Shared._WF.Wolfmed.Damage;
 using Content.Shared._WF.Wolfmed.Wounds;
@@ -21,10 +22,13 @@ namespace Content.Server._WF.Wolfmed.Damage;
 /// Septic, a wound closing, a drug stopping a bleed) is caught by a sweep every wolfmed.overlay_refresh_seconds.
 /// Machines keep their chassis visuals: a mechanical part never shows either overlay.
 /// </remarks>
-public sealed class WolfmedWoundOverlaySystem : EntitySystem
+public sealed partial class WolfmedWoundOverlaySystem : EntitySystem
 {
     /// <summary>What a wound is tinted when its body has no blood reagent to read.</summary>
     private static readonly Color FallbackBlood = Color.FromHex("#800000");
+
+    /// <summary>Bodies a tick takes from the sweep, fixed when the sweep starts so it finishes within its interval.</summary>
+    private int _sweepShare = 1;
 
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -35,12 +39,17 @@ public sealed class WolfmedWoundOverlaySystem : EntitySystem
     [Dependency] private WoundSystem _wounds = default!;
 
     private readonly HashSet<EntityUid> _pending = new();
+    private readonly List<EntityUid> _refreshing = new();
+
+    /// <summary>Bodies whose wounds just changed, refreshed on the next tick ahead of the sweep.</summary>
+    private readonly HashSet<EntityUid> _changed = new();
+
+    private TimeSpan _nextSweep;
     private readonly Dictionary<HumanoidVisualLayers, WolfmedWoundOverlay> _woundScratch = new();
     private readonly HashSet<HumanoidVisualLayers> _rotScratch = new();
     private readonly Dictionary<WolfmedArterySite, WolfmedArteryOverlay> _arteryScratch = new();
     private readonly Dictionary<WolfmedArterySite, WolfmedWoundOverlay> _stumpScratch = new();
     private readonly HashSet<(BodyPartType, BodyPartSymmetry)> _presentScratch = new();
-    private TimeSpan _nextSweep;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -82,13 +91,14 @@ public sealed class WolfmedWoundOverlaySystem : EntitySystem
     private void Queue(EntityUid part)
     {
         if (!TerminatingOrDeleted(part) && CompOrNull<BodyPartComponent>(part)?.Body is { } body)
-            _pending.Add(body);
+            _changed.Add(body);
     }
 
     /// <inheritdoc/>
     public override void Update(float frameTime)
     {
         var now = _timing.CurTime;
+        var sweeping = now >= _nextSweep;
         if (now >= _nextSweep)
         {
             _nextSweep = now + TimeSpan.FromSeconds(MathF.Max(0.1f, _cfg.GetCVar(WolfmedCVars.OverlayRefreshSeconds)));
@@ -97,13 +107,29 @@ public sealed class WolfmedWoundOverlaySystem : EntitySystem
                 _pending.Add(uid);
         }
 
-        if (_pending.Count == 0)
+        // Each tick takes its share of the sweep, so a full server doesn't refresh every body on one.
+        if (sweeping)
+            _sweepShare = _pending.Count / WFTickSpread.Period(_timing, MathF.Max(0.1f, _cfg.GetCVar(WolfmedCVars.OverlayRefreshSeconds))) + 1;
+
+        if (_pending.Count == 0 && _changed.Count == 0)
             return;
 
+        _refreshing.Clear();
+        _refreshing.AddRange(_changed);
+        _changed.Clear();
+        var taken = 0;
         foreach (var body in _pending)
-            Refresh(body);
+        {
+            if (taken++ >= _sweepShare)
+                break;
+            _refreshing.Add(body);
+        }
 
-        _pending.Clear();
+        foreach (var body in _refreshing)
+        {
+            _pending.Remove(body);
+            Refresh(body);
+        }
     }
 
     /// <summary>Recomputes a body's wound and rot overlays and networks them when they changed. Public for tests.</summary>

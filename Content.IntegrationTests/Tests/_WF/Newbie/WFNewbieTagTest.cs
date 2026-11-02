@@ -17,6 +17,7 @@ using Content.Shared.Traits;
 using NUnit.Framework;
 using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.Newbie;
 
@@ -27,6 +28,10 @@ namespace Content.IntegrationTests.Tests._WF.Newbie;
 [TestOf(typeof(WFNewbieTagSystem))]
 public sealed class WFNewbieTagTest : GameTest
 {
+    private static readonly ProtoId<TraitPrototype> HereticProto = "Heretic";
+    private static readonly ProtoId<TraitPrototype> BlindnessProto = "Blindness";
+    private static readonly ProtoId<SsdIconPrototype> WFNewbieIconProto = "WFNewbieIcon";
+
     private EntityUid _body;
     private EntityUid _ship;
 
@@ -113,6 +118,10 @@ public sealed class WFNewbieTagTest : GameTest
             .AddTimeToOverallPlaytime(ServerSession!, TimeSpan.FromHours(9)));
         var veteran = await Refresh();
 
+        // The pooled session goes to later tests; give the hours back.
+        await Server.WaitPost(() => Server.ResolveDependency<PlayTimeTrackingManager>()
+            .AddTimeToOverallPlaytime(ServerSession!, -TimeSpan.FromHours(9)));
+
         Assert.Multiple(() =>
         {
             Assert.That(hidden, Is.EqualTo((false, false)), "the tag stayed after the player turned it off.");
@@ -128,8 +137,8 @@ public sealed class WFNewbieTagTest : GameTest
     {
         Assert.That(ServerSession, Is.Not.Null, "This test needs a connected pair.");
         var newbie = SEntMan.System<WFNewbieTagSystem>();
-        var heretic = Server.ProtoMan.Index<TraitPrototype>("Heretic");
-        var plain = Server.ProtoMan.Index<TraitPrototype>("Blindness");
+        var heretic = Server.ProtoMan.Index<TraitPrototype>(HereticProto);
+        var plain = Server.ProtoMan.Index<TraitPrototype>(BlindnessProto);
 
         // Far above any playtime the pooled session may have built up.
         await OverrideCVar(Side.Server, WFNewbieCVars.Hours, 100000f);
@@ -165,7 +174,7 @@ public sealed class WFNewbieTagTest : GameTest
         await Server.WaitAssertion(() =>
         {
             var protos = Server.ProtoMan;
-            var mark = protos.Index<SsdIconPrototype>("WFNewbieIcon");
+            var mark = protos.Index<SsdIconPrototype>(WFNewbieIconProto);
             Assert.That(mark.Layer, Is.EqualTo(StatusIconLayer.Mod), "the mark takes a slot in the icon column.");
 
             foreach (var kind in protos.EnumeratePrototypeKinds())

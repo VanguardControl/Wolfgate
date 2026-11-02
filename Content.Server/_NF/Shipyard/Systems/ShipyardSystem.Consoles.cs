@@ -308,6 +308,7 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
             shipCompany.CompanyName = companyName;
             Dirty(shuttleUid, shipCompany);
         }
+        EntityManager.System<Content.Server._WF.Companies.WFCompanySystem>().MarkBoughtShip(shuttleUid, targetId); // WOLFGATE(Companies): a member's ship flies under their company
 
         EntityUid? shuttleStation = null;
         // setting up any stations if we have a matching game map prototype to allow late joins directly onto the vessel
@@ -374,7 +375,7 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
 
         if (!voucherUsed)
         {
-            if (!string.IsNullOrEmpty(component.NewJobTitle))
+            if (!string.IsNullOrEmpty(component.NewJobTitle) && !EntityManager.System<Content.Server._WF.Roles.CustomJobTitleSystem>().HasCustomTitle(player)) // WOLFGATE(Roles): a company rank or custom title stays on the ID
                 _idSystem.TryChangeJobTitle(targetId, component.NewJobTitle, idCard, player);
         }
 

@@ -139,6 +139,7 @@ namespace Content.Client.Lobby.UI
                 if (_inRound && slot == selectedSlot)
                     characterPickerButton.HideDelete();
 
+                characterPickerButton.ShowCompany(slot); // WOLFGATE(Companies): the character list names their company
                 Characters.AddChild(characterPickerButton);
 
                 characterPickerButton.OnPressed += args =>
