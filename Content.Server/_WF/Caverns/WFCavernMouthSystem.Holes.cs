@@ -232,7 +232,8 @@ public sealed partial class WFCavernMouthSystem
 
     /// <summary>
     /// Pins holes, lays their landings, spawns their shades, wakes what stood on them and gives each a climb point it
-    /// can reach. A hole over stairs gets no landing or climb point: the stairs are both.
+    /// can reach. A hole over stairs, built or mapped, gets no landing or climb point, the stairs being both, and a
+    /// plain shade: a stairwell, not a sinkhole.
     /// </summary>
     private void EnsureHoles(Entity<WFCavernGroundComponent> ground, MouthContext context, List<Vector2i> holes)
     {
@@ -248,18 +249,15 @@ public sealed partial class WFCavernMouthSystem
         }
 
         Entity<MapGridComponent> levelGrid = (context.Level.Owner, context.Level.Comp2);
-        var drops = holes.Where(hole => !HasStairs(levelGrid, hole)).ToList();
+        var stairwells = holes.Where(hole => HasStairs(levelGrid, hole)).ToHashSet();
+        var drops = holes.Where(hole => !stairwells.Contains(hole)).ToList();
 
         if (drops.Count > 0)
             PrepareLandings(context, drops);
 
         foreach (var index in holes)
         {
-            var multiplier = _map.TryGetTileRef(context.Level.Owner, context.Level.Comp2, index, out var below) && !below.Tile.IsEmpty
-                ? ((ContentTileDefinition) _tileDefs[below.Tile.TypeId]).FallDamageMultiplier
-                : 1f;
-
-            SpawnShade(ground, context, index, multiplier);
+            SpawnShade(ground, context, index, LandingMultiplier(context, index), stairwells.Contains(index));
             WakeBodiesOn(context.Ground, index);
         }
 
@@ -268,6 +266,14 @@ public sealed partial class WFCavernMouthSystem
 
         // Open the view below now rather than at the next check.
         _eyes.CheckSoon();
+    }
+
+    /// <summary>The fall damage multiplier of the cavern tile under a hole.</summary>
+    private float LandingMultiplier(MouthContext context, Vector2i index)
+    {
+        return _map.TryGetTileRef(context.Level.Owner, context.Level.Comp2, index, out var below) && !below.Tile.IsEmpty
+            ? ((ContentTileDefinition) _tileDefs[below.Tile.TypeId]).FallDamageMultiplier
+            : 1f;
     }
 
     /// <summary>

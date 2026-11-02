@@ -403,8 +403,8 @@ public sealed class CavernClimbTest
     }
 
     /// <summary>An unequipped human already hurt by a hostile cavern's air, heat or cold still climbs out: ambient damage never breaks the climb.</summary>
-    // Carcinoma is left out: its ammonia did not hurt an unequipped human within HurtWithinSeconds, so nothing there can break the climb.
     [TestCase("WFSurfaceAerumna")]
+    [TestCase("WFSurfaceCarcinoma")]
     [TestCase("WFSurfaceFervidus")]
     [TestCase("WFSurfaceThrascias")]
     public async Task UnequippedClimberEscapesHostileAir(string surfaceId)
@@ -422,6 +422,13 @@ public sealed class CavernClimbTest
             var climb = await ClimbPointOf(pair, world, gate);
             var mob = await SpawnSettled(pair, world.Cavern, Beside(gate));
             var delay = await DelayOf(pair, climb);
+
+            // A climber is someone: a mindless body far from any player skips its breathing (WFDormancySystem).
+            await server.WaitPost(() =>
+            {
+                var minds = server.System<Content.Shared.Mind.SharedMindSystem>();
+                minds.TransferTo(minds.CreateMind(null), mob);
+            });
 
             // Wait for the air to start hurting, so its damage ticks land during the climb.
             var hurtAt = FixedPoint2.Zero;

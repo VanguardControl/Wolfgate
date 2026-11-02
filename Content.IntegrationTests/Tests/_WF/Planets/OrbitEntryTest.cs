@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Numerics;
 using Content.IntegrationTests.Pair;
 using Content.Server._WF.Planets;
+using Content.Server._WF.Planets.Bounds;
 using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Systems;
 using Content.Shared.CCVar;
 using Content.Shared._FarHorizons.StarSystem;
+using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Planets;
 using Content.Shared.Power.EntitySystems;
 using Content.Shared.Shuttles.Components;
@@ -37,6 +39,9 @@ public sealed class OrbitEntryTest
 
     /// <summary>The star system stamped on the test sector map, so hops carry the approach mark.</summary>
     private const string SystemProto = "SystemKyphrus";
+
+    /// <summary>The radius of a bounded test world, in tiles.</summary>
+    private const int BoundedRadius = 64;
 
     /// <summary>The docking airlock fitted to the hull for a tender to dock with.</summary>
     private const string DockProto = "AirlockShuttle";
@@ -193,6 +198,116 @@ public sealed class OrbitEntryTest
                 "The hull arrived in orbit and then left the layer again."));
 
         await Teardown(pair, site);
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A hull entering from anywhere in the orbit range comes out where it can descend, on its own side of the world.</summary>
+    [TestCase(OrbitRange - 100f)]
+    [TestCase(BoundedRadius + 5f)]
+    [TestCase(10f)]
+    public async Task EntersOrbitInsideTheWorldsCircle(float from)
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var orbits = server.System<WFOrbitEntrySystem>();
+        var bounds = server.System<WFPlanetBoundsSystem>();
+        var transform = server.System<SharedTransformSystem>();
+
+        var site = await BuildSite(pair, BoundedRadius);
+        var centre = Vector2.Zero;
+
+        await server.WaitPost(() => centre = transform.GetWorldPosition(site.Body));
+        await MoveTo(pair, site.Hull, site.SectorMap, centre + new Vector2(from, 0f));
+
+        await server.WaitAssertion(() =>
+            Assert.That(orbits.TryEnterOrbit(site.Console, site.Body, out var reason), Is.True, $"Refused orbit: {reason}"));
+
+        var arrived = false;
+        for (var i = 0; i < HopTimeout * 2 && !arrived; i++)
+        {
+            await server.WaitRunTicks(pair.SecondsToTicks(0.5f));
+            await server.WaitPost(() =>
+                arrived = entMan.GetComponent<TransformComponent>(site.Hull).MapUid == site.Orbit
+                    && !entMan.HasComponent<FTLComponent>(site.Hull));
+        }
+
+        await server.WaitAssertion(() =>
+        {
+            var offset = bounds.HullCentre(site.Hull) - centre;
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(arrived, Is.True, "The hull never finished the hop into orbit.");
+                Assert.That(bounds.IsHullInside(site.Hull), Is.True, $"The hull came out {offset} from the centre, past the world's edge.");
+                Assert.That(offset.X, Is.GreaterThanOrEqualTo(Math.Min(from, BoundedRadius - 20f)), "The hull was pulled further in than it needed to be, or across the world.");
+            }
+        });
+
+        await Teardown(pair, site);
+        await server.WaitPost(() =>
+        {
+            server.CfgMan.SetCVar(PlanetCVars.Bounds, false);
+            server.CfgMan.SetCVar(PlanetCVars.Radius, 0);
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A ship parked over the edge doesn't scatter an arrival past the ring: it comes out further in and clear.</summary>
+    [Test]
+    public async Task EntersOrbitInsideTheRingWhenTheEdgeIsTaken()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var orbits = server.System<WFOrbitEntrySystem>();
+        var bounds = server.System<WFPlanetBoundsSystem>();
+        var transform = server.System<SharedTransformSystem>();
+
+        var site = await BuildSite(pair, BoundedRadius);
+        var centre = Vector2.Zero;
+        var orbitId = MapId.Nullspace;
+
+        await server.WaitPost(() =>
+        {
+            centre = transform.GetWorldPosition(site.Body);
+            orbitId = entMan.GetComponent<MapComponent>(site.Orbit).MapId;
+        });
+
+        var parked = await BuildHull(pair, orbitId, centre + new Vector2(BoundedRadius - 24f, -6f));
+        await MoveTo(pair, site.Hull, site.SectorMap, centre + new Vector2(OrbitRange - 100f, 0f));
+
+        await server.WaitAssertion(() =>
+            Assert.That(orbits.TryEnterOrbit(site.Console, site.Body, out var reason), Is.True, $"Refused orbit: {reason}"));
+
+        var arrived = false;
+        for (var i = 0; i < HopTimeout * 2 && !arrived; i++)
+        {
+            await server.WaitRunTicks(pair.SecondsToTicks(0.5f));
+            await server.WaitPost(() =>
+                arrived = entMan.GetComponent<TransformComponent>(site.Hull).MapUid == site.Orbit
+                    && !entMan.HasComponent<FTLComponent>(site.Hull));
+        }
+
+        await server.WaitAssertion(() =>
+        {
+            var hullBox = transform.GetWorldMatrix(site.Hull).TransformBox(entMan.GetComponent<MapGridComponent>(site.Hull).LocalAABB);
+            var parkedBox = transform.GetWorldMatrix(parked).TransformBox(entMan.GetComponent<MapGridComponent>(parked).LocalAABB);
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(arrived, Is.True, "The hull never finished the hop into orbit.");
+                Assert.That(bounds.IsHullInside(site.Hull), Is.True, "The hull came out past the ring.");
+                Assert.That(hullBox.Intersects(parkedBox), Is.False, "The hull came out on top of the parked ship.");
+            }
+        });
+
+        await Teardown(pair, site);
+        await server.WaitPost(() =>
+        {
+            server.CfgMan.SetCVar(PlanetCVars.Bounds, false);
+            server.CfgMan.SetCVar(PlanetCVars.Radius, 0);
+        });
         await pair.CleanReturnAsync();
     }
 
@@ -496,8 +611,8 @@ public sealed class OrbitEntryTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>An owned Asclepiu stack plus a driveless 5x5 hull carrying one shuttle console.</summary>
-    private static async Task<Site> BuildSite(TestPair pair)
+    /// <summary>An owned Asclepiu stack plus a driveless 5x5 hull carrying one shuttle console; a radius bounds the world.</summary>
+    private static async Task<Site> BuildSite(TestPair pair, int radius = 0)
     {
         var server = pair.Server;
         var entMan = server.EntMan;
@@ -507,6 +622,15 @@ public sealed class OrbitEntryTest
         var shuttles = server.System<ShuttleSystem>();
 
         await EnableFeature(pair);
+
+        if (radius > 0)
+        {
+            await server.WaitPost(() =>
+            {
+                server.CfgMan.SetCVar(PlanetCVars.Bounds, true);
+                server.CfgMan.SetCVar(PlanetCVars.Radius, radius);
+            });
+        }
 
         var stack = await BuildOwnedStack(pair);
         var site = new Site { Layers = stack.Layers, Body = stack.Body, SectorMap = stack.BodyMap };

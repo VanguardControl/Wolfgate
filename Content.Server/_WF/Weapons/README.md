@@ -54,6 +54,7 @@ predicted on their own client; this only cuts the audio entities other players r
 - [`Content.IntegrationTests/Tests/_WF/Weapons/EventGridHardpointTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/EventGridHardpointTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Weapons/GunshotAudioThrottleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/GunshotAudioThrottleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Weapons/HitscanJumpShooterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/HitscanJumpShooterTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Weapons/NpcHitscanTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/NpcHitscanTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Weapons/ProjectileSweepTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/ProjectileSweepTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Weapons/ShieldSidearmTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/ShieldSidearmTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Weapons/WFGunPredictionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/WFGunPredictionTest.cs)

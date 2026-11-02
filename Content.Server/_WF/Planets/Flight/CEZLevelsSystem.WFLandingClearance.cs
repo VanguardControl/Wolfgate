@@ -1,7 +1,7 @@
 using System.Numerics;
 using Content.Server.Parallax;
+using Content.Shared._WF.LandingGuide;
 using Content.Shared._WF.Planets;
-using Content.Shared.Physics;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics;
@@ -36,12 +36,7 @@ public sealed partial class CEZLevelsSystem
         foreach (var obstacle in _map.GetAnchoredEntities(ground, groundGrid, new Box2Rotated(bounds, Angle.Zero)))
         {
             if (TerminatingOrDeleted(obstacle) || Transform(obstacle).GridUid != ground
-                || !TryComp<FixturesComponent>(obstacle, out var fixtures))
-                continue;
-            var blocking = false;
-            foreach (var fixture in fixtures.Fixtures.Values)
-                blocking |= fixture.Hard && (fixture.CollisionLayer & (int) CollisionGroup.Impassable) != 0;
-            if (!blocking)
+                || !TryComp<FixturesComponent>(obstacle, out var fixtures) || !WFLandingSurveySystem.IsSolid(fixtures))
                 continue;
 
             var pos = _transform.GetWorldPosition(obstacle);

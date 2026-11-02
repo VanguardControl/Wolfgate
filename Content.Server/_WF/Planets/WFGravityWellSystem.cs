@@ -177,7 +177,7 @@ public sealed partial class WFGravityWellSystem : EntitySystem
         }
     }
 
-    /// <summary>Moves a hull onto the orbit layer at its current spot, via the console's hop.</summary>
+    /// <summary>Moves a hull onto the orbit layer, inside the world's circle, via the console's hop.</summary>
     private bool TryCapture(EntityUid grid, EntityUid body, EntityUid orbit)
     {
         if (!TryComp<ShuttleComponent>(grid, out var shuttle) || !_shuttle.CanFTL(grid, out _))

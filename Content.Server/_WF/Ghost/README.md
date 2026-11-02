@@ -35,6 +35,7 @@ of Interest; singularities, tesla balls, nukes, the disk, rifts and anomalies ar
 
 - [`Content.IntegrationTests/Tests/_WF/Ghost/GhostOrbitNullspaceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Ghost/GhostOrbitNullspaceTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Ghost/GhostOrbitWindowTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Ghost/GhostOrbitWindowTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Ghost/GhostPlanetPoiTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Ghost/GhostPlanetPoiTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Ghost/PdaActivationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Ghost/PdaActivationTest.cs)
 
 ### Localization

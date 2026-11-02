@@ -74,13 +74,24 @@ public sealed partial class BiomeSystem
         loaders.Add((SharedMapSystem.GetChunkIndices(worldPos, ChunkSize) * ChunkSize, ring));
     }
 
-    /// <summary>Whether a chunk of a planet layer's load area is put off to <see cref="WfLoadDeferred"/>.</summary>
+    /// <summary>Whether a chunk of a planet layer's load area is put off to <see cref="WfLoadDeferred"/>, or never loads at all.</summary>
     private bool WfDeferLoad(BiomeComponent biome, EntityUid map, Vector2i chunk)
     {
+        // Outside a bounded world's circle there is no ground.
+        if (WfOutOfBounds(map, chunk))
+            return true;
+
         if (!ReferenceEquals(_wfLoadFor, biome))
             WfBeginLoad(biome, map);
 
-        if (_wfLoadLoaders == null || biome.LoadedChunks.Contains(chunk))
+        // A stashed chunk's tiles are there; its entities are laid again after the pass's loads.
+        if (biome.LoadedChunks.Contains(chunk))
+        {
+            WfNoteRestore(biome, map, chunk);
+            return false;
+        }
+
+        if (_wfLoadLoaders == null)
             return false;
 
         var block = WfBlockOf(chunk);
@@ -147,6 +158,8 @@ public sealed partial class BiomeSystem
     /// <summary>Loads what a layer put off this pass, nearest block first, until the pass's time is spent; one block always loads.</summary>
     private void WfLoadDeferred(BiomeComponent biome, EntityUid map, MapGridComponent grid, int seed)
     {
+        WfRestoreStashed(biome, map, grid);
+
         if (!ReferenceEquals(_wfLoadFor, biome) || _wfLoadLoaders == null)
             return;
 

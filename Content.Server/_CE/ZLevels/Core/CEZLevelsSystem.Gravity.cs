@@ -334,7 +334,8 @@ public sealed partial class CEZLevelsSystem
 
                 if (progress <= SettleZone)
                 {
-                    if (progress <= TouchdownProgress && MathF.Abs(faller.Velocity) <= ExitTransitMaxSpeed)
+                    if (progress <= TouchdownProgress && MathF.Abs(faller.Velocity) <= ExitTransitMaxSpeed
+                        && !WfHoldsOffObstacles(grid, transitSet, groundMapBelow)) // WOLFGATE(Planets): no setting down on walls or rock.
                     {
                         faller.Velocity = 0f;
                         TryExitTransit(grid);
@@ -371,6 +372,15 @@ public sealed partial class CEZLevelsSystem
                 if (faller.Velocity > cap)
                     faller.Velocity = MoveTowards(faller.Velocity, cap, damp * frameTime);
             }
+
+            // WOLFGATE(Planets) START: a gentle set-down onto walls or rock holds just above them; a crash still comes down.
+            if (faller.Velocity > 0f && faller.Velocity < faller.GridCrashVelocity
+                && progress - faller.Velocity * frameTime <= TouchdownProgress * 4f
+                && WfHoldsOffObstacles(grid, transitSet, groundMapBelow))
+            {
+                faller.Velocity = 0f;
+            }
+            // WOLFGATE END
         }
 
         foreach (var member in transitSet)

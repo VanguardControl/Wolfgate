@@ -244,7 +244,7 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
         return body != null;
     }
 
-    /// <summary>Moves the console's hull onto a body's orbit layer at the same spot, re-checking every gate.</summary>
+    /// <summary>Moves the console's hull onto a body's orbit layer, inside the world's circle, re-checking every gate.</summary>
     public bool TryEnterOrbit(EntityUid console, EntityUid planetUid, [NotNullWhen(false)] out string? reason)
     {
         if (!TryGetHull(console, out var hull, out reason))

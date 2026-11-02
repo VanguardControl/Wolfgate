@@ -26,7 +26,7 @@ public sealed class CavernPrototypeTest
 {
     private static readonly EntProtoId AutolatheProto = "Autolathe";
 
-    /// <summary>The self-deleting markers a cavern template may place: loot, and fauna through the planet caps.</summary>
+    /// <summary>The self-deleting markers a cavern template may place: loot, and fauna through the planet caps (every <c>WFCavernFauna*</c> marker).</summary>
     private static readonly HashSet<string> AllowedSpawners = new()
     {
         "WFCavernFaunaAsclepiu",
@@ -165,7 +165,7 @@ public sealed class CavernPrototypeTest
 
                     foreach (var id in entities)
                     {
-                        if (AllowedSpawners.Contains(id))
+                        if (AllowedSpawners.Contains(id) || id.StartsWith("WFCavernFauna"))
                             continue;
 
                         Assert.That(id, Does.Not.StartWith("MonoPlanetmap"), $"{cavern.ID} places the outcrop spawner {id}.");
