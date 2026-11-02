@@ -25525,7 +25525,7 @@ entities:
     components:
     - type: Transform
       parent: 1
-      pos: -22.5,48.5
+      pos: -21.5,48.5
     - type: DeviceLinkSource
       linkedPorts:
         8915:
@@ -45865,7 +45865,7 @@ entities:
     components:
     - type: Transform
       parent: 1
-      pos: -26.5,46.5
+      pos: -25.5,46.5
 - proto: GoonDecorationBookcase
   entities:
   - uid: 10544

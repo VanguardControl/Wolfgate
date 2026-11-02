@@ -21385,7 +21385,7 @@ entities:
   - uid: 9504
     components:
     - type: Transform
-      pos: 18.5,-13.5
+      pos: 18.5,-12.5
       parent: 1668
     - type: DeviceLinkSource
       linkedPorts:
@@ -21396,7 +21396,7 @@ entities:
   - uid: 9505
     components:
     - type: Transform
-      pos: 23.5,-10.5
+      pos: 23.5,-9.5
       parent: 1668
 - proto: MachineThermobath
   entities:

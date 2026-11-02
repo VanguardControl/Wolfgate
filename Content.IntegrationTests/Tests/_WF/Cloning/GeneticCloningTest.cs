@@ -15,6 +15,7 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Humanoid;
 using Content.Shared.Mind;
+using Content.Shared.Physics;
 using Content.Shared.Speech;
 using Content.Shared.Zombies;
 using Robust.Shared.EntitySerialization;
@@ -22,6 +23,7 @@ using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
+using Robust.Shared.Physics;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 using static Content.IntegrationTests.Tests._WF.Genitals.GenitalTestHelpers;
@@ -191,6 +193,16 @@ public sealed class GeneticCloningTest
             Assert.That(entMan.GetComponent<TransformComponent>(offGrid).GridUid, Is.EqualTo(otherGrid.Owner));
             Assert.That(client.Database, Is.EqualTo(second), "A database on another grid should be refused.");
 
+            // Two databases never share a record id, so a console still showing the old list can't hit the wrong person.
+            var firstEnt = new Entity<GeneticDatabaseComponent>(first, entMan.GetComponent<GeneticDatabaseComponent>(first));
+            var secondEnt = new Entity<GeneticDatabaseComponent>(second, entMan.GetComponent<GeneticDatabaseComponent>(second));
+            var firstRecord = new GeneticRecord { Mind = first };
+            var secondRecord = new GeneticRecord { Mind = second };
+            database.Upsert(firstEnt, firstRecord);
+            database.Upsert(secondEnt, secondRecord);
+            Assert.That(secondRecord.Id, Is.Not.EqualTo(firstRecord.Id));
+            Assert.That(database.TryGetRecord(secondEnt, firstRecord.Id, out _), Is.False);
+
             entMan.DeleteEntity(console);
             entMan.DeleteEntity(first);
             entMan.DeleteEntity(second);
@@ -258,6 +270,7 @@ public sealed class GeneticCloningTest
                 Assert.That(comp.Scanner, Is.Not.Null, $"{path}: scanner console has no scanner");
                 Assert.That(entMan.HasComponent<MedicalScannerComponent>(comp.Scanner), Is.True);
                 AssertInPowerReach(entMan, uid, path);
+                AssertTileClear(entMan, uid, path);
             }
             Assert.That(foundScanner, Is.True, $"{path}: no scanner console");
 
@@ -271,6 +284,7 @@ public sealed class GeneticCloningTest
                 foundDatabase = true;
                 Assert.That(xform.Anchored, Is.True, $"{path}: database not anchored");
                 AssertInPowerReach(entMan, uid, path);
+                AssertTileClear(entMan, uid, path);
             }
             Assert.That(foundDatabase, Is.True, $"{path}: no genetic database");
         });
@@ -288,6 +302,25 @@ public sealed class GeneticCloningTest
         });
 
         await pair.CleanReturnAsync();
+    }
+
+    private static void AssertTileClear(IEntityManager entMan, EntityUid uid, string path)
+    {
+        var xform = entMan.GetComponent<TransformComponent>(uid);
+        var grid = xform.GridUid!.Value;
+        var gridComp = entMan.GetComponent<MapGridComponent>(grid);
+        var maps = entMan.System<SharedMapSystem>();
+        var tile = maps.TileIndicesFor(grid, gridComp, xform.Coordinates);
+
+        foreach (var other in maps.GetAnchoredEntities(grid, gridComp, tile))
+        {
+            if (other == uid || !entMan.TryGetComponent<FixturesComponent>(other, out var fixtures))
+                continue;
+
+            var blocks = fixtures.Fixtures.Values.Any(f => f.Hard && (f.CollisionLayer & (int) CollisionGroup.Impassable) != 0);
+            Assert.That(blocks, Is.False,
+                $"{path}: {entMan.ToPrettyString(uid)} shares tile {tile} with {entMan.ToPrettyString(other)}");
+        }
     }
 
     private static void AssertInPowerReach(IEntityManager entMan, EntityUid uid, string path)

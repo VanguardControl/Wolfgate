@@ -20,6 +20,7 @@ public sealed partial class GeneticDatabaseSystem : EntitySystem
     [Dependency] private UserInterfaceSystem _uiSystem = default!;
 
     private readonly HashSet<Entity<GeneticDatabaseComponent>> _found = new();
+    private int _wfNextRecordId = 1; // WOLFGATE(Cloning): shared across databases, so a stale UI id can't match another database's record
 
     public override void Initialize()
     {
@@ -137,7 +138,7 @@ public sealed partial class GeneticDatabaseSystem : EntitySystem
     {
         record.Id = db.Comp.Records.TryGetValue(record.Mind, out var existing)
             ? existing.Id
-            : db.Comp.NextId++;
+            : _wfNextRecordId++; // WOLFGATE(Cloning): was db.Comp.NextId++
 
         db.Comp.Records[record.Mind] = record;
     }

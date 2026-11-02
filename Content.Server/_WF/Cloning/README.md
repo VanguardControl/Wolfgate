@@ -40,10 +40,12 @@ by `GeneticCloningSystem`.
   - replaces CloningEvent, which needs the source body
   - the fields CloneAppearance copies, plus the custom species name
 - [`Content.Server/_Mono/Cloning/GeneticDatabaseSystem.cs`](../../_Mono/Cloning/GeneticDatabaseSystem.cs)
+  - shared across databases, so a stale UI id can't match another database's record
   - a selection that left the grid or was unanchored is dropped; a power cut keeps it
   - the UI only lists this grid
   - split out IsInstalled
   - whether a database can be picked at all, powered or not
+  - was db.Comp.NextId++
 - [`Content.Server/_Mono/Cloning/GeneticRecord.cs`](../../_Mono/Cloning/GeneticRecord.cs): the body may be gone by clone time
 - [`Resources/Maps/_Mono/Outpost/caelestinus_central.yml`](../../../Resources/Maps/_Mono/Outpost/caelestinus_central.yml): Mapped a genetic database and a body scanner console, linked to the scanner and pod.
 - [`Resources/Maps/_Mono/ShuttleEvent/asakim_medium.yml`](../../../Resources/Maps/_Mono/ShuttleEvent/asakim_medium.yml): Mapped a genetic database and a body scanner console, linked to the scanner and pod.

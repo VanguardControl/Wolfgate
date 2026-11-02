@@ -3111,7 +3111,7 @@ entities:
   - uid: 977
     components:
     - type: Transform
-      pos: 6.5,-4.5
+      pos: 6.5,-3.5
       parent: 1
     - type: DeviceLinkSource
       linkedPorts:
@@ -3123,7 +3123,7 @@ entities:
   - uid: 978
     components:
     - type: Transform
-      pos: 7.5,-4.5
+      pos: 7.5,-3.5
       parent: 1
 - proto: HardpointBallisticLight
   entities:

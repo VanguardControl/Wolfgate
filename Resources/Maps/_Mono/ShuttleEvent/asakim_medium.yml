@@ -1506,7 +1506,7 @@ entities:
   - uid: 476
     components:
     - type: Transform
-      pos: -6.5,0.5
+      pos: -5.5,0.5
       parent: 1
     - type: DeviceLinkSource
       linkedPorts:
@@ -1848,7 +1848,7 @@ entities:
   - uid: 477
     components:
     - type: Transform
-      pos: -1.5,-4.5
+      pos: -0.5,-3.5
       parent: 1
 - proto: GravityGeneratorMini
   entities:
