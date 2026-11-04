@@ -1,0 +1,39 @@
+# Vessel prototype made in mapping mode from "Brute Overhaul". Check every field before it goes in the game.
+# Grid: put Brute Overhaul.yml at Resources/SharedMaps/_WF/Community/dis_brute.yml
+# Prototype: put this file, Brute Overhaul.vessel.yml, at Resources/Prototypes/_WF/Community/dis_brute.yml
+# Guessed from the grid (419 tiles), not set by the mapper: category, engine. Check them.
+# Set by the mapper in the export wizard: name, description, price, class, group, access, requireCrew.
+
+- type: vessel
+  id: WFDISBrute
+  parent: BaseVessel
+  name: 'DIS Brute'
+  description: 'A modernized refit of the venerable Brute hull, the hallways, cargo bays and bridge have been streamlined significantly. To specialize it against its larger or faster competitors, the cargo bays have been separated and radiation-shielded shutters have been installed for bulk shipment of hazardous materials.  The significant thickness of the outer hull protects fragile or explosive cargo from significant impacts or weapons fire; being a budget civilian design, however, the Brute lacks shields, and the engines are subpar for its weight class. Note that while the radiation shielding will protect the crew from harmful radiation, it will not prevent criticality events.'
+  price: 75000 # appraised at 48938
+  category: Medium # 419 tiles
+  group: Shipyard
+  shuttlePath: /SharedMaps/_WF/Community/dis_brute.yml
+  guidebookPage: null
+  class:
+  - Cargo
+  - Civilian
+  engine:
+  - Uranium
+
+- type: gameMap
+  id: WFDISBrute
+  mapName: 'DIS Brute'
+  mapPath: /SharedMaps/_WF/Community/dis_brute.yml
+  minPlayers: 0
+  stations:
+    WFDISBrute:
+      stationProto: StandardFrontierVessel
+      components:
+      - type: StationNameSetup
+        mapNameTemplate: 'DIS Brute {1}'
+        nameGenerator:
+          !type:NanotrasenNameGenerator
+          prefixCreator: '14'
+      - type: StationJobs
+        availableJobs:
+          Contractor: [ 0, 0 ]
