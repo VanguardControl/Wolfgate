@@ -1,0 +1,41 @@
+# Vessel prototype made in mapping mode from "Vox-Srashakri". Check every field before it goes in the game.
+# Grid: put Vox-Srashakri.yml at Resources/SharedMaps/_WF/Community/vox_srashakri.yml
+# Prototype: put this file, Vox-Srashakri.vessel.yml, at Resources/Prototypes/_WF/Community/vox_srashakri.yml
+# Guessed from the grid (647 tiles), not set by the mapper: price, engine. Check them.
+# Set by the mapper in the export wizard: name, description, category, class, group, access, requireCrew.
+
+- type: vessel
+  id: WFVOXSrashakri
+  parent: BaseVessel
+  name: 'VOX-Srashakri'
+  description: 'Diven by a need for beefier raider ships in the Colossus sector lead to the creation of the Srashakri pattern raider. A modification of the Vrikaash pattern warships, the Srashakri keeps a lot of the same features but drops two of the 130mm cannons and a lot of the armor and adds on a small cargo bay.'
+  price: 115000 # appraised at 88970
+  category: Medium # 647 tiles
+  group: Scrap
+  requireCrew: true
+  shuttlePath: /SharedMaps/_WF/Community/vox_srashakri.yml
+  guidebookPage: null
+  class:
+  - Pursuit
+  - Scrapyard
+  - Cargo
+  engine:
+  - Plasma
+
+- type: gameMap
+  id: WFVOXSrashakri
+  mapName: 'VOX-Srashakri'
+  mapPath: /SharedMaps/_WF/Community/vox_srashakri.yml
+  minPlayers: 0
+  stations:
+    WFVOXSrashakri:
+      stationProto: StandardFrontierVessel
+      components:
+      - type: StationNameSetup
+        mapNameTemplate: 'VOX-Srashakri {1}'
+        nameGenerator:
+          !type:NanotrasenNameGenerator
+          prefixCreator: '14'
+      - type: StationJobs
+        availableJobs:
+          Contractor: [ 0, 0 ]
