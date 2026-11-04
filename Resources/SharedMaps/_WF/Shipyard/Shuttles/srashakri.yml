@@ -66,7 +66,7 @@ entities:
   - uid: 1
     components:
     - type: MetaData
-      name: grid
+      name: Srashakri
     - type: Transform
       parent: invalid
       pos: 7,-18
