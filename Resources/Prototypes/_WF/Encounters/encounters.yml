@@ -177,7 +177,7 @@
   - key: freighter
     navigation: WFCrewNavigationFreight
     vessels:
-    - Brute
+    - WFBrute
     - Zhuangzi
     - Argent
     side: freight

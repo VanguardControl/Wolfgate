@@ -9,11 +9,11 @@ TODO: what the module does, how players or admins use it and its main entry poin
 
 ### Prototypes
 
-- [`Resources/Prototypes/_WF/Community/dis_brute.yml`](../../../Resources/Prototypes/_WF/Community/dis_brute.yml)
+- [`Resources/Prototypes/_WF/Community/brute.yml`](../../../Resources/Prototypes/_WF/Community/brute.yml)
 
 ### Shared maps
 
-- [`Resources/SharedMaps/_WF/Community/dis_brute.yml`](../../../Resources/SharedMaps/_WF/Community/dis_brute.yml)
+- [`Resources/SharedMaps/_WF/Community/brute.yml`](../../../Resources/SharedMaps/_WF/Community/brute.yml)
 
 ## Non-modular edits
 
