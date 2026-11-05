@@ -29,7 +29,7 @@
   mapPath: /SharedMaps/_WF/Shipyard/Shuttles/brute.yml
   minPlayers: 0
   stations:
-    WFDISBrute:
+    WFBrute:
       stationProto: StandardFrontierVessel
       components:
       - type: StationNameSetup
