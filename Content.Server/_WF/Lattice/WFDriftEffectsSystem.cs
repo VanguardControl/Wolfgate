@@ -156,7 +156,7 @@ public sealed partial class WFDriftEffectsSystem : EntitySystem
         {
             if (xform.GridUid != grid
                 || state.CurrentState != MobState.Alive
-                || !_conversion.IsAnimal(uid)
+                || !_conversion.WouldTurnIfKilled(uid)
                 || TryComp<PhysicsComponent>(uid, out var physics) && physics.FixturesMass > maxMass)
                 continue;
 

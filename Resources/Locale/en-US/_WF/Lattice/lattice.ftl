@@ -126,6 +126,7 @@ ent-WFChoirActionAnswer = Answer the song
 wf-choir-wrap = [color=#d070ff][bold]{$message}[/bold][/color]
 wf-choir-offer-popup = Out here, something is singing. It knows your name.
 wf-choir-offer = A song reaches you from past the Lattice. It's beautiful, and it wants you. Use the "Answer the song" action within five minutes to join the Choir, an antagonist faction. Ignore it and it fades. Server rules for antagonists apply.
+wf-choir-full = The song fades. It has all the voices it wants for now.
 wf-choir-joined-popup = You answer. The noise in your head turns into music.
 wf-choir-briefing = You are Choir now. The Lattice keeps the song out of the sector; you want it in. Break the anchors, carry Scions inward, and keep the Deep for the song. Out here nothing you see frightens you, and the Choir's ships and the Remade won't harm you. You're an antagonist: follow the server's antagonist rules.
 wf-choir-admin-offered = was offered the Choir (high Drift).

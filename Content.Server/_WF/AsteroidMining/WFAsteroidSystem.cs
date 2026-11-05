@@ -525,11 +525,17 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         comp.Cracking = true;
         var center = _transform.GetMapCoordinates(uid);
         var mass = comp.Mass * OreYield(comp) * _lattice.YieldAt(center);
-        _lattice.SpawnExotic(center, comp.Mass, MathF.Max(comp.Radius, 0.3f));
         if (args.TeleportLootToGatherer && args.Gatherer is { } gatherer)
-            SpawnOre(comp.Ores, mass, _transform.GetMapCoordinates(gatherer), 0.2f);
+        {
+            var drill = _transform.GetMapCoordinates(gatherer);
+            SpawnOre(comp.Ores, mass, drill, 0.2f);
+            _lattice.SpawnExotic(center, comp.Mass, 0.2f, drill);
+        }
         else
+        {
             SpawnOre(comp.Ores, mass, center, MathF.Max(comp.Radius, 0.3f));
+            _lattice.SpawnExotic(center, comp.Mass, MathF.Max(comp.Radius, 0.3f));
+        }
         if (Transform(uid).MapUid is { } mapUid)
             SpawnCrackEffect(center, mapUid, MathF.Max(comp.Radius, 0.5f), comp.VeinColor, false);
     }

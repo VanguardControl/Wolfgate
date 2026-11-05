@@ -19,4 +19,8 @@ public sealed partial class WFDriftComponent : Component
     public int Level;
 
     public const float LevelStep = 5f;
+
+    /// <summary>Depth into its band, 0 to 1, for clients that can't work it out themselves, such as on a planet.</summary>
+    [DataField, AutoNetworkedField]
+    public float Depth;
 }

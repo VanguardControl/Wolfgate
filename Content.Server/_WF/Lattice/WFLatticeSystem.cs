@@ -175,8 +175,11 @@ public sealed partial class WFLatticeSystem : EntitySystem
         return BandOf(point, out _)?.Yield ?? 1f;
     }
 
-    /// <summary>Drops the exotic matter a rock of this many veins holds where it broke, if the band has any.</summary>
-    public void SpawnExotic(MapCoordinates point, float veins, float radius)
+    /// <summary>
+    /// Drops the exotic matter a rock of this many veins holds, if the band where it broke has any: at the rock, or at
+    /// <paramref name="dropAt"/> when the loot goes straight to a ship drill.
+    /// </summary>
+    public void SpawnExotic(MapCoordinates point, float veins, float radius, MapCoordinates? dropAt = null)
     {
         if (BandOf(point, out var profile) is not { Exotic: > 0f } band || profile == null)
             return;
@@ -186,7 +189,8 @@ public sealed partial class WFLatticeSystem : EntitySystem
         for (var i = 0; i < count; i++)
         {
             var offset = _random.NextAngle().ToVec() * radius * 0.8f * MathF.Sqrt(_random.NextFloat());
-            Spawn(profile.ExoticPrototype, new MapCoordinates(point.Position + offset, point.MapId));
+            var at = dropAt ?? point;
+            Spawn(profile.ExoticPrototype, new MapCoordinates(at.Position + offset, at.MapId));
         }
     }
 
@@ -292,10 +296,11 @@ public sealed partial class WFLatticeSystem : EntitySystem
 
             drift.Drift = Math.Clamp(drift.Drift + rate * seconds, 0f, profile.DriftMax);
             var level = (int) (drift.Drift / WFDriftComponent.LevelStep);
-            if (drift.Band != index || drift.Level != level)
+            if (drift.Band != index || drift.Level != level || MathF.Abs(drift.Depth - depth) >= 0.05f)
             {
                 drift.Band = index;
                 drift.Level = level;
+                drift.Depth = depth;
                 Dirty(carrier, drift);
             }
 

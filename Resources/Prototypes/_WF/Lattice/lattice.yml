@@ -85,6 +85,7 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: WFLatticeAnchor
+    primary: true
 
 # A weaker anchor for admins to place by hand.
 - type: entity

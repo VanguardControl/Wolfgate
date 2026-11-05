@@ -6,6 +6,7 @@ using Content.Shared.Actions;
 using Content.Shared.Chat;
 using Content.Shared.Database;
 using Content.Shared.GameTicking;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.NPC.Components;
 using Content.Shared.NPC.Systems;
 using Content.Shared.Popups;
@@ -30,6 +31,7 @@ public sealed partial class WFChoirSystem : EntitySystem
     [Dependency] private IConfigurationManager _config = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private NpcFactionSystem _factions = default!;
     [Dependency] private SharedActionsSystem _actions = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
@@ -98,14 +100,15 @@ public sealed partial class WFChoirSystem : EntitySystem
         }
     }
 
-    /// <summary>How many Choir players there are.</summary>
+    /// <summary>How many living Choir members a player still controls; dead bodies and abandoned ones don't count.</summary>
     public int Members()
     {
         var count = 0;
         var query = EntityQueryEnumerator<WFChoirMemberComponent>();
-        while (query.MoveNext(out _, out _))
+        while (query.MoveNext(out var uid, out _))
         {
-            count++;
+            if (!_mobState.IsDead(uid) && _player.TryGetSessionByEntity(uid, out _))
+                count++;
         }
 
         return count;
@@ -127,6 +130,16 @@ public sealed partial class WFChoirSystem : EntitySystem
     private void OnAnswer(Entity<WFChoirOfferComponent> ent, ref WFChoirAnswerEvent args)
     {
         args.Handled = true;
+        // Several offers can be open at once, so the cap is checked again on answering.
+        if (Members() >= _config.GetCVar(WFChoirCVars.MaxMembers))
+        {
+            if (_player.TryGetSessionByEntity(ent.Owner, out var session))
+                _popup.PopupEntity(Loc.GetString("wf-choir-full"), ent.Owner, session, PopupType.Medium);
+
+            RemComp<WFChoirOfferComponent>(ent.Owner);
+            return;
+        }
+
         Join(ent.Owner);
     }
 

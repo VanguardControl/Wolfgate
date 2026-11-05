@@ -143,7 +143,7 @@ public sealed partial class WFLatticeSystem
     private void OnAnchorDamaged(Entity<WFLatticeAnchorComponent> ent, ref DamageChangedEvent args)
     {
         if (ent.Comp.Primary && args.DamageIncreased && Transform(ent.Owner).GridUid is { } grid)
-            Defend(grid, args.Origin is { } origin ? Transform(origin).GridUid : null);
+            Defend(grid, args.Origin is { } origin && TryComp<TransformComponent>(origin, out var from) ? from.GridUid : null);
     }
 
     private void OnShieldAttacked(ref WFShipShieldAttackedEvent args)
