@@ -1,0 +1,141 @@
+# Lattice
+
+The sector's boundary. Reality anchors round Caelestinus Central hold off Kyphrus's Unmooring; the further from their
+hold, the worse it gets. The field is banded Moored, Slack, Adrift, Untethered and the Deep, whose name comes out garbled.
+Crossing into another band shows a popup and a notification chip, and radars draw the band edges in place of the
+drone rings, which they line up with: the band edges are the map's drone rings (18, 22, 25 and 30 km on the default
+worldgen), or the profile's edges if the rings don't line up. The full design and build order are in `Docs/_WF/Lattice/DESIGN.md`.
+
+**How it works.** `WFLatticeSystem` puts `WFLatticeFieldComponent` on every map with world generation and spawns the
+profile's six primary anchors on a 3 km hexagon if the map has none. Each is a small station built in code
+(`WFLatticeSystem.Stations.cs`, pushed outward clear of other grids): a round deck, the anchor core (a
+glyph obelisk, a different one per anchor: `WFLatticeAnchorCoreAlpha` to `Zeta`, 20,000 damage) and a fortress shield
+(`WFLatticeAnchorShield`, which needs no power). The shield's field is drawn as a rooted Ward in the profile's
+`shieldTint` (purple): the Remade module's membrane and glyphs, tinted through `WFWardFieldComponent.Tint`. Hitting the
+core or its shield calls the drones still loyal to the Lattice (`MonoDroneSpawnerT1`, 300 m out towards the attacker,
+every 5 minutes at most). A destroyed core is a breach: it stops holding, and a global announcement and chip name it
+and the direction the Lattice is failing in. The field's `Integrity` (primaries left out of six) goes to clients. Each anchor
+(`WFLatticeAnchorComponent`) adds a hold that halves at the profile's `reach`; the bands' thresholds are the summed hold
+at each band edge for the intact hexagon, so a lost anchor pulls the edges in, most on its side. Every second each
+player's carrier gets a band and builds Drift (`WFDriftComponent`): the grid they are on, themselves in open space, or
+on a planet, their ground or grid at the world's place in the sector. Ghosts are skipped, and Drift only changes while
+someone is aboard. The field component carries the anchors and thresholds to clients. `WFLatticeMath` holds the field,
+band, depth and garble sums.
+
+**Garbling.** In a garbling band (the Deep) text garbles more the deeper it is, and flickers on clients
+(`WFLatticeViewSystem`): radar contact names by the deeper of the viewer and the contact, the console's own position and
+the radar's cursor and scanner readouts by the viewer, and the Scion hint whispers' coordinates by where the hulk is
+(`WFLatticeSystem.GarbleAt`).
+
+**Drift effects.** `WFDriftEffectsSystem` rolls each player's hallucination every 20 s or so, more often the higher
+their Drift, from the profile's `effects` list: whispers (popups), voices and false hails on the common channel, radar
+contacts that aren't there, footsteps and knocks, glimpses, and from 70 Drift a Remade standing in the dark that goes
+when approached. Each goes to that one player only: chat and sound by a single-player filter, figures and contacts as a
+`WFLatticeHallucinationEvent` that `WFLatticeHallucinationSystem` shows client-side. From 30 Drift the screen warps
+(`WFDriftOverlay`, the drunk shader), off the carrier's networked Drift `Level`. In the Deep (`takeBand`) a crewed ship
+can lose a small animal (under 30 kg) about once in 25 minutes: it dies and turns, through the Remade conversion. A
+`WFLatticeShelterComponent` on the ship (or a person) keeps a share of the Drift off and stops the taking.
+
+**Rewards and shelter.** Asteroid rocks broken out in the bands drop more ore (each band's `yield`, up to 1.6 in the
+Deep, through `WFLatticeSystem.YieldAt` in `WFAsteroidSystem`) and from the Adrift band on, exotic matter
+(`WFMaterialExoticMatter`, 3,000 a shard, `exotic` shards per vein). The autolathe makes two things from it: the Drift
+stabiliser flatpack (5 shards; 15 kW while running), which shelters the ship it is anchored on from 80% of Drift gain
+and stops the taking, and the anchor charm (1 shard), worn round the neck, which keeps half the Drift off its wearer.
+`WFLatticeShelterSystem` keeps the `WFLatticeShelterComponent` on ships and wearers.
+
+**Relay anchors.** The autolathe makes a relay anchor flatpack (20 shards of exotic matter). Bolted down with 30 kW,
+on a grid moving under 1 m/s for a minute, a relay holds 0.4 of a primary's strength and pushes anchored space out
+round it; it lets go when the grid moves or the power fails.
+
+**Kyphrus.** The black hole shader takes `unmooring` (0 to 1) from `WFLatticeViewSystem.Unmooring`: the share of
+primary anchors lost, or at least 0.6 (rising with depth) while the viewer is in the Deep. It strengthens the lensing,
+makes the disk's turning skip, leans its colour from orange to violet, adds a counter-turning ghost image of the disk
+and tears the edge of the shadow (`black_hole.swsl`, set in `StarOverlay.BlackHole.cs`).
+
+**The Choir.** A player at 80 Drift or more is offered the song once a round (`WFChoirSystem`): a popup, a line in chat
+and an "Answer the song" action for five minutes. Using it is the only way in. A Choir player takes the `WFChoir`
+faction (the Choir's NPC ships and the Remade leave them be), has no hallucinations, and is briefed to break anchors
+and carry Scions inward as an antagonist. Admins get an alert for each offer and join, and joins are admin-logged.
+Removing `WFChoirMemberComponent` takes them out again. `wf.lattice.choir`, `wf.lattice.choir_min_players` (15),
+`wf.lattice.choir_max` (3) and `wf.lattice.choir_min_drift` (80) gate it. Each Choir player adds 2 to the DEFCON
+score, and each lost primary anchor 10 (`breachDefcon`).
+
+**Deep-only encounters.** An encounter with `latticeBand` above zero is placed at its distances from the sector's centre
+and only where the band is at least that; with no Lattice it falls back to distances from a player. The Monolith hulk,
+the guarded hulk and the adrift freighter use band 4 at 31-36 km.
+
+**Tuning.** `Resources/Prototypes/_WF/Lattice/lattice.yml`: the `WFDefault` profile's anchor layout, reach, Drift cap
+and per-band edge, Drift rate, growth with depth, chip style and garbling.
+
+**Admins.** Spawn `WFLatticeAnchorRelayMarker` (0.4 strength) to push the field out, or delete a primary anchor to
+open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
+
+
+<!-- WOLFGATE-GENERATED START -->
+<!-- Generated by python Tools/_WF/Ci/modules.py --write. Don't edit by hand. -->
+
+## Files
+
+### Server
+
+- [`Content.Server/_WF/Lattice/WFChoirSystem.cs`](WFChoirSystem.cs)
+- [`Content.Server/_WF/Lattice/WFDriftEffectsSystem.cs`](WFDriftEffectsSystem.cs)
+- [`Content.Server/_WF/Lattice/WFLatticeShelterSystem.cs`](WFLatticeShelterSystem.cs)
+- [`Content.Server/_WF/Lattice/WFLatticeSystem.cs`](WFLatticeSystem.cs)
+- [`Content.Server/_WF/Lattice/WFLatticeSystem.Stations.cs`](WFLatticeSystem.Stations.cs)
+
+### Shared
+
+- [`Content.Shared/_WF/Lattice/WFChoir.cs`](../../../Content.Shared/_WF/Lattice/WFChoir.cs)
+- [`Content.Shared/_WF/Lattice/WFDriftComponent.cs`](../../../Content.Shared/_WF/Lattice/WFDriftComponent.cs)
+- [`Content.Shared/_WF/Lattice/WFLatticeAnchorComponent.cs`](../../../Content.Shared/_WF/Lattice/WFLatticeAnchorComponent.cs)
+- [`Content.Shared/_WF/Lattice/WFLatticeFieldComponent.cs`](../../../Content.Shared/_WF/Lattice/WFLatticeFieldComponent.cs)
+- [`Content.Shared/_WF/Lattice/WFLatticeHallucination.cs`](../../../Content.Shared/_WF/Lattice/WFLatticeHallucination.cs)
+- [`Content.Shared/_WF/Lattice/WFLatticeMath.cs`](../../../Content.Shared/_WF/Lattice/WFLatticeMath.cs)
+- [`Content.Shared/_WF/Lattice/WFLatticeProfilePrototype.cs`](../../../Content.Shared/_WF/Lattice/WFLatticeProfilePrototype.cs)
+- [`Content.Shared/_WF/Lattice/WFLatticeShelterComponent.cs`](../../../Content.Shared/_WF/Lattice/WFLatticeShelterComponent.cs)
+- [`Content.Shared/_WF/Lattice/WFLatticeShelterSources.cs`](../../../Content.Shared/_WF/Lattice/WFLatticeShelterSources.cs)
+
+### Client
+
+- [`Content.Client/_WF/Lattice/ShuttleNavControl.Lattice.cs`](../../../Content.Client/_WF/Lattice/ShuttleNavControl.Lattice.cs)
+- [`Content.Client/_WF/Lattice/WFDriftOverlay.cs`](../../../Content.Client/_WF/Lattice/WFDriftOverlay.cs)
+- [`Content.Client/_WF/Lattice/WFLatticeHallucinationSystem.cs`](../../../Content.Client/_WF/Lattice/WFLatticeHallucinationSystem.cs)
+- [`Content.Client/_WF/Lattice/WFLatticeRings.cs`](../../../Content.Client/_WF/Lattice/WFLatticeRings.cs)
+- [`Content.Client/_WF/Lattice/WFLatticeViewSystem.cs`](../../../Content.Client/_WF/Lattice/WFLatticeViewSystem.cs)
+
+### Integration tests
+
+- [`Content.IntegrationTests/Tests/_WF/Lattice/WFChoirTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFChoirTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Lattice/WFDriftEffectsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFDriftEffectsTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeShelterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeShelterTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeStationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeStationTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeTest.cs)
+
+### Unit tests
+
+- [`Content.Tests/_WF/Lattice/WFLatticeMathTest.cs`](../../../Content.Tests/_WF/Lattice/WFLatticeMathTest.cs)
+
+### Prototypes
+
+- [`Resources/Prototypes/_WF/Lattice/anchors.yml`](../../../Resources/Prototypes/_WF/Lattice/anchors.yml)
+- [`Resources/Prototypes/_WF/Lattice/exotic.yml`](../../../Resources/Prototypes/_WF/Lattice/exotic.yml)
+- [`Resources/Prototypes/_WF/Lattice/lattice.yml`](../../../Resources/Prototypes/_WF/Lattice/lattice.yml)
+
+### Localization
+
+- [`Resources/Locale/en-US/_WF/Lattice/lattice.ftl`](../../../Resources/Locale/en-US/_WF/Lattice/lattice.ftl)
+
+### Docs
+
+- [`Docs/_WF/Lattice/DESIGN.md`](../../../Docs/_WF/Lattice/DESIGN.md)
+
+## Non-modular edits
+
+- [`Content.Client/Shuttles/UI/NavScreen.xaml.cs`](../../../Content.Client/Shuttles/UI/NavScreen.xaml.cs): the ship's own position garbles too.
+- [`Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs)
+  - radar contacts only this player sees.
+  - contact names garble out past the Lattice's hold.
+- [`Resources/Prototypes/Entities/Structures/Machines/lathe.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/lathe.yml): Drift stabiliser, anchor charm and relay anchor recipes
+
+<!-- WOLFGATE-GENERATED END -->
