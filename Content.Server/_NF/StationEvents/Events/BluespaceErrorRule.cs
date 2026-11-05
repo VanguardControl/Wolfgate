@@ -127,12 +127,19 @@ public sealed partial class BluespaceErrorRule : StationEventSystem<BluespaceErr
                 EntityManager.AddComponents(spawned, group.AddComponents);
 
                 component.GridsUid.Add(spawned);
+<<<<<<< HEAD
                 // WOLFGATE(Performance) START: frontier#4800 extended, appraise at spawn only for the currency injection
                 // component.StartingValue += _pricing.AppraiseGrid(spawned);
                 if (HasComp<CurrencyInjectionOnBluespaceErrorComponent>(uid))
                     component.StartingValue += _pricing.AppraiseGrid(spawned);
                 // WOLFGATE END
 
+=======
+                component.StartingValue += component.RewardAccounts.Count > 0
+                    ? _pricing.AppraiseGrid(spawned)
+                    : 0;
+                    
+>>>>>>> ba59ee564e (Port Frontier #4800: Micro-QoL: Skip Appraisal of Bluespace Event Grids when Unnecessary (#4971))
                 if (component.ExtendIfPopulated)
                     _autoExtend.AutoExtend(uid, spawned);
 
@@ -275,12 +282,21 @@ public sealed partial class BluespaceErrorRule : StationEventSystem<BluespaceErr
                     _transform.DetachEntity(mob.Entity.Owner, mob.Entity.Comp);
                 }
 
+<<<<<<< HEAD
                 // WOLFGATE(Performance) START: frontier#4800, skip the end appraisal when nothing uses the value
                 // var gridValue = _pricing.AppraiseGrid(gridUid, null);
                 var gridValue = component.RewardAccounts.Count > 0 || HasComp<CurrencyInjectionOnBluespaceErrorComponent>(uid)
                     ? _pricing.AppraiseGrid(gridUid, null)
                     : 0;
                 // WOLFGATE END
+=======
+                // Skip appraisal if there's no reward account. Appraisal eats up too much
+                // frame time for very large grids (e.g. vgroids).
+                var gridValue = component.RewardAccounts.Count > 0
+                    ? _pricing.AppraiseGrid(gridUid, null)
+                    : 0;
+
+>>>>>>> ba59ee564e (Port Frontier #4800: Micro-QoL: Skip Appraisal of Bluespace Event Grids when Unnecessary (#4971))
                 // Mono: currency injections
                 if (TryComp<CurrencyInjectionOnBluespaceErrorComponent>(uid, out var comp))
                 {
