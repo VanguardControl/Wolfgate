@@ -4,7 +4,7 @@ meta:
   engineVersion: 291.0.0
   forkId: wolfgate-mapping
   forkVersion: 20261104-033231-03cedde-0c63a46a
-  time: 11/04/2026 09:31:39
+  time: 11/05/2026 00:42:24
   entityCount: 787
 maps: []
 grids:
@@ -3814,7 +3814,7 @@ entities:
     components:
     - type: Transform
       parent: 1
-      pos: 1.5,-15.5
+      pos: 2.5,-15.5
       anchored: True
     - type: Physics
       bodyType: Static
@@ -3824,7 +3824,7 @@ entities:
     components:
     - type: Transform
       parent: 1
-      pos: 2.5,-15.5
+      pos: 1.5,-15.5
       anchored: True
     - type: Physics
       bodyType: Static
