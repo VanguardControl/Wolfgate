@@ -5463,3 +5463,22 @@ Entries:
   id: 100336
   time: '2026-11-04T03:20:55.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/475
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Hydroponics tray alert lights sit in their sockets again.
+    - type: Fix
+      message: >-
+        TSFMC and PDV cyborgs take their advanced weapon module instead of
+        calling it a duplicate.
+    - type: Fix
+      message: >-
+        Clicking a ship or drone near a planet on the nav no longer opens that
+        planet's signal list.
+    - type: Tweak
+      message: >-
+        An orbital vehicle drop throws anyone standing on the beacon clear
+        instead of refusing to land.
+  id: 100337
+  time: '2026-11-04T04:35:32.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/477
