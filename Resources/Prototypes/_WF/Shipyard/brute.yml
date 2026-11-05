@@ -15,7 +15,7 @@
   price: 84782 # appraised at 84001
   category: Medium # 419 tiles
   group: Shipyard
-  shuttlePath: /SharedMaps/_WF/Shipyard/brute.yml
+  shuttlePath: /SharedMaps/_WF/Shipyard/Shuttles/brute.yml
   guidebookPage: null
   class:
   - Cargo
