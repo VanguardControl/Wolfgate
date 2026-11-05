@@ -26,7 +26,7 @@
 - type: gameMap
   id: WFBrute
   mapName: 'DIS Brute'
-  mapPath: /SharedMaps/_WF/Shipyard/brute.yml
+  mapPath: /SharedMaps/_WF/Shipyard/Shuttles/brute.yml
   minPlayers: 0
   stations:
     WFDISBrute:
