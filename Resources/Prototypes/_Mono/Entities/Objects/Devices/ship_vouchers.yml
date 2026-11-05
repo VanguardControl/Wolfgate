@@ -47,7 +47,6 @@
     vessels:
     - Guppy
     - Sandbox
-    consoleType: Shipyard
     destroyOnEmpty: true
 
 # Tsfmc
@@ -73,7 +72,6 @@
     heldPrefix: tsf
   - type: ShipyardVoucher
     destroyOnEmpty: true
-    consoleType: Security
     companyName: TSF
     vessels:
     - Shiv
@@ -110,7 +108,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: true # WOLFGATE(Drydock): single use, so a drydock repair undercuts printing another card
     cooldown: 1800 # 30 minutes
-    consoleType: Security
     companyName: TSF
     vessels:
     - Calypso
@@ -134,7 +131,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: true # WOLFGATE(Drydock): single use, so a drydock repair undercuts printing another card
     cooldown: 3600 # one hour
-    consoleType: Security
     companyName: TSF
     vessels:
     - Fujian
@@ -169,7 +165,6 @@
     destroyOnEmpty: true # WOLFGATE(Drydock): single use, so a drydock repair undercuts printing another card
     redemptionsLeft: 1 # WOLFGATE(Drydock)
     cooldown: 5100 # hour and 25 minutes
-    consoleType: Security
     companyName: TSF
     vessels:
     - TSFNPolaris
@@ -192,9 +187,13 @@
   - type: Item
     heldPrefix: tsf
   - type: ShipyardVoucher
+<<<<<<< HEAD
     destroyOnEmpty: true # WOLFGATE(Drydock): single use, so a drydock repair undercuts printing another card
     redemptionsLeft: 1 # WOLFGATE(Drydock)
     consoleType: Security
+=======
+    destroyOnEmpty: false
+>>>>>>> 9152e51291 (Removes ConsoleType Restrictions From Vouchers, Allowing the Ironman LPC to Be Used with the Zvezda Shipyard (#4924))
     companyName: TSF
     cooldown: 14400 # two hour
     vessels:
@@ -221,8 +220,11 @@
     heldPrefix: tsf
   - type: ShipyardVoucher
     destroyOnEmpty: true
+<<<<<<< HEAD
     redemptionsLeft: 1 # WOLFGATE(Drydock): single use, so a drydock repair undercuts printing another card
     consoleType: Custom
+=======
+>>>>>>> 9152e51291 (Removes ConsoleType Restrictions From Vouchers, Allowing the Ironman LPC to Be Used with the Zvezda Shipyard (#4924))
     companyName: TSF
     vessels:
     - ZephyrEC
@@ -250,7 +252,6 @@
     heldPrefix: pdv
   - type: ShipyardVoucher
     destroyOnEmpty: true
-    consoleType: BlackMarket
     companyName: PDV
     vessels:
     - Bazalt
@@ -285,7 +286,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: false
     cooldown: 1800 # 30 minutes
-    consoleType: BlackMarket
     companyName: PDV
     vessels:
     - Layak
@@ -316,7 +316,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: false
     cooldown: 3600 # one hour
-    consoleType: BlackMarket
     companyName: PDV
     vessels:
     - MotleyAnne
@@ -344,7 +343,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: false
     cooldown: 5400 # 1.5 hours
-    consoleType: BlackMarket
     companyName: PDV
     vessels:
     - KortikR
@@ -373,7 +371,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: false
     cooldown: 5400 # 1 & 1/2 hours
-    consoleType: BlackMarket
     companyName: PDV
     vessels:
     - KortikR
@@ -400,7 +397,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: false
     cooldown: 5400 # 1 & 1/2 hours
-    consoleType: BlackMarket
     companyName: PDV
     vessels:
     - Europa
@@ -426,7 +422,6 @@
     heldPrefix: pdv
   - type: ShipyardVoucher
     destroyOnEmpty: false
-    consoleType: BlackMarket
     companyName: PDV
     cooldown: 14400 # two hour
     vessels:
@@ -450,7 +445,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: false
     cooldown: 1800 # 30 minutes
-    consoleType: Custom
     companyName: PDV
     vessels:
     - Mock
@@ -475,7 +469,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: false
     cooldown: 1800 # 30 minutes
-    consoleType: Custom
     companyName: PDV
     vessels:
     - Inertia
@@ -500,7 +493,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: false
     cooldown: 1800 # 30 minutes
-    consoleType: Custom
     companyName: PDV
     vessels:
     - Snakelet
@@ -528,7 +520,6 @@
     heldPrefix: ussp
   - type: ShipyardVoucher
     destroyOnEmpty: true
-    consoleType: USSP
     companyName: USSP
     vessels:
     - Strayk
@@ -560,7 +551,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: false
     cooldown: 3600 # one hour
-    consoleType: USSP
     companyName: USSP
     vessels:
     - Drakon
@@ -585,7 +575,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: false
     cooldown: 3600 # one hour
-    consoleType: USSP
     companyName: USSP
     vessels:
     - Tayfun
@@ -610,7 +599,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: false
     cooldown: 5100 # hour and 25 minutes
-    consoleType: USSP
     companyName: USSP
     vessels:
     - Buran
@@ -637,7 +625,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: false
     cooldown: 1800 # 30 minutes
-    consoleType: Mieyo
     companyName: MMC
     vessels:
     - Yukikaze
@@ -662,7 +649,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: false
     cooldown: 1800 # 30 minutes
-    consoleType: Mieyo
     companyName: MMC
     vessels:
     - Senkusha
@@ -691,7 +677,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: false
     cooldown: 3600 # one hour
-    consoleType: Viper
     companyName: TheViperGroup
     vessels:
     - Wolfsnake
@@ -716,7 +701,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: false
     cooldown: 3600 # one hour
-    consoleType: Viper
     companyName: TheViperGroup
     vessels:
     - Keelback
@@ -741,7 +725,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: false
     cooldown: 7200 # Two Hours.
-    consoleType: Viper
     companyName: TheViperGroup
     vessels:
     - Lancehead
@@ -766,7 +749,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: false
     cooldown: 7200 # Two Hours.
-    consoleType: Viper
     companyName: TheViperGroup
     vessels:
     - Leviathan
@@ -793,7 +775,6 @@
       shader: unshaded
   - type: ShipyardVoucher
     destroyOnEmpty: true
-    consoleType: Sr
     companyName: Colonial
     vessels:
     - Hornet
@@ -818,7 +799,6 @@
   - type: ShipyardVoucher
     destroyOnEmpty: false
     cooldown: 1800 # 30 minutes
-    consoleType: Sr
     companyName: Colonial
     vessels:
     - Petra
