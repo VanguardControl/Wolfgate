@@ -36,6 +36,9 @@ public sealed partial class WFLoreBookWindow
     /// <summary>The glyph font words turn into.</summary>
     private const string GlyphFont = "WFLoreGlyphs";
 
+    /// <summary>The glyphs fill their whole height, so this size stands them as tall as the page's capitals.</summary>
+    private const int GlyphSize = 10;
+
     private readonly Random _slip = new();
 
     /// <summary>The chapter trail and page number as written, so each page slips them afresh.</summary>
@@ -99,7 +102,7 @@ public sealed partial class WFLoreBookWindow
             word.Clear();
             if (!heading && text.Length > 2 && rng.NextDouble() < glyph)
             {
-                builder.Append($"[font=\"{GlyphFont}\" size=15]{text}[/font]");
+                builder.Append($"[font=\"{GlyphFont}\" size={GlyphSize}]{text}[/font]");
                 return;
             }
 
