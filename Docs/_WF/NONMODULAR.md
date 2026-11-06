@@ -150,6 +150,8 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Server/Administration/Systems/BwoinkSystem.cs`](../../Content.Server/Administration/Systems/BwoinkSystem.cs)
   - a mention in an embed never pings; it goes in the content below
   - only message content pings, and the payload suppresses every mention unless roles are allowed
+- [`Content.Server/Anomaly/AnomalySynchronizerSystem.cs`](../../Content.Server/Anomaly/AnomalySynchronizerSystem.cs): a deleted anomaly threw here every tick and stopped every other synchronizer
+- [`Content.Server/Anomaly/AnomalySystem.Scanner.cs`](../../Content.Server/Anomaly/AnomalySystem.Scanner.cs): points earned ran onto the point output line
 - [`Content.Server/Anomaly/Effects/ProjectileAnomalySystem.cs`](../../Content.Server/Anomaly/Effects/ProjectileAnomalySystem.cs): with nothing in range Pick threw, so a supercritical never ended and retried every tick
 - [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.HighPressureDelta.cs`](../../Content.Server/Atmos/EntitySystems/AtmosphereSystem.HighPressureDelta.cs)
   - Vector2 for the space-wind NaN guard
@@ -224,6 +226,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - restore the licence header removed by Kill Spdx
   - a free vend skips the cash payment, which logs a zero amount as invalid
 - [`Content.Server/Weapons/Ranged/Systems/GunSystem.cs`](../../Content.Server/Weapons/Ranged/Systems/GunSystem.cs): a bolt-action gun leaves its chamber full, and ammo that shoots itself has to leave it
+- [`Content.Shared/_Crescent/Hardpoints/SharedHardpointSystem.cs`](../../Content.Shared/_Crescent/Hardpoints/SharedHardpointSystem.cs): a hardpoint deleted first threw on its transform
 - [`Content.Shared/_Crescent/ShipShields/ShipShieldComponent.cs`](../../Content.Shared/_Crescent/ShipShields/ShipShieldComponent.cs): restore the licence header removed by Kill Spdx
 - [`Content.Shared/_Crescent/ShipShields/ShipShieldedComponent.cs`](../../Content.Shared/_Crescent/ShipShields/ShipShieldedComponent.cs): restore the licence header removed by Kill Spdx
 - [`Content.Shared/_Crescent/ShipShields/ShipShieldEmitterComponent.cs`](../../Content.Shared/_Crescent/ShipShields/ShipShieldEmitterComponent.cs): restore the licence header removed by Kill Spdx
@@ -390,6 +393,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/Prototypes/_DV/Entities/Objects/Weapons/Guns/Projectiles/muzzleflashes.yml`](../../Resources/Prototypes/_DV/Entities/Objects/Weapons/Guns/Projectiles/muzzleflashes.yml): restore the licence header removed by Kill Spdx
 - [`Resources/Prototypes/_Goobstation/Entities/Clothing/Eyes/glasses.yml`](../../Resources/Prototypes/_Goobstation/Entities/Clothing/Eyes/glasses.yml): an invalid default leaves the chameleon menu empty
 - [`Resources/Prototypes/_Goobstation/Entities/Clothing/Head/modsuit.yml`](../../Resources/Prototypes/_Goobstation/Entities/Clothing/Head/modsuit.yml): unsealing strips only the seal's own components, not the ones this helmet always has
+- [`Resources/Prototypes/_Goobstation/Entities/Clothing/OuterClothing/modsuit.yml`](../../Resources/Prototypes/_Goobstation/Entities/Clothing/OuterClothing/modsuit.yml): the rsi has no sealed vox state, so sealed Vox drew an error sprite
 - [`Resources/Prototypes/_Goobstation/Entities/Objects/Devices/Circuitboards/machine.yml`](../../Resources/Prototypes/_Goobstation/Entities/Objects/Devices/Circuitboards/machine.yml): restore the licence header removed by Kill Spdx
 - [`Resources/Prototypes/_Goobstation/Entities/Objects/Misc/filters.yml`](../../Resources/Prototypes/_Goobstation/Entities/Objects/Misc/filters.yml): restore the licence header removed by Kill Spdx
 - [`Resources/Prototypes/_Goobstation/Entities/Objects/Tools/upgrade_kits.yml`](../../Resources/Prototypes/_Goobstation/Entities/Objects/Tools/upgrade_kits.yml): restore the licence header removed by Kill Spdx
@@ -414,6 +418,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/Prototypes/_Mono/Catalogs/tsfmc_uplink_catalog.yml`](../../Resources/Prototypes/_Mono/Catalogs/tsfmc_uplink_catalog.yml): PDV pack, price 125->175
 - [`Resources/Prototypes/_Mono/Catalogs/VendingMachines/Inventories/ussp.yml`](../../Resources/Prototypes/_Mono/Catalogs/VendingMachines/Inventories/ussp.yml): the loaded magazine is class-3 contraband worth 10 FMC since Monolith#4816
 - [`Resources/Prototypes/_Mono/Claws/reptilian.yml`](../../Resources/Prototypes/_Mono/Claws/reptilian.yml): huge claws never stop a lizard shooting; they take the worst spread instead
+- [`Resources/Prototypes/_Mono/Entities/Clothing/OuterClothing/modsuit.yml`](../../Resources/Prototypes/_Mono/Entities/Clothing/OuterClothing/modsuit.yml): the rsi has no resomi state, so sealed Resomi drew an error sprite
 - [`Resources/Prototypes/_Mono/Entities/Mobs/NPCs/mothroaches.yml`](../../Resources/Prototypes/_Mono/Entities/Mobs/NPCs/mothroaches.yml): OwO accent removed
 - [`Resources/Prototypes/_Mono/Entities/Objects/Devices/Circuitboards/Machine/turrets.yml`](../../Resources/Prototypes/_Mono/Entities/Objects/Devices/Circuitboards/Machine/turrets.yml): restore the licence header removed by Kill Spdx
 - [`Resources/Prototypes/_Mono/Entities/Objects/Devices/flatpack.yml`](../../Resources/Prototypes/_Mono/Entities/Objects/Devices/flatpack.yml): restore the licence header removed by Kill Spdx
@@ -462,6 +467,8 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/Prototypes/_Mono/Recipes/Lathes/Factions/shipyard.yml`](../../Resources/Prototypes/_Mono/Recipes/Lathes/Factions/shipyard.yml)
   - PDV pack, composite cost 12000->9000
   - PDV pack, composite cost 23000->18000
+- [`Resources/Prototypes/_Mono/Recipes/Lathes/Packs/Factions/phaethon_dynasty.yml`](../../Resources/Prototypes/_Mono/Recipes/Lathes/Packs/Factions/phaethon_dynasty.yml): its tech disk promised it, but the lathes never listed it
+- [`Resources/Prototypes/_Mono/Recipes/Lathes/Packs/Factions/tsfmc.yml`](../../Resources/Prototypes/_Mono/Recipes/Lathes/Packs/Factions/tsfmc.yml): its tech disk promised it, but the lathes never listed it
 - [`Resources/Prototypes/_Mono/Recipes/Lathes/Packs/mechs.yml`](../../Resources/Prototypes/_Mono/Recipes/Lathes/Packs/mechs.yml): restore the licence header removed by Kill Spdx
 - [`Resources/Prototypes/_Mono/Recipes/Lathes/Packs/universal_ship_ammo.yml`](../../Resources/Prototypes/_Mono/Recipes/Lathes/Packs/universal_ship_ammo.yml): restore the licence header removed by Kill Spdx
 - [`Resources/Prototypes/_Mono/Recipes/Lathes/turrets.yml`](../../Resources/Prototypes/_Mono/Recipes/Lathes/turrets.yml): restore the licence header removed by Kill Spdx

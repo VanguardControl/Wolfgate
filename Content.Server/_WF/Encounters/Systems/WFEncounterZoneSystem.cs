@@ -116,7 +116,7 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
     /// Whether an encounter's zones have stood down. A resolved encounter's have, except a battle's: whoever won a
     /// decided fight holds the field, and its zones stand until its ships are cleaned up.
     /// </summary>
-    private static bool Stood(WFEncounterComponent encounter)
+    public static bool Stood(WFEncounterComponent encounter)
     {
         return encounter.Resolution is { } resolution && resolution != WFEncounterResolution.Decided;
     }
