@@ -10,6 +10,11 @@ Players open it from the book button on the top bar, the game menu or the lobby.
 examine: list them in a `wfLoreLink` prototype (children of a listed prototype inherit it), or give them a
 `GuideHelp` that points at a lore page.
 
+Some pages unsettle the book. A guide entry's `unease` (0 to 1) builds up as it is read in an open book
+(`WFLoreBookWindow.Unease.cs`): letters on every page start to slip, then the book writes lines of its own between
+paragraphs (`wf-lore-book-whisper-*`), and deep in, its title, chapter trail and page numbers slip too. Closing the
+book and opening it again clears it. The Lattice's pages (the Unmooring, the Lattice, the Choir) carry unease.
+
 Entry points: `WFLoreBookUIController` (open, toggle, link redirects), `WFLoreBookWindow`, `WFLoreBookSystem` (which
 entries and entities are lore, the examine verb), `WFLoreLinkTag`, `GuideEntry.Lore` and `WFLoreLinkPrototype`.
 Textures come from `Tools/_WF/LoreBook/make_textures.py`. Lore pages live in `Resources/ServerInfo/_WF/LoreBook` and
@@ -30,6 +35,7 @@ in the upstream `_Mono` lore, factions and star system pages.
 - [`Content.Client/_WF/LoreBook/GuidebookUIController.Lore.cs`](../../../Content.Client/_WF/LoreBook/GuidebookUIController.Lore.cs)
 - [`Content.Client/_WF/LoreBook/WFLoreBookSystem.cs`](../../../Content.Client/_WF/LoreBook/WFLoreBookSystem.cs)
 - [`Content.Client/_WF/LoreBook/WFLoreBookUIController.cs`](../../../Content.Client/_WF/LoreBook/WFLoreBookUIController.cs)
+- [`Content.Client/_WF/LoreBook/WFLoreBookWindow.Unease.cs`](../../../Content.Client/_WF/LoreBook/WFLoreBookWindow.Unease.cs)
 - [`Content.Client/_WF/LoreBook/WFLoreBookWindow.xaml`](../../../Content.Client/_WF/LoreBook/WFLoreBookWindow.xaml)
 - [`Content.Client/_WF/LoreBook/WFLoreBookWindow.xaml.cs`](../../../Content.Client/_WF/LoreBook/WFLoreBookWindow.xaml.cs)
 - [`Content.Client/_WF/LoreBook/WFLoreLinkTag.cs`](../../../Content.Client/_WF/LoreBook/WFLoreLinkTag.cs)

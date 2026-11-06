@@ -148,7 +148,7 @@ public sealed partial class WFLoreBookWindow : BaseWindow, ILinkClickHandler
         PageBody.RemoveAllChildren();
         using (var file = _res.ContentFileReadText(page.Entry.Text))
         {
-            if (!_parsing.TryAddMarkup(PageBody, file.ReadToEnd()))
+            if (!_parsing.TryAddMarkup(PageBody, Unsettle(file.ReadToEnd(), page.Entry)))
                 Logger.GetSawmill("lorebook").Error($"Failed to parse lore page {page.Entry.ID}.");
         }
 

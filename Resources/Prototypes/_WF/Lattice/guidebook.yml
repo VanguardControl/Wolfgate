@@ -3,16 +3,19 @@
   id: WFLoreUnmooring
   name: wf-lore-entry-unmooring
   text: "/ServerInfo/_WF/LoreBook/StarSystem/Unmooring.xml"
+  unease: 0.3
 
 - type: guideEntry
   id: WFLoreLattice
   name: wf-lore-entry-lattice
   text: "/ServerInfo/_WF/LoreBook/StarSystem/Lattice.xml"
+  unease: 0.2
 
 - type: guideEntry
   id: WFLoreChoir
   name: wf-lore-entry-choir
   text: "/ServerInfo/_WF/LoreBook/Threats/Choir.xml"
+  unease: 0.35
 
 - type: guideEntry
   id: WFLatticeGuide

@@ -26,3 +26,15 @@ wf-lore-entry-chimera = Chimera
 wf-lore-entry-xenonids = Xenonids
 wf-lore-entry-guide = Lore Book
 wf-lore-entry-factions-guide = Factions
+
+# Lines the book writes into its own pages once it has been read too closely.
+wf-lore-book-whisper-1 = you have read this page before
+wf-lore-book-whisper-2 = it is not further out. it is underneath
+wf-lore-book-whisper-3 = the anchors are counting. they are almost done
+wf-lore-book-whisper-4 = someone is reading over your shoulder
+wf-lore-book-whisper-5 = this was not written here when you opened the book
+wf-lore-book-whisper-6 = the song has a part for you
+wf-lore-book-whisper-7 = close the book. close the book. close the
+wf-lore-book-whisper-8 = we did not build them either
+wf-lore-book-whisper-9 = the cat was real
+wf-lore-book-whisper-10 = you are further out than you think

@@ -1,34 +1,42 @@
 <Document>
   # The Unmooring
 
-  [textlink="The Collapse" link="WFLoreCollapse"] did not leave an ordinary black hole. Kyphrus is wrong. Light bends the wrong way around it, clocks near it disagree, and the further a ship flies from the sector's heart, the less reality agrees with itself. Spacers call it [color=#d070ff]the Unmooring[/color].
+  [italic]Nobody agrees on what it is. Everybody agrees on where it starts.[/italic]
 
-  The only reason the inner sector is livable is [textlink="the Lattice" link="WFLoreLattice"]: six anchors that hold reality in place around Caelestinus Central.
+  Since [textlink="the Collapse" link="WFLoreCollapse"], the further a ship flies from the sector's heart, the less the world agrees with itself. Clocks aboard drift apart. Instruments report things that were never there, then deny it. Spacers call it [color=#d070ff]the Unmooring[/color], because that is what it feels like: the moment a ship slips its line and begins to turn with the current.
 
-  ## The bands
+  What holds it back is [textlink="the Lattice" link="WFLoreLattice"]. What lies beyond the Lattice's reach is a matter of record only in the sense that some of it was recorded.
 
-  Where the Lattice is strong, space is [bold]Moored[/bold]. Past about 18 kilometres from the centre its hold weakens, and every navigation computer marks the border as restricted, unsafe space.
+  ## The charts
 
-  - [color=#e0b040]Slack[/color]: the hold is thin. Instruments stutter and crews hear things.
-  - [color=#e08030]Adrift[/color]: the hold barely reaches. Ships answer hails nobody sent.
-  - [color=#e04030]Untethered[/color]: the Lattice does not reach. Turn back.
-  - [color=#d030a0]the Deep[/color]: past 30 kilometres. Its name never comes out of a console the same way twice.
+  Every navigation computer in the sector carries the same warnings, and nobody remembers writing them. They mark the space past roughly eighteen kilometres as restricted, and they name its depths:
 
-  The bands follow the anchors, not the map. When an anchor falls, the bands slide inward on its side.
+  - [color=#e0b040]Slack[/color].
+  - [color=#e08030]Adrift[/color].
+  - [color=#e04030]Untethered[/color].
+  - [color=#d030a0]the D##p[/color]. The charts have never printed the last name cleanly. Technicians have replaced the charts. The name still comes out wrong.
 
-  ## Drift
+  ## From the record
 
-  The longer a ship stays out, the more it [bold]Drifts[/bold]. Drift builds slowly in the Slack, fast in the Untethered, and fastest of all in the Deep. It fades again once a ship comes home.
+  [italic]Salvage log, MSV Harrow, partial. Recovered from a drifting hull at 27 km.[/italic]
 
-  A crew deep in Drift sees and hears what is not there: footsteps in an empty corridor, a contact on the scope that vanishes, a voice on the common channel that knows their names, a figure at the end of the hall that is gone when they reach it. Nobody else aboard sees the same thing. The screen swims. Instruments lie.
+  "Day four out. Wren swears she heard Okafor calling from the cargo bay. Okafor is on the bridge with me. We checked the bay anyway. Nobody. The vents were warm."
 
-  In the Deep the Unmooring stops pretending. The smallest minds aboard go first: a ship's cat or a mouse in the vents goes still, then gets back up as one of the [textlink="Remade" link="WFLoreMonolith"].
+  "Day five. Scope shows a contact three hundred metres off the bow. Matching our speed. Pinged it. Nothing pinged back. It's still there when I look away."
 
-  ## Why anyone goes
+  "Day six. The cat is gone. Okafor says there never was a cat. I remember the cat."
 
-  Because the far bands are rich. The asteroids out there carry more ore the further they lie from the anchors, and past the Adrift line the rock holds [color=#d070ff]exotic matter[/color]: shards of something that should not hold together, worth a fortune at any buyer and the only thing that can build a relay anchor. Nobody can build a new primary anchor.
+  [italic]The rest of the log is the same sentence, written eleven hundred times. It has not been translated.[/italic]
 
-  Crews who go deep carry a [bold]Drift stabiliser[/bold], a small anchor of their own that keeps a little moored space around the ship, and an [bold]anchor charm[/bold] round the neck for when they have to step outside.
+  ## What people say
 
-  Some who go deep do not want to come back. See [textlink="the Choir" link="WFLoreChoir"].
+  - That the longer you stay out, the more it [bold]takes[/bold]. Crews call it Drift, the way a ship drifts, and it does not leave when you do. It fades. Slowly.
+  - That nobody sees the same thing. Two crewmen side by side, one screaming at a figure in the corridor, the other seeing an empty corridor.
+  - That small minds go first. Pets. Vermin. [italic]That they get back up.[/italic]
+  - That the rock out there is richer than anything in the inner sector, and that it holds [color=#d070ff]exotic matter[/color], which should not exist and is worth more than the ship that carries it.
+  - That some who go deep come back humming. See [textlink="the Choir" link="WFLoreChoir"].
+
+  ## A note in the margin
+
+  [italic]This page has been reprinted four times. Each printing, someone has reported that it reads differently the longer they look at it. The printers have been asked to stop checking.[/italic]
 </Document>
