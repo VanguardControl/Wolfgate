@@ -46,6 +46,9 @@ unmarked:
   - path: Resources/Fonts/ComicNeue
     module: Clown
     reason: Comic Neue font and its OFL licence for the Clown trait speech.
+  - path: .gitmodules
+    module: Engine
+    reason: The engine submodule points at the Lupine fork (branch wolfgate/v291) instead of space-wizards.
   - path: .config/dotnet-tools.json
     module: null
     reason: dotnet-ef local tool manifest (pinned 10.0.12) for generating EF migrations.

@@ -52,6 +52,8 @@ None.
 
 ## Non-modular edits
 
-None.
+- [`.gitmodules`](../../../.gitmodules)
+  - the engine is the Lupine fork, upstream tags plus server-only patches
+  - The engine submodule points at the Lupine fork (branch wolfgate/v291) instead of space-wizards.
 
 <!-- WOLFGATE-GENERATED END -->
