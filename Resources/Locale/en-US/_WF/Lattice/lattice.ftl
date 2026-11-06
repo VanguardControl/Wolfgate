@@ -135,3 +135,8 @@ wf-choir-defcon-reason = { $count ->
     [one] a Choir agent active
    *[other] {$count} Choir agents active
 }
+
+wf-lore-entry-unmooring = The Unmooring
+wf-lore-entry-lattice = The Lattice
+wf-lore-entry-choir = The Choir
+guide-entry-wf-lattice = The Lattice and Drift
