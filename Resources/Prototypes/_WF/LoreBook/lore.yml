@@ -44,9 +44,20 @@
   priority: 20
   children:
   - WFLoreMonolith
-  - WFLoreChoir
   - WFLoreChimera
   - WFLoreXenonids
+
+# Pages that unsettle the book, kept together at the back.
+- type: guideEntry
+  id: WFLoreForbidden
+  name: wf-lore-entry-forbidden
+  text: "/ServerInfo/_WF/LoreBook/Forbidden.xml"
+  lore: true
+  priority: 30
+  children:
+  - WFLoreUnmooring
+  - WFLoreLattice
+  - WFLoreChoir
 
 - type: guideEntry
   id: WFLoreMonolith

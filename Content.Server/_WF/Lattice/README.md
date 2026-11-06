@@ -102,7 +102,7 @@ least 4, four is 1).
 and only where the band is at least that; with no Lattice it falls back to distances from a player. The Monolith hulk,
 the guarded hulk and the adrift freighter use band 4 at 31-36 km.
 
-**Lore and guide.** The lore book has The Unmooring and The Lattice under Kyphrus and The Choir under Things That Hunt
+**Lore and guide.** The lore book keeps The Unmooring, The Lattice and The Choir in its Forbidden chapter
 (`Resources/ServerInfo/_WF/LoreBook`); The Sector Today, The Collapse and The Monolith link to them. The guidebook page
 The Lattice and Drift (`Resources/ServerInfo/_WF/Lattice/Guidebook`) covers the bands, Drift, gear and anchors. Anchors,
 relays, exotic matter, the stabiliser and the charm have a Lore button on examine (`guidebook.yml`).
@@ -208,7 +208,6 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
   - contact names garble out past the Lattice's hold.
 - [`Resources/Maps/_Mono/POI/pdvhelios.yml`](../../../Resources/Maps/_Mono/POI/pdvhelios.yml): Mapped a station anchor beside an APC so Helios stays anchored space past the Lattice's hold.
 - [`Resources/Maps/_Mono/POI/underground.yml`](../../../Resources/Maps/_Mono/POI/underground.yml): Mapped a station anchor beside an APC so the Syndicate FOB stays anchored space past the Lattice's hold.
-- [`Resources/Prototypes/_Mono/Guidebook/starsystem.yml`](../../../Resources/Prototypes/_Mono/Guidebook/starsystem.yml)
 - [`Resources/Prototypes/_NF/Guidebook/nf14.yml`](../../../Resources/Prototypes/_NF/Guidebook/nf14.yml): the bands, Drift, exotic matter and the anchors
 - [`Resources/Prototypes/Entities/Structures/Machines/lathe.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/lathe.yml): Drift stabiliser, anchor charm and relay anchor recipes
 

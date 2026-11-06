@@ -527,24 +527,52 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Four_PortStriking.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Four_PortStriking.xml)
   - fixed broken link, was MonolithRuleRoleplayEightSafeZones
   - was color=blue, unreadable on the dark background
+  - rule colours readable on light and dark backgrounds
   - was color=maroon, unreadable on the dark background
-- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/One_RandomDeathmatch.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/One_RandomDeathmatch.xml): was color=blue, unreadable on the dark background
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/One_RandomDeathmatch.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/One_RandomDeathmatch.xml)
+  - rule colours readable on light and dark backgrounds
+  - was color=blue, unreadable on the dark background
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Three_FairPlay.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Three_FairPlay.xml): rule colours readable on light and dark backgrounds
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Two_NewLife.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Two_NewLife.xml): rule colours readable on light and dark backgrounds
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Five_Languages.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Five_Languages.xml): rule colours readable on light and dark backgrounds
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Four_AlternativeAccounts.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Four_AlternativeAccounts.xml): rule colours readable on light and dark backgrounds
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml)
   - was "# Monolith Rules"
   - Wolfgate branding foreword
+  - rule colours readable on light and dark backgrounds
   - Wolfgate branding, age threshold was 16
   - Wolfgate branding
   - rule 5 "Erotic roleplay is prohibited." removed, later rules renumbered (#27)
-- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Eight_FactionRoles.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Eight_FactionRoles.xml): was Rule 8, shifted down one
-- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Nine_CommandingRoles.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Nine_CommandingRoles.xml): was Rule 9, renumbered
-- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Seven_SafeZones.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Seven_SafeZones.xml): was Rule 7, renumbered
-- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Six_Metagame.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Six_Metagame.xml): was Rule 6, renumbered
-- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Six_Ahelp.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Six_Ahelp.xml): was Monolith
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/One_CommonSense.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/One_CommonSense.xml): rule colours readable on light and dark backgrounds
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Eight_FactionRoles.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Eight_FactionRoles.xml)
+  - was Rule 8, shifted down one
+  - rule colours readable on light and dark backgrounds
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Four_CharacterActions.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Four_CharacterActions.xml): rule colours readable on light and dark backgrounds
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Nine_CommandingRoles.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Nine_CommandingRoles.xml)
+  - was Rule 9, renumbered
+  - rule colours readable on light and dark backgrounds
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/One_BreakCharacter.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/One_BreakCharacter.xml): rule colours readable on light and dark backgrounds
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Seven_SafeZones.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Seven_SafeZones.xml)
+  - was Rule 7, renumbered
+  - rule colours readable on light and dark backgrounds
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Six_Metagame.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Six_Metagame.xml)
+  - was Rule 6, renumbered
+  - rule colours readable on light and dark backgrounds
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Three_ProperGrammar.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Three_ProperGrammar.xml): rule colours readable on light and dark backgrounds
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Two_TextChat.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Two_TextChat.xml): rule colours readable on light and dark backgrounds
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Seven_ThreatenToReport.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Seven_ThreatenToReport.xml): rule colours readable on light and dark backgrounds
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Six_Ahelp.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Six_Ahelp.xml)
+  - rule colours readable on light and dark backgrounds
+  - was Monolith
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Three_CheatingExploits.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Three_CheatingExploits.xml): rule colours readable on light and dark backgrounds
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Two_Respect.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Two_Respect.xml): rule colours readable on light and dark backgrounds
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Zero_AgeThreshold.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Zero_AgeThreshold.xml)
   - was 16, Monolith
   - was 16
+  - rule colours readable on light and dark backgrounds
 - [`Resources/ServerInfo/_NF/Guidebook/Rules/FrontierRuleset.xml`](../../Resources/ServerInfo/_NF/Guidebook/Rules/FrontierRuleset.xml)
   - was Monolith Station Rules
+  - rule colours readable on light and dark backgrounds
   - was Monolith
 - [`Resources/ServerInfo/_NF/Guidebook/Rules/Zero_Tolerance.xml`](../../Resources/ServerInfo/_NF/Guidebook/Rules/Zero_Tolerance.xml)
   - was 16, Monolith Station

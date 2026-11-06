@@ -68,7 +68,9 @@ public sealed class WFLatticeStationTest
                 var generator = entities.EntityQuery<WFLatticeAnchorShieldComponent>()
                     .First(shield => entities.GetComponent<TransformComponent>(shield.Owner).GridUid == station).Owner;
                 Assert.That(entities.HasComponent<Content.Shared.Construction.Components.AnchorableComponent>(generator), Is.False, "an anchor's shield generator can be unbolted.");
-                Assert.That(entities.HasComponent<Content.Server.Construction.Components.ConstructionComponent>(generator), Is.False, "an anchor's shield generator can be taken apart.");
+                var construction = entities.GetComponent<Content.Server.Construction.Components.ConstructionComponent>(generator);
+                Assert.That(construction.Graph, Is.EqualTo("WFLatticeAnchorShield"), "an anchor's shield generator can be taken apart.");
+                Assert.That(construction.DeconstructionNode, Is.Null, "an anchor's shield generator can be taken apart.");
                 Assert.That(entities.HasComponent<Content.Server.Destructible.DestructibleComponent>(generator), Is.True, "an anchor's shield generator can't be destroyed.");
             }
 

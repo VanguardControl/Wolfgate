@@ -6011,3 +6011,19 @@ Entries:
   id: 100368
   time: '2026-11-06T10:50:17.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/516
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Fixed an exploit that let a client crash the server.
+  id: 100369
+  time: '2026-11-06T12:25:40.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/515
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: >-
+        The separated chat panel can be made narrower; its menu buttons shrink
+        to fit.
+  id: 100370
+  time: '2026-11-06T15:55:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/518

@@ -15,8 +15,6 @@
   priority: 100
   children:
     - WFLoreCollapse # WOLFGATE(LoreBook)
-    - WFLoreUnmooring # WOLFGATE(Lattice)
-    - WFLoreLattice # WOLFGATE(Lattice)
     - Asclepiu
     - Thrascias
     - Fervidus

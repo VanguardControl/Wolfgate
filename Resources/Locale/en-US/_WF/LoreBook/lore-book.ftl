@@ -26,6 +26,7 @@ wf-lore-entry-threats = Things That Hunt
 wf-lore-entry-monolith = The Monolith
 wf-lore-entry-chimera = Chimera
 wf-lore-entry-xenonids = Xenonids
+wf-lore-entry-forbidden = Forbidden
 wf-lore-entry-guide = Lore Book
 wf-lore-entry-factions-guide = Factions
 

@@ -71,7 +71,7 @@ public sealed class WFLoreBookTest
         {
             Assert.Multiple(() =>
             {
-                foreach (var id in new[] { "BasicLore", "Timeline", "Factions", "TSFMC_Entry", "TSFMC_SOP", "WFAsf", "MonoStarSystem", "Aerumna", "WFLoreCarcinoma", "WFLoreThreats", "WFLoreXenonids" })
+                foreach (var id in new[] { "BasicLore", "Timeline", "Factions", "TSFMC_Entry", "TSFMC_SOP", "WFAsf", "MonoStarSystem", "Aerumna", "WFLoreCarcinoma", "WFLoreThreats", "WFLoreXenonids", "WFLoreForbidden", "WFLoreUnmooring", "WFLoreChoir" })
                     Assert.That(lore.IsLore(id), $"{id} is a lore page.");
 
                 foreach (var id in new[] { "WFAds", "Smuggling", "WFFactionsGuide", "WFLoreBookGuide", "WFPlanetFlight", "WFRemadeGuide" })

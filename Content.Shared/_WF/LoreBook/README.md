@@ -15,7 +15,7 @@ Some pages unsettle the book. A guide entry's `unease` (0 to 1) builds up as it 
 paragraphs (`wf-lore-book-whisper-*`), and deep in, its title, chapter trail and page numbers slip too. Closing the
 book and opening it again clears it. A page stays as it was drawn until it is turned again; now and then a word is written in the DS13 glyph font
 (`WFLoreGlyphs`), and quiet whispers play under the book (`WFLoreBookWhispers`), more often and louder as it corrupts.
-The Lattice's pages (the Unmooring, the Lattice, the Choir) carry unease. Pages turn with one of two page-flip sounds (`WFLoreBookPageTurn`).
+Pages that carry unease (the Unmooring, the Lattice, the Choir) sit together in the Forbidden chapter at the back. Pages turn with one of two page-flip sounds (`WFLoreBookPageTurn`).
 
 Raising `WFLoreBookUIController.Edition` opens the book once for every player, at its front, on their next lobby
 or round; `wf.lorebook.seen_edition` (client, saved) remembers who has seen it.
@@ -81,6 +81,7 @@ in the upstream `_Mono` lore, factions and star system pages.
 - [`Resources/ServerInfo/_WF/LoreBook/Factions/Ads.xml`](../../../Resources/ServerInfo/_WF/LoreBook/Factions/Ads.xml)
 - [`Resources/ServerInfo/_WF/LoreBook/Factions/Judges.xml`](../../../Resources/ServerInfo/_WF/LoreBook/Factions/Judges.xml)
 - [`Resources/ServerInfo/_WF/LoreBook/Factions/Reavers.xml`](../../../Resources/ServerInfo/_WF/LoreBook/Factions/Reavers.xml)
+- [`Resources/ServerInfo/_WF/LoreBook/Forbidden.xml`](../../../Resources/ServerInfo/_WF/LoreBook/Forbidden.xml)
 - [`Resources/ServerInfo/_WF/LoreBook/Guidebook/Factions.xml`](../../../Resources/ServerInfo/_WF/LoreBook/Guidebook/Factions.xml)
 - [`Resources/ServerInfo/_WF/LoreBook/Guidebook/LoreBook.xml`](../../../Resources/ServerInfo/_WF/LoreBook/Guidebook/LoreBook.xml)
 - [`Resources/ServerInfo/_WF/LoreBook/PresentDay.xml`](../../../Resources/ServerInfo/_WF/LoreBook/PresentDay.xml)
