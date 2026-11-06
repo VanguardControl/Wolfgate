@@ -1,0 +1,121 @@
+# Starter patterns: rare items no lathe otherwise prints. The catalogue in Docs/_WF/Blueprints/DESIGN.md replaces them.
+
+- type: wfBlueprintPattern
+  id: WFPatternOmnitool
+  name: wf-pattern-omnitool
+  description: wf-pattern-omnitool-desc
+  tier: 1
+  icon: Omnitool
+  recipes:
+  - WFPatternOmnitool
+
+- type: wfBlueprintPattern
+  id: WFPatternJetpackBlack
+  name: wf-pattern-jetpack-black
+  description: wf-pattern-jetpack-black-desc
+  tier: 1
+  icon: JetpackBlack
+  recipes:
+  - WFPatternJetpackBlack
+
+- type: wfBlueprintPattern
+  id: WFPatternThermalGlasses
+  name: wf-pattern-thermal-glasses
+  description: wf-pattern-thermal-glasses-desc
+  tier: 2
+  icon: ClothingEyesGlassesThermal
+  recipes:
+  - WFPatternThermalGlasses
+
+- type: wfBlueprintPattern
+  id: WFPatternHandTeleporter
+  name: wf-pattern-hand-teleporter
+  description: wf-pattern-hand-teleporter-desc
+  tier: 3
+  icon: HandTeleporter
+  recipes:
+  - WFPatternHandTeleporter
+
+# Printed at the protolathe once the pattern is unlocked on its server.
+- type: latheRecipePack
+  id: WFBlueprintPatterns
+  recipes:
+  - WFPatternOmnitool
+  - WFPatternJetpackBlack
+  - WFPatternThermalGlasses
+  - WFPatternHandTeleporter
+
+- type: latheRecipe
+  id: WFPatternOmnitool
+  result: Omnitool
+  categories:
+  - Tools
+  completetime: 6
+  materials:
+    Steel: 1500
+    Plastic: 500
+    Gold: 200
+
+- type: latheRecipe
+  id: WFPatternJetpackBlack
+  result: JetpackBlack
+  categories:
+  - Tools
+  completetime: 8
+  materials:
+    Steel: 3000
+    Plasteel: 1000
+
+- type: latheRecipe
+  id: WFPatternThermalGlasses
+  result: ClothingEyesGlassesThermal
+  categories:
+  - Tools
+  completetime: 10
+  materials:
+    Glass: 800
+    Silver: 400
+    Gold: 400
+    Uranium: 200
+
+- type: latheRecipe
+  id: WFPatternHandTeleporter
+  result: HandTeleporter
+  categories:
+  - Tools
+  completetime: 20
+  materials:
+    Steel: 1000
+    Silver: 800
+    Gold: 800
+    Diamond: 300
+    WFExoticMatter: 300
+
+# The locator and assembler flatpacks, at the autolathe.
+- type: latheRecipePack
+  id: WFBlueprintStatic
+  recipes:
+  - WFFlatpackBlueprintLocator
+  - WFFlatpackBlueprintAssembler
+
+- type: latheRecipe
+  id: WFFlatpackBlueprintLocator
+  result: WFFlatpackBlueprintLocator
+  categories:
+  - Tools
+  completetime: 10
+  materials:
+    Steel: 2000
+    Glass: 1000
+    Gold: 300
+
+- type: latheRecipe
+  id: WFFlatpackBlueprintAssembler
+  result: WFFlatpackBlueprintAssembler
+  categories:
+  - Tools
+  completetime: 10
+  materials:
+    Steel: 2000
+    Plasteel: 500
+    Silver: 300

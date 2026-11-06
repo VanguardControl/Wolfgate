@@ -123,6 +123,9 @@ public sealed class WFPlanetPoiSite
     /// <summary>The station running an expedition on the site, and whether one has already cleared it this round.</summary>
     public EntityUid? ExpeditionClaim;
     public bool Cleared;
+
+    /// <summary>The blueprint locator whose hunt has hidden shards here (Blueprints module).</summary>
+    public EntityUid? BlueprintClaim;
 }
 
 /// <summary>

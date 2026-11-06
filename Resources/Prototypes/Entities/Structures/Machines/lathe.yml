@@ -180,6 +180,7 @@
     - WFTetherStatic # WOLFGATE(Tether)
     - WFRemadeStatic # WOLFGATE(Remade): the plasma cutter and the monolith tap flatpack
     - WFLatticeStatic # WOLFGATE(Lattice): Drift stabiliser, anchor charm and relay anchor recipes
+    - WFBlueprintStatic # WOLFGATE(Blueprints): blueprint locator and assembler flatpacks
   - type: EmagLatheRecipes
     emagStaticPacks:
     - StaticAmmoRecipePack
@@ -256,6 +257,7 @@
     - Mining
     - AtmosTools
     - ResearchedExplosives # Mono
+    - WFBlueprintPatterns # WOLFGATE(Blueprints): recovered pattern recipes
     # - EngineeringWeapons # Frontier
     - Chemistry
     - Janitor
