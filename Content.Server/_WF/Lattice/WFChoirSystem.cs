@@ -60,7 +60,7 @@ public sealed partial class WFChoirSystem : EntitySystem
     {
         if (drift < _config.GetCVar(WFChoirCVars.MinDrift)
             || !_config.GetCVar(WFChoirCVars.Enabled)
-            || !_mobState.IsAlive(mob)
+            || _mobState.IsDead(mob)
             || HasComp<WFChoirMemberComponent>(mob)
             || HasComp<WFChoirOfferComponent>(mob)
             || _offered.Contains(session.UserId)
@@ -131,7 +131,8 @@ public sealed partial class WFChoirSystem : EntitySystem
     private void OnAnswer(Entity<WFChoirOfferComponent> ent, ref WFChoirAnswerEvent args)
     {
         args.Handled = true;
-        if (!_mobState.IsAlive(ent.Owner))
+        // Critical can still answer; the dead can't.
+        if (_mobState.IsDead(ent.Owner))
             return;
 
         // Several offers can be open at once, so the cap is checked again on answering.
