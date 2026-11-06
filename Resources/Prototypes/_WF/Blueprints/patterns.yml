@@ -90,32 +90,3 @@
     Gold: 800
     Diamond: 300
     WFExoticMatter: 300
-
-# The locator and assembler flatpacks, at the autolathe.
-- type: latheRecipePack
-  id: WFBlueprintStatic
-  recipes:
-  - WFFlatpackBlueprintLocator
-  - WFFlatpackBlueprintAssembler
-
-- type: latheRecipe
-  id: WFFlatpackBlueprintLocator
-  result: WFFlatpackBlueprintLocator
-  categories:
-  - Tools
-  completetime: 10
-  materials:
-    Steel: 2000
-    Glass: 1000
-    Gold: 300
-
-- type: latheRecipe
-  id: WFFlatpackBlueprintAssembler
-  result: WFFlatpackBlueprintAssembler
-  categories:
-  - Tools
-  completetime: 10
-  materials:
-    Steel: 2000
-    Plasteel: 500
-    Silver: 300

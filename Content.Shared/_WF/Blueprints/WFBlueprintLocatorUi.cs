@@ -46,10 +46,14 @@ public sealed class WFBlueprintLocateMessage(List<string> patterns) : BoundUserI
     public readonly List<string> Patterns = patterns;
 }
 
+/// <summary>Sent from the research console's patterns button: opens the locator window.</summary>
+[Serializable, NetSerializable]
+public sealed class WFBlueprintOpenLocatorMessage : BoundUserInterfaceMessage;
+
 /// <summary>Gives up the running hunt.</summary>
 [Serializable, NetSerializable]
 public sealed class WFBlueprintAbandonMessage : BoundUserInterfaceMessage;
 
-/// <summary>A shard finishes assembling into a Construct.</summary>
+/// <summary>A shard finishes decoding into a Construct.</summary>
 [Serializable, NetSerializable]
-public sealed partial class WFBlueprintAssembleDoAfterEvent : SimpleDoAfterEvent;
+public sealed partial class WFBlueprintDecodeDoAfterEvent : SimpleDoAfterEvent;

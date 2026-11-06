@@ -1,5 +1,7 @@
 wf-blueprint-locator-title = Artifact Blueprint Locator
-wf-blueprint-locator-status-unlinked = No research server on this ship.
+wf-blueprint-console-button = Lost patterns
+wf-blueprint-locator-status-unlinked = No research server linked.
+wf-blueprint-locator-hint = Use a shard here to decode it, then its Construct to unlock the pattern.
 wf-blueprint-locator-status-ready = Ready to locate.
 wf-blueprint-locator-status-cooldown = Recalibrating: {$minutes} min.
 wf-blueprint-locator-hunt-header = Active hunt
@@ -35,9 +37,9 @@ wf-blueprint-construct-examine = It holds the [color=#d070ff]{$pattern}[/color] 
 wf-blueprint-construct-owned = This ship's server already knows that pattern.
 wf-blueprint-construct-unlocked = {$pattern} unlocked. Print it at the protolathe.
 
-wf-blueprint-assembler-unpowered = The assembler has no power.
-wf-blueprint-assembler-start = The assembler starts reading the shard.
-wf-blueprint-assembler-done = The {$pattern} pattern is sealed into a Construct.
+wf-blueprint-decode-unpowered = The console has no power.
+wf-blueprint-decode-start = The console starts reading the shard.
+wf-blueprint-decode-done = The {$pattern} pattern is sealed into a Construct.
 
 wf-pattern-omnitool = Omnitool
 wf-pattern-omnitool-desc = A drone's multi-mode tool. Every common tool in one.

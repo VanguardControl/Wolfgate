@@ -1,18 +1,19 @@
 # Blueprints
 
-The Blueprint Artifact System: crews hunt lost patterns at planet sites and bring them home to unlock them. Any ship
-builds an Artifact Blueprint Locator and a Blueprint Assembler from autolathe flatpacks. On the locator, pick up to four
-patterns of one tier and pay the fee (5,000, 15,000 or 40,000 by tier, from the bank). The locator claims a free planet
-site of that tier (I Moderate or easier, II Hazardous, III Extreme), reveals its signal and hides one pattern shard each
-in the site's crates and lockers, or on its floor. Shards are ordinary items, so anyone can take them. Use a shard on a
-powered assembler to seal it into a Blueprint Construct (10, 25 or 45 s by tier), then use the Construct on the locator
-to add the pattern's recipes to the ship's research server, printed at the protolathe, for the round.
+The Blueprint Artifact System: crews hunt lost patterns at planet sites and bring them home to unlock them. It lives on
+the R&D console (`ComputerResearchAndDevelopment`), so every ship with one has it and no map changes are needed. The
+console's Lost patterns button opens the locator: pick up to four patterns of one tier and pay the fee (5,000, 15,000
+or 40,000 by tier, from the bank). The locator claims a free planet site of that tier (I Moderate or easier, II
+Hazardous, III Extreme), reveals its signal and hides one pattern shard each in the site's crates and lockers, or on its
+floor. Shards are ordinary items, so anyone can take them. Use a shard on any powered R&D console to decode it into a
+Blueprint Construct (10, 25 or 45 s by tier), then use the Construct on an R&D console to add the pattern's recipes to
+that console's research server, printed at the protolathe, for the round.
 
-A hunt ends when every shard has been assembled or destroyed, or when it is abandoned (shards still at the site are
+A hunt ends when every shard has been decoded or destroyed, or when it is abandoned (shards still at the site are
 removed, carried ones stay). The site is then released and the locator recalibrates for five minutes. Expeditions and
 hunts never share a site (`WFPlanetPoiSite.BlueprintClaim`).
 
-Entry points: `WFBlueprintSystem` (locator UI, unlock, assembler) and `WFBlueprintSystem.Hunts` (site choice, shard
+Entry points: `WFBlueprintSystem` (locator UI, decoding, unlock) and `WFBlueprintSystem.Hunts` (site choice, shard
 placement, hunt end). Patterns are `wfBlueprintPattern` prototypes in `Resources/Prototypes/_WF/Blueprints`, with their
 recipes in the protolathe's `WFBlueprintPatterns` pack. The full design and later phases are in
 `Docs/_WF/Blueprints/DESIGN.md`.
@@ -58,8 +59,11 @@ recipes in the protolathe's `WFBlueprintPatterns` pack. The full design and late
 
 ## Non-modular edits
 
-- [`Resources/Prototypes/Entities/Structures/Machines/lathe.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/lathe.yml)
-  - blueprint locator and assembler flatpacks
-  - recovered pattern recipes
+- [`Content.Client/_Goobstation/Research/UI/FancyResearchConsoleBoundUserInterface.cs`](../../../Content.Client/_Goobstation/Research/UI/FancyResearchConsoleBoundUserInterface.cs)
+- [`Content.Client/_Goobstation/Research/UI/FancyResearchConsoleMenu.xaml`](../../../Content.Client/_Goobstation/Research/UI/FancyResearchConsoleMenu.xaml): opens the pattern locator
+- [`Resources/Prototypes/Entities/Structures/Machines/Computers/computers.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/Computers/computers.yml)
+  - the pattern locator window
+  - hunts lost patterns and decodes their shards
+- [`Resources/Prototypes/Entities/Structures/Machines/lathe.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/lathe.yml): recovered pattern recipes
 
 <!-- WOLFGATE-GENERATED END -->

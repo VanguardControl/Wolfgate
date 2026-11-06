@@ -2,7 +2,10 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Blueprints;
 
-/// <summary>The Artifact Blueprint Locator: lists patterns, starts hunts and takes Constructs.</summary>
+/// <summary>
+/// The Artifact Blueprint Locator, on the R&amp;D console: lists patterns, starts hunts, decodes shards into Constructs and
+/// takes Constructs.
+/// </summary>
 [RegisterComponent]
 public sealed partial class WFBlueprintLocatorComponent : Component
 {
@@ -16,6 +19,13 @@ public sealed partial class WFBlueprintLocatorComponent : Component
     /// <summary>How long after a hunt ends before the next can start.</summary>
     [DataField]
     public TimeSpan Cooldown = TimeSpan.FromMinutes(5);
+
+    /// <summary>Seconds to decode a shard, by tier.</summary>
+    [DataField]
+    public float[] DecodeTimes = { 10f, 25f, 45f };
+
+    [DataField]
+    public EntProtoId Construct = "WFBlueprintConstruct";
 
     [ViewVariables]
     public WFBlueprintHunt? Hunt;
@@ -34,7 +44,7 @@ public sealed class WFBlueprintHunt
     public HashSet<EntityUid> Shards = new();
 }
 
-/// <summary>A pattern shard, recovered from a site; the Blueprint Assembler turns it into a Construct.</summary>
+/// <summary>A pattern shard, recovered from a site; a research console decodes it into a Construct.</summary>
 [RegisterComponent]
 public sealed partial class WFBlueprintShardComponent : Component
 {
@@ -46,22 +56,10 @@ public sealed partial class WFBlueprintShardComponent : Component
     public EntityUid? Locator;
 }
 
-/// <summary>An assembled pattern; inserting it into a locator unlocks the pattern on the locator's server.</summary>
+/// <summary>A decoded pattern; using it on a research console unlocks the pattern on that console's server.</summary>
 [RegisterComponent]
 public sealed partial class WFBlueprintConstructComponent : Component
 {
     [DataField]
     public ProtoId<WFBlueprintPatternPrototype>? Pattern;
-}
-
-/// <summary>The Blueprint Assembler: turns a shard into a Construct.</summary>
-[RegisterComponent]
-public sealed partial class WFBlueprintAssemblerComponent : Component
-{
-    /// <summary>Seconds to assemble a shard, by tier.</summary>
-    [DataField]
-    public float[] Times = { 10f, 25f, 45f };
-
-    [DataField]
-    public EntProtoId Construct = "WFBlueprintConstruct";
 }

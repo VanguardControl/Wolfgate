@@ -23,11 +23,11 @@ Construct and Template.
 
 ## The loop
 
-1. **Locate.** At the Artifact Blueprint Locator (ABL), pick up to four patterns from the list and pay the locate fee.
-2. **Hunt.** The ABL marks a site. Fly there, fight or solve your way in, and find the shards.
+1. **Locate.** At the R&D console's locator, pick up to four patterns from the list and pay the locate fee.
+2. **Hunt.** The locator marks a site. Fly there, fight or solve your way in, and find the shards.
 3. **Bring them home.** Shards are ordinary items: they drop when you die, and anyone can take them.
-4. **Assemble.** Each shard goes through the Blueprint Assembler's minigame and comes out a Blueprint Construct.
-5. **Unlock.** Insert the Construct into the ABL. The pattern unlocks on the linked R&D server until the round ends.
+4. **Decode.** Each shard is decoded at an R&D console and comes out a Blueprint Construct.
+5. **Unlock.** Use the Construct on an R&D console. The pattern unlocks on its research server until the round ends.
 6. **Sell (optional).** List the pattern at the Archaeolathe. You keep your unlock and earn a royalty on every print.
 
 ## Tiers
@@ -45,7 +45,7 @@ Band and world difficulty come from what already exists: `WFLatticeSystem` bands
 
 ### Sanctioned vs. unsanctioned
 
-When a request goes into Lattice space, the ABL offers a choice:
+When a request goes into Lattice space, the locator offers a choice:
 
 - **Sanctioned:** pay the Bench fee. The hunt is registered and its shards are lawful. Judges leave you alone.
 - **Unsanctioned:** no fee. The shards carry the `WFUnlawful` contraband tag until registered, and the crew is
@@ -55,21 +55,21 @@ This gives the judges and the cold war something to do with BAS, without either 
 
 ## Machines
 
-### Artifact Blueprint Locator (ABL)
+### On the R&D console
 
-A console that links to the ship's R&D server, buildable by any ship. Tabs:
+The locator and the decoder are both part of the R&D console every research ship already has, so no map changes are
+needed. The console links to the ship's research server.
 
-- **Patterns:** every BAS pattern with its tier and whether this server has it.
-- **Hunt:** pick up to 4 patterns (one tier per request), see the fee and choose sanctioned or not. Shows the active
-  hunt's site and its shards' state. One active hunt per ABL.
-- **Exchange:** what is for sale at the Archaeolathe, and listing your own patterns there.
-- A receptacle for Constructs.
-
-### Blueprint Assembler
-
-A ship machine. A shard goes in and a minigame opens, drawn from a pool by tier. It reuses the server-checked game
-windows in `_WF/Minigames`. A failure costs the shard integrity rather than destroying it: about three failures at
-Tier III and the shard is gone. A success produces a Blueprint Construct for that pattern.
+- **Lost patterns** button: opens the locator window.
+  - **Patterns:** every BAS pattern with its tier and whether this server has it.
+  - **Hunt:** pick up to 4 patterns (one tier per request), see the fee and choose sanctioned or not. Shows the active
+    hunt's site and its shards' state. One active hunt per console.
+  - **Exchange** (later): what is for sale at the Archaeolathe, and listing your own patterns there.
+- **Decode:** use a shard on the console. A tier-scaled read (the minigame later, through `_WF/Minigames`) seals it into
+  a Blueprint Construct. A failure costs the shard integrity rather than destroying it: about three failures at Tier
+  III and the shard is gone.
+- **Unlock:** use a Construct on the console to add its pattern to the server. The Construct is the portable form, so it
+  can be carried to another ship or sold.
 
 ### Archaeolathe
 
@@ -83,7 +83,7 @@ A large CC machine, run by the Bench.
 
 ## Sites
 
-The ABL picks a site that suits the request's tier. It never generates a new planet site mid-round.
+The locator picks a site that suits the request's tier. It never generates a new planet site mid-round.
 
 - **Planet:** a free site in a world table of the right difficulty, armed the same way `PlanetExpeditions` arms one.
   It never takes a site an expedition has claimed.
@@ -98,7 +98,7 @@ Shards spread across hiding places the site offers:
 - cavern levels below
 - a Remade-filled lost ship in the Deep
 
-Each tier sets the guards' faction and strength. The ABL shows the site as a waypoint. Deep coordinates garble as the
+Each tier sets the guards' faction and strength. The locator shows the site as a waypoint. Deep coordinates garble as the
 Lattice already garbles them, so the crew has to search. A Tier III hunt is announced as a signal any ship can pick up.
 
 An abandoned hunt, or one still unfinished when the round ends, has its unclaimed shards removed.
@@ -122,7 +122,7 @@ recipes and isn't tied to a Codex technology.
   - Tier II is corporate and military prototypes: powerful.
   - Tier III is Builder tech: it bends the rules of the sector.
 
-Unknown patterns are Tier III Builder pieces that aren't on the ABL's list until someone finds one.
+Unknown patterns are Tier III Builder pieces that aren't on the locator's list until someone finds one.
 
 ### Starter catalogue
 
@@ -186,11 +186,11 @@ Renaming all 208 techs would mean marked edits in upstream Fluent files, so don'
 1. **Data:** `wfBlueprintPattern` prototypes with their own recipes, plus the shard and Construct items. No change to
    points research. The first patterns are reskins of existing rare items, so the loop can be tested before the
    catalogue is built.
-2. **ABL (minimal):** the pattern list and hunt request, linked through the research client.
+2. **Locator (minimal):** the pattern list and hunt request on the R&D console.
 3. **Sites:** planet arming (reusing the expedition site picker), shard placement in containers and NPCs, and the
    waypoint.
-4. **Unlock:** a Construct inserted into the ABL adds the tech to the server.
-5. **Assembler:** start with a single trivial step, then the `_WF/Minigames` pool by tier.
+4. **Unlock:** a Construct used on the console adds the pattern to the server.
+5. **Decode:** start with a timed read, then the `_WF/Minigames` pool by tier.
 
    Steps 1–5 are the MVP. The loop is playable here, so playtest before going further.
 
@@ -203,7 +203,7 @@ Renaming all 208 techs would mean marked edits in upstream Fluent files, so don'
 Each step gets an integration test under `Content.IntegrationTests/Tests/_WF/Blueprints`:
 
 - request → shards placed at a site of the right tier
-- assemble → unlock
+- decode → unlock
 - list → print → royalty paid
 
 ## Open points for playtest
@@ -211,4 +211,4 @@ Each step gets an integration test under `Content.IntegrationTests/Tests/_WF/Blu
 - The fee and price curve per tier.
 - Shard integrity and how many failures each tier allows.
 - How often Tier III should roll an unknown pattern beyond the guaranteed one.
-- Whether pirate theft of Tier III shards needs a counter, such as a homing ping from the ABL that carries over.
+- Whether pirate theft of Tier III shards needs a counter, such as a homing ping from the locator that carries over.

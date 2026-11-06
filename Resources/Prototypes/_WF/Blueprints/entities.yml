@@ -3,7 +3,7 @@
   parent: BaseItem
   id: WFBlueprintShard
   name: pattern shard
-  description: A sliver of glyph-etched crystal holding part of a lost design. The Blueprint Assembler can read it.
+  description: A sliver of glyph-etched crystal holding part of a lost design. Any R&D console can decode it.
   components:
   - type: Sprite
     sprite: Objects/Specific/Xenoarchaeology/artifact_fragments.rsi
@@ -18,12 +18,12 @@
     price: 500
   - type: WFBlueprintShard
 
-# An assembled pattern, ready for a locator.
+# A decoded pattern, ready for a research console.
 - type: entity
   parent: BaseItem
   id: WFBlueprintConstruct
   name: blueprint construct
-  description: A sealed pattern case. Insert it into an Artifact Blueprint Locator to teach its research server the pattern.
+  description: A sealed pattern case. Use it on an R&D console to teach its research server the pattern.
   components:
   - type: Sprite
     sprite: Objects/Misc/diskcases.rsi
@@ -34,118 +34,3 @@
   - type: StaticPrice
     price: 1500
   - type: WFBlueprintConstruct
-
-- type: entity
-  parent: [ BaseStructure, BaseMachinePowered ]
-  id: WFBlueprintMachineBase
-  abstract: true
-  components:
-  - type: InteractionOutline
-  - type: Physics
-    bodyType: Static
-  - type: Fixtures
-    fixtures:
-      fix1:
-        shape:
-          !type:PhysShapeAabb
-          bounds: "-0.45,-0.45,0.45,0.45"
-        density: 200
-        mask:
-        - MachineMask
-        layer:
-        - MachineLayer
-  - type: Anchorable
-    delay: 2
-  - type: Pullable
-  - type: Damageable
-    damageContainer: StructuralInorganic
-    damageModifierSet: Metallic
-  - type: Destructible
-    thresholds:
-    - trigger:
-        !type:DamageTrigger
-        damage: 300
-      behaviors:
-      - !type:PlaySoundBehavior
-        sound:
-          collection: MetalBreak
-      - !type:DoActsBehavior
-        acts: [ "Destruction" ]
-
-# Lists the lost patterns, starts hunts for them and takes their Constructs.
-- type: entity
-  parent: WFBlueprintMachineBase
-  id: WFBlueprintLocator
-  name: artifact blueprint locator
-  description: Cross-references the sector's survey records to find where a lost pattern's shards lie. Links to the ship's research server.
-  components:
-  - type: Sprite
-    sprite: Structures/Machines/computers.rsi
-    layers:
-    - state: computer
-    - state: generic_keyboard
-    - state: rdcomp
-      shader: unshaded
-      color: "#d8b0ff"
-  - type: ApcPowerReceiver
-    powerLoad: 1000
-  - type: ResearchClient
-  - type: ActivatableUI
-    key: enum.WFBlueprintLocatorUiKey.Key
-  - type: ActivatableUIRequiresPower
-  - type: UserInterface
-    interfaces:
-      enum.WFBlueprintLocatorUiKey.Key:
-        type: WFBlueprintLocatorBoundUserInterface
-      enum.ResearchClientUiKey.Key:
-        type: ResearchClientBoundUserInterface
-  - type: PointLight
-    radius: 1.5
-    energy: 1.2
-    color: "#b040e0"
-  - type: StaticPrice
-    price: 4000
-  - type: WFBlueprintLocator
-
-# Reads a shard and seals it into a Construct.
-- type: entity
-  parent: WFBlueprintMachineBase
-  id: WFBlueprintAssembler
-  name: blueprint assembler
-  description: Reads the glyphs of a pattern shard and seals the design into a Construct. Use a shard on it.
-  components:
-  - type: Sprite
-    sprite: Structures/Machines/artifact_analyzer.rsi
-    noRot: true
-    layers:
-    - state: icon
-    - state: unshaded
-      shader: unshaded
-      color: "#d070ff"
-  - type: ApcPowerReceiver
-    powerLoad: 5000
-  - type: StaticPrice
-    price: 4000
-  - type: WFBlueprintAssembler
-
-- type: entity
-  parent: BaseFlatpack
-  id: WFFlatpackBlueprintLocator
-  name: artifact blueprint locator flatpack
-  description: A flatpack used for constructing an artifact blueprint locator.
-  components:
-  - type: Flatpack
-    entity: WFBlueprintLocator
-  - type: StaticPrice
-    price: 4000
-
-- type: entity
-  parent: BaseFlatpack
-  id: WFFlatpackBlueprintAssembler
-  name: blueprint assembler flatpack
-  description: A flatpack used for constructing a blueprint assembler.
-  components:
-  - type: Flatpack
-    entity: WFBlueprintAssembler
-  - type: StaticPrice
-    price: 4000

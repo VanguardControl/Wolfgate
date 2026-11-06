@@ -17,7 +17,7 @@ namespace Content.IntegrationTests.Tests._WF.Blueprints;
 
 /// <summary>
 /// A locator hunt claims a site of its tier and hides a shard per pattern there; assembling the shards ends the hunt
-/// and frees the site, and a Construct unlocks its pattern's recipes on the locator's server.
+/// and frees the site, and a Construct used on the R&D console unlocks its pattern's recipes on the locator's server.
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WFBlueprintSystem))]
@@ -66,13 +66,13 @@ public sealed class WFBlueprintTest
                 record.Sites.Add(site);
             }
 
-            // A ship with a research server and a locator, which links to it at map init.
+            // A ship with a research server and an R&D console, whose locator links to the server at map init.
             shipMap = maps.CreateMap(out var shipMapId);
             var ship = maps.CreateGridEntity(shipMapId);
             maps.SetTile(ship.Owner, ship.Comp, Vector2i.Zero, floor);
             maps.SetTile(ship.Owner, ship.Comp, new Vector2i(1, 0), floor);
             var researchServer = entMan.SpawnEntity("ResearchAndDevelopmentServer", new EntityCoordinates(ship.Owner, 0.5f, 0.5f));
-            var locatorUid = entMan.SpawnEntity("WFBlueprintLocator", new EntityCoordinates(ship.Owner, 1.5f, 0.5f));
+            var locatorUid = entMan.SpawnEntity("ComputerResearchAndDevelopment", new EntityCoordinates(ship.Owner, 1.5f, 0.5f));
             var locator = new Entity<WFBlueprintLocatorComponent>(locatorUid, entMan.GetComponent<WFBlueprintLocatorComponent>(locatorUid));
             locator.Comp.Fees = new[] { 0, 0, 0 };
 
@@ -95,12 +95,15 @@ public sealed class WFBlueprintTest
             // A second hunt waits for the first.
             Assert.That(blueprints.TryLocate(locator, locatorUid, new List<string> { "WFPatternHandTeleporter" }, out _), Is.False);
 
-            // Assembling: each shard becomes a Construct; the last one ends the hunt and frees the site.
+            // Decoding: each shard becomes a Construct; the last one ends the hunt and frees the site.
             var constructs = new List<EntityUid>();
             foreach (var shard in hunt.Shards.ToList())
             {
-                var pattern = proto.Index<WFBlueprintPatternPrototype>(entMan.GetComponent<WFBlueprintShardComponent>(shard).Pattern!.Value);
-                constructs.Add(blueprints.SpawnFor("WFBlueprintConstruct", pattern, new EntityCoordinates(ship.Owner, 0.5f, 0.5f), "wf-blueprint-construct-name"));
+                var comp = entMan.GetComponent<WFBlueprintShardComponent>(shard);
+                var pattern = proto.Index<WFBlueprintPatternPrototype>(comp.Pattern!.Value);
+                var made = blueprints.Decode(locator, (shard, comp), pattern, null);
+                Assert.That(entMan.GetComponent<WFBlueprintConstructComponent>(made).Pattern, Is.EqualTo(comp.Pattern));
+                constructs.Add(made);
                 entMan.DeleteEntity(shard);
             }
 

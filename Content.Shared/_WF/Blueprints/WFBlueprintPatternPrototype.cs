@@ -3,7 +3,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Blueprints;
 
-/// <summary>A lost pattern the Artifact Blueprint Locator can hunt for; recovering it unlocks its recipes.</summary>
+/// <summary>A lost pattern the research console's locator can hunt for; recovering it unlocks its recipes.</summary>
 [Prototype("wfBlueprintPattern")]
 public sealed partial class WFBlueprintPatternPrototype : IPrototype
 {
@@ -16,7 +16,7 @@ public sealed partial class WFBlueprintPatternPrototype : IPrototype
     [DataField(required: true)]
     public LocId Description;
 
-    /// <summary>1 Recovered, 2 Lost, 3 Forgotten: where its shard lies and how long it takes to assemble.</summary>
+    /// <summary>1 Recovered, 2 Lost, 3 Forgotten: where its shard lies and how long it takes to decode.</summary>
     [DataField]
     public int Tier = 1;
 
