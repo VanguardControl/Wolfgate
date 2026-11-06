@@ -9,6 +9,16 @@
   description: A special modular suit spaceproof cover designed for compact folding inside modular suit control.
   categories: [ HideSpawnMenu ]
   components:
+  # WOLFGATE(Modsuits) START: the native module system grants sealed components
+  - type: ModSealedComponents
+    components:
+    - type: PressureProtection
+      highPressureMultiplier: 0.3
+      lowPressureMultiplier: 1000
+    - type: TemperatureProtection
+      coolingCoefficient: 0.1
+      heatingCoefficient: 0.4
+  # WOLFGATE END
   # WOLFGATE(SuitTank) START: 2x2 storage for air tanks that feed internals
   - type: WFSuitTankStorage
   - type: Storage
@@ -45,7 +55,7 @@
   - type: SealableClothing
     sealUpPopup: sealable-clothing-seal-up-chestplate
     sealDownPopup: sealable-clothing-seal-down-chestplate
-  - type: SealableClothingVisuals
+  - type: ModSuitSealedVisuals # WOLFGATE(Modsuits)
     spriteLayer: sealed
     clothingVisuals:
       outerClothing:
@@ -79,7 +89,7 @@
     - WFWolfmedFrostbiteWound
   - type: Sprite
     sprite: _Goobstation/Clothing/OuterClothing/Modsuits/standard.rsi
-  - type: SealableClothingVisuals
+  - type: ModSuitSealedVisuals # WOLFGATE(Modsuits)
     spriteLayer: sealed
     clothingVisuals:
       outerClothing:
@@ -122,7 +132,7 @@
     - state: chestplate-sealed
       visible: false
       map: [ "sealed" ]
-  - type: SealableClothingVisuals
+  - type: ModSuitSealedVisuals # WOLFGATE(Modsuits)
     spriteLayer: sealed
     clothingVisuals:
       outerClothing:
@@ -179,7 +189,7 @@
     - state: chestplate-sealed
       visible: false
       map: [ "sealed" ]
-  - type: SealableClothingVisuals
+  - type: ModSuitSealedVisuals # WOLFGATE(Modsuits)
     spriteLayer: sealed
     clothingVisuals:
       outerClothing:
@@ -231,7 +241,7 @@
     - state: chestplate-sealed
       visible: false
       map: [ "sealed" ]
-  - type: SealableClothingVisuals
+  - type: ModSuitSealedVisuals # WOLFGATE(Modsuits)
     spriteLayer: sealed
     clothingVisuals:
       outerClothing:
@@ -277,7 +287,7 @@
     - state: chestplate-sealed
       visible: false
       map: [ "sealed" ]
-  - type: SealableClothingVisuals
+  - type: ModSuitSealedVisuals # WOLFGATE(Modsuits)
     spriteLayer: sealed
     clothingVisuals:
       outerClothing:
@@ -328,7 +338,7 @@
     - state: chestplate-sealed
       visible: false
       map: [ "sealed" ]
-  - type: SealableClothingVisuals
+  - type: ModSuitSealedVisuals # WOLFGATE(Modsuits)
     spriteLayer: sealed
     clothingVisuals:
       outerClothing:
@@ -370,7 +380,7 @@
     - state: chestplate-sealed
       visible: false
       map: [ "sealed" ]
-  - type: SealableClothingVisuals
+  - type: ModSuitSealedVisuals # WOLFGATE(Modsuits)
     spriteLayer: sealed
     clothingVisuals:
       outerClothing:
@@ -415,7 +425,7 @@
     - state: chestplate-sealed
       visible: false
       map: [ "sealed" ]
-  - type: SealableClothingVisuals
+  - type: ModSuitSealedVisuals # WOLFGATE(Modsuits)
     spriteLayer: sealed
     clothingVisuals:
       outerClothing:

@@ -36,7 +36,7 @@
       # head-vulpkanin:
       # - state: equipped-HEAD-vulpkanin
       # WOLFGATE END
-  - type: SealableClothingVisuals
+  - type: ModSuitSealedVisuals # WOLFGATE(Modsuits)
     spriteLayer: sealed
     clothingVisuals:
       head:
@@ -58,12 +58,21 @@
       coolingCoefficient: 0.01
     - type: IdentityBlocker
     - type: IngestionBlocker
-    - type: HideLayerClothing
-      slots:
-      - Hair
-      - Snout
-      - HeadTop
-      - HeadSide
+    # WOLFGATE(Modsuits): the hardlight shader replaces hiding the head layers
+  # WOLFGATE(Modsuits) START: components granted while the native module system has the helmet sealed
+  - type: ModSealedComponents
+    components:
+    - type: BreathMask
+    - type: PressureProtection
+      highPressureMultiplier: 0.3
+      lowPressureMultiplier: 1000
+    - type: TemperatureProtection
+      heatingCoefficient: 0.01
+      coolingCoefficient: 0.01
+    - type: IdentityBlocker
+    - type: IngestionBlocker
+    # WOLFGATE(Modsuits): head layers stay visible; the hardlight shader projects them over the sealed suit
+  # WOLFGATE END
   - type: Battery
     maxCharge: 600 #lights drain 3/s but recharge of 2 makes this 1/s. Therefore 600 is 10 minutes of light.
     startingCharge: 600
@@ -107,7 +116,7 @@
   components:
   - type: Sprite
     sprite: _Goobstation/Clothing/Head/Modsuits/standard.rsi
-  - type: SealableClothingVisuals
+  - type: ModSuitSealedVisuals # WOLFGATE(Modsuits)
     spriteLayer: sealed
     clothingVisuals:
       head:
@@ -171,7 +180,7 @@
       - state: equipped-HEAD-vox
   - type: Sprite
     sprite: _Goobstation/Clothing/Head/Modsuits/security.rsi
-  - type: SealableClothingVisuals
+  - type: ModSuitSealedVisuals # WOLFGATE(Modsuits)
     spriteLayer: sealed
     clothingVisuals:
       head:
@@ -235,7 +244,7 @@
       - state: equipped-HEAD-vox
   - type: Sprite
     sprite: _Goobstation/Clothing/Head/Modsuits/headofsecurity.rsi
-  - type: SealableClothingVisuals
+  - type: ModSuitSealedVisuals # WOLFGATE(Modsuits)
     spriteLayer: sealed
     clothingVisuals:
       head:
@@ -401,7 +410,7 @@
       - state: equipped-HEAD
       head-vox:
       - state: equipped-HEAD-vox
-  - type: SealableClothingVisuals
+  - type: ModSuitSealedVisuals # WOLFGATE(Modsuits)
     spriteLayer: sealed
     clothingVisuals:
       head:
@@ -516,7 +525,7 @@
       - state: equipped-HEAD-vox
   - type: Sprite
     sprite: _Goobstation/Clothing/Head/Modsuits/captain.rsi
-  - type: SealableClothingVisuals
+  - type: ModSuitSealedVisuals # WOLFGATE(Modsuits)
     spriteLayer: sealed
     clothingVisuals:
       head:
