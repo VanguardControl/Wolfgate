@@ -137,6 +137,7 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 - [`Content.Server/_WF/Vehicles/Bison/CMUCargoVehicleSystem.Control.cs`](Bison/CMUCargoVehicleSystem.Control.cs)
 - [`Content.Server/_WF/Vehicles/Bison/CMUCargoVehicleSystem.cs`](Bison/CMUCargoVehicleSystem.cs)
 - [`Content.Server/_WF/Vehicles/Bison/CMUCargoVehicleSystem.Destruct.cs`](Bison/CMUCargoVehicleSystem.Destruct.cs)
+- [`Content.Server/_WF/Vehicles/Bison/CMUCargoVehicleSystem.Interior.cs`](Bison/CMUCargoVehicleSystem.Interior.cs)
 - [`Content.Server/_WF/Vehicles/Core/ShuttleSystem.VehicleImpact.cs`](Core/ShuttleSystem.VehicleImpact.cs)
 - [`Content.Server/_WF/Vehicles/Core/VehicleChatRelaySystem.cs`](Core/VehicleChatRelaySystem.cs)
 - [`Content.Server/_WF/Vehicles/Core/VehicleEntranceItemSystem.cs`](Core/VehicleEntranceItemSystem.cs)
@@ -171,6 +172,7 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 - [`Content.Shared/_WF/Vehicles/Base/RMCVehicleOperatorComponent.cs`](../../../Content.Shared/_WF/Vehicles/Base/RMCVehicleOperatorComponent.cs)
 - [`Content.Shared/_WF/Vehicles/Base/RMCVehicleSystem.cs`](../../../Content.Shared/_WF/Vehicles/Base/RMCVehicleSystem.cs)
 - [`Content.Shared/_WF/Vehicles/Base/VehicleWatchingComponent.cs`](../../../Content.Shared/_WF/Vehicles/Base/VehicleWatchingComponent.cs)
+- [`Content.Shared/_WF/Vehicles/Bison/CMUCargoOnBedComponent.cs`](../../../Content.Shared/_WF/Vehicles/Bison/CMUCargoOnBedComponent.cs)
 - [`Content.Shared/_WF/Vehicles/Bison/CMUCargoVehicleComponents.cs`](../../../Content.Shared/_WF/Vehicles/Bison/CMUCargoVehicleComponents.cs)
 - [`Content.Shared/_WF/Vehicles/Bison/CMUCargoVehicleEvents.cs`](../../../Content.Shared/_WF/Vehicles/Bison/CMUCargoVehicleEvents.cs)
 - [`Content.Shared/_WF/Vehicles/Bison/SharedCMUCargoVehicleSystem.cs`](../../../Content.Shared/_WF/Vehicles/Bison/SharedCMUCargoVehicleSystem.cs)
@@ -303,6 +305,7 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 
 - [`Content.Client/_WF/Vehicles/Audio/WFVehicleAudioSystem.cs`](../../../Content.Client/_WF/Vehicles/Audio/WFVehicleAudioSystem.cs)
 - [`Content.Client/_WF/Vehicles/Audio/WFVehicleCabinAudioSystem.cs`](../../../Content.Client/_WF/Vehicles/Audio/WFVehicleCabinAudioSystem.cs)
+- [`Content.Client/_WF/Vehicles/Bison/CMUCargoOnBedSystem.cs`](../../../Content.Client/_WF/Vehicles/Bison/CMUCargoOnBedSystem.cs)
 - [`Content.Client/_WF/Vehicles/Falling/VehicleFallSystem.cs`](../../../Content.Client/_WF/Vehicles/Falling/VehicleFallSystem.cs)
 - [`Content.Client/_WF/Vehicles/Grid/GridVehicleMoverOverlay.cs`](../../../Content.Client/_WF/Vehicles/Grid/GridVehicleMoverOverlay.cs)
 - [`Content.Client/_WF/Vehicles/Grid/GridVehicleMoverSystem.cs`](../../../Content.Client/_WF/Vehicles/Grid/GridVehicleMoverSystem.cs)
@@ -345,6 +348,7 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/CMUCargoVehicleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/CMUCargoVehicleTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Vehicles/CMUCargoWarheadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/CMUCargoWarheadTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/CMUEmergencyLightsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/CMUEmergencyLightsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/FoldedVehicleBuckleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/FoldedVehicleBuckleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/GridVehicleFloorTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/GridVehicleFloorTest.cs)
