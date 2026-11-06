@@ -106,6 +106,8 @@ public sealed class OutbreakTest
             LayDeck(pair, map);
             ship = OtherShip(entMan, server.ResolveDependency<ITileDefinitionManager>(), map.MapId);
             crewman = SpawnCrewman(pair, At(map, 3, 0));
+            // The sweep skips the dead, and the carp sometimes died under CI load; this test is about reach, not harm.
+            entMan.System<Content.Shared.Damage.Systems.SharedGodmodeSystem>().EnableGodmode(crewman);
             monoliths.NextSting = TimeSpan.FromHours(10);
             stings = monoliths.StingsPlayed;
             splinter = entMan.SpawnEntity("WFMonolithSplinter", At(map, 0, 0));
