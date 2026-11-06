@@ -38,6 +38,10 @@ public sealed partial class WFLatticeRelayComponent : Component
     public float Settled;
 }
 
+/// <summary>One of an anchor station's own guns: it fires only from an anchor station.</summary>
+[RegisterComponent]
+public sealed partial class WFLatticeDefenceWeaponComponent : Component;
+
 /// <summary>An anchor station's shield generator, whose field is drawn as a tinted, rooted Ward.</summary>
 [RegisterComponent]
 public sealed partial class WFLatticeAnchorShieldComponent : Component;
@@ -52,4 +56,16 @@ public sealed partial class WFLatticeAnchorStationComponent : Component
     /// <summary>The anchor core on it.</summary>
     [ViewVariables]
     public EntityUid Core;
+
+    /// <summary>Hits each attacking grid has landed lately, and when the last one came.</summary>
+    [ViewVariables]
+    public Dictionary<EntityUid, (float Strikes, TimeSpan Last)> Strikes = new();
+
+    /// <summary>Grids the station is shooting back at, until when.</summary>
+    [ViewVariables]
+    public Dictionary<EntityUid, TimeSpan> Hostiles = new();
+
+    /// <summary>When the station may next announce that it is under attack.</summary>
+    [ViewVariables]
+    public TimeSpan NextAlert;
 }

@@ -43,6 +43,15 @@ stabiliser flatpack (5 shards; 15 kW while running), which shelters the ship it 
 and stops the taking, and the anchor charm (1 shard), worn round the neck, which keeps half the Drift off its wearer.
 `WFLatticeShelterSystem` keeps the `WFLatticeShelterComponent` on ships and wearers.
 
+**Anchor stations and their defence.** Each station is loaded from `Resources/Maps/_WF/Lattice/anchor_station.yml`
+(the profile's `stationMap`; a plain deck is built in code if it fails), placed so its core sits on the hexagon's
+corner, and its core is swapped for that anchor's own. The core is also a station anchor (`StationAnchor`), so the
+station can't be moved. Its eight hardpoints carry `WFLatticeWardenLance`s, which fire only from an anchor station.
+`WFLatticeSystem.Defence.cs` counts hits: shield hits from a grid count one each and are forgiven after 30 s, and the
+first draws a warning chip to that ship's crew; four (`strikeLimit`), or any hit on the core, make the grid hostile for
+three minutes. A hostile grid gets a global alert (once every two minutes), the drones, and every lance on the station
+firing at it, led for its speed, within 3 km.
+
 **Relay anchors.** The autolathe makes a relay anchor flatpack (20 shards of exotic matter). Bolted down with 30 kW,
 on a grid moving under 1 m/s for a minute, a relay holds 0.4 of a primary's strength and pushes anchored space out
 round it; it lets go when the grid moves or the power fails.
@@ -87,6 +96,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Content.Server/_WF/Lattice/WFDriftEffectsSystem.cs`](WFDriftEffectsSystem.cs)
 - [`Content.Server/_WF/Lattice/WFLatticeShelterSystem.cs`](WFLatticeShelterSystem.cs)
 - [`Content.Server/_WF/Lattice/WFLatticeSystem.cs`](WFLatticeSystem.cs)
+- [`Content.Server/_WF/Lattice/WFLatticeSystem.Defence.cs`](WFLatticeSystem.Defence.cs)
 - [`Content.Server/_WF/Lattice/WFLatticeSystem.Stations.cs`](WFLatticeSystem.Stations.cs)
 
 ### Shared
@@ -127,10 +137,15 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Resources/Prototypes/_WF/Lattice/exotic.yml`](../../../Resources/Prototypes/_WF/Lattice/exotic.yml)
 - [`Resources/Prototypes/_WF/Lattice/guidebook.yml`](../../../Resources/Prototypes/_WF/Lattice/guidebook.yml)
 - [`Resources/Prototypes/_WF/Lattice/lattice.yml`](../../../Resources/Prototypes/_WF/Lattice/lattice.yml)
+- [`Resources/Prototypes/_WF/Lattice/weapons.yml`](../../../Resources/Prototypes/_WF/Lattice/weapons.yml)
 
 ### Localization
 
 - [`Resources/Locale/en-US/_WF/Lattice/lattice.ftl`](../../../Resources/Locale/en-US/_WF/Lattice/lattice.ftl)
+
+### Maps
+
+- [`Resources/Maps/_WF/Lattice/anchor_station.yml`](../../../Resources/Maps/_WF/Lattice/anchor_station.yml)
 
 ### Guidebook
 

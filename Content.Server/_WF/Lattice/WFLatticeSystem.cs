@@ -51,11 +51,13 @@ public sealed partial class WFLatticeSystem : EntitySystem
 
         SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _seen.Clear());
         InitializeStations();
+        InitializeDefence();
     }
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+        UpdateDefence(frameTime);
 
         _accumulator += frameTime;
         if (_accumulator < Interval)

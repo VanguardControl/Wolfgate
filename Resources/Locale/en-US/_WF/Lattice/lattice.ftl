@@ -140,3 +140,14 @@ wf-lore-entry-unmooring = The Unmooring
 wf-lore-entry-lattice = The Lattice
 wf-lore-entry-choir = The Choir
 guide-entry-wf-lattice = The Lattice and Drift
+
+ent-WFLatticeWardenLance = Lattice warden lance
+    .desc = A gun that was never meant for human hands. It answers only to a reality anchor, and it does not miss.
+    .suffix = Lattice
+ent-WFLatticeLanceProjectile = lance bolt
+    .desc = Violet, and very, very hot.
+
+wf-lattice-defence-title = ANCHOR DEFENCE
+wf-lattice-defence = Reality anchor {$anchor} is under attack by {$attacker}. Defensive protocols engaged. Its drones and lances will answer.
+wf-lattice-defence-warning = Reality anchor {$anchor} registers hostile fire. Cease fire or be engaged.
+wf-lattice-defence-unknown = an unknown vessel

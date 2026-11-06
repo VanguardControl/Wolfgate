@@ -69,6 +69,30 @@ public sealed partial class WFLatticeProfilePrototype : IPrototype
     [DataField]
     public float DefenceDistance = 300f;
 
+    /// <summary>Grid file each anchor station is loaded from; its core is swapped for that anchor's own. Built in code if empty.</summary>
+    [DataField]
+    public string? StationMap = "/Maps/_WF/Lattice/anchor_station.yml";
+
+    /// <summary>Shield hits a grid may land before the station answers; a hit on the core counts this much at once.</summary>
+    [DataField]
+    public float StrikeLimit = 4f;
+
+    /// <summary>Seconds after which a grid's earlier hits are forgiven.</summary>
+    [DataField]
+    public float StrikeWindow = 30f;
+
+    /// <summary>Seconds the station keeps shooting at a grid after its last hit.</summary>
+    [DataField]
+    public float HostileSeconds = 180f;
+
+    /// <summary>Furthest the station's lances reach for a hostile grid, in metres.</summary>
+    [DataField]
+    public float DefenceRange = 3000f;
+
+    /// <summary>Seconds between the station's alerts.</summary>
+    [DataField]
+    public float AlertCooldown = 120f;
+
     /// <summary>DEFCON score for each primary anchor lost.</summary>
     [DataField]
     public float BreachDefcon = 10f;

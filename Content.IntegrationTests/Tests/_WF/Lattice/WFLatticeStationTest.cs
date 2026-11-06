@@ -9,6 +9,8 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Map;
+using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.Lattice;
@@ -76,6 +78,59 @@ public sealed class WFLatticeStationTest
                                   && entities.TryGetComponent<WFWardFieldComponent>(shield, out var ward)
                                   && ward.Rooted && ward.Tint != null);
             Assert.That(warded, Is.GreaterThanOrEqualTo(5), "the anchor shields aren't up as purple Ward fields.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A few stray hits are forgiven; past the limit the station turns its lances on the attacker.</summary>
+    [Test]
+    public async Task StationsAnswerAttacks()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var lattice = entities.System<WFLatticeSystem>();
+        var maps = entities.System<Robust.Shared.GameObjects.SharedMapSystem>();
+        var transform = entities.System<SharedTransformSystem>();
+
+        EntityUid station = default, attacker = default;
+        await server.WaitAssertion(() =>
+        {
+            lattice.Setup(map.MapUid);
+            var query = entities.EntityQueryEnumerator<WFLatticeAnchorStationComponent, TransformComponent>();
+            while (query.MoveNext(out var uid, out _, out var xform))
+            {
+                if (xform.MapUid == map.MapUid)
+                    station = uid;
+            }
+
+            var core = entities.GetComponent<WFLatticeAnchorStationComponent>(station).Core;
+            Assert.That(entities.HasComponent<Content.Server.Shuttles.Components.StationAnchorComponent>(core), Is.True, "the core isn't a station anchor.");
+            var lances = entities.EntityQuery<WFLatticeDefenceWeaponComponent>()
+                .Count(lance => entities.GetComponent<TransformComponent>(lance.Owner).GridUid == station);
+            Assert.That(lances, Is.EqualTo(8), "the loaded station should carry eight lances.");
+
+            var grid = maps.CreateGridEntity(map.MapId);
+            maps.SetTile(grid.Owner, grid.Comp, Vector2i.Zero, new Tile(server.ResolveDependency<ITileDefinitionManager>()["Plating"].TileId));
+            transform.SetWorldPosition(grid.Owner, transform.GetWorldPosition(station) + new System.Numerics.Vector2(400f, 0f));
+            attacker = grid.Owner;
+
+            var comp = entities.GetComponent<WFLatticeAnchorStationComponent>(station);
+            lattice.Strike(station, attacker, 1f);
+            Assert.That(comp.Hostiles, Is.Empty, "one stray hit made the station hostile.");
+            lattice.Strike(station, attacker, 1f);
+            lattice.Strike(station, attacker, 1f);
+            lattice.Strike(station, attacker, 1f);
+            Assert.That(comp.Hostiles.ContainsKey(attacker), Is.True, "repeated hits didn't make the station hostile.");
+        });
+
+        await pair.RunSeconds(6f);
+        await server.WaitAssertion(() =>
+        {
+            var bolts = entities.EntityQuery<MetaDataComponent>().Count(meta => meta.EntityPrototype?.ID == "WFLatticeLanceProjectile");
+            Assert.That(bolts, Is.GreaterThan(0), "the lances didn't fire at a hostile grid.");
         });
 
         await pair.CleanReturnAsync();

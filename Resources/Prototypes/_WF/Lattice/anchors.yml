@@ -49,6 +49,8 @@
         acts: [ "Destruction" ]
   - type: WFLatticeAnchor
     primary: true
+  # The anchor holds its station still, as a station anchor does.
+  - type: StationAnchor
   # The anchor powers its own station: run HV cable from under it to a substation.
   - type: NodeContainer
     examinable: true

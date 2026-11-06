@@ -12,10 +12,12 @@ using Content.Shared._WF.Remade.Ward;
 using Content.Shared.Damage;
 using Content.Shared.Destructible;
 using Robust.Shared.Audio;
+using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Server._WF.Lattice;
 
@@ -30,11 +32,15 @@ public sealed partial class WFLatticeSystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private ITileDefinitionManager _tiles = default!;
     [Dependency] private MetaDataSystem _meta = default!;
+    [Dependency] private MapLoaderSystem _mapLoader = default!;
 
     /// <summary>Furthest a station is pushed out along its bearing to find clear space, in metres.</summary>
     private const float StationNudge = 600f;
 
     private const float StationNudgeStep = 50f;
+
+    /// <summary>Clear space a loaded station needs round its point, in metres.</summary>
+    private const float TemplateClearance = 48f;
 
     private static readonly SoundSpecifier BreachSound = new SoundPathSpecifier("/Audio/Misc/notice1.ogg");
 
@@ -63,12 +69,15 @@ public sealed partial class WFLatticeSystem
         }
     }
 
-    /// <summary>Builds one primary anchor's station at a corner of the hexagon, pushed outward clear of other grids.</summary>
+    /// <summary>
+    /// Builds one primary anchor's station at a corner of the hexagon, pushed outward clear of other grids: loaded from
+    /// the profile's grid file with its core swapped for this anchor's own, or a plain deck built here if that fails.
+    /// </summary>
     private void BuildStation(EntityUid map, WFLatticeProfilePrototype profile, Vector2 corner, int index)
     {
         var mapId = Transform(map).MapID;
         var bearing = corner.LengthSquared() > 0f ? Vector2.Normalize(corner) : Vector2.UnitX;
-        var size = profile.StationRadius * 2f + 4f;
+        var size = profile.StationMap != null ? TemplateClearance : profile.StationRadius * 2f + 4f;
         var position = corner;
         for (var push = 0f; push <= StationNudge; push += StationNudgeStep)
         {
@@ -78,6 +87,9 @@ public sealed partial class WFLatticeSystem
             if (_stationGrids.Count == 0)
                 break;
         }
+
+        if (profile.StationMap is { } file && TryLoadStation(mapId, file, profile, position, index))
+            return;
 
         var grid = _maps.CreateGridEntity(mapId);
         var tile = new Tile(_tiles[profile.StationTile].TileId);
@@ -110,6 +122,43 @@ public sealed partial class WFLatticeSystem
         station.Core = core;
     }
 
+    /// <summary>Loads the station grid so its core sits on the point, and makes the core this anchor's own.</summary>
+    private bool TryLoadStation(MapId mapId, string file, WFLatticeProfilePrototype profile, Vector2 position, int index)
+    {
+        if (!_mapLoader.TryLoadGrid(mapId, new ResPath(file), out var loaded))
+            return false;
+
+        var grid = loaded.Value.Owner;
+        EntityUid? template = null;
+        var cores = EntityQueryEnumerator<WFLatticeAnchorComponent, TransformComponent>();
+        while (cores.MoveNext(out var uid, out var anchor, out var xform))
+        {
+            if (xform.GridUid == grid && anchor.Primary)
+                template = uid;
+        }
+
+        if (template is not { } old)
+        {
+            Log.Error($"Lattice station {file} has no primary anchor core.");
+            Del(grid);
+            return false;
+        }
+
+        var local = Transform(old).LocalPosition;
+        _transform.SetWorldPosition(grid, position - local);
+        _meta.SetEntityName(grid, Loc.GetString("wf-lattice-station-name", ("anchor", AnchorName(index))));
+        EnsureComp<CleanupImmuneComponent>(grid);
+
+        // The template's core stands in for whichever anchor this is.
+        var coordinates = Transform(old).Coordinates;
+        Del(old);
+        var core = Spawn(profile.CorePrototypes[index % profile.CorePrototypes.Count], coordinates);
+        _meta.SetEntityName(core, AnchorName(index));
+        EnsureComp<WFLatticeAnchorComponent>(core).Primary = true;
+        EnsureComp<WFLatticeAnchorStationComponent>(grid).Core = core;
+        return true;
+    }
+
     /// <summary>Alpha to Zeta, then numbers.</summary>
     private string AnchorName(int index)
     {
@@ -140,16 +189,21 @@ public sealed partial class WFLatticeSystem
         });
     }
 
+    /// <summary>A hit on the core itself is never forgiven.</summary>
     private void OnAnchorDamaged(Entity<WFLatticeAnchorComponent> ent, ref DamageChangedEvent args)
     {
-        if (ent.Comp.Primary && args.DamageIncreased && Transform(ent.Owner).GridUid is { } grid)
-            Defend(grid, args.Origin is { } origin && TryComp<TransformComponent>(origin, out var from) ? from.GridUid : null);
+        if (!ent.Comp.Primary || !args.DamageIncreased || Transform(ent.Owner).GridUid is not { } grid || !TryGetProfile(grid, out var profile))
+            return;
+
+        var attacker = args.Origin is { } origin && TryComp<TransformComponent>(origin, out var from) ? from.GridUid : null;
+        Strike(grid, attacker, profile.StrikeLimit);
     }
 
+    /// <summary>A hit on the shield counts towards the limit.</summary>
     private void OnShieldAttacked(ref WFShipShieldAttackedEvent args)
     {
         if (HasComp<WFLatticeAnchorStationComponent>(args.Grid))
-            Defend(args.Grid, args.AttackerGrid);
+            Strike(args.Grid, args.AttackerGrid, 1f);
     }
 
     /// <summary>Calls out the anchor's drones, between it and whoever attacked it, unless they came out lately.</summary>
