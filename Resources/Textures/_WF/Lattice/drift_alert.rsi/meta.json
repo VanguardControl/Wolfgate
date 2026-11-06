@@ -1,0 +1,45 @@
+{
+    "version": 1,
+    "license": "CC-BY-SA-3.0",
+    "copyright": "Made for Wolfgate by Tools/_WF/Lattice/gen_drift_alert.py",
+    "size": {
+        "x": 32,
+        "y": 32
+    },
+    "states": [
+        {
+            "name": "drift0"
+        },
+        {
+            "name": "drift1"
+        },
+        {
+            "name": "drift2"
+        },
+        {
+            "name": "drift3"
+        },
+        {
+            "name": "drift4"
+        },
+        {
+            "name": "drift5"
+        },
+        {
+            "name": "drift6"
+        },
+        {
+            "name": "garbled",
+            "delays": [
+                [
+                    0.12,
+                    0.08,
+                    0.15,
+                    0.06,
+                    0.1,
+                    0.09
+                ]
+            ]
+        }
+    ]
+}

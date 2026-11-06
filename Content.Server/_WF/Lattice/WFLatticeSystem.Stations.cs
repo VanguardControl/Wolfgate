@@ -224,7 +224,7 @@ public sealed partial class WFLatticeSystem
             Level = WFAnnounceChipLevel.Warning,
             Accent = Color.FromHex("#d030a0"),
             Title = Loc.GetString("wf-lattice-breach-title"),
-            Text = text,
+            Text = Loc.GetString("wf-lattice-breach-chip", ("anchor", Name(ent.Owner)), ("direction", Compass(bearing))),
             Sender = Loc.GetString("wf-lattice-chip-sender"),
             Duration = 30f,
             Flash = true,

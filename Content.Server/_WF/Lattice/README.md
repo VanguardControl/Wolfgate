@@ -30,8 +30,8 @@ vicinity, falling off over its `range`, more when carried, and a lump on touch o
 It fades at 0.4 a second once nothing feeds it. The Unmooring's hallucinations play off the greater of the two, and off
 a map with no Lattice they play off the head alone with the `WFDefault` profile. The Choir and the Remade hold none.
 
-**Gauge.** `WFDriftMeterOverlay` is a dial at the lower left of the screen showing the greater of the two; it shows only while
-out of anchored space or holding Drift, and in the Deep its needle shakes and its readings garble.
+**Gauge.** `WFDriftMindSystem` shows the `WFDrift` alert, a dial among the status icons filled to the greater of the two;
+it shows only while out of anchored space or holding Drift, and in a garbling band it shows an unreadable dial.
 
 **Garbling.** In a garbling band (the Deep) text garbles more the deeper it is, and flickers on clients
 (`WFLatticeViewSystem`): radar contact names by the deeper of the viewer and the contact, the console's own position and
@@ -130,7 +130,6 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 ### Client
 
 - [`Content.Client/_WF/Lattice/ShuttleNavControl.Lattice.cs`](../../../Content.Client/_WF/Lattice/ShuttleNavControl.Lattice.cs)
-- [`Content.Client/_WF/Lattice/WFDriftMeterOverlay.cs`](../../../Content.Client/_WF/Lattice/WFDriftMeterOverlay.cs)
 - [`Content.Client/_WF/Lattice/WFDriftOverlay.cs`](../../../Content.Client/_WF/Lattice/WFDriftOverlay.cs)
 - [`Content.Client/_WF/Lattice/WFLatticeHallucinationSystem.cs`](../../../Content.Client/_WF/Lattice/WFLatticeHallucinationSystem.cs)
 - [`Content.Client/_WF/Lattice/WFLatticeHumSystem.cs`](../../../Content.Client/_WF/Lattice/WFLatticeHumSystem.cs)
@@ -152,6 +151,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 
 ### Prototypes
 
+- [`Resources/Prototypes/_WF/Lattice/alerts.yml`](../../../Resources/Prototypes/_WF/Lattice/alerts.yml)
 - [`Resources/Prototypes/_WF/Lattice/anchors.yml`](../../../Resources/Prototypes/_WF/Lattice/anchors.yml)
 - [`Resources/Prototypes/_WF/Lattice/exotic.yml`](../../../Resources/Prototypes/_WF/Lattice/exotic.yml)
 - [`Resources/Prototypes/_WF/Lattice/guidebook.yml`](../../../Resources/Prototypes/_WF/Lattice/guidebook.yml)
@@ -162,6 +162,10 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 
 - [`Resources/Locale/en-US/_WF/Lattice/lattice.ftl`](../../../Resources/Locale/en-US/_WF/Lattice/lattice.ftl)
 
+### Textures
+
+- [`Resources/Textures/_WF/Lattice/drift_alert.rsi/`](../../../Resources/Textures/_WF/Lattice/drift_alert.rsi/)
+
 ### Maps
 
 - [`Resources/Maps/_WF/Lattice/anchor_station.yml`](../../../Resources/Maps/_WF/Lattice/anchor_station.yml)
@@ -169,6 +173,10 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 ### Guidebook
 
 - [`Resources/ServerInfo/_WF/Lattice/Guidebook/Lattice.xml`](../../../Resources/ServerInfo/_WF/Lattice/Guidebook/Lattice.xml)
+
+### Tools
+
+- [`Tools/_WF/Lattice/gen_drift_alert.py`](../../../Tools/_WF/Lattice/gen_drift_alert.py)
 
 ### Docs
 

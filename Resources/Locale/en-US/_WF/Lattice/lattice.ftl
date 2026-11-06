@@ -104,6 +104,7 @@ wf-lattice-anchor-name-6 = Zeta
 wf-lattice-anchor-name-n = Anchor {$n}
 
 wf-lattice-breach-title = LATTICE BREACH: REALITY UNSTABLE
+wf-lattice-breach-chip = Anchor {$anchor} has fallen. Reality is coming loose to the {$direction}.
 wf-lattice-breach = Reality anchor {$anchor} has fallen. The Lattice is failing to the {$direction}, and reality is coming loose behind it. Anchored space is shrinking across the sector. Expect hallucinations, instrument faults and worse. All vessels in the {$direction} reaches: return to anchored space.
 
 wf-lattice-compass-0 = east
@@ -152,4 +153,5 @@ wf-lattice-defence-under-fire = Reality anchor {$anchor} is under fire from {$at
 wf-lattice-defence = Reality anchor {$anchor}'s shield is down. Defensive protocols engaged against {$attacker}. Its drones and lances will answer.
 wf-lattice-defence-unknown = an unknown vessel
 
-wf-drift-meter-label = DRIFT
+wf-drift-alert-name = Drift
+wf-drift-alert-desc = How far reality has slipped from you. It fills out past anchored space and drains back inside it.

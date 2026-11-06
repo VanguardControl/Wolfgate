@@ -34,7 +34,6 @@ public sealed partial class WFLatticeHallucinationSystem : EntitySystem
 
         SubscribeNetworkEvent<WFLatticeHallucinationEvent>(OnHallucination);
         _overlays.AddOverlay(new WFDriftOverlay());
-        _overlays.AddOverlay(new WFDriftMeterOverlay());
     }
 
     public override void Shutdown()
@@ -42,7 +41,6 @@ public sealed partial class WFLatticeHallucinationSystem : EntitySystem
         base.Shutdown();
 
         _overlays.RemoveOverlay<WFDriftOverlay>();
-        _overlays.RemoveOverlay<WFDriftMeterOverlay>();
         Clear();
     }
 

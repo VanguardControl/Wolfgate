@@ -4,6 +4,7 @@ using Content.Server._WF.Lattice;
 using Content.Server._WF.Remade.Director;
 using Content.Server._WF.Remade.Monolith;
 using Content.Shared._WF.Lattice;
+using Content.Shared.Alert;
 using Robust.Server.Player;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
@@ -39,6 +40,7 @@ public sealed class WFDriftMindTest
             fed = drift!.Mind;
             Assert.That(fed, Is.GreaterThan(0.2f));
             Assert.That(drift.Flavour, Is.EqualTo(WFDriftFlavour.Unmooring));
+            Assert.That(entities.System<AlertsSystem>().IsShowingAlert(mob, "WFDrift"), Is.True, "a head holding Drift shows no gauge.");
             entities.DeleteEntity(matter);
         });
 

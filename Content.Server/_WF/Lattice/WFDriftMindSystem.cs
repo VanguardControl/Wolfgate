@@ -1,5 +1,6 @@
 using Content.Server._WF.Remade.Conversion;
 using Content.Shared._WF.Lattice;
+using Content.Shared.Alert;
 using Content.Shared.Ghost;
 using Content.Shared.Hands;
 using Content.Shared.Interaction;
@@ -23,6 +24,7 @@ public sealed partial class WFDriftMindSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private AlertsSystem _alerts = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private SharedContainerSystem _container = default!;
@@ -30,6 +32,11 @@ public sealed partial class WFDriftMindSystem : EntitySystem
     [Dependency] private WFDriftEffectsSystem _effects = default!;
 
     private static readonly TimeSpan TickRate = TimeSpan.FromSeconds(1);
+
+    private static readonly ProtoId<AlertPrototype> DriftAlert = "WFDrift";
+
+    /// <summary>The gauge's filled steps; one more severity past them is the garbled dial of the Deep.</summary>
+    private const short GaugeSteps = 6;
 
     /// <summary>The profile whose hallucinations play off a map with no Lattice.</summary>
     private static readonly ProtoId<WFLatticeProfilePrototype> FallbackProfile = "WFDefault";
@@ -101,6 +108,7 @@ public sealed partial class WFDriftMindSystem : EntitySystem
         _next = now + TickRate;
         Feed(seconds);
         Fade(seconds);
+        Gauge();
         _fed.Clear();
     }
 
@@ -151,6 +159,42 @@ public sealed partial class WFDriftMindSystem : EntitySystem
             if (profile != null && CanDrift(uid) && !HasComp<WFLatticeFieldComponent>(xform.MapUid))
                 _effects.Roll(actor.PlayerSession, uid, drift.Mind, profile);
         }
+    }
+
+    /// <summary>
+    /// Shows each player the Drift gauge while they are out of anchored space or hold any Drift, filled to the greater of
+    /// their ship's and their own; in a garbling band it reads nothing.
+    /// </summary>
+    private void Gauge()
+    {
+        var players = EntityQueryEnumerator<ActorComponent, MobStateComponent, TransformComponent>();
+        while (players.MoveNext(out var uid, out _, out _, out var xform))
+        {
+            var own = CompOrNull<WFDriftComponent>(uid);
+            var carrier = xform.GridUid is { } grid && TryComp<WFDriftComponent>(grid, out var ship) ? ship : own;
+            var band = carrier?.Band ?? 0;
+            var level = Math.Max(carrier?.Level ?? 0, own?.MindLevel ?? 0);
+            if (!CanDrift(uid) || band == 0 && (carrier?.Drift ?? 0f) <= 0f && (own?.Mind ?? 0f) <= 0f)
+            {
+                _alerts.ClearAlert(uid, DriftAlert);
+                continue;
+            }
+
+            var max = (int) (100f / WFDriftComponent.LevelStep);
+            var severity = (short) Math.Clamp(MathF.Round(level * GaugeSteps / (float) max), 0, GaugeSteps);
+            if (Garbled(xform.MapUid, band))
+                severity = GaugeSteps + 1;
+
+            _alerts.ShowAlert(uid, DriftAlert, severity);
+        }
+    }
+
+    private bool Garbled(EntityUid? map, int band)
+    {
+        return TryComp<WFLatticeFieldComponent>(map, out var field)
+               && _proto.TryIndex(field.Profile, out var profile)
+               && band < profile.Bands.Count
+               && profile.Bands[band].Garbled;
     }
 
     private void Sync(EntityUid mob, WFDriftComponent drift)

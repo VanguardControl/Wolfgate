@@ -1,0 +1,24 @@
+# The Drift gauge: shown while out of anchored space or holding Drift. Severity 0-6 fills the dial; 7 is the Deep, where it reads nothing.
+- type: alert
+  id: WFDrift
+  icons:
+  - sprite: /Textures/_WF/Lattice/drift_alert.rsi
+    state: drift0
+  - sprite: /Textures/_WF/Lattice/drift_alert.rsi
+    state: drift1
+  - sprite: /Textures/_WF/Lattice/drift_alert.rsi
+    state: drift2
+  - sprite: /Textures/_WF/Lattice/drift_alert.rsi
+    state: drift3
+  - sprite: /Textures/_WF/Lattice/drift_alert.rsi
+    state: drift4
+  - sprite: /Textures/_WF/Lattice/drift_alert.rsi
+    state: drift5
+  - sprite: /Textures/_WF/Lattice/drift_alert.rsi
+    state: drift6
+  - sprite: /Textures/_WF/Lattice/drift_alert.rsi
+    state: garbled
+  minSeverity: 0
+  maxSeverity: 7
+  name: wf-drift-alert-name
+  description: wf-drift-alert-desc
