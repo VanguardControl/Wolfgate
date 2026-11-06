@@ -3,12 +3,14 @@ using Content.Server._Mono.Cleanup;
 using Content.Server._WF.Defcon;
 using Content.Server._WF.ShipShields;
 using Content.Server.Chat.Systems;
+using Content.Server.Construction.Components;
 using Content.Server.Power.Components;
 using Content.Shared._WF.Announcements;
 using Content.Shared._Crescent.ShipShields;
 using Content.Shared._WF.Lattice;
 using Content.Shared._WF.Remade;
 using Content.Shared._WF.Remade.Ward;
+using Content.Shared.Construction.Components;
 using Content.Shared.Damage;
 using Content.Shared.Destructible;
 using Robust.Shared.Audio;
@@ -55,6 +57,7 @@ public sealed partial class WFLatticeSystem
         SubscribeLocalEvent<WFLatticeAnchorComponent, EntityTerminatingEvent>(OnAnchorTerminating);
         SubscribeLocalEvent<WFLatticeAnchorComponent, ComponentShutdown>(OnAnchorShutdown);
         SubscribeLocalEvent<WFLatticeAnchorComponent, DamageChangedEvent>(OnAnchorDamaged);
+        SubscribeLocalEvent<WFLatticeAnchorShieldComponent, MapInitEvent>(OnShieldMapInit);
         SubscribeLocalEvent<WFShipShieldAttackedEvent>(OnShieldAttacked);
         SubscribeLocalEvent<WFDefconGatherEvent>(OnDefconGather);
     }
@@ -229,6 +232,14 @@ public sealed partial class WFLatticeSystem
             Duration = 30f,
             Flash = true,
         });
+    }
+
+    /// <summary>An anchor's shield generator can be blown up, but not unbolted or taken apart.</summary>
+    private void OnShieldMapInit(Entity<WFLatticeAnchorShieldComponent> ent, ref MapInitEvent args)
+    {
+        RemComp<AnchorableComponent>(ent);
+        RemComp<ConstructionComponent>(ent);
+        RemComp<MachineComponent>(ent);
     }
 
     /// <summary>A hit on the core counts like a hit on the shield.</summary>
