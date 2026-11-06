@@ -30,7 +30,7 @@ vicinity, falling off over its `range`, more when carried, and a lump on touch o
 It fades at 0.4 a second once nothing feeds it. The Unmooring's hallucinations play off the greater of the two, and off
 a map with no Lattice they play off the head alone with the `WFDefault` profile. The Choir and the Remade hold none.
 
-**Gauge.** `WFDriftMeterOverlay` is a dial at the right of the screen showing the greater of the two; it shows only while
+**Gauge.** `WFDriftMeterOverlay` is a dial at the lower left of the screen showing the greater of the two; it shows only while
 out of anchored space or holding Drift, and in the Deep its needle shakes and its readings garble.
 
 **Garbling.** In a garbling band (the Deep) text garbles more the deeper it is, and flickers on clients

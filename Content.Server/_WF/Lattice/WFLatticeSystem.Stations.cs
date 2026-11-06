@@ -52,6 +52,7 @@ public sealed partial class WFLatticeSystem
     private void InitializeStations()
     {
         SubscribeLocalEvent<WFLatticeAnchorComponent, DestructionEventArgs>(OnAnchorDestroyed);
+        SubscribeLocalEvent<WFLatticeAnchorComponent, EntityTerminatingEvent>(OnAnchorTerminating);
         SubscribeLocalEvent<WFLatticeAnchorComponent, ComponentShutdown>(OnAnchorShutdown);
         SubscribeLocalEvent<WFLatticeAnchorComponent, DamageChangedEvent>(OnAnchorDamaged);
         SubscribeLocalEvent<WFShipShieldAttackedEvent>(OnShieldAttacked);
@@ -182,10 +183,22 @@ public sealed partial class WFLatticeSystem
         Breach(ent);
     }
 
-    /// <summary>A primary anchor removed any other way mid-round (its grid blown apart, deleted, eaten) is a breach too.</summary>
-    private void OnAnchorShutdown(Entity<WFLatticeAnchorComponent> ent, ref ComponentShutdown args)
+    /// <summary>
+    /// A primary anchor deleted mid-round, alone or with its grid, is a breach too. This runs while it is still on its
+    /// map: by the time its components shut down it has already left it.
+    /// </summary>
+    private void OnAnchorTerminating(Entity<WFLatticeAnchorComponent> ent, ref EntityTerminatingEvent args)
     {
         if (Transform(ent.Owner).MapUid is not { } map || TerminatingOrDeleted(map))
+            return;
+
+        Breach(ent);
+    }
+
+    /// <summary>The anchor taken off a core that stays is a breach as well.</summary>
+    private void OnAnchorShutdown(Entity<WFLatticeAnchorComponent> ent, ref ComponentShutdown args)
+    {
+        if (TerminatingOrDeleted(ent.Owner) || Transform(ent.Owner).MapUid is not { } map || TerminatingOrDeleted(map))
             return;
 
         Breach(ent);
@@ -201,6 +214,8 @@ public sealed partial class WFLatticeSystem
             return;
 
         ent.Comp.Active = false;
+        var breach = new WFLatticeBreachEvent(ent.Owner);
+        RaiseLocalEvent(ref breach);
         var bearing = _transform.GetWorldPosition(ent.Owner);
         var text = Loc.GetString("wf-lattice-breach", ("anchor", Name(ent.Owner)), ("direction", Compass(bearing)));
         _chat.DispatchGlobalAnnouncement(text, Loc.GetString("wf-lattice-chip-sender"), true, BreachAlarm, Color.FromHex("#d030a0"));

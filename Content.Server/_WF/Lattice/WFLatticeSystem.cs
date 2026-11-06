@@ -429,3 +429,7 @@ public sealed partial class WFLatticeSystem : EntitySystem
         }, session);
     }
 }
+
+/// <summary>Raised once when a primary anchor is lost and the sector is told.</summary>
+[ByRefEvent]
+public readonly record struct WFLatticeBreachEvent(EntityUid Anchor);

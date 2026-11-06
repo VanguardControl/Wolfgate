@@ -15,6 +15,18 @@ using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.Lattice;
 
+/// <summary>Counts the breaches announced.</summary>
+public sealed class WFLatticeBreachObserver : EntitySystem
+{
+    public int Breaches;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent((ref WFLatticeBreachEvent _) => Breaches++);
+    }
+}
+
 /// <summary>Anchor stations are built shielded, a destroyed core is a breach, and a parked relay takes hold.</summary>
 public sealed class WFLatticeStationTest
 {
@@ -33,6 +45,7 @@ public sealed class WFLatticeStationTest
         EntityUid relay = default;
         await server.WaitAssertion(() =>
         {
+            entities.System<WFLatticeBreachObserver>().Breaches = 0;
             lattice.Setup(map.MapUid);
             var query = entities.EntityQueryEnumerator<WFLatticeAnchorStationComponent, TransformComponent>();
             while (query.MoveNext(out var uid, out _, out var xform))
@@ -58,8 +71,9 @@ public sealed class WFLatticeStationTest
             var blunt = new DamageSpecifier(protos.Index<DamageTypePrototype>("Blunt"), FixedPoint2.New(30000));
             damage.TryChangeDamage(core, blunt, ignoreResistances: true);
 
-            // A station blown off the map entirely is a breach too, not only a core worn down.
+            // A station blown off the map entirely is a breach too, not only a core worn down, and so is a core deleted alone.
             entities.DeleteEntity(stations[1]);
+            entities.DeleteEntity(entities.GetComponent<WFLatticeAnchorStationComponent>(stations[2]).Core);
 
             relay = entities.SpawnEntity("WFLatticeRelayAnchor", map.GridCoords);
             entities.GetComponent<ApcPowerReceiverComponent>(relay).NeedsPower = false;
@@ -70,9 +84,10 @@ public sealed class WFLatticeStationTest
         await server.WaitAssertion(() =>
         {
             var field = entities.GetComponent<WFLatticeFieldComponent>(map.MapUid);
-            Assert.That(field.Integrity, Is.EqualTo(4f / 6f).Within(0.001f), "the two breaches didn't lower the Lattice's integrity.");
+            Assert.That(field.Integrity, Is.EqualTo(3f / 6f).Within(0.001f), "the three breaches didn't lower the Lattice's integrity.");
+            Assert.That(entities.System<WFLatticeBreachObserver>().Breaches, Is.EqualTo(3), "a lost anchor wasn't announced as a breach.");
             Assert.That(entities.GetComponent<WFLatticeAnchorComponent>(relay).Active, Is.True, "the parked relay didn't take hold.");
-            Assert.That(field.Anchors, Has.Count.EqualTo(5), "four primaries and the relay should hold the field.");
+            Assert.That(field.Anchors, Has.Count.EqualTo(4), "three primaries and the relay should hold the field.");
 
             // The standing stations' shields are up and drawn as a purple rooted Ward.
             var warded = entities.EntityQuery<ShipShieldEmitterComponent>()
@@ -101,6 +116,7 @@ public sealed class WFLatticeStationTest
         EntityUid station = default, attacker = default, crewman = default;
         await server.WaitAssertion(() =>
         {
+            entities.System<WFLatticeBreachObserver>().Breaches = 0;
             lattice.Setup(map.MapUid);
             var query = entities.EntityQueryEnumerator<WFLatticeAnchorStationComponent, TransformComponent>();
             while (query.MoveNext(out var uid, out _, out var xform))

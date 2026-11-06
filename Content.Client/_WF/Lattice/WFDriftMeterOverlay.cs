@@ -11,7 +11,7 @@ using Robust.Shared.Timing;
 namespace Content.Client._WF.Lattice;
 
 /// <summary>
-/// The Drift gauge: a small dial at the right edge of the screen, like an old sanity meter, that fills as Drift builds.
+/// The Drift gauge: a small dial at the lower left of the screen, like an old sanity meter, that fills as Drift builds.
 /// It shows only while the player is out of anchored space or still carrying Drift, and fades away once both are gone.
 /// It reads the greater of their ship's Drift and what is in their own head, and burns red when a Monolith put it there.
 /// In a garbling band (the Deep) it stops making sense: the needle shakes, the readings are noise, and the dial flickers.
@@ -84,8 +84,9 @@ public sealed partial class WFDriftMeterOverlay : Overlay
         var stone = mind is { Flavour: WFDriftFlavour.Monolith } && mind.MindLevel >= (drift?.Level ?? 0) && mind.MindLevel > 0;
         var rim = stone ? Stone : Rim;
         var scale = _ui.DefaultUIScale;
-        var size = args.ViewportBounds.Size;
-        var centre = new Vector2(size.X - (Radius + 28f) * scale, size.Y * 0.36f);
+        // Lower left, below the action bar and above the corner buttons: the chat and alerts hold the right side.
+        var bounds = args.ViewportBounds;
+        var centre = new Vector2(bounds.Left + (Radius + 30f) * scale, bounds.Top + bounds.Height * 0.8f);
         var radius = Radius * scale;
         var alpha = _alpha * (garbled ? 0.55f + 0.45f * (float) _noise.NextDouble() : 1f);
 
