@@ -91,6 +91,8 @@ ent-WFLatticeAnchorShield = anchor shield generator
     .desc = Fortress-grade shielding round a reality anchor. It draws on the anchor itself, so it never runs dry.
 ent-WFLatticeRelayAnchor = relay anchor
     .desc = A small reality anchor. Bolted down on a parked hull with power, it pushes anchored space out round it.
+ent-WFLatticeSpireTurret = lattice spire
+    .desc = An old alien spire. It turns to follow you.
 ent-WFLatticeStationAnchor = station anchor
     .desc = The station's own reality anchor. While it stands and has power, the station is anchored space, however far out it is.
 ent-WFFlatpackLatticeRelay = relay anchor flatpack
@@ -157,3 +159,6 @@ wf-lattice-defence-unknown = an unknown vessel
 
 wf-drift-alert-name = Drift
 wf-drift-alert-desc = How far reality has slipped from you. It fills out past anchored space and drains back inside it.
+
+# A wreck in the Deep that has filled with Remade, as it shows on radar.
+wf-lattice-lost-ship-name = Lost ship

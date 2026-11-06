@@ -56,6 +56,7 @@ public sealed partial class WFLatticeSystem
         SubscribeLocalEvent<WFLatticeAnchorComponent, DestructionEventArgs>(OnAnchorDestroyed);
         SubscribeLocalEvent<WFLatticeAnchorComponent, EntityTerminatingEvent>(OnAnchorTerminating);
         SubscribeLocalEvent<WFLatticeAnchorComponent, ComponentShutdown>(OnAnchorShutdown);
+        SubscribeLocalEvent<WFLatticeAnchorComponent, AnchorStateChangedEvent>(OnAnchorUnbolted);
         SubscribeLocalEvent<WFLatticeAnchorComponent, DamageChangedEvent>(OnAnchorDamaged);
         SubscribeLocalEvent<WFLatticeAnchorShieldComponent, MapInitEvent>(OnShieldMapInit);
         SubscribeLocalEvent<WFShipShieldAttackedEvent>(OnShieldAttacked);
@@ -193,6 +194,15 @@ public sealed partial class WFLatticeSystem
     private void OnAnchorTerminating(Entity<WFLatticeAnchorComponent> ent, ref EntityTerminatingEvent args)
     {
         if (Transform(ent.Owner).MapUid is not { } map || TerminatingOrDeleted(map))
+            return;
+
+        Breach(ent);
+    }
+
+    /// <summary>A primary core knocked loose, as when the deck under it is blown out, is lost too.</summary>
+    private void OnAnchorUnbolted(Entity<WFLatticeAnchorComponent> ent, ref AnchorStateChangedEvent args)
+    {
+        if (args.Anchored || TerminatingOrDeleted(ent.Owner) || Transform(ent.Owner).MapUid is not { } map || TerminatingOrDeleted(map))
             return;
 
         Breach(ent);

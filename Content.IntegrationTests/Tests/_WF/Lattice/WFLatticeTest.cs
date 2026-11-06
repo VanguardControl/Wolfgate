@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 using System.Numerics;
 using Content.Server._WF.Encounters.Components;
@@ -76,6 +77,51 @@ public sealed class WFLatticeTest
     }
 
     /// <summary>The bands follow a map's drone rings when there is one per edge, and the Deep garbles.</summary>
+    /// <summary>An unwatched wreck in the Deep can fill with Remade and show on radar as a lost ship.</summary>
+    [Test]
+    public async Task AWreckInTheDeepBecomesALostShip()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var protos = server.ResolveDependency<IPrototypeManager>();
+        var lattice = entities.System<WFLatticeSystem>();
+        var maps = entities.System<SharedMapSystem>();
+
+        EntityUid wreck = default;
+        await server.WaitAssertion(() =>
+        {
+            entities.EnsureComponent<WFDroneRingsComponent>(map.MapUid).Radii = new List<float> { 10000f, 12000f, 14000f, 16000f };
+            lattice.Setup(map.MapUid);
+            wreck = entities.SpawnEntity("NFWreckDebrisSmall", new Robust.Shared.Map.MapCoordinates(new Vector2(40000f, 0f), map.MapId));
+            var grid = entities.GetComponent<Robust.Shared.Map.Components.MapGridComponent>(wreck);
+            var plating = new Robust.Shared.Map.Tile(server.ResolveDependency<Robust.Shared.Map.ITileDefinitionManager>()["Plating"].TileId);
+            for (var x = 0; x < 6; x++)
+            {
+                for (var y = 0; y < 6; y++)
+                {
+                    maps.SetTile(wreck, grid, new Robust.Shared.Maths.Vector2i(x, y), plating);
+                }
+            }
+        });
+
+        await pair.RunSeconds(2f);
+        await server.WaitAssertion(() =>
+        {
+            var field = entities.GetComponent<WFLatticeFieldComponent>(map.MapUid);
+            Assert.That(lattice.TryLoseShip((map.MapUid, field), protos.Index<WFLatticeProfilePrototype>(field.Profile)), Is.True, "no wreck in the Deep turned.");
+            Assert.That(entities.HasComponent<WFLatticeLostShipComponent>(wreck), Is.True);
+            var mobs = protos.Index<WFLatticeProfilePrototype>(field.Profile).LostShipMobs.Select(id => id.Id).ToHashSet();
+            var remade = entities.EntityQuery<MetaDataComponent>()
+                .Count(meta => meta.EntityPrototype is { } proto && mobs.Contains(proto.ID)
+                               && entities.GetComponent<TransformComponent>(meta.Owner).GridUid == wreck);
+            Assert.That(remade, Is.InRange(2, 4), "the lost ship holds the wrong number of Remade.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     [Test]
     public async Task BandsFollowDroneRingsAndTheDeepGarbles()
     {

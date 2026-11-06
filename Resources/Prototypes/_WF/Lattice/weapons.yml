@@ -93,3 +93,67 @@
   - type: StaticPrice
     price: 0
   - type: WFLatticeDefenceWeapon
+
+# The anchor stations' inner guard: the old alien spires, which wake for anyone aboard and fill the air with flechettes.
+- type: entity
+  parent: BaseBullet
+  id: WFLatticeFlechette
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Projectiles/projectiles2.rsi
+    state: buckshot
+    color: "#d070ff"
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 10
+        Slash: 9
+    armorPenetration: 0.5
+  - type: Tracer
+    color: "#d070ffff"
+    length: 2
+
+- type: entity
+  parent: WFLatticeFlechette
+  id: WFLatticeFlechetteVolley
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: ProjectileSpread
+    proto: WFLatticeFlechette
+    count: 4
+    spread: 14
+
+- type: entity
+  parent: BaseWeaponTurret
+  id: WFLatticeSpireTurret
+  components:
+  - type: Sprite
+    sprite: _WF/DecorImport/Structures/Decoration/intruder_spire_goon.rsi
+    noRot: true
+    layers:
+    - state: spire-old
+  - type: NpcFactionMember
+    factions:
+    - SimpleHostile
+  - type: BasicEntityAmmoProvider
+    proto: WFLatticeFlechetteVolley
+  - type: Gun
+    fireRate: 1.2
+    projectileSpeed: 45
+    minAngle: 2
+    maxAngle: 10
+    angleIncrease: 1
+    angleDecay: 6
+    selectedMode: FullAuto
+    availableModes:
+    - FullAuto
+    soundGunshot:
+      path: /Audio/Weapons/Xeno/alien_spitacid.ogg
+      params:
+        volume: -2
+        pitch: 1.4
+  - type: PointLight
+    radius: 1.5
+    energy: 1.2
+    color: "#b040e0"

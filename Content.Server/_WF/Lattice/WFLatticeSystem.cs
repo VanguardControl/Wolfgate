@@ -49,7 +49,12 @@ public sealed partial class WFLatticeSystem : EntitySystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _seen.Clear());
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ =>
+        {
+            _seen.Clear();
+            _ovals.Clear();
+            _nextLostShip.Clear();
+        });
         InitializeStations();
         InitializeDefence();
     }
@@ -58,6 +63,7 @@ public sealed partial class WFLatticeSystem : EntitySystem
     {
         base.Update(frameTime);
         UpdateDefence(frameTime);
+        HoldBarriers();
 
         _accumulator += frameTime;
         if (_accumulator < Interval)
@@ -267,6 +273,7 @@ public sealed partial class WFLatticeSystem : EntitySystem
 
         GatherAnchors(map);
         SyncAnchors(map);
+        RollLostShip(map, profile);
         _carriers.Clear();
         foreach (var session in _player.Sessions)
         {
@@ -308,7 +315,7 @@ public sealed partial class WFLatticeSystem : EntitySystem
 
             // Ships only: not a person in open space, nor a planet's ground.
             if (carrier != aboard[0].Mob && HasComp<MapGridComponent>(carrier) && !HasComp<MapComponent>(carrier))
-                _effects.RollTake(carrier, index, depth, profile, seconds);
+                _effects.RollTake(carrier, index, depth, profile, seconds * TakeScale(profile));
 
             foreach (var (session, mob) in aboard)
             {

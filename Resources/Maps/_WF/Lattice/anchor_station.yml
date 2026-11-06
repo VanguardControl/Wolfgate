@@ -1147,7 +1147,7 @@ entities:
       powerLoad: 5
     - type: Battery
       startingCharge: 0
-- proto: GoonIntruderSpireOld
+- proto: WFLatticeSpireTurret
   entities:
   - uid: 234
     components:

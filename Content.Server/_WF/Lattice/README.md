@@ -34,6 +34,17 @@ a map with no Lattice they play off the head alone with the `WFDefault` profile.
 Drift is the greater;
 it shows only while out of anchored space or holding Drift, and in a garbling band it shows an unreadable dial.
 
+**Walls and spires.** A raised anchor shield is a wall like a rooted Monolith's Ward (`WFLatticeSystem.Barrier`, using
+`WFWardSystem.HoldOut`): no ship but the station's docked ones, and nobody loose in space, gets inside it, so it has to be
+brought down first. Inside, the old alien spires are `WFLatticeSpireTurret`s that fire flechette volleys at anyone aboard.
+A core knocked loose (its deck blown out) is a breach like one destroyed or deleted. The shield generators can't be
+unbolted or taken apart, only destroyed.
+
+**Lost ships.** Every ten minutes or so there is a small chance (`lostShipChance`, more per lost anchor) that a wreck in the
+Deep with no player within 600 m fills with Remade, is renamed "Lost ship" and shows its label on radar
+(`WFLatticeSystem.LostShips`). Each lost primary anchor also makes the Deep's take of small animals half again as likely
+(`takeLostScale`).
+
 **Beams.** Clients draw a living violet beam between each pair of neighbouring primary anchors (`WFLatticeBeamOverlay`),
 starting at the shield edge (`beamOffset`). A lost anchor breaks the two beams that ran to it.
 
@@ -114,8 +125,10 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Content.Server/_WF/Lattice/WFDriftEffectsSystem.cs`](WFDriftEffectsSystem.cs)
 - [`Content.Server/_WF/Lattice/WFDriftMindSystem.cs`](WFDriftMindSystem.cs)
 - [`Content.Server/_WF/Lattice/WFLatticeShelterSystem.cs`](WFLatticeShelterSystem.cs)
+- [`Content.Server/_WF/Lattice/WFLatticeSystem.Barrier.cs`](WFLatticeSystem.Barrier.cs)
 - [`Content.Server/_WF/Lattice/WFLatticeSystem.cs`](WFLatticeSystem.cs)
 - [`Content.Server/_WF/Lattice/WFLatticeSystem.Defence.cs`](WFLatticeSystem.Defence.cs)
+- [`Content.Server/_WF/Lattice/WFLatticeSystem.LostShips.cs`](WFLatticeSystem.LostShips.cs)
 - [`Content.Server/_WF/Lattice/WFLatticeSystem.Stations.cs`](WFLatticeSystem.Stations.cs)
 
 ### Shared

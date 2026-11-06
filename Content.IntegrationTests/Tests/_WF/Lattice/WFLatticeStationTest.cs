@@ -150,6 +150,102 @@ public sealed class WFLatticeStationTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>Like a rooted Monolith's, an anchor's raised shield lets no ship and nobody in a suit inside it.</summary>
+    [Test]
+    public async Task AnchorShieldsHoldShipsAndPeopleOut()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var lattice = entities.System<WFLatticeSystem>();
+        var ward = entities.System<Content.Server._WF.Remade.Ward.WFWardSystem>();
+        var maps = entities.System<SharedMapSystem>();
+        var transform = entities.System<SharedTransformSystem>();
+
+        EntityUid station = default;
+        await server.WaitAssertion(() =>
+        {
+            lattice.Setup(map.MapUid);
+            station = entities.EntityQuery<WFLatticeAnchorStationComponent>().First().Owner;
+        });
+
+        await pair.RunSeconds(5f);
+        EntityUid person = default, ship = default, field = default;
+        System.Numerics.Vector2 centre = default, radii = default;
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(lattice.ShieldDown(station), Is.False, "the station's shield never came up.");
+            field = entities.EntityQuery<ShipShieldEmitterComponent>()
+                .First(emitter => entities.HasComponent<WFLatticeAnchorShieldComponent>(emitter.Owner)
+                                  && entities.GetComponent<TransformComponent>(emitter.Owner).GridUid == station).Shield!.Value;
+            Assert.That(ward.TryGetOval(field, out centre, out radii), Is.True);
+
+            // Just inside the edge on either side, off the station's deck.
+            var matrix = transform.GetWorldMatrix(station);
+            var personAt = System.Numerics.Vector2.Transform(centre + new System.Numerics.Vector2(radii.X * 0.9f, 0f), matrix);
+            person = entities.SpawnEntity("MobHuman", new MapCoordinates(personAt, map.MapId));
+
+            var grid = maps.CreateGridEntity(map.MapId);
+            maps.SetTile(grid.Owner, grid.Comp, Vector2i.Zero, new Tile(server.ResolveDependency<ITileDefinitionManager>()["Plating"].TileId));
+            transform.SetWorldPosition(grid.Owner, System.Numerics.Vector2.Transform(centre - new System.Numerics.Vector2(radii.X * 0.9f, 0f), matrix));
+            ship = grid.Owner;
+        });
+
+        await pair.RunTicksSync(10);
+        await server.WaitAssertion(() =>
+        {
+            var toLocal = transform.GetInvWorldMatrix(station);
+            foreach (var (what, uid) in new[] { ("someone in a suit", person), ("a ship", ship) })
+            {
+                var local = System.Numerics.Vector2.Transform(transform.GetWorldPosition(uid), toLocal) - centre;
+                var depth = System.MathF.Sqrt(local.X * local.X / (radii.X * radii.X) + local.Y * local.Y / (radii.Y * radii.Y));
+                Assert.That(depth, Is.GreaterThanOrEqualTo(0.98f), $"{what} stayed inside a raised anchor shield.");
+            }
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>The old alien spires inside an anchor station wake for a boarder and cut them up with flechettes.</summary>
+    [Test]
+    public async Task SpiresShootBoarders()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var lattice = entities.System<WFLatticeSystem>();
+        var transform = entities.System<SharedTransformSystem>();
+
+        EntityUid boarder = default;
+        await server.WaitAssertion(() =>
+        {
+            lattice.Setup(map.MapUid);
+            var station = entities.EntityQuery<WFLatticeAnchorStationComponent>().First();
+            var spires = entities.EntityQuery<MetaDataComponent>()
+                .Where(meta => meta.EntityPrototype?.ID == "WFLatticeSpireTurret"
+                               && entities.GetComponent<TransformComponent>(meta.Owner).GridUid == station.Owner)
+                .Select(meta => meta.Owner)
+                .ToList();
+            Assert.That(spires, Has.Count.EqualTo(4), "the anchor station should have its four spire turrets.");
+
+            var spire = transform.GetWorldPosition(spires[0]);
+            var core = transform.GetWorldPosition(station.Core);
+            var at = spire + System.Numerics.Vector2.Normalize(core - spire) * 2.5f;
+            boarder = entities.SpawnEntity("MobHuman", new MapCoordinates(at, map.MapId));
+        });
+
+        await pair.RunSeconds(8f);
+        await server.WaitAssertion(() =>
+        {
+            var hurt = entities.GetComponent<DamageableComponent>(boarder).TotalDamage;
+            Assert.That(hurt, Is.GreaterThan(FixedPoint2.Zero), "the spires let a boarder walk about unhurt.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>A few stray hits are forgiven; past the limit the station turns its lances on the attacker.</summary>
     [Test]
     public async Task StationsAnswerAttacks()

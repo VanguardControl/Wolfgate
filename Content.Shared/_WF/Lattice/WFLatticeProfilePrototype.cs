@@ -133,6 +133,41 @@ public sealed partial class WFLatticeProfilePrototype : IPrototype
     [DataField]
     public float TakeMaxMass = 30f;
 
+    /// <summary>How much faster animals are taken for each primary anchor lost: 0.5 is half again per anchor.</summary>
+    [DataField]
+    public float TakeLostScale = 0.5f;
+
+    /// <summary>Remade a wreck in the Deep fills with when it becomes a lost ship.</summary>
+    [DataField]
+    public List<EntProtoId> LostShipMobs = new();
+
+    /// <summary>Seconds between chances of a wreck becoming a lost ship.</summary>
+    [DataField]
+    public float LostShipInterval = 600f;
+
+    /// <summary>Chance each interval with the Lattice whole, and what each lost primary anchor adds to it.</summary>
+    [DataField]
+    public float LostShipChance = 0.1f;
+
+    [DataField]
+    public float LostShipChancePerAnchor = 0.12f;
+
+    /// <summary>The innermost band a lost ship can appear in.</summary>
+    [DataField]
+    public int LostShipBand = 4;
+
+    /// <summary>How many Remade a lost ship holds, least and most.</summary>
+    [DataField]
+    public Vector2i LostShipCount = new(2, 4);
+
+    /// <summary>No wreck turns with a player closer than this, in metres.</summary>
+    [DataField]
+    public float LostShipUnwatched = 600f;
+
+    /// <summary>Clear floor tiles a wreck needs to hold its Remade.</summary>
+    [DataField]
+    public int LostShipMinFloor = 12;
+
     /// <summary>What a rock's exotic matter drops as.</summary>
     [DataField]
     public EntProtoId ExoticPrototype = "WFMaterialExoticMatter1";

@@ -37,6 +37,18 @@
   takeBand: 4
   takeChance: 0.04
   takeMaxMass: 30
+  # Each lost primary anchor makes the take half again as likely.
+  takeLostScale: 0.5
+  # Every ten minutes or so, a small chance an unwatched wreck in the Deep fills with Remade and shows as a lost ship;
+  # the chance climbs with each primary anchor lost.
+  lostShipMobs:
+  - WFRemadeHopper
+  - WFRemadeLeaper
+  - WFRemadeSpitter
+  - WFRemadeLurker
+  lostShipInterval: 600
+  lostShipChance: 0.1
+  lostShipChancePerAnchor: 0.12
   bands:
   - name: wf-lattice-band-moored
     message: wf-lattice-enter-moored
