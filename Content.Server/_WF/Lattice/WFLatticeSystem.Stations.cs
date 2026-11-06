@@ -253,7 +253,8 @@ public sealed partial class WFLatticeSystem
     /// <summary>Renames a lost anchor's station and greys its IFF, so radar shows at a glance that it is dead.</summary>
     private void MarkDead(EntityUid core)
     {
-        if (Transform(core).GridUid is not { } grid || TerminatingOrDeleted(grid))
+        // Only an anchor's own station; a core spawned loose on some other grid leaves it alone.
+        if (Transform(core).GridUid is not { } grid || TerminatingOrDeleted(grid) || !HasComp<WFLatticeAnchorStationComponent>(grid))
             return;
 
         _meta.SetEntityName(grid, Loc.GetString("wf-lattice-station-name-dead", ("anchor", Name(core))));
