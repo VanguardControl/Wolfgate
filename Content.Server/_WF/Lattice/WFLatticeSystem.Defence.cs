@@ -39,8 +39,10 @@ public sealed partial class WFLatticeSystem
     /// <summary>Counts a hit on a station from a grid; enough of them, or a heavy one, make that grid hostile.</summary>
     public void Strike(EntityUid station, EntityUid? attacker, float weight)
     {
+        // Another anchor's stray bolts are not an attack: the stations never turn on each other.
         if (attacker is not { } enemy
             || enemy == station
+            || HasComp<WFLatticeAnchorStationComponent>(enemy)
             || !Exists(enemy)
             || !TryComp<WFLatticeAnchorStationComponent>(station, out var comp)
             || !TryGetProfile(station, out var profile))

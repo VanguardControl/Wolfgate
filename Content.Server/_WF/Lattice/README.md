@@ -7,9 +7,11 @@ drone rings, which they line up with: the band edges are the map's drone rings (
 worldgen), or the profile's edges if the rings don't line up. The full design and build order are in `Docs/_WF/Lattice/DESIGN.md`.
 
 **How it works.** `WFLatticeSystem` puts `WFLatticeFieldComponent` on every map with world generation and spawns the
-profile's six primary anchors on a 3 km hexagon if the map has none. Each is a small station built in code
-(`WFLatticeSystem.Stations.cs`, pushed outward clear of other grids): a round deck, the anchor core (a
-glyph obelisk, a different one per anchor: `WFLatticeAnchorCoreAlpha` to `Zeta`, 20,000 damage, and a 500 kW HV power source: it powers only what HV cable joins to it, which the mapped station has and a generated deck does not) and a fortress shield
+profile's six primary anchors on a 3 km hexagon if the map has none. Each is a station loaded from the profile's
+`stationMap` (`WFLatticeSystem.Stations.cs`, pushed outward clear of other grids); only if that load fails is a plain
+round deck built in code instead. Every station has the anchor core (a glyph obelisk, a different one per anchor:
+`WFLatticeAnchorCoreAlpha` to `Zeta`, 20,000 damage, and a 500 kW HV power source: it powers only what HV cable joins
+to it, which the mapped station has and the plain deck does not) and a fortress shield
 (`WFLatticeAnchorShield`, which needs no power). The shield's field is drawn as a rooted Ward in the profile's
 `shieldTint` (purple): the Remade module's membrane and glyphs, tinted through `WFWardFieldComponent.Tint`. Hitting the
 core or its shield calls the drones still loyal to the Lattice (`MonoDroneSpawnerT1`, 300 m out towards the attacker,
