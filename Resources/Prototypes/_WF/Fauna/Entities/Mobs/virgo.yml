@@ -1147,11 +1147,21 @@
       - !type:NoneSelector
 
 # Mimics sit still as an ordinary object, bite whoever comes right next to them and hide again once they lose prey.
+# They have no body, so they take FaunaMobCore's parts by hand with a fixed price: a mob price needs a body.
 - type: entity
   abstract: true
-  parent: [ BaseSimpleMob, MobCombat, FaunaMobCore ]
+  parent: [ BaseSimpleMob, MobCombat, MobBloodstream, MobFlammable ]
   id: VirgoMobMimicBase
   components:
+  - type: WolfmedDamageCause
+    cause: Bite
+  - type: SlowOnDamage
+    speedModifierThresholds:
+      60: 0.7
+      80: 0.5
+  - type: StaticPrice
+    price: 1000
+  - type: Perishable
   - type: MovementSpeedModifier
     baseWalkSpeed: 2.5
     baseSprintSpeed: 2.5

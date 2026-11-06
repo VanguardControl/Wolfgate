@@ -142,7 +142,8 @@ public sealed class OutbreakTest
         await server.WaitAssertion(() =>
         {
             var subject = entMan.GetComponent<WFDreadSubjectComponent>(crewman);
-            Assert.That(entMan.System<Content.Shared.Mobs.Systems.MobStateSystem>().IsAlive(crewman), Is.True, "the crewman died, so the sweep skipped them.");
+            Assert.That(entMan.System<Content.Shared.Mobs.Systems.MobStateSystem>().IsAlive(crewman), Is.True,
+                "the crewman died, so the sweep skipped them: " + string.Join(", ", entMan.GetComponent<Content.Shared.Damage.DamageableComponent>(crewman).Damage.DamageDict.Where(kv => kv.Value > 0)));
             var xform = entMan.GetComponent<TransformComponent>(crewman);
             Assert.That(subject.Level, Is.Zero, $"the splinter's dread reached another ship: crewman on {xform.GridUid} at "
                 + $"{entMan.System<SharedTransformSystem>().GetWorldPosition(crewman)}, splinter on {entMan.GetComponent<TransformComponent>(splinter).GridUid}, ship {ship.Owner}.");
