@@ -72,7 +72,6 @@ in the upstream `_Mono` lore, factions and star system pages.
 
 - [`Resources/Audio/_WF/LoreBook/attributions.yml`](../../../Resources/Audio/_WF/LoreBook/attributions.yml)
 - [`Resources/Audio/_WF/LoreBook/page_flip1.ogg`](../../../Resources/Audio/_WF/LoreBook/page_flip1.ogg)
-- [`Resources/Audio/_WF/LoreBook/page_flip2.ogg`](../../../Resources/Audio/_WF/LoreBook/page_flip2.ogg)
 - [`Resources/Audio/_WF/LoreBook/whisper1.ogg`](../../../Resources/Audio/_WF/LoreBook/whisper1.ogg)
 - [`Resources/Audio/_WF/LoreBook/whisper2.ogg`](../../../Resources/Audio/_WF/LoreBook/whisper2.ogg)
 - [`Resources/Audio/_WF/LoreBook/whisper3.ogg`](../../../Resources/Audio/_WF/LoreBook/whisper3.ogg)
