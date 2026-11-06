@@ -156,6 +156,8 @@ public sealed partial class WFLoreBookWindow : BaseWindow, ILinkClickHandler
                 Logger.GetSawmill("lorebook").Error($"Failed to parse lore page {page.Entry.ID}.");
         }
 
+        GatherGlyphs();
+
         PrevSlot.RemoveAllChildren();
         NextSlot.RemoveAllChildren();
         if (index > 0)

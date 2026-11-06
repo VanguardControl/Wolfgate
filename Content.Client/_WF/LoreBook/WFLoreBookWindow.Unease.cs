@@ -1,5 +1,9 @@
+using System.Linq;
 using System.Text;
 using Content.Shared.Guidebook;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Utility;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Player;
@@ -11,8 +15,10 @@ namespace Content.Client._WF.LoreBook;
 /// Some pages should not be read too closely. Each page's <see cref="GuideEntry.Unease"/> builds up while this book is
 /// open: past a little, a few letters on each page come out wrong as it is turned to, and now and then a word is
 /// written in glyphs; further on the book adds a quiet line of its own between paragraphs, and whispers play under it;
-/// deep in, its title and page numbers slip too. A page stays as it was drawn until it is turned again. Closing the
-/// book and opening it again puts everything back.
+/// deep in, its title and page numbers slip too. A page's letters stay as they were drawn until it is turned again, but
+/// its glyph words, in red, never sit still: their letters trade places, faster the more unsettled the book is, and
+/// since a word only reorders its own letters it keeps its width and the lines don't move. Closing the book and
+/// opening it again puts everything back.
 /// </summary>
 public sealed partial class WFLoreBookWindow
 {
@@ -38,6 +44,17 @@ public sealed partial class WFLoreBookWindow
 
     /// <summary>The glyphs fill their whole height, so this size stands them as tall as the page's capitals.</summary>
     private const int GlyphSize = 10;
+
+    private const string GlyphColor = "#c43434";
+
+    /// <summary>Seconds between glyph shifts at the first glyphs and at full unease.</summary>
+    private const float ShiftSlow = 0.6f;
+    private const float ShiftFast = 0.07f;
+
+    /// <summary>The page's paragraphs that hold glyph words: the label, its message, and which nodes are glyph text.</summary>
+    private readonly List<(RichTextLabel Label, MarkupNode[] Nodes, int[] Glyphs)> _glyphs = new();
+
+    private float _nextShift;
 
     private readonly Random _slip = new();
 
@@ -75,7 +92,7 @@ public sealed partial class WFLoreBookWindow
             return markup;
 
         var slip = 0.01f + 0.18f * MathF.Pow(_unease, 1.5f);
-        var glyph = _unease >= GlyphUnease ? 0.01f + 0.05f * _unease : 0f;
+        var glyph = _unease >= GlyphUnease ? 0.01f + 0.05f * _unease + 0.1f * Math.Max(0f, (_unease - FrameUnease) / (1f - FrameUnease)) : 0f;
         var text = Distort(_slip, markup, slip, 0f, glyph);
         return _unease >= WhisperUnease ? Whisper(text) : text;
     }
@@ -102,7 +119,7 @@ public sealed partial class WFLoreBookWindow
             word.Clear();
             if (!heading && text.Length > 2 && rng.NextDouble() < glyph)
             {
-                builder.Append($"[font=\"{GlyphFont}\" size={GlyphSize}]{text}[/font]");
+                builder.Append($"[color={GlyphColor}][font=\"{GlyphFont}\" size={GlyphSize}]{text}[/font][/color]");
                 return;
             }
 
@@ -210,6 +227,85 @@ public sealed partial class WFLoreBookWindow
     {
         base.FrameUpdate(args);
         UpdateWhispers(args.DeltaSeconds);
+        UpdateGlyphs(args.DeltaSeconds);
+    }
+
+    /// <summary>Finds the paragraphs on the page just drawn that hold glyph words.</summary>
+    private void GatherGlyphs()
+    {
+        _glyphs.Clear();
+        Gather(PageBody);
+    }
+
+    private void Gather(Control control)
+    {
+        foreach (var child in control.Children)
+        {
+            if (child is RichTextLabel label && label.GetFormattedMessage() is { } message)
+            {
+                var nodes = message.Nodes.ToArray();
+                var glyphs = new List<int>();
+                for (var i = 0; i < nodes.Length - 1; i++)
+                {
+                    if (nodes[i] is { Name: "font", Closing: false } font
+                        && font.Value.StringValue == GlyphFont
+                        && nodes[i + 1].IsPlainText)
+                    {
+                        glyphs.Add(i + 1);
+                    }
+                }
+
+                if (glyphs.Count > 0)
+                    _glyphs.Add((label, nodes, glyphs.ToArray()));
+            }
+
+            Gather(child);
+        }
+    }
+
+    /// <summary>Shuffles the letters of every glyph word on the page now and then, faster the more unsettled the book.</summary>
+    private void UpdateGlyphs(float delta)
+    {
+        if (_glyphs.Count == 0)
+            return;
+
+        _nextShift -= delta;
+        if (_nextShift > 0f)
+            return;
+
+        var share = Math.Clamp((_unease - GlyphUnease) / (1f - GlyphUnease), 0f, 1f);
+        _nextShift = ShiftSlow + (ShiftFast - ShiftSlow) * share;
+        foreach (var (label, nodes, glyphs) in _glyphs)
+        {
+            var message = new FormattedMessage(nodes.Length);
+            var next = 0;
+            for (var i = 0; i < nodes.Length; i++)
+            {
+                if (next < glyphs.Length && glyphs[next] == i)
+                {
+                    next++;
+                    message.PushTag(new MarkupNode(Shuffle(nodes[i].Value.StringValue ?? string.Empty)));
+                    continue;
+                }
+
+                message.PushTag(nodes[i]);
+            }
+
+            label.SetMessage(message, tagsAllowed: null);
+        }
+    }
+
+    /// <summary>The same letters in another order.</summary>
+    private string Shuffle(string word)
+    {
+        var letters = word.ToCharArray();
+        for (var i = letters.Length - 1; i > 0; i--)
+        {
+            var j = _slip.Next(i + 1);
+            (letters[i], letters[j]) = (letters[j], letters[i]);
+        }
+
+        return new string(letters);
     }
 
     /// <summary>Plays a whisper now and then, more often and a little louder the more unsettled the book is.</summary>
