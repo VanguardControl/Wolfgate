@@ -296,6 +296,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - only a gun the user carries is refused, not an innate ability or a mounted weapon
   - a switched-off or folded shield blocks nothing
   - the attempt repeats every tick while the trigger is held
+- [`Content.Shared/CCVar/CCVars.Game.cs`](../../Content.Shared/CCVar/CCVars.Game.cs): off, froze round end for 45 s at 90 players
 - [`Content.Shared/Clothing/EntitySystems/HideLayerClothingSystem.cs`](../../Content.Shared/Clothing/EntitySystems/HideLayerClothingSystem.cs)
   - a modsuit seal adds and removes this on a worn helmet, which raises no equip events
   - layers follow the component while the clothing is worn
