@@ -6,6 +6,8 @@ uniform highp float strength;
 uniform highp float beat;
 // Width over height of the area drawn.
 uniform highp float aspect;
+// Reduced motion: the rim holds still.
+uniform bool still;
 
 highp float hash1(highp vec2 p) {
     p = fract(p * vec2(123.34, 456.21));
@@ -27,12 +29,14 @@ void fragment() {
     highp float a = atan(p.y, p.x);
 
     // A ragged edge that shifts, so the tunnel's rim crawls.
-    highp float rag = vnoise(vec2(a * 4.0, TIME * 0.8)) * 0.12 + vnoise(vec2(a * 11.0, TIME * 1.7)) * 0.05;
+    highp float time = still ? 0.0 : TIME;
+    highp float rag = vnoise(vec2(a * 4.0, time * 0.8)) * 0.12 + vnoise(vec2(a * 11.0, time * 1.7)) * 0.05;
     highp float clear = mix(1.25, 0.42, strength) - 0.1 * beat * strength - rag * strength;
     highp float dark = smoothstep(clear, clear + 0.35, d);
 
     // A red bruise just inside the dark, flaring on the beat.
-    highp float rim = exp(-pow((d - clear - 0.04) / 0.09, 2.0)) * strength * (0.35 + 0.65 * beat);
+    highp float edge = (d - clear - 0.04) / 0.09;
+    highp float rim = exp(-edge * edge) * strength * (0.35 + 0.65 * beat);
     highp vec3 colour = mix(vec3(0.5, 0.02, 0.04) * rim / max(rim + dark, 0.001), vec3(0.02, 0.0, 0.0), dark);
     highp float alpha = clamp(max(dark * 0.97, rim * 0.55) * strength, 0.0, 0.97);
 

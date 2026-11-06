@@ -84,6 +84,7 @@ public sealed class WFDriftPulseOverlay : Overlay
         _shader.SetParameter("strength", envelope);
         _shader.SetParameter("beat", Math.Clamp(beat, 0f, 1.5f));
         _shader.SetParameter("aspect", size.X / Math.Max(size.Y, 1f));
+        _shader.SetParameter("still", Still);
         handle.UseShader(_shader);
         handle.DrawRect(box, Color.White);
         handle.UseShader(null);
@@ -102,11 +103,12 @@ public sealed class WFDriftPulseOverlay : Overlay
         {
             var h = Hash(_seed, i);
             var angle = MathF.Tau * (i + h * 0.6f) / GlyphCount + crawl * (h > 0.5f ? 1f : -1f);
-            var wobble = 1f + 0.07f * MathF.Sin(t * 3f + h * 20f) + 0.05f * h;
+            var motion = Still ? 0f : t;
+            var wobble = 1f + 0.07f * MathF.Sin(motion * 3f + h * 20f) + 0.05f * h;
             var at = centre + new Vector2(MathF.Cos(angle) * radius.X, MathF.Sin(angle) * radius.Y) * wobble;
 
             // Each word flickers in and out on its own, brighter on the beat.
-            var flicker = 0.5f + 0.5f * MathF.Sin(t * (2f + h * 5f) + h * 40f);
+            var flicker = 0.5f + 0.5f * MathF.Sin(motion * (2f + h * 5f) + h * 40f);
             var alpha = envelope * Math.Clamp(0.35f + 0.5f * flicker + 0.4f * beat, 0f, 1f);
             if (alpha <= 0.02f)
                 continue;
@@ -121,7 +123,8 @@ public sealed class WFDriftPulseOverlay : Overlay
             var text = _word.ToString();
             var scale = 1f + 0.35f * beat;
             var bounds = handle.GetDimensions(_font, text, scale);
-            handle.DrawString(_font, at - bounds / 2f, text, scale, Ink.WithAlpha(alpha));
+            var ink = Ink;
+            handle.DrawString(_font, at - bounds / 2f, text, scale, ink.WithAlpha(alpha));
         }
     }
 

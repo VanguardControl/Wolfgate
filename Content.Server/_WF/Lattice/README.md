@@ -45,7 +45,7 @@ Deep with no player within 600 m fills with Remade, is renamed "Lost ship" and s
 (`WFLatticeSystem.LostShips`). Each lost primary anchor also makes the Coda's take of small animals half again as likely
 (`takeLostScale`).
 
-**Beams.** Clients draw a living violet beam between each pair of neighbouring primary anchors (`WFLatticeBeamOverlay`),
+**Beams.** Clients draw a flowing violet beam between each pair of neighbouring primary anchors (`WFLatticeBeamOverlay`, shader `WFLatticeBeam`: braided strands, streaming filaments and comets),
 starting at the shield edge (`beamOffset`). A lost anchor breaks the two beams that ran to it.
 
 **FTL.** Bands with `ftl: false` (Feedback and the Coda) kill FTL drives (`WFLatticeSystem.Ftl.cs`): a ship there
@@ -238,6 +238,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Resources/Textures/_WF/Lattice/choir_icon.rsi/`](../../../Resources/Textures/_WF/Lattice/choir_icon.rsi/)
 - [`Resources/Textures/_WF/Lattice/drift_alert.rsi/`](../../../Resources/Textures/_WF/Lattice/drift_alert.rsi/)
 - [`Resources/Textures/_WF/Lattice/Shaders/drift_pulse.swsl`](../../../Resources/Textures/_WF/Lattice/Shaders/drift_pulse.swsl)
+- [`Resources/Textures/_WF/Lattice/Shaders/lattice_beam.swsl`](../../../Resources/Textures/_WF/Lattice/Shaders/lattice_beam.swsl)
 - [`Resources/Textures/_WF/Lattice/Shaders/lattice_sky.swsl`](../../../Resources/Textures/_WF/Lattice/Shaders/lattice_sky.swsl)
 
 ### Audio

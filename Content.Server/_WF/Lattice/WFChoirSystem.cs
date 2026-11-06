@@ -1,4 +1,5 @@
 using Content.Server._WF.Defcon;
+using Content.Server._WF.Remade.Conversion;
 using Content.Server._WF.Wolfmed.Life;
 using Content.Server.Administration.Logs;
 using Content.Server.Chat.Managers;
@@ -44,6 +45,7 @@ public sealed partial class WFChoirSystem : EntitySystem
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedRoleSystem _roles = default!;
     [Dependency] private WFDeepRisingSystem _rising = default!;
+    [Dependency] private WFRemadeConversionSystem _conversion = default!;
     [Dependency] private IChatManager _chat = default!;
     [Dependency] private IConfigurationManager _config = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -166,10 +168,15 @@ public sealed partial class WFChoirSystem : EntitySystem
             if (!_mobState.IsDead(uid))
             {
                 member.DiedAt = null;
+                member.Turning = false;
                 continue;
             }
 
             member.DiedAt ??= now;
+            // A conversion that was stopped can start again.
+            if (member.Turning && !HasComp<WFRemadeConvertingComponent>(uid))
+                member.Turning = false;
+
             if (now - member.DiedAt >= TurnAfter && !member.Turning)
                 member.Turning = _rising.Raise(uid, false);
         }
@@ -219,8 +226,18 @@ public sealed partial class WFChoirSystem : EntitySystem
                 Loc.GetString("wf-choir-confirm-final-accept"),
                 Loc.GetString("wf-choir-confirm-deny")), second =>
             {
-                if (second && HasComp<WFChoirOfferComponent>(mob) && !_mobState.IsDead(mob))
-                    Answer(mob);
+                if (!second || !HasComp<WFChoirOfferComponent>(mob) || _mobState.IsDead(mob))
+                    return;
+
+                // Others may have joined while the dialogs were open.
+                if (Members() >= _config.GetCVar(WFChoirCVars.MaxMembers))
+                {
+                    _popup.PopupEntity(Loc.GetString("wf-choir-full"), mob, mob, PopupType.Medium);
+                    RemComp<WFChoirOfferComponent>(mob);
+                    return;
+                }
+
+                Answer(mob);
             }), answering);
         }), answering);
     }
@@ -228,7 +245,13 @@ public sealed partial class WFChoirSystem : EntitySystem
     /// <summary>Rolls the answer: half join the Choir, half die where they stand and rise as Remade.</summary>
     public void Answer(EntityUid mob)
     {
-        if (!_random.Prob(AbominationChance))
+        Answer(mob, _random.Prob(AbominationChance));
+    }
+
+    /// <summary>Answers with a known outcome. A body that can't turn Remade, such as a cyborg's, always joins.</summary>
+    public void Answer(EntityUid mob, bool abomination)
+    {
+        if (!abomination || !_conversion.IsTurnable(mob))
         {
             Join(mob);
             return;

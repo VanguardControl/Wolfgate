@@ -215,3 +215,5 @@ wf-coda-rot = The hull groans. Something out here is eating the ship.
 wf-coda-fail-thrusters = The thrusters cough and die.
 wf-coda-fail-gyros = The gyroscopes spin down. The ship won't turn.
 wf-coda-fail-power = The lights go out. The breakers have tripped.
+
+surgery-popup-step-WFLatticeStepExciseSong = {$user} is cutting the song out of {$target}'s brain.

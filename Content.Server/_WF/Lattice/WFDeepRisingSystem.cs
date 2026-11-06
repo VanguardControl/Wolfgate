@@ -92,9 +92,10 @@ public sealed class WFDeepRisingSystem : EntitySystem
                 _lying.Remove(uid);
         }
 
+        // A conversion that stopped without rising (the body revived or moved off) drops its claim.
         foreach (var uid in new List<EntityUid>(_turning.Keys))
         {
-            if (TerminatingOrDeleted(uid))
+            if (TerminatingOrDeleted(uid) || !HasComp<WFRemadeConvertingComponent>(uid))
                 _turning.Remove(uid);
         }
     }

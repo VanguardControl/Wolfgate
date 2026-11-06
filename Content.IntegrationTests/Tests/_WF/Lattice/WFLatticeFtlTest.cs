@@ -36,7 +36,7 @@ public sealed class WFLatticeFtlTest
 
             transform.SetWorldPosition(map.Grid, new Vector2(35000f, 0f));
             Assert.That(shuttles.CanFTL(map.Grid, out var reason), Is.False, "a ship jumped out of Untethered space.");
-            Assert.That(reason, Is.Not.Empty);
+            Assert.That(reason, Is.EqualTo(Robust.Shared.Localization.Loc.GetString("wf-lattice-ftl-dead")), "the ship was refused for something other than the Lattice.");
 
             var drift = entities.EnsureComponent<WFDriftComponent>(map.Grid);
             drift.NoFtl = true;

@@ -35,6 +35,8 @@ public partial class ShuttleNavControl
             return;
 
         var time = (float) IoCManager.Resolve<IGameTiming>().RealTime.TotalSeconds;
+        var dark = WfDeadZoneColor;
+        var noise = WfDeadZoneStatic;
         var reach = PixelSize.Length;
         var centre = MidPointVector;
         for (var zone = 0; zone < 2; zone++)
@@ -49,8 +51,8 @@ public partial class ShuttleNavControl
             var seed = (uint) (cycle * 7919 + zone * 104729) * 2654435761u;
             var start = (seed % 3600) / 10f * MathF.PI / 180f + time * 0.05f;
             var width = (35f + (seed >> 12) % 45) * MathF.PI / 180f;
-            const int steps = 16;
-            Span<Vector2> fan = stackalloc Vector2[steps + 2];
+            const int steps = WfDeadZoneSteps;
+            var fan = _wfDeadZoneFan;
             fan[0] = centre;
             for (var i = 0; i <= steps; i++)
             {
@@ -58,7 +60,7 @@ public partial class ShuttleNavControl
                 fan[i + 1] = centre + new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * reach;
             }
 
-            handle.DrawPrimitives(DrawPrimitiveTopology.TriangleFan, fan, WfDeadZoneColor.WithAlpha(WfDeadZoneColor.A * fade));
+            handle.DrawPrimitives(DrawPrimitiveTopology.TriangleFan, fan, dark.WithAlpha(dark.A * fade));
 
             // A few lines of static crawling through it.
             for (var line = 0; line < 6; line++)
@@ -66,7 +68,7 @@ public partial class ShuttleNavControl
                 var angle = start + width * (((seed >> (line * 3)) % 100) / 100f + MathF.Sin(time * 3f + line) * 0.02f);
                 var from = 20f + ((seed >> line) % 60) * UIScale;
                 var dir = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
-                handle.DrawLine(centre + dir * from, centre + dir * (from + 40f * UIScale), WfDeadZoneStatic.WithAlpha(WfDeadZoneStatic.A * fade));
+                handle.DrawLine(centre + dir * from, centre + dir * (from + 40f * UIScale), noise.WithAlpha(noise.A * fade));
             }
         }
     }

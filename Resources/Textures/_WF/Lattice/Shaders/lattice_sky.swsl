@@ -108,7 +108,11 @@ void fragment() {
     highp float swimPx = slack * 2.0 + adrift * 5.0 + unt * 10.0 + deep * 14.0 + deep * beat * 6.0;
     highp vec2 uv = screenUv + swim * swimPx * SCREEN_PIXEL_SIZE;
     highp float split = (unt * 1.5 + deep * 2.5) * SCREEN_PIXEL_SIZE.x;
-    highp vec3 col = vec3(sampleSky(uv + vec2(split, 0.0)).r, sampleSky(uv).g, sampleSky(uv - vec2(split, 0.0)).b);
+    highp vec3 col = sampleSky(uv);
+    if (split > 0.0) {
+        col.r = sampleSky(uv + vec2(split, 0.0)).r;
+        col.b = sampleSky(uv - vec2(split, 0.0)).b;
+    }
     highp float lum = dot(col, vec3(0.299, 0.587, 0.114));
 
     // Slack: the colour drains and cools.
@@ -117,30 +121,35 @@ void fragment() {
     // Adrift: a sick teal cast and slow drifting murk.
     lum = dot(col, vec3(0.299, 0.587, 0.114));
     col = mix(col, vec3(lum) * vec3(0.55, 0.92, 0.8), adrift * 0.45);
-    highp float murk = fbm(sky * 0.012 + vec2(TIME * 0.008, -TIME * 0.005));
-    col += vec3(0.03, 0.09, 0.08) * smoothstep(0.35, 0.8, murk) * adrift * (1.0 - deep);
+    if (adrift > 0.0 && deep < 1.0) {
+        highp float murk = fbm(sky * 0.012 + vec2(TIME * 0.008, -TIME * 0.005));
+        col += vec3(0.03, 0.09, 0.08) * smoothstep(0.35, 0.8, murk) * adrift * (1.0 - deep);
+    }
 
     // Untethered: rust and darkness.
     lum = dot(col, vec3(0.299, 0.587, 0.114));
     col = mix(col, vec3(lum) * vec3(1.05, 0.38, 0.32), unt * 0.55);
     col *= 1.0 - unt * 0.25;
 
-    // The Deep: the sky goes out in drifting patches, leaving the brightest stars as dim, wrong-coloured pinpricks.
-    lum = dot(col, vec3(0.299, 0.587, 0.114));
-    highp float keep = smoothstep(0.35, 0.8, lum);
-    highp float holes = smoothstep(0.4, 0.62, fbm(sky * 0.018 + vec2(TIME * 0.015, TIME * 0.011)));
-    highp vec3 pinprick = vec3(lum) * vec3(0.75, 0.55, 0.9) * keep * (1.0 - holes * (0.6 + 0.4 * abyss));
-    col = mix(col, pinprick * 0.6, deep * 0.9);
+    // Only the Coda pays for its veins and watchers.
+    if (deep > 0.0) {
+        // The Deep: the sky goes out in drifting patches, leaving the brightest stars as dim, wrong-coloured pinpricks.
+        lum = dot(col, vec3(0.299, 0.587, 0.114));
+        highp float keep = smoothstep(0.35, 0.8, lum);
+        highp float holes = smoothstep(0.4, 0.62, fbm(sky * 0.018 + vec2(TIME * 0.015, TIME * 0.011)));
+        highp vec3 pinprick = vec3(lum) * vec3(0.75, 0.55, 0.9) * keep * (1.0 - holes * (0.6 + 0.4 * abyss));
+        col = mix(col, pinprick * 0.6, deep * 0.9);
 
-    // Veins crawl under the dark, pulsing with the beat.
-    highp vec2 veinP = sky * 0.035 + swim * 1.5 + vec2(0.0, TIME * 0.01);
-    highp float ridge = 1.0 - abs(fbm(veinP) * 2.0 - 1.0);
-    highp float vein = pow(ridge, 10.0) * (0.55 + 0.45 * fbm(sky * 0.008 - TIME * 0.02));
-    col += vec3(0.42, 0.02, 0.16) * vein * deep * (0.5 + 0.7 * beat + 0.6 * abyss);
+        // Veins crawl under the dark, pulsing with the beat.
+        highp vec2 veinP = sky * 0.035 + swim * 1.5 + vec2(0.0, TIME * 0.01);
+        highp float ridge = 1.0 - abs(fbm(veinP) * 2.0 - 1.0);
+        highp float vein = pow(ridge, 10.0) * (0.55 + 0.45 * fbm(sky * 0.008 - TIME * 0.02));
+        col += vec3(0.42, 0.02, 0.16) * vein * deep * (0.5 + 0.7 * beat + 0.6 * abyss);
 
-    // Something looks back.
-    highp vec4 eye = watcher(sky, viewer, 0.06 + 0.16 * abyss);
-    col = mix(col, eye.rgb, eye.a * deep);
+        // Something looks back.
+        highp vec4 eye = watcher(sky, viewer, 0.06 + 0.16 * abyss);
+        col = mix(col, eye.rgb, eye.a * deep);
+    }
 
     // The edges close in, harder on the beat.
     highp float v = length((screenUv - 0.5) * vec2(1.0, 0.85)) * 1.45;

@@ -41,14 +41,14 @@
     requirement: SurgeryOpenIncision
     steps:
     - SurgeryStepSawBones
-    - WFSurgeryStepExciseSong
+    - WFLatticeStepExciseSong
   - type: SurgeryPartCondition
     part: Head
   - type: WFSongExcisionCondition
 
 - type: entity
   parent: SurgeryStepBase
-  id: WFSurgeryStepExciseSong
+  id: WFLatticeStepExciseSong
   name: Excise the song
   categories: [ HideSpawnMenu ]
   components:

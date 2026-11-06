@@ -32,7 +32,7 @@ public sealed class WFSongExcisionTest
             var shards = entities.SpawnEntity("WFMaterialExoticMatter", map.GridCoords);
             var before = entities.GetComponent<StackComponent>(shards).Count;
 
-            var step = entities.SpawnEntity("WFSurgeryStepExciseSong", map.GridCoords);
+            var step = entities.SpawnEntity("WFLatticeStepExciseSong", map.GridCoords);
             entities.GetComponent<WFSongExcisionEffectComponent>(step).FailChance = 0f;
             var ev = new SurgeryStepEvent(surgeon, patient, head, new List<EntityUid> { shards }, step);
             entities.EventBus.RaiseLocalEvent(step, ref ev);
