@@ -9,7 +9,8 @@ drops that trolley and every car behind it. To strap on a crate, pull it next to
 "Take crate off" sets it down again. All of these need the tug stopped. A strapped crate stays visible on the bed but
 can't be opened until it is taken off. Admins spawn both by ID.
 
-`WFTugSystem` (server) does the seat, the coupling and the cargo. The tug lays a trail of its positions in its grid's
+`WFTugSeatSystem` (shared) does the seat: the rider becomes the operator, and the tug never shoves its own rider off.
+`WFTugSystem` (server) does the coupling and the cargo. The tug lays a trail of its positions in its grid's
 frame; each tick every towed trolley is placed on that trail at its distance behind the tug, facing along it, so the
 cars go where the tug went. Backing up runs the trail backwards, and past the end of the trail the cars run straight
 on. Towed trolleys are kinematic and don't collide; each one costs the tug some top speed and acceleration. A tug that

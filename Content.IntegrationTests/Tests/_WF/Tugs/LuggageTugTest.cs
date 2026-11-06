@@ -13,6 +13,8 @@ using Content.Shared.Movement.Systems;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Maths;
+using Robust.Shared.Physics;
+using Robust.Shared.Physics.Components;
 
 namespace Content.IntegrationTests.Tests._WF.Tugs;
 
@@ -153,6 +155,16 @@ public sealed class LuggageTugTest
             {
                 Assert.That(Tug(pair, rig).Comp.Trolleys, Is.EqualTo(new[] { rig.Trolleys[0], rig.Trolleys[1] }));
                 Assert.That(Trolley(pair, rig.Trolleys[4]).Comp.Tug, Is.Null);
+
+                var released = entMan.GetComponent<PhysicsComponent>(rig.Trolleys[2]);
+                Assert.That(released.BodyType, Is.EqualTo(BodyType.Dynamic), "A released trolley stayed kinematic.");
+                Assert.That(released.CanCollide, Is.True, "A released trolley stayed non-colliding.");
+                Assert.That(Trolley(pair, rig.Trolleys[2]).Comp.Towed, Is.False);
+
+                var towed = entMan.GetComponent<PhysicsComponent>(rig.Trolleys[1]);
+                Assert.That(towed.BodyType, Is.EqualTo(BodyType.Kinematic), "A towed trolley is not kinematic.");
+                Assert.That(towed.CanCollide, Is.False, "A towed trolley still collides.");
+                Assert.That(Trolley(pair, rig.Trolleys[1]).Comp.Towed, Is.True);
             }
         });
 

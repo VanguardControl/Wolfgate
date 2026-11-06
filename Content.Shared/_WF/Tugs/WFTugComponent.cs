@@ -73,6 +73,10 @@ public sealed partial class WFTugTrolleyComponent : Component
     [ViewVariables]
     public EntityUid? Tug;
 
+    /// <summary>Set while towed and saved with the trolley, so one saved mid-tow gets its physics back on load.</summary>
+    [DataField]
+    public bool Towed;
+
     [ViewVariables]
     public ContainerSlot? Cargo;
 }

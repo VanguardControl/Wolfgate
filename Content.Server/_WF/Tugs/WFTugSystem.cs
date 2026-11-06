@@ -43,6 +43,7 @@ public sealed partial class WFTugSystem : EntitySystem
         SubscribeLocalEvent<WFTugComponent, ExaminedEvent>(OnTugExamined);
 
         SubscribeLocalEvent<WFTugTrolleyComponent, ComponentInit>(OnTrolleyInit);
+        SubscribeLocalEvent<WFTugTrolleyComponent, ComponentStartup>(OnTrolleyStartup);
         SubscribeLocalEvent<WFTugTrolleyComponent, ComponentShutdown>(OnTrolleyShutdown);
         SubscribeLocalEvent<WFTugTrolleyComponent, GetVerbsEvent<AlternativeVerb>>(OnTrolleyGetVerbs);
         SubscribeLocalEvent<WFTugTrolleyComponent, BeingPulledAttemptEvent>(OnTrolleyPullAttempt);
@@ -71,6 +72,15 @@ public sealed partial class WFTugSystem : EntitySystem
         args.PushMarkup(Loc.GetString("wf-tug-examine-trolleys",
             ("count", ent.Comp.Trolleys.Count),
             ("max", ent.Comp.MaxTrolleys)));
+    }
+
+    /// <summary>A trolley saved mid-tow loads without its tug; it is put back to free physics.</summary>
+    private void OnTrolleyStartup(Entity<WFTugTrolleyComponent> ent, ref ComponentStartup args)
+    {
+        if (!ent.Comp.Towed || ent.Comp.Tug != null)
+            return;
+
+        SetTowedPhysics(ent, false);
     }
 
     private void OnTrolleyShutdown(Entity<WFTugTrolleyComponent> ent, ref ComponentShutdown args)
@@ -197,7 +207,7 @@ public sealed partial class WFTugSystem : EntitySystem
 
             trolley.Tug = null;
             if (!TerminatingOrDeleted(car))
-                SetTowedPhysics(car, false);
+                SetTowedPhysics((car, trolley), false);
         }
 
         if (tug.Comp.Trolleys.Count == 0)
@@ -211,8 +221,9 @@ public sealed partial class WFTugSystem : EntitySystem
     }
 
     /// <summary>A towed trolley is placed by the train, so it neither collides nor drifts.</summary>
-    private void SetTowedPhysics(EntityUid trolley, bool towed)
+    private void SetTowedPhysics(Entity<WFTugTrolleyComponent> trolley, bool towed)
     {
+        trolley.Comp.Towed = towed;
         if (!TryComp(trolley, out PhysicsComponent? body))
             return;
 
