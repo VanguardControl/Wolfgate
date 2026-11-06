@@ -248,7 +248,6 @@ public sealed partial class WFLatticeSystem
     private void OnShieldMapInit(Entity<WFLatticeAnchorShieldComponent> ent, ref MapInitEvent args)
     {
         RemComp<AnchorableComponent>(ent);
-        RemComp<ConstructionComponent>(ent);
         RemComp<MachineComponent>(ent);
     }
 

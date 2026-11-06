@@ -163,7 +163,18 @@
     radius: 2
     energy: 1.5
     color: "#B040E0"
+  # A one-node graph in place of the machine's: nothing takes it apart, and the component stays for the tests.
+  - type: Construction
+    graph: WFLatticeAnchorShield
+    node: shield
+    deconstructionTarget: null
   - type: WFLatticeAnchorShield
+
+- type: constructionGraph
+  id: WFLatticeAnchorShield
+  start: shield
+  graph:
+  - node: shield
 
 # A relay anchor players build. Powered, anchored and parked for a minute, it holds a little of the field.
 - type: entity
