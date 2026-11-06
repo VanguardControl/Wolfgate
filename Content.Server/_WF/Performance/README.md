@@ -104,6 +104,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Shared/_WF/Performance/WFCollectionExtensions.cs`](../../../Content.Shared/_WF/Performance/WFCollectionExtensions.cs)
 - [`Content.Shared/_WF/Performance/WFDeletedRefStateSystem.cs`](../../../Content.Shared/_WF/Performance/WFDeletedRefStateSystem.cs)
 - [`Content.Shared/_WF/Performance/WFPerformanceCVars.cs`](../../../Content.Shared/_WF/Performance/WFPerformanceCVars.cs)
+- [`Content.Shared/_WF/Performance/WFTickBuckets.cs`](../../../Content.Shared/_WF/Performance/WFTickBuckets.cs)
 - [`Content.Shared/_WF/Performance/WFTickSpread.cs`](../../../Content.Shared/_WF/Performance/WFTickSpread.cs)
 
 ### Client
@@ -135,6 +136,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 
 ### Unit tests
 
+- [`Content.Tests/_WF/Performance/WFTickBucketsTest.cs`](../../../Content.Tests/_WF/Performance/WFTickBucketsTest.cs)
 - [`Content.Tests/_WF/Performance/WFTickSpreadTest.cs`](../../../Content.Tests/_WF/Performance/WFTickSpreadTest.cs)
 
 ### Localization

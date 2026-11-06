@@ -1,9 +1,13 @@
 - type: guideEntry
   id: BasicLore
-  name: Lore
+  # WOLFGATE(LoreBook) START: the first chapter of the lore book; was name: Lore
+  name: wf-lore-entry-primer
+  lore: true
+  # WOLFGATE END
   text: "/ServerInfo/_Mono/Guidebook/Lore/Primer.xml"
   children:
   - Timeline
+  - WFLorePresentDay # WOLFGATE(LoreBook)
 
 - type: guideEntry
   id: Timeline
