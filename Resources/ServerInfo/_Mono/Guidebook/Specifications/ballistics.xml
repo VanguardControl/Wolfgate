@@ -6,7 +6,7 @@
   - RPS may not be accurate due to it being capped by server tick speed (usually 20 or 30 ticks/second).
   - All ballistic weapons have unlimited standard ammo. Many of them can be loaded with special, limited ammunition either by hand or using an autoloader system.
 
-  ## Specifications (as of 24-Oct-2025)
+  ## Specifications (as of 24-Oct-2026)
   <Table Columns="7">
     <ColorBox>
       <Box>
@@ -190,7 +190,7 @@
     </ColorBox>
     <ColorBox>
       <Box HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="2">
-        Superheavy
+        Super heavy
       </Box>
     </ColorBox>
     <!--Tarnyx-->
@@ -232,7 +232,7 @@
     </ColorBox>
     <ColorBox Color="#b58818">
       <Box HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="2">
-        24 (CART.)
+        220mm
       </Box>
     </ColorBox>
     <ColorBox Color="#5a9926">
@@ -314,7 +314,7 @@
     </ColorBox>
     <ColorBox>
       <Box HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="2">
-        Superheavy
+        Super heavy
       </Box>
     </ColorBox>
     <!--THANTOS-->
@@ -345,7 +345,7 @@
     </ColorBox>
     <ColorBox>
       <Box HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="2">
-        Superheavy
+        Super heavy
       </Box>
     </ColorBox>
     <!--THANTOS-->
@@ -376,7 +376,7 @@
     </ColorBox>
     <ColorBox>
       <Box HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="2">
-        Superheavy
+        Super heavy
       </Box>
     </ColorBox>
     <!--Syndie Adder-->
@@ -387,7 +387,7 @@
     </ColorBox>
     <ColorBox Color="#b58818">
       <Box HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="2">
-        N/Am
+        N/A
       </Box>
     </ColorBox>
     <ColorBox Color="#5a9926">
@@ -500,7 +500,7 @@
     </ColorBox>
     <ColorBox>
       <Box HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="2">
-        Superheavy
+        Super heavy
       </Box>
     </ColorBox>
     <!--ADS Shard-->

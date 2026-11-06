@@ -6,7 +6,7 @@
   - RPS may not be accurate due to it being capped by server tick speed (usually 20 or 30 ticks/second).
   - Energy weapons do not interact with the ammunition system.
 
-  ## Specifications (as of 24-Oct-2025)
+  ## Specifications (as of 24-Oct-2026)
   <Table Columns="7">
     <ColorBox>
       <Box>
@@ -128,7 +128,7 @@
     </ColorBox>
     <ColorBox>
       <Box HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="2">
-        Superheavy
+        Super heavy
       </Box>
     </ColorBox>
     <!--Rubicon-->
@@ -190,7 +190,7 @@
     </ColorBox>
     <ColorBox>
       <Box HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="2">
-        Superheavy
+        Super heavy
       </Box>
     </ColorBox>
     <!--Phalanx-->
