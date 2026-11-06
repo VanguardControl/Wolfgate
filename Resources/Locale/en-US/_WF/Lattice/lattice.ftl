@@ -91,6 +91,8 @@ ent-WFLatticeAnchorShield = anchor shield generator
     .desc = Fortress-grade shielding round a reality anchor. It draws on the anchor itself, so it never runs dry.
 ent-WFLatticeRelayAnchor = relay anchor
     .desc = A small reality anchor. Bolted down on a parked hull with power, it pushes anchored space out round it.
+ent-WFLatticeStationAnchor = station anchor
+    .desc = The station's own reality anchor. While it stands and has power, the station is anchored space, however far out it is.
 ent-WFFlatpackLatticeRelay = relay anchor flatpack
     .desc = A flatpack used for building a relay anchor.
 

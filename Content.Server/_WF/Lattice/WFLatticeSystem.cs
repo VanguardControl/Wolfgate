@@ -411,9 +411,11 @@ public sealed partial class WFLatticeSystem : EntitySystem
     private void Notify(ICommonSession session, EntityUid mob, WFLatticeBand band, float depth)
     {
         var seed = session.UserId.UserId.GetHashCode();
-        var name = BandName(band, depth, seed);
+        // Nothing out here reads wrong to the Choir.
+        var choir = HasComp<WFChoirMemberComponent>(mob);
+        var name = choir ? Loc.GetString(band.Name) : BandName(band, depth, seed);
         var text = Loc.GetString(band.Message, ("band", name));
-        if (band.Garbled)
+        if (band.Garbled && !choir)
             text = WFLatticeMath.Garble(text, 0.8f * depth, seed + 1);
 
         _popup.PopupEntity(text, mob, session, PopupType.LargeCaution);

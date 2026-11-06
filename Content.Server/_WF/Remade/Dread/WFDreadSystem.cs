@@ -209,6 +209,13 @@ public sealed partial class WFDreadSystem : EntitySystem
                 stress = Math.Max(stress, WFTormentedComponent.Stress);
             }
 
+            // The Choir are past the stone's reach too.
+            if (HasComp<WFChoirMemberComponent>(uid))
+            {
+                influence = 0f;
+                shardInfluence = 0f;
+            }
+
             var subject = EnsureComp<WFDreadSubjectComponent>(uid);
             if (influence <= 0f && shardInfluence <= 0f)
             {

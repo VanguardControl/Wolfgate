@@ -53,8 +53,9 @@ public sealed class WFDriftMindTest
         await pair.CleanReturnAsync();
     }
 
-    [Test]
-    public async Task AMonolithPutsItsDriftInAHead()
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task AMonolithPutsItsDriftInAHead(bool choir)
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
         var server = pair.Server;
@@ -67,6 +68,8 @@ public sealed class WFDriftMindTest
         {
             mob = entities.SpawnEntity("MobHuman", map.GridCoords);
             players.SetAttachedEntity(players.Sessions.Single(), mob, force: true);
+            if (choir)
+                entities.EnsureComponent<WFChoirMemberComponent>(mob);
 
             var stone = entities.SpawnEntity("WFMonolithScion", map.GridCoords.Offset(new Vector2(3f, 0f)));
             entities.GetComponent<WFRemadeDirectorComponent>(stone).BuildUp = false;
@@ -77,6 +80,13 @@ public sealed class WFDriftMindTest
         await pair.RunSeconds(8f);
         await server.WaitAssertion(() =>
         {
+            if (choir)
+            {
+                Assert.That(entities.TryGetComponent<WFDriftComponent>(mob, out var held) ? held.Mind : 0f, Is.EqualTo(0f), "the stone put Drift in a Choir head.");
+                Assert.That(entities.System<AlertsSystem>().IsShowingAlert(mob, "WFDrift"), Is.False, "a Choir member was shown the gauge.");
+                return;
+            }
+
             Assert.That(entities.TryGetComponent<WFDriftComponent>(mob, out var drift), Is.True, "a Crescendo beside a player put no Drift in their head.");
             Assert.That(drift!.Mind, Is.GreaterThan(3f));
             Assert.That(drift.MindLevel, Is.GreaterThan(0));

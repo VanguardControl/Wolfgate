@@ -1,4 +1,5 @@
 using Content.Shared._WF.Lattice;
+using Content.Shared.Ghost;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Shared.Map;
@@ -47,6 +48,10 @@ public sealed partial class WFLatticeHallucinationSystem : EntitySystem
     /// <summary>The local player's Drift level: their ship's or their own, or what they carry in their head if that is more.</summary>
     public int LocalLevel()
     {
+        // The Choir see nothing wrong, and the dead are past it.
+        if (_player.LocalEntity is { } mob && (HasComp<WFChoirMemberComponent>(mob) || HasComp<GhostComponent>(mob)))
+            return 0;
+
         return Math.Max(LocalDrift()?.Level ?? 0, LocalMind()?.MindLevel ?? 0);
     }
 

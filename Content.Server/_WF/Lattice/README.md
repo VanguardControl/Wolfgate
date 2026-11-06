@@ -77,7 +77,7 @@ and tears the edge of the shadow (`black_hole.swsl`, set in `StarOverlay.BlackHo
 
 **The Choir.** A player at 80 Drift or more is offered the song once a round (`WFChoirSystem`): a popup, a line in chat
 and an "Answer the song" action for five minutes. Using it is the only way in. A Choir player takes the `WFChoir`
-faction (the Choir's NPC ships and the Remade leave them be), has no hallucinations, and is briefed to break anchors
+faction (the Choir's NPC ships and the Remade leave them be), is untouched by Drift, the Monolith's dread, screen warp and garbled readouts, and is briefed to break anchors
 and carry Scions inward as an antagonist. Admins get an alert for each offer and join, and joins are admin-logged.
 Removing `WFChoirMemberComponent` takes them out again. `wf.lattice.choir`, `wf.lattice.choir_min_players` (15),
 `wf.lattice.choir_max` (3) and `wf.lattice.choir_min_drift` (80) gate it. Each Choir player adds 2 to the DEFCON
@@ -189,6 +189,8 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs)
   - radar contacts only this player sees.
   - contact names garble out past the Lattice's hold.
+- [`Resources/Maps/_Mono/POI/pdvhelios.yml`](../../../Resources/Maps/_Mono/POI/pdvhelios.yml): Mapped a station anchor beside an APC so Helios stays anchored space past the Lattice's hold.
+- [`Resources/Maps/_Mono/POI/underground.yml`](../../../Resources/Maps/_Mono/POI/underground.yml): Mapped a station anchor beside an APC so the Syndicate FOB stays anchored space past the Lattice's hold.
 - [`Resources/Prototypes/_Mono/Guidebook/starsystem.yml`](../../../Resources/Prototypes/_Mono/Guidebook/starsystem.yml)
 - [`Resources/Prototypes/_NF/Guidebook/nf14.yml`](../../../Resources/Prototypes/_NF/Guidebook/nf14.yml): the bands, Drift, exotic matter and the anchors
 - [`Resources/Prototypes/Entities/Structures/Machines/lathe.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/lathe.yml): Drift stabiliser, anchor charm and relay anchor recipes

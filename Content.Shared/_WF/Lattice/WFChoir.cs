@@ -1,10 +1,11 @@
 using Content.Shared.Actions;
 using Robust.Shared.Configuration;
+using Robust.Shared.GameStates;
 
 namespace Content.Shared._WF.Lattice;
 
-/// <summary>Someone who answered the song: the Choir's own, at home past the Lattice.</summary>
-[RegisterComponent]
+/// <summary>Someone who answered the song: the Choir's own, at home past the Lattice. No Drift, Monolith or garble touches them.</summary>
+[RegisterComponent, NetworkedComponent]
 public sealed partial class WFChoirMemberComponent : Component;
 
 /// <summary>Someone deep in Drift who has been offered the song, until it fades.</summary>

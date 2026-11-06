@@ -101,6 +101,50 @@ public sealed class WFLatticeStationTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>
+    /// The stations mapped past the Lattice's hold carry a station anchor that runs off their own power and keeps them
+    /// anchored space far out, until it is destroyed.
+    /// </summary>
+    [TestCase("/Maps/_Mono/POI/pdvhelios.yml")]
+    [TestCase("/Maps/_Mono/POI/underground.yml")]
+    public async Task FarStationsHoldWithTheirMappedAnchor(string path)
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var lattice = entities.System<WFLatticeSystem>();
+        var far = new System.Numerics.Vector2(25000f, 0f);
+
+        EntityUid anchor = default;
+        await server.WaitAssertion(() =>
+        {
+            entities.EnsureComponent<Content.Shared._WF.DroneRings.WFDroneRingsComponent>(map.MapUid).Radii = new List<float> { 18000f, 22000f, 25000f, 30000f };
+            lattice.Setup(map.MapUid);
+            var loader = entities.System<Robust.Shared.EntitySerialization.Systems.MapLoaderSystem>();
+            Assert.That(loader.TryLoadGrid(map.MapId, new Robust.Shared.Utility.ResPath(path), out var grid), Is.True);
+            entities.System<SharedTransformSystem>().SetWorldPosition(grid!.Value.Owner, far);
+            anchor = entities.EntityQuery<WFLatticeRelayComponent>(true)
+                .Select(relay => relay.Owner)
+                .Single(uid => entities.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID == "WFLatticeStationAnchor"
+                               && entities.GetComponent<TransformComponent>(uid).GridUid == grid.Value.Owner);
+        });
+
+        await pair.RunSeconds(8f);
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(entities.GetComponent<TransformComponent>(anchor).Anchored, Is.True, $"{path}: the station anchor isn't bolted down.");
+            Assert.That(entities.GetComponent<ApcPowerReceiverComponent>(anchor).Powered, Is.True, $"{path}: the station anchor has no power.");
+            Assert.That(entities.GetComponent<WFLatticeAnchorComponent>(anchor).Active, Is.True, $"{path}: the station anchor didn't take hold.");
+            var at = entities.System<SharedTransformSystem>().GetWorldPosition(anchor);
+            Assert.That(lattice.Locate(map.MapUid, at).Band, Is.EqualTo(0), $"{path}: the station isn't anchored space with its anchor up.");
+            entities.DeleteEntity(anchor);
+            Assert.That(lattice.Locate(map.MapUid, at).Band, Is.GreaterThan(0), $"{path}: the station stayed anchored with its anchor gone.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>A few stray hits are forgiven; past the limit the station turns its lances on the attacker.</summary>
     [Test]
     public async Task StationsAnswerAttacks()

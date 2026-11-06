@@ -236,6 +236,18 @@
     strength: 0.4
   - type: WFLatticeRelay
 
+# A crewed station's own anchor, mapped onto stations that sit past anchored space (Helios, the Syndicate FOB). It holds the station
+# while it stands and has power; destroy it or starve it and the station drifts.
+- type: entity
+  parent: WFLatticeRelayAnchor
+  id: WFLatticeStationAnchor
+  components:
+  - type: ApcPowerReceiver
+    powerLoad: 15000
+  - type: WFLatticeRelay
+    strength: 0.3
+    settleSeconds: 5
+
 - type: entity
   parent: BaseFlatpack
   id: WFFlatpackLatticeRelay

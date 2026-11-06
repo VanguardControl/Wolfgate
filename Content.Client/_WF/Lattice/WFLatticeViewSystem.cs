@@ -35,10 +35,15 @@ public sealed partial class WFLatticeViewSystem : EntitySystem
         if (!TryComp<WFLatticeFieldComponent>(mapUid, out var field) || !_proto.TryIndex(field.Profile, out var profile))
         {
             // Off the sector map, on a planet, the viewer's own text follows the Drift the server sends for them.
-            return _player.LocalEntity is { } local && Transform(local).MapUid == mapUid && CarrierDepth(out _) is var carried and >= 0f
+            return _player.LocalEntity is { } local && Transform(local).MapUid == mapUid && !HasComp<WFChoirMemberComponent>(local)
+                   && CarrierDepth(out _) is var carried and >= 0f
                 ? Scramble(text, carried, seed, scale)
                 : text;
         }
+
+        // Nothing out here reads wrong to the Choir.
+        if (_player.LocalEntity is { } member && HasComp<WFChoirMemberComponent>(member))
+            return text;
 
         var depth = -1f;
         if (_player.LocalEntity is { } viewer && Transform(viewer).MapUid == mapUid)
