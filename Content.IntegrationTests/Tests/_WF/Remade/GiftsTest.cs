@@ -244,7 +244,8 @@ public sealed class GiftsTest
             Assert.That(mobState.IsDead(corpse), Is.True, "the corpse didn't die, so reviving it proves nothing.");
             Assert.That(mobState.IsDead(headless), Is.True, "the headless body didn't die.");
             // Only the blunt it was hurt with: a fresh body takes a little heat and asphyxiation while it settles.
-            Assert.That(Blunt(entMan, ally), Is.LessThan(before), "Flesh healed nobody in reach.");
+            Assert.That(Blunt(entMan, ally), Is.LessThan(before),
+                $"Flesh healed nobody in reach: blunt {before} before, now {string.Join(", ", entMan.GetComponent<DamageableComponent>(ally).Damage.DamageDict.Where(kv => kv.Value > 0))}.");
         });
 
         // About 27 s to raise a body at this resonance.
