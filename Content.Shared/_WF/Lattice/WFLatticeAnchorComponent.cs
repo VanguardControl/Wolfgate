@@ -65,7 +65,11 @@ public sealed partial class WFLatticeAnchorStationComponent : Component
     [ViewVariables]
     public Dictionary<EntityUid, TimeSpan> Hostiles = new();
 
-    /// <summary>When the station may next announce that it is under attack.</summary>
+    /// <summary>When the station may next announce that it is under fire.</summary>
     [ViewVariables]
     public TimeSpan NextAlert;
+
+    /// <summary>Whether the station is fighting back now, its shield down.</summary>
+    [ViewVariables]
+    public bool Engaged;
 }

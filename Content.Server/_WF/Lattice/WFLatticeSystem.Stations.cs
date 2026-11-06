@@ -44,11 +44,15 @@ public sealed partial class WFLatticeSystem
 
     private static readonly SoundSpecifier BreachSound = new SoundPathSpecifier("/Audio/Misc/notice1.ogg");
 
+    /// <summary>The alarm a breach sounds across the sector.</summary>
+    private static readonly SoundSpecifier BreachAlarm = new SoundPathSpecifier("/Audio/Misc/delta_alt.ogg");
+
     private List<Entity<MapGridComponent>> _stationGrids = new();
 
     private void InitializeStations()
     {
         SubscribeLocalEvent<WFLatticeAnchorComponent, DestructionEventArgs>(OnAnchorDestroyed);
+        SubscribeLocalEvent<WFLatticeAnchorComponent, ComponentShutdown>(OnAnchorShutdown);
         SubscribeLocalEvent<WFLatticeAnchorComponent, DamageChangedEvent>(OnAnchorDamaged);
         SubscribeLocalEvent<WFShipShieldAttackedEvent>(OnShieldAttacked);
         SubscribeLocalEvent<WFDefconGatherEvent>(OnDefconGather);
@@ -64,8 +68,12 @@ public sealed partial class WFLatticeSystem
                 continue;
 
             var lost = (int) MathF.Round((1f - field.Integrity) * profile.AnchorCount);
-            if (lost > 0)
-                ev.Add(lost * profile.BreachDefcon, Loc.GetString("wf-lattice-defcon-reason", ("count", lost)));
+            if (lost <= 0)
+                continue;
+
+            ev.Add(lost * profile.BreachDefcon, Loc.GetString("wf-lattice-defcon-reason", ("count", lost)));
+            // Each lost anchor also holds DEFCON at least a step worse: one lost is 4, four or more is 1.
+            ev.Floor = Math.Min(ev.Floor, Math.Max(1, 5 - lost));
         }
     }
 
@@ -151,6 +159,8 @@ public sealed partial class WFLatticeSystem
 
         // The template's core stands in for whichever anchor this is.
         var coordinates = Transform(old).Coordinates;
+        // Swapping the template's core out is no breach.
+        Comp<WFLatticeAnchorComponent>(old).Primary = false;
         Del(old);
         var core = Spawn(profile.CorePrototypes[index % profile.CorePrototypes.Count], coordinates);
         _meta.SetEntityName(core, AnchorName(index));
@@ -169,14 +179,31 @@ public sealed partial class WFLatticeSystem
 
     private void OnAnchorDestroyed(Entity<WFLatticeAnchorComponent> ent, ref DestructionEventArgs args)
     {
-        if (!ent.Comp.Primary)
+        Breach(ent);
+    }
+
+    /// <summary>A primary anchor removed any other way mid-round (its grid blown apart, deleted, eaten) is a breach too.</summary>
+    private void OnAnchorShutdown(Entity<WFLatticeAnchorComponent> ent, ref ComponentShutdown args)
+    {
+        if (Transform(ent.Owner).MapUid is not { } map || TerminatingOrDeleted(map))
             return;
 
-        // The anchor stops holding at once, before it is deleted.
+        Breach(ent);
+    }
+
+    /// <summary>
+    /// The loss of a primary anchor, once: it stops holding at once, and the whole sector hears that reality is coming
+    /// loose in its direction.
+    /// </summary>
+    private void Breach(Entity<WFLatticeAnchorComponent> ent)
+    {
+        if (!ent.Comp.Primary || !ent.Comp.Active)
+            return;
+
         ent.Comp.Active = false;
         var bearing = _transform.GetWorldPosition(ent.Owner);
         var text = Loc.GetString("wf-lattice-breach", ("anchor", Name(ent.Owner)), ("direction", Compass(bearing)));
-        _chat.DispatchGlobalAnnouncement(text, Loc.GetString("wf-lattice-chip-sender"), true, BreachSound, Color.FromHex("#d030a0"));
+        _chat.DispatchGlobalAnnouncement(text, Loc.GetString("wf-lattice-chip-sender"), true, BreachAlarm, Color.FromHex("#d030a0"));
         RaiseNetworkEvent(new WFAnnouncementChipEvent
         {
             Level = WFAnnounceChipLevel.Warning,
@@ -189,14 +216,14 @@ public sealed partial class WFLatticeSystem
         });
     }
 
-    /// <summary>A hit on the core itself is never forgiven.</summary>
+    /// <summary>A hit on the core counts like a hit on the shield.</summary>
     private void OnAnchorDamaged(Entity<WFLatticeAnchorComponent> ent, ref DamageChangedEvent args)
     {
-        if (!ent.Comp.Primary || !args.DamageIncreased || Transform(ent.Owner).GridUid is not { } grid || !TryGetProfile(grid, out var profile))
+        if (!ent.Comp.Primary || !args.DamageIncreased || Transform(ent.Owner).GridUid is not { } grid)
             return;
 
         var attacker = args.Origin is { } origin && TryComp<TransformComponent>(origin, out var from) ? from.GridUid : null;
-        Strike(grid, attacker, profile.StrikeLimit);
+        Strike(grid, attacker, 1f);
     }
 
     /// <summary>A hit on the shield counts towards the limit.</summary>

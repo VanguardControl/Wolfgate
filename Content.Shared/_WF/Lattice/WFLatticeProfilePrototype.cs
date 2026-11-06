@@ -73,17 +73,17 @@ public sealed partial class WFLatticeProfilePrototype : IPrototype
     [DataField]
     public string? StationMap = "/Maps/_WF/Lattice/anchor_station.yml";
 
-    /// <summary>Shield hits a grid may land before the station answers; a hit on the core counts this much at once.</summary>
+    /// <summary>Hits from one ship before the station says it is under fire. It fights back only once its shield is down.</summary>
     [DataField]
-    public float StrikeLimit = 4f;
+    public float StrikeLimit = 10f;
 
-    /// <summary>Seconds after which a grid's earlier hits are forgiven.</summary>
+    /// <summary>Seconds after which a ship's earlier hits are forgiven.</summary>
     [DataField]
-    public float StrikeWindow = 30f;
+    public float StrikeWindow = 60f;
 
-    /// <summary>Seconds the station keeps shooting at a grid after its last hit.</summary>
+    /// <summary>Seconds a ship stays an attacker after its last hit; the station only shoots at it while the shield is down.</summary>
     [DataField]
-    public float HostileSeconds = 180f;
+    public float HostileSeconds = 90f;
 
     /// <summary>Furthest the station's lances reach for a hostile grid, in metres.</summary>
     [DataField]
@@ -95,7 +95,7 @@ public sealed partial class WFLatticeProfilePrototype : IPrototype
 
     /// <summary>DEFCON score for each primary anchor lost.</summary>
     [DataField]
-    public float BreachDefcon = 10f;
+    public float BreachDefcon = 25f;
 
     /// <summary>Distance at which one anchor's hold falls to half, in metres.</summary>
     [DataField]

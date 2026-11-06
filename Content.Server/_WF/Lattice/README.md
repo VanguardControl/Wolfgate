@@ -15,8 +15,8 @@ to it, which the mapped station has and the plain deck does not) and a fortress 
 (`WFLatticeAnchorShield`, which needs no power). The shield's field is drawn as a rooted Ward in the profile's
 `shieldTint` (purple): the Remade module's membrane and glyphs, tinted through `WFWardFieldComponent.Tint`. Hitting the
 core or its shield calls the drones still loyal to the Lattice (`MonoDroneSpawnerT1`, 300 m out towards the attacker,
-every 5 minutes at most). A destroyed core is a breach: it stops holding, and a global announcement and chip name it
-and the direction the Lattice is failing in. The field's `Integrity` (primaries left out of six) goes to clients. Each anchor
+every 5 minutes at most). A core that is destroyed, or removed any other way mid-round (its station deleted or blown apart), is a breach: it
+stops holding, the delta alarm sounds, and a global announcement and chip say reality is coming loose in its direction. The field's `Integrity` (primaries left out of six) goes to clients. Each anchor
 (`WFLatticeAnchorComponent`) adds a hold that halves at the profile's `reach`; the bands' thresholds are the summed hold
 at each band edge for the intact hexagon, so a lost anchor pulls the edges in, most on its side. Every second each
 player's carrier gets a band and builds Drift (`WFDriftComponent`): the grid they are on, themselves in open space, or
@@ -49,10 +49,12 @@ and stops the taking, and the anchor charm (1 shard), worn round the neck, which
 (the profile's `stationMap`; a plain deck is built in code if it fails), placed so its core sits on the hexagon's
 corner, and its core is swapped for that anchor's own. The core is also a station anchor (`StationAnchor`), so the
 station can't be moved. Its eight hardpoints carry `WFLatticeWardenLance`s, which fire only from an anchor station.
-`WFLatticeSystem.Defence.cs` counts hits: shield hits from a grid count one each and are forgiven after 30 s, and the
-first draws a warning chip to that ship's crew; four (`strikeLimit`), or any hit on the core, make the grid hostile for
-three minutes. A hostile grid gets a global alert (once every two minutes), the drones, and every lance on the station
-firing at it, led for its speed, within 3 km.
+`WFLatticeSystem.Defence.cs` is slow to anger. Shield and core hits are counted per ship (forgiven after 60 s); ten
+(`strikeLimit`) from one ship put out a global "under fire" alert, and nothing more while the shield holds. Once the
+station's shield is down it alerts again, calls its drones, and turns every lance on the nearest ship that has fired on
+it in the last 90 s and still has a living player or NPC aboard, within 3 km; it stops when the shield comes back or the
+ship is dead. Other anchor stations never count as attackers. The station also hums: `WFLatticeHumSystem` plays the
+Goonstation flock reactor loop to a player within 450 m of an anchor, louder the closer they are.
 
 **Relay anchors.** The autolathe makes a relay anchor flatpack (20 shards of exotic matter). Bolted down with 30 kW,
 on a grid moving under 1 m/s for a minute, a relay holds 0.4 of a primary's strength and pushes anchored space out
@@ -69,7 +71,8 @@ faction (the Choir's NPC ships and the Remade leave them be), has no hallucinati
 and carry Scions inward as an antagonist. Admins get an alert for each offer and join, and joins are admin-logged.
 Removing `WFChoirMemberComponent` takes them out again. `wf.lattice.choir`, `wf.lattice.choir_min_players` (15),
 `wf.lattice.choir_max` (3) and `wf.lattice.choir_min_drift` (80) gate it. Each Choir player adds 2 to the DEFCON
-score, and each lost primary anchor 10 (`breachDefcon`).
+score, and each lost primary anchor 25 (`breachDefcon`) and holds DEFCON a step worse per anchor lost (one lost is at
+least 4, four is 1).
 
 **Deep-only encounters.** An encounter with `latticeBand` above zero is placed at its distances from the sector's centre
 and only where the band is at least that; with no Lattice it falls back to distances from a player. The Monolith hulk,
@@ -118,6 +121,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Content.Client/_WF/Lattice/ShuttleNavControl.Lattice.cs`](../../../Content.Client/_WF/Lattice/ShuttleNavControl.Lattice.cs)
 - [`Content.Client/_WF/Lattice/WFDriftOverlay.cs`](../../../Content.Client/_WF/Lattice/WFDriftOverlay.cs)
 - [`Content.Client/_WF/Lattice/WFLatticeHallucinationSystem.cs`](../../../Content.Client/_WF/Lattice/WFLatticeHallucinationSystem.cs)
+- [`Content.Client/_WF/Lattice/WFLatticeHumSystem.cs`](../../../Content.Client/_WF/Lattice/WFLatticeHumSystem.cs)
 - [`Content.Client/_WF/Lattice/WFLatticeRings.cs`](../../../Content.Client/_WF/Lattice/WFLatticeRings.cs)
 - [`Content.Client/_WF/Lattice/WFLatticeViewSystem.cs`](../../../Content.Client/_WF/Lattice/WFLatticeViewSystem.cs)
 

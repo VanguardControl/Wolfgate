@@ -103,8 +103,8 @@ wf-lattice-anchor-name-5 = Epsilon
 wf-lattice-anchor-name-6 = Zeta
 wf-lattice-anchor-name-n = Anchor {$n}
 
-wf-lattice-breach-title = LATTICE BREACH
-wf-lattice-breach = Reality anchor {$anchor} has gone dark. The Lattice is failing to the {$direction}. Anchored space is shrinking.
+wf-lattice-breach-title = LATTICE BREACH: REALITY UNSTABLE
+wf-lattice-breach = Reality anchor {$anchor} has fallen. The Lattice is failing to the {$direction}, and reality is coming loose behind it. Anchored space is shrinking across the sector. Expect hallucinations, instrument faults and worse. All vessels in the {$direction} reaches: return to anchored space.
 
 wf-lattice-compass-0 = east
 wf-lattice-compass-1 = north-east
@@ -148,6 +148,6 @@ ent-WFLatticeLanceProjectile = lance bolt
     .desc = Violet, and very, very hot.
 
 wf-lattice-defence-title = ANCHOR DEFENCE
-wf-lattice-defence = Reality anchor {$anchor} is under attack by {$attacker}. Defensive protocols engaged. Its drones and lances will answer.
-wf-lattice-defence-warning = Reality anchor {$anchor} registers hostile fire. Cease fire or be engaged.
+wf-lattice-defence-under-fire = Reality anchor {$anchor} is under fire from {$attacker}. Its shield is holding. Cease fire.
+wf-lattice-defence = Reality anchor {$anchor}'s shield is down. Defensive protocols engaged against {$attacker}. Its drones and lances will answer.
 wf-lattice-defence-unknown = an unknown vessel

@@ -1,4 +1,4 @@
-# The anchors' own guns: far past anything a ship carries, and dead weight anywhere but on an anchor station.
+# The anchors' own guns: a little past the best a ship carries, and dead weight anywhere but on an anchor station.
 - type: entity
   parent: ShipPlasmaProjectileScylla
   id: WFLatticeLanceProjectile
@@ -7,9 +7,9 @@
   - type: Projectile
     damage:
       types:
-        Radiation: 40
-        Structural: 160
-        Heat: 220
+        Radiation: 10
+        Structural: 50
+        Heat: 80
   - type: Sprite
     sprite: _Impstation/Objects/Weapons/Guns/Projectiles/energybolts.rsi
     layers:
@@ -21,16 +21,16 @@
     scale: 1.6
     shape: arrow
   - type: TimedDespawn
-    lifetime: 7
+    lifetime: 6
   - type: PointLight
     color: "#b040e0"
     radius: 2
     energy: 2
   - type: Explosive
     explosionType: Default
-    totalIntensity: 120
+    totalIntensity: 40
     intensitySlope: 4
-    maxIntensity: 10
+    maxIntensity: 5
 
 - type: entity
   parent: WeaponTurretScylla
@@ -59,14 +59,17 @@
     maxAngle: 3
     fireRate: 1
     recoil: 0
-    burstCooldown: 2
-    burstFireRate: 12
-    shotsPerBurst: 20
+    burstCooldown: 4
+    burstFireRate: 10
+    shotsPerBurst: 10
     selectedMode: Burst
     availableModes: Burst
     shootThermalSignature: 500000
     soundGunshot:
-      path: /Audio/_Mono/Weapons/Guns/Gunshots/autopulse_laser_fire_01.ogg
+      path: /Audio/_WF/Xenoborgs/Weapons/Guns/Gunshots/xenofirebeam.ogg
+      params:
+        volume: -4
+        variation: 0.12
     soundEmpty:
       path: /Audio/Weapons/click.ogg
   - type: ProjectileBatteryAmmoProvider

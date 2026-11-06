@@ -1,7 +1,11 @@
 using System.Numerics;
 using Content.Server._Mono.FireControl;
+using Content.Shared._Crescent.ShipShields;
 using Content.Shared._WF.Announcements;
 using Content.Shared._WF.Lattice;
+using Content.Shared.Mobs;
+using Content.Shared.Mobs.Components;
+using Content.Shared.NPC;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
 using Robust.Shared.Physics.Components;
@@ -10,9 +14,11 @@ using Robust.Shared.Player;
 namespace Content.Server._WF.Lattice;
 
 /// <summary>
-/// An anchor station's answer to being shot at. A few hits on its shield are forgiven; past the profile's limit, or
-/// with any hit on the core itself, the attacking grid is marked hostile: the station sounds the alert, calls its drones
-/// and turns its lances on that grid until it has been quiet a while. The lances fire only from an anchor station.
+/// An anchor station's answer to being shot at, slow to anger. Hits on its shield are counted per ship; after enough
+/// of them the station warns the sector it is under fire, and does nothing else. Only once its shield is down does it
+/// fight: it alerts again, calls its drones, and turns its lances on every ship that has fired on it lately and still
+/// has someone alive aboard. While the shield holds, or once a ship is dead or quiet, the lances stay silent. The
+/// lances fire only from an anchor station.
 /// </summary>
 public sealed partial class WFLatticeSystem
 {
@@ -36,7 +42,7 @@ public sealed partial class WFLatticeSystem
             args.Cancel();
     }
 
-    /// <summary>Counts a hit on a station from a grid; enough of them, or a heavy one, make that grid hostile.</summary>
+    /// <summary>Counts a hit on a station from a grid; enough of them and the station says it is under fire.</summary>
     public void Strike(EntityUid station, EntityUid? attacker, float weight)
     {
         // Another anchor's stray bolts are not an attack: the stations never turn on each other.
@@ -55,67 +61,72 @@ public sealed partial class WFLatticeSystem
         strikes += weight;
         comp.Strikes[enemy] = (strikes, now);
 
-        if (comp.Hostiles.ContainsKey(enemy) || strikes >= profile.StrikeLimit)
-        {
-            MarkHostile((station, comp), enemy, profile);
-            return;
-        }
+        // Every ship that keeps firing is remembered as an attacker, for when the shield gives.
+        comp.Hostiles[enemy] = now + TimeSpan.FromSeconds(profile.HostileSeconds);
 
-        // The first stray shot gets a warning to the ship that fired it, not a war.
-        if (strikes <= weight)
-            Warn(station, enemy);
+        if (strikes >= profile.StrikeLimit && now >= comp.NextAlert)
+        {
+            comp.NextAlert = now + TimeSpan.FromSeconds(profile.AlertCooldown);
+            Alert(station, comp, "wf-lattice-defence-under-fire", enemy, false);
+        }
     }
 
-    /// <summary>Turns the station on a grid: refreshes how long it stays hostile, and alerts and calls drones if due.</summary>
-    private void MarkHostile(Entity<WFLatticeAnchorStationComponent> station, EntityUid enemy, WFLatticeProfilePrototype profile)
+    /// <summary>Announces something about a station to the sector.</summary>
+    private void Alert(EntityUid station, WFLatticeAnchorStationComponent comp, string key, EntityUid? enemy, bool flash)
     {
-        var now = _timing.CurTime;
-        station.Comp.Hostiles[enemy] = now + TimeSpan.FromSeconds(profile.HostileSeconds);
-        Defend(station.Owner, enemy);
-        if (now < station.Comp.NextAlert)
-            return;
-
-        station.Comp.NextAlert = now + TimeSpan.FromSeconds(profile.AlertCooldown);
-        var anchor = Exists(station.Comp.Core) ? Name(station.Comp.Core) : Name(station.Owner);
-        var text = Loc.GetString("wf-lattice-defence", ("anchor", anchor), ("attacker", Name(enemy)));
+        var anchor = Exists(comp.Core) ? Name(comp.Core) : Name(station);
+        var attacker = enemy is { } ship && Exists(ship) ? Name(ship) : Loc.GetString("wf-lattice-defence-unknown");
+        var text = Loc.GetString(key, ("anchor", anchor), ("attacker", attacker));
         _chat.DispatchGlobalAnnouncement(text, Loc.GetString("wf-lattice-chip-sender"), true, BreachSound, Color.FromHex("#d030a0"));
         RaiseNetworkEvent(new WFAnnouncementChipEvent
         {
-            Level = WFAnnounceChipLevel.Warning,
+            Level = flash ? WFAnnounceChipLevel.Warning : WFAnnounceChipLevel.Advisory,
             Accent = Color.FromHex("#d030a0"),
             Title = Loc.GetString("wf-lattice-defence-title"),
             Text = text,
             Sender = Loc.GetString("wf-lattice-chip-sender"),
             Duration = 20f,
-            Flash = true,
+            Flash = flash,
         });
     }
 
-    /// <summary>Tells the crew of a grid that fired on a station to stop.</summary>
-    private void Warn(EntityUid station, EntityUid enemy)
+    /// <summary>Whether a station's shield is down: no emitter, or no field standing.</summary>
+    public bool ShieldDown(EntityUid station)
     {
-        var anchor = TryComp<WFLatticeAnchorStationComponent>(station, out var comp) && Exists(comp.Core)
-            ? Name(comp.Core)
-            : Name(station);
-        var text = Loc.GetString("wf-lattice-defence-warning", ("anchor", anchor));
-        var chip = new WFAnnouncementChipEvent
+        var shields = EntityQueryEnumerator<WFLatticeAnchorShieldComponent, ShipShieldEmitterComponent, TransformComponent>();
+        while (shields.MoveNext(out _, out _, out var emitter, out var xform))
         {
-            Level = WFAnnounceChipLevel.Advisory,
-            Accent = Color.FromHex("#d030a0"),
-            Title = Loc.GetString("wf-lattice-defence-title"),
-            Text = text,
-            Sender = Loc.GetString("wf-lattice-chip-sender"),
-            Duration = 12f,
-        };
+            if (xform.GridUid != station)
+                continue;
 
-        foreach (var session in _player.Sessions)
-        {
-            if (session.AttachedEntity is { } mob && Transform(mob).GridUid == enemy)
-                RaiseNetworkEvent(chip, session);
+            if (emitter.Shield is { } field
+                && !TerminatingOrDeleted(field)
+                && (!TryComp<PhysicsComponent>(field, out var body) || body.CanCollide))
+                return false;
         }
+
+        return true;
     }
 
-    /// <summary>Every quarter second, each station with a hostile in reach lays its lances on the nearest and fires.</summary>
+    /// <summary>Whether a ship still has anyone alive aboard to fight back: a player or an NPC crewman.</summary>
+    private bool Crewed(EntityUid grid)
+    {
+        var mobs = EntityQueryEnumerator<MobStateComponent, TransformComponent>();
+        while (mobs.MoveNext(out var uid, out var state, out var xform))
+        {
+            if (xform.GridUid == grid
+                && state.CurrentState != MobState.Dead
+                && (HasComp<ActorComponent>(uid) || HasComp<ActiveNPCComponent>(uid)))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Every quarter second: forgets quiet attackers, and if a station's shield is down, engages the nearest attacker
+    /// still crewed and in reach. The first pass with the shield down alerts and calls the drones.
+    /// </summary>
     private void UpdateDefence(float frameTime)
     {
         _defenceAccumulator += frameTime;
@@ -128,7 +139,10 @@ public sealed partial class WFLatticeSystem
         while (stations.MoveNext(out var uid, out var comp, out var xform))
         {
             if (comp.Hostiles.Count == 0)
+            {
+                comp.Engaged = false;
                 continue;
+            }
 
             _expired.Clear();
             foreach (var (enemy, until) in comp.Hostiles)
@@ -146,6 +160,13 @@ public sealed partial class WFLatticeSystem
             if (comp.Hostiles.Count == 0 || !TryGetProfile(uid, out var profile))
                 continue;
 
+            // The shield holding means the station is not yet in danger: it waits.
+            if (!ShieldDown(uid))
+            {
+                comp.Engaged = false;
+                continue;
+            }
+
             var from = _transform.GetWorldPosition(xform);
             EntityUid? target = null;
             var best = profile.DefenceRange;
@@ -156,15 +177,24 @@ public sealed partial class WFLatticeSystem
                     continue;
 
                 var distance = Vector2.Distance(from, _transform.GetWorldPosition(enemyXform));
-                if (distance > best)
+                if (distance > best || !Crewed(enemy))
                     continue;
 
                 best = distance;
                 target = enemy;
             }
 
-            if (target is { } aim)
-                FireLances(uid, aim);
+            if (target is not { } aim)
+                continue;
+
+            if (!comp.Engaged)
+            {
+                comp.Engaged = true;
+                Alert(uid, comp, "wf-lattice-defence", aim, true);
+                Defend(uid, aim);
+            }
+
+            FireLances(uid, aim);
         }
     }
 

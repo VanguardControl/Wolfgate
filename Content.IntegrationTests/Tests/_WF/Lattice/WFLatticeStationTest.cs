@@ -58,6 +58,9 @@ public sealed class WFLatticeStationTest
             var blunt = new DamageSpecifier(protos.Index<DamageTypePrototype>("Blunt"), FixedPoint2.New(30000));
             damage.TryChangeDamage(core, blunt, ignoreResistances: true);
 
+            // A station blown off the map entirely is a breach too, not only a core worn down.
+            entities.DeleteEntity(stations[1]);
+
             relay = entities.SpawnEntity("WFLatticeRelayAnchor", map.GridCoords);
             entities.GetComponent<ApcPowerReceiverComponent>(relay).NeedsPower = false;
             entities.GetComponent<WFLatticeRelayComponent>(relay).SettleSeconds = 1f;
@@ -67,9 +70,9 @@ public sealed class WFLatticeStationTest
         await server.WaitAssertion(() =>
         {
             var field = entities.GetComponent<WFLatticeFieldComponent>(map.MapUid);
-            Assert.That(field.Integrity, Is.EqualTo(5f / 6f).Within(0.001f), "the breach didn't lower the Lattice's integrity.");
+            Assert.That(field.Integrity, Is.EqualTo(4f / 6f).Within(0.001f), "the two breaches didn't lower the Lattice's integrity.");
             Assert.That(entities.GetComponent<WFLatticeAnchorComponent>(relay).Active, Is.True, "the parked relay didn't take hold.");
-            Assert.That(field.Anchors, Has.Count.EqualTo(6), "five primaries and the relay should hold the field.");
+            Assert.That(field.Anchors, Has.Count.EqualTo(5), "four primaries and the relay should hold the field.");
 
             // The standing stations' shields are up and drawn as a purple rooted Ward.
             var warded = entities.EntityQuery<ShipShieldEmitterComponent>()
@@ -95,7 +98,7 @@ public sealed class WFLatticeStationTest
         var maps = entities.System<Robust.Shared.GameObjects.SharedMapSystem>();
         var transform = entities.System<SharedTransformSystem>();
 
-        EntityUid station = default, attacker = default;
+        EntityUid station = default, attacker = default, crewman = default;
         await server.WaitAssertion(() =>
         {
             lattice.Setup(map.MapUid);
@@ -111,28 +114,65 @@ public sealed class WFLatticeStationTest
             var lances = entities.EntityQuery<WFLatticeDefenceWeaponComponent>()
                 .Count(lance => entities.GetComponent<TransformComponent>(lance.Owner).GridUid == station);
             Assert.That(lances, Is.EqualTo(8), "the loaded station should carry eight lances.");
+        });
 
+        // Let the shield come up before anyone fires on it.
+        await pair.RunSeconds(5f);
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(lattice.ShieldDown(station), Is.False, "the station's shield never came up.");
             var grid = maps.CreateGridEntity(map.MapId);
             maps.SetTile(grid.Owner, grid.Comp, Vector2i.Zero, new Tile(server.ResolveDependency<ITileDefinitionManager>()["Plating"].TileId));
             transform.SetWorldPosition(grid.Owner, transform.GetWorldPosition(station) + new System.Numerics.Vector2(400f, 0f));
             attacker = grid.Owner;
+            crewman = entities.SpawnEntity("MobHuman", new EntityCoordinates(attacker, new System.Numerics.Vector2(0.5f, 0.5f)));
+            entities.EnsureComponent<Content.Shared.NPC.ActiveNPCComponent>(crewman);
 
             var comp = entities.GetComponent<WFLatticeAnchorStationComponent>(station);
+            var timing = server.ResolveDependency<Robust.Shared.Timing.IGameTiming>();
+            for (var i = 0; i < 9; i++)
+                lattice.Strike(station, attacker, 1f);
+            Assert.That(comp.NextAlert, Is.LessThanOrEqualTo(timing.CurTime), "nine hits already raised the alarm.");
             lattice.Strike(station, attacker, 1f);
-            Assert.That(comp.Hostiles, Is.Empty, "one stray hit made the station hostile.");
-            lattice.Strike(station, attacker, 1f);
-            lattice.Strike(station, attacker, 1f);
-            lattice.Strike(station, attacker, 1f);
-            Assert.That(comp.Hostiles.ContainsKey(attacker), Is.True, "repeated hits didn't make the station hostile.");
+            Assert.That(comp.NextAlert, Is.GreaterThan(timing.CurTime), "ten hits didn't say the station is under fire.");
         });
 
-        await pair.RunSeconds(6f);
+        // The shield holds, so the station only watches.
+        await pair.RunSeconds(3f);
         await server.WaitAssertion(() =>
         {
-            var bolts = entities.EntityQuery<MetaDataComponent>().Count(meta => meta.EntityPrototype?.ID == "WFLatticeLanceProjectile");
-            Assert.That(bolts, Is.GreaterThan(0), "the lances didn't fire at a hostile grid.");
+            Assert.That(lattice.ShieldDown(station), Is.False, "the station's shield isn't up.");
+            Assert.That(Bolts(entities), Is.Zero, "the lances fired while the shield held.");
+
+            foreach (var emitter in entities.EntityQuery<ShipShieldEmitterComponent>().ToList())
+            {
+                if (entities.GetComponent<TransformComponent>(emitter.Owner).GridUid == station)
+                    entities.DeleteEntity(emitter.Owner);
+            }
+
+            lattice.Strike(station, attacker, 1f);
+        });
+
+        await pair.RunSeconds(4f);
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(entities.GetComponent<WFLatticeAnchorStationComponent>(station).Engaged, Is.True, "the station didn't engage once its shield fell.");
+            Assert.That(Bolts(entities), Is.GreaterThan(0), "the lances didn't fire with the shield down.");
+            entities.DeleteEntity(crewman);
+        });
+
+        // Nobody left alive aboard: the lances go quiet, and their bolts burn out.
+        await pair.RunSeconds(8f);
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(Bolts(entities), Is.Zero, "the lances kept firing at a dead ship.");
         });
 
         await pair.CleanReturnAsync();
+    }
+
+    private static int Bolts(IEntityManager entities)
+    {
+        return entities.EntityQuery<MetaDataComponent>().Count(meta => meta.EntityPrototype?.ID == "WFLatticeLanceProjectile");
     }
 }
