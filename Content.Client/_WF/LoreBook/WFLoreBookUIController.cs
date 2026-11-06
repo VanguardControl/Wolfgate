@@ -21,14 +21,8 @@ public sealed partial class WFLoreBookUIController : UIController, IOnStateExite
     [Dependency] private IConfigurationManager _config = default!;
     [Dependency] private IPrototypeManager _proto = default!;
 
-    /// <summary>
-    /// The book's edition. Raising it opens the book once for every player on their next lobby or round, at
-    /// <see cref="EditionPage"/>.
-    /// </summary>
+    /// <summary>The book's edition. Raising it opens the book once for every player on their next lobby or round, at its front.</summary>
     public const int Edition = 1;
-
-    /// <summary>Where a new edition opens.</summary>
-    private const string EditionPage = "WFLoreUnmooring";
 
     private static readonly SoundSpecifier OpenSound = new SoundPathSpecifier("/Audio/_Goobstation/Items/handling/book_pickup.ogg");
 
@@ -58,7 +52,9 @@ public sealed partial class WFLoreBookUIController : UIController, IOnStateExite
 
         _config.SetCVar(WFLoreBookCVars.SeenEdition, Edition);
         _config.SaveToFile();
-        Open(EditionPage);
+        Open();
+        // Not the last page read: a new edition always opens at the front.
+        _window?.Show(null);
     }
 
     public void OnStateExited(LobbyState state)

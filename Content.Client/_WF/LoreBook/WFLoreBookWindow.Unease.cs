@@ -1,4 +1,3 @@
-using System.Numerics;
 using System.Text;
 using Content.Shared.Guidebook;
 using Robust.Shared.Audio;
@@ -10,17 +9,18 @@ namespace Content.Client._WF.LoreBook;
 
 /// <summary>
 /// Some pages should not be read too closely. Each page's <see cref="GuideEntry.Unease"/> builds up while this book is
-/// open. A little in, letters begin to slip. Further on the page will not hold still: every moment or so it rewrites
-/// itself, letters trade places, words turn to glyphs and back, and the book writes lines of its own between the
-/// paragraphs. Deep in, even its title and page numbers go wrong. Closing the book and opening it again puts it right.
+/// open: past a little, a few letters on each page come out wrong as it is turned to, and now and then a word is
+/// written in glyphs; further on the book adds a quiet line of its own between paragraphs, and whispers play under it;
+/// deep in, its title and page numbers slip too. A page stays as it was drawn until it is turned again. Closing the
+/// book and opening it again puts everything back.
 /// </summary>
 public sealed partial class WFLoreBookWindow
 {
     /// <summary>How unsettled this copy of the book is, 0 to 1. A new window starts clean.</summary>
     private float _unease;
 
-    /// <summary>Unease past which the open page stops holding still.</summary>
-    private const float LiveUnease = 0.15f;
+    /// <summary>Unease past which a word now and then is written in glyphs.</summary>
+    private const float GlyphUnease = 0.3f;
 
     /// <summary>Unease past which the book writes lines of its own into pages.</summary>
     private const float WhisperUnease = 0.35f;
@@ -38,15 +38,9 @@ public sealed partial class WFLoreBookWindow
 
     private readonly Random _slip = new();
 
-    /// <summary>The open page as written, kept so the page can be rewritten while it is read.</summary>
-    private string? _raw;
-
-    /// <summary>The chapter trail and page number as written, so each rewrite slips them afresh.</summary>
+    /// <summary>The chapter trail and page number as written, so each page slips them afresh.</summary>
     private string _trailText = string.Empty;
     private string _folioText = string.Empty;
-
-    private float _nextShift;
-    private Vector2? _restoreScroll;
 
     /// <summary>Unease past which whispers come from under the pages.</summary>
     private const float WhisperSoundUnease = 0.1f;
@@ -65,10 +59,8 @@ public sealed partial class WFLoreBookWindow
     private string Unsettle(string markup, GuideEntryPrototype entry)
     {
         _unease = Math.Clamp(_unease + entry.Unease, 0f, 1f);
-        _raw = markup;
         _trailText = ChapterTrail.Text ?? string.Empty;
         _folioText = Folio.Text ?? string.Empty;
-        _nextShift = NextShift();
         UnsettleFrame();
         return Corrupt(markup);
     }
@@ -79,10 +71,9 @@ public sealed partial class WFLoreBookWindow
         if (_unease <= 0f)
             return markup;
 
-        var slip = 0.02f + 0.4f * MathF.Pow(_unease, 1.5f);
-        var trade = _unease >= LiveUnease ? 0.05f + 0.25f * _unease : 0f;
-        var glyph = _unease >= LiveUnease ? 0.02f + 0.3f * _unease * _unease : 0f;
-        var text = Distort(_slip, markup, slip, trade, glyph);
+        var slip = 0.01f + 0.18f * MathF.Pow(_unease, 1.5f);
+        var glyph = _unease >= GlyphUnease ? 0.01f + 0.05f * _unease : 0f;
+        var text = Distort(_slip, markup, slip, 0f, glyph);
         return _unease >= WhisperUnease ? Whisper(text) : text;
     }
 
@@ -212,37 +203,10 @@ public sealed partial class WFLoreBookWindow
         Folio.Text = Slip(_folioText, strength);
     }
 
-    /// <summary>Seconds until the page next rewrites itself: sooner the more unsettled the book is.</summary>
-    private float NextShift()
-    {
-        var calm = Math.Clamp(1f - _unease, 0f, 1f);
-        return 0.25f + calm * 1.4f + (float) _slip.NextDouble() * (0.3f + calm);
-    }
-
     protected override void FrameUpdate(FrameEventArgs args)
     {
         base.FrameUpdate(args);
-
-        // A rewrite clears the page, so its scroll is put back once the new page has been laid out.
-        if (_restoreScroll is { } scroll)
-        {
-            PageScroll.SetScrollValue(scroll);
-            _restoreScroll = null;
-        }
-
         UpdateWhispers(args.DeltaSeconds);
-        if (_raw == null || _unease < LiveUnease)
-            return;
-
-        _nextShift -= args.DeltaSeconds;
-        if (_nextShift > 0f)
-            return;
-
-        _nextShift = NextShift();
-        _restoreScroll = PageScroll.GetScrollValue();
-        PageBody.RemoveAllChildren();
-        _parsing.TryAddMarkup(PageBody, Corrupt(_raw));
-        UnsettleFrame();
     }
 
     /// <summary>Plays a whisper now and then, more often and a little louder the more unsettled the book is.</summary>

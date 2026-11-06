@@ -13,12 +13,11 @@ examine: list them in a `wfLoreLink` prototype (children of a listed prototype i
 Some pages unsettle the book. A guide entry's `unease` (0 to 1) builds up as it is read in an open book
 (`WFLoreBookWindow.Unease.cs`): letters on every page start to slip, then the book writes lines of its own between
 paragraphs (`wf-lore-book-whisper-*`), and deep in, its title, chapter trail and page numbers slip too. Closing the
-book and opening it again clears it. Past a little unease the open page stops holding still: it rewrites itself every
-moment or so, letters trade places and words turn to the DS13 glyph font (`WFLoreGlyphs`), and quiet whispers play
-under it (`WFLoreBookWhispers`), more often and louder as the book corrupts. The Lattice's pages (the Unmooring, the
-Lattice, the Choir) carry unease. Pages turn with one of two page-flip sounds (`WFLoreBookPageTurn`).
+book and opening it again clears it. A page stays as it was drawn until it is turned again; now and then a word is written in the DS13 glyph font
+(`WFLoreGlyphs`), and quiet whispers play under the book (`WFLoreBookWhispers`), more often and louder as it corrupts.
+The Lattice's pages (the Unmooring, the Lattice, the Choir) carry unease. Pages turn with one of two page-flip sounds (`WFLoreBookPageTurn`).
 
-Raising `WFLoreBookUIController.Edition` opens the book once for every player, at the Unmooring page, on their next lobby
+Raising `WFLoreBookUIController.Edition` opens the book once for every player, at its front, on their next lobby
 or round; `wf.lorebook.seen_edition` (client, saved) remembers who has seen it.
 
 Entry points: `WFLoreBookUIController` (open, toggle, link redirects), `WFLoreBookWindow`, `WFLoreBookSystem` (which
