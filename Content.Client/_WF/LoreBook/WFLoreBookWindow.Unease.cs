@@ -215,8 +215,8 @@ public sealed partial class WFLoreBookWindow
         if (_unease < WhisperSoundUnease)
             return;
 
-        var audio = _entMan.System<SharedAudioSystem>();
-        if (_whisper is { } playing && _entMan.EntityExists(playing))
+        if (!_entMan.EntitySysManager.TryGetEntitySystem<SharedAudioSystem>(out var audio)
+            || _whisper is { } playing && _entMan.EntityExists(playing))
             return;
 
         _whisper = null;
@@ -233,13 +233,14 @@ public sealed partial class WFLoreBookWindow
     /// <summary>A page turning: one of the book's turn sounds, picked at random.</summary>
     private void PlayPageTurn()
     {
-        _entMan.System<SharedAudioSystem>().PlayGlobal(PageTurn, Filter.Local(), false, AudioParams.Default.WithVolume(-6f));
+        if (_entMan.EntitySysManager.TryGetEntitySystem<SharedAudioSystem>(out var audio))
+            audio.PlayGlobal(PageTurn, Filter.Local(), false, AudioParams.Default.WithVolume(-6f));
     }
 
         public override void Close()
     {
-        if (_whisper is { } playing)
-            _entMan.System<SharedAudioSystem>().Stop(playing);
+        if (_whisper is { } playing && _entMan.EntitySysManager.TryGetEntitySystem<SharedAudioSystem>(out var audio))
+            audio.Stop(playing);
 
         _whisper = null;
         base.Close();

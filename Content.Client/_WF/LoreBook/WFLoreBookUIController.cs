@@ -120,7 +120,9 @@ public sealed partial class WFLoreBookUIController : UIController, IOnStateExite
             };
             window.OpenCentered();
             SetButtonPressed(true);
-            EntityManager.System<SharedAudioSystem>().PlayGlobal(OpenSound, Filter.Local(), false, AudioParams.Default.WithVolume(-4f));
+            // The book can open before the entity systems are up, as a new edition does on the way into the lobby.
+            if (EntityManager.EntitySysManager.TryGetEntitySystem<SharedAudioSystem>(out var audio))
+                audio.PlayGlobal(OpenSound, Filter.Local(), false, AudioParams.Default.WithVolume(-4f));
         }
         else
         {

@@ -111,6 +111,7 @@ in the upstream `_Mono` lore, factions and star system pages.
 - [`Content.Client/UserInterface/Systems/Guidebook/GuidebookUIController.cs`](../../../Content.Client/UserInterface/Systems/Guidebook/GuidebookUIController.cs): lore pages open in the lore book, not here
 - [`Content.Client/UserInterface/Systems/MenuBar/GameTopMenuBarUIController.cs`](../../../Content.Client/UserInterface/Systems/MenuBar/GameTopMenuBarUIController.cs): lore book button
 - [`Content.Client/UserInterface/Systems/MenuBar/Widgets/GameTopMenuBar.xaml`](../../../Content.Client/UserInterface/Systems/MenuBar/Widgets/GameTopMenuBar.xaml): lore book button beside the guidebook
+- [`Content.IntegrationTests/PoolManager.Cvars.cs`](../../../Content.IntegrationTests/PoolManager.Cvars.cs): a new edition's lore book would open over other tests' windows
 - [`Resources/Prototypes/_Mono/Guidebook/factions.yml`](../../../Resources/Prototypes/_Mono/Guidebook/factions.yml)
   - the faction pages moved to the lore book
   - the ADS guide stays in the guidebook under WFFactionsGuide; its lore page is here
