@@ -44,6 +44,9 @@ public sealed class WFLatticeStationTest
             {
                 var comp = entities.GetComponent<WFLatticeAnchorStationComponent>(station);
                 Assert.That(entities.GetComponent<WFLatticeAnchorComponent>(comp.Core).Primary, Is.True);
+                Assert.That(entities.GetComponent<PowerSupplierComponent>(comp.Core).MaxSupply, Is.GreaterThanOrEqualTo(100000f),
+                    "an anchor core doesn't power its station.");
+                Assert.That(entities.GetComponent<Content.Shared.NodeContainer.NodeContainerComponent>(comp.Core).Nodes.ContainsKey("output"), Is.True);
                 var shielded = entities.EntityQuery<ShipShieldEmitterComponent>()
                     .Any(emitter => entities.GetComponent<TransformComponent>(emitter.Owner).GridUid == station);
                 Assert.That(shielded, Is.True, "an anchor station has no shield generator.");

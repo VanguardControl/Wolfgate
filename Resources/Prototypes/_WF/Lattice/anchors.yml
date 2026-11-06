@@ -1,4 +1,5 @@
-# A primary anchor's core, at the centre of its station: a glyph obelisk, a different one at each anchor. Its loss is a breach.
+# A primary anchor's core, at the centre of its station: a glyph obelisk, a different one at each anchor, and a 500 kW
+# HV power source for the station. Its loss is a breach.
 - type: entity
   abstract: true
   parent: BaseStructure
@@ -48,6 +49,20 @@
         acts: [ "Destruction" ]
   - type: WFLatticeAnchor
     primary: true
+  # The anchor powers its own station: run HV cable from under it to a substation.
+  - type: NodeContainer
+    examinable: true
+    nodes:
+      output:
+        !type:CableDeviceNode
+        nodeGroupID: HVPower
+  - type: PowerSupplier
+    supplyRate: 500000
+  - type: PowerMonitoringDevice
+    group: Generator
+    loadNode: output
+    sprite: _WF/DecorImport/Structures/Decoration/statuelarge_nova.rsi
+    state: obelisk_base
 
 - type: entity
   parent: WFLatticeAnchorCoreBase
