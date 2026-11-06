@@ -4,7 +4,7 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared._WF.Lattice;
 
-/// <summary>Someone who answered the song: the Choir's own, at home past the Lattice. No Drift, Monolith or garble touches them.</summary>
+/// <summary>Someone who answered the song: the Choir's own, at home past the Lattice. No Drift or garble touches them; only the Monolith's dread still does.</summary>
 [RegisterComponent, NetworkedComponent]
 public sealed partial class WFChoirMemberComponent : Component;
 

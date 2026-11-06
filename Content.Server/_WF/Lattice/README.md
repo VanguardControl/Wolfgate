@@ -80,7 +80,7 @@ and tears the edge of the shadow (`black_hole.swsl`, set in `StarOverlay.BlackHo
 
 **The Choir.** A player at 80 Drift or more is offered the song once a round (`WFChoirSystem`): a popup, a line in chat
 and an "Answer the song" action for five minutes. Using it is the only way in. A Choir player takes the `WFChoir`
-faction (the Choir's NPC ships and the Remade leave them be), is untouched by Drift, the Monolith's dread, screen warp and garbled readouts, and is briefed to break anchors
+faction (the Choir's NPC ships and the Remade leave them be), is untouched by Drift, its gauge, screen sway and garbled readouts (the Monolith's dread still reaches them, though it adds no Drift), and is briefed to break anchors
 and carry Scions inward as an antagonist. Admins get an alert for each offer and join, and joins are admin-logged.
 Removing `WFChoirMemberComponent` takes them out again. `wf.lattice.choir`, `wf.lattice.choir_min_players` (15),
 `wf.lattice.choir_max` (3) and `wf.lattice.choir_min_drift` (80) gate it. Each Choir player adds 2 to the DEFCON
