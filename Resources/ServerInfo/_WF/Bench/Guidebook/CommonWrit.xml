@@ -59,4 +59,5 @@
   - Whatever they can't pay is Bench debt. Half of everything they earn goes to it until it is cleared.
   - Debt still owed after 30 minutes, or over 50,000, marks them Wanted until it is paid.
   - An Outlawry ticket marks them Wanted at once and puts a bounty on them.
+  - The Bench's limits: a law counts once per ticket, one ticket fines at most 200,000, and nobody is fined more than 400,000 in a round. Past that, the ticket still stands but the fine stops.
 </Document>

@@ -13,6 +13,7 @@ public sealed class WFBenchPanel : BoxContainer
 {
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private Robust.Shared.Configuration.IConfigurationManager _cfg = default!;
 
     private enum Tab
     {
@@ -373,10 +374,12 @@ public sealed class WFBenchPanel : BoxContainer
     {
         var charges = Charges();
         var (total, level) = WFBenchMath.Sum(charges.Select(c => (c.Fine, c.Level)));
+        var cap = _cfg.GetCVar(Content.Shared._WF.CCVar.BenchCVars.TicketCap);
         _summary.Text = charges.Count == 0
             ? Loc.GetString("wf-bench-summary-empty")
-            : Loc.GetString("wf-bench-summary", ("count", charges.Count), ("total", total), ("level", LevelName(level)));
-        _issue.Disabled = charges.Count == 0 || _selectedOffender == null;
+            : Loc.GetString("wf-bench-summary", ("count", charges.Count), ("total", Math.Min(total, cap)), ("level", LevelName(level)))
+              + (total > cap ? Loc.GetString("wf-bench-summary-capped") : string.Empty);
+        _issue.Disabled = charges.Count == 0 || charges.Count > WFBenchMath.MaxCharges || _selectedOffender == null;
     }
 
     private void Issue()

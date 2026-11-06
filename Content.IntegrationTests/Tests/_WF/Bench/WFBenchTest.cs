@@ -92,6 +92,17 @@ public sealed class WFBenchTest : InteractionTest
                 $"No stamped ticket was handed over. Papers: {string.Join(" | ", papers.Select(p => $"{p.StampedBy.Count} stamps: {p.Content}"))}");
         });
 
+        // A law ticked twice counts once, and a huge custom charge is held to the custom limit.
+        await Server.WaitAssertion(() =>
+        {
+            var requests = Charges(("WFLawBrandishing", 5_000), ("WFLawBrandishing", 5_000));
+            requests.Add(new WFBenchChargeRequest { Title = "Being annoying", Fine = 20_000_000 });
+            Assert.That(bench.Issue(judge, SPlayer, requests, "", "", out var capped), Is.Null);
+            Assert.That(capped!.Charges, Has.Count.EqualTo(2));
+            Assert.That(capped.Uncapped, Is.EqualTo(5_000 + WFBenchMath.MaxCustomFine));
+            Assert.That(bench.Pardon(capped.Number, "test"), Is.True);
+        });
+
         // A fine outside the law's range is clamped to it.
         await Server.WaitAssertion(() =>
         {

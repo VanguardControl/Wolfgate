@@ -39,6 +39,16 @@ public sealed class WFBenchMathTest
         return WFBenchMath.Clamp(fine, min, max);
     }
 
+    [TestCase(150_000, 200_000, 0, 400_000, ExpectedResult = 150_000)]
+    [TestCase(20_000_000, 200_000, 0, 400_000, ExpectedResult = 200_000)]
+    [TestCase(150_000, 200_000, 300_000, 400_000, ExpectedResult = 100_000)]
+    [TestCase(150_000, 200_000, 500_000, 400_000, ExpectedResult = 0)]
+    [TestCase(150_000, -5, 0, 400_000, ExpectedResult = 0)]
+    public int CapAppliesTicketAndRoundLimits(int total, int ticketCap, int alreadyFined, int roundCap)
+    {
+        return WFBenchMath.Cap(total, ticketCap, alreadyFined, roundCap);
+    }
+
     [TestCase(20_000, 25_000, ExpectedResult = 20_000)]
     [TestCase(90_000, 25_000, ExpectedResult = 25_000)]
     [TestCase(-100, 25_000, ExpectedResult = 0)]

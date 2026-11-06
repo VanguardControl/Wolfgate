@@ -17,6 +17,9 @@ stamped `WFBenchTicket` paper and writes a line to their sector criminal record.
 `WFBenchSystem.Fines.cs` watches `BalanceChangedEvent` and takes `wf.bench.garnish` (half) of each later gain. Debt
 past `wf.bench.deadline_minutes` (30) or over `wf.bench.debt_cap` (50,000) sets the record Wanted until it is paid.
 An Outlawry charge carries no fine: Wanted at once and a `WFShipbreakerWarrant` bounty (`wf.bench.outlaw_bounty`).
+Soft limits stop a ticket being used to grief: each law or ordinance counts once per ticket, at most
+`WFBenchMath.MaxCharges` (8) charges, custom fines up to `MaxCustomFine` (100,000), and `WFBenchMath.Cap` holds a
+ticket to `wf.bench.ticket_cap` (200,000) and a person to `wf.bench.round_cap` (400,000) a round, pardons excluded.
 A pardon refunds everything taken, drops the debt and lifts what the ticket caused. Everything resets at round end.
 
 `WFBenchMath` (Shared) holds the sums and is unit-tested; `WFBenchTest` covers the bank, garnish, overdue, outlawry and

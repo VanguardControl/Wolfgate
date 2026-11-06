@@ -103,4 +103,8 @@ follow-up.
 - Whatever they can't cover becomes Bench debt for the round. Half of everything they earn goes to it until it is
   cleared.
 - Debt still owed after 30 minutes, or over 50,000, marks them Wanted until it is paid.
+- Fines have limits so a ticket can't be used to grief: a law counts once per ticket, a ticket carries at most 8
+  charges, a custom charge or posted ordinance fines at most 100,000, one ticket fines at most 200,000, and one person
+  is fined at most 400,000 in a round (pardoned tickets don't count). Beyond that the ticket still stands, but the
+  fine stops.
 - Outlawry tickets carry no fine: the offender is Wanted at once, with a bounty on the board.

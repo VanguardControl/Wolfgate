@@ -68,7 +68,6 @@ public sealed partial class WFBenchSystem : EntitySystem
     /// <summary>Jobs that sit on the Bench.</summary>
     public static readonly HashSet<string> JudgeJobs = new() { "SecurityGuard" };
 
-    private const int MaxCharges = 20;
     private const int MaxTitle = 60;
     private const int MaxText = 300;
 
@@ -138,16 +137,25 @@ public sealed partial class WFBenchSystem : EntitySystem
             return Loc.GetString("wf-bench-error-self");
 
         var charges = new List<WFBenchChargeView>();
-        foreach (var request in requests.Take(MaxCharges))
+        var seen = new HashSet<string>();
+        foreach (var request in requests)
         {
-            if (Resolve(request) is { } charge)
+            if (charges.Count >= WFBenchMath.MaxCharges)
+                break;
+
+            // A law or ordinance counts once per ticket; custom charges are told apart by title.
+            var key = request.Law ?? (request.Ordinance is { } id ? $"ordinance:{id}" : $"custom:{request.Title.Trim().ToLowerInvariant()}");
+            if (seen.Add(key) && Resolve(request) is { } charge)
                 charges.Add(charge);
         }
 
         if (charges.Count == 0)
             return Loc.GetString("wf-bench-error-no-charges");
 
-        var (total, level) = WFBenchMath.Sum(charges.Select(c => (c.Fine, c.Level)));
+        var (uncapped, level) = WFBenchMath.Sum(charges.Select(c => (c.Fine, c.Level)));
+        var user = actor.PlayerSession.UserId;
+        var fined = _tickets.Where(t => t.User == user && !t.Pardoned).Sum(t => t.Total);
+        var total = WFBenchMath.Cap(uncapped, _cfg.GetCVar(BenchCVars.TicketCap), fined, _cfg.GetCVar(BenchCVars.RoundCap));
         var now = _timing.CurTime;
         ticket = new WFBenchTicket
         {
@@ -160,6 +168,7 @@ public sealed partial class WFBenchSystem : EntitySystem
             Notes = Trim(notes, MaxText),
             Charges = charges,
             Total = total,
+            Uncapped = uncapped,
             Level = level,
             Issued = now,
             Deadline = now + TimeSpan.FromMinutes(_cfg.GetCVar(BenchCVars.DeadlineMinutes)),
@@ -325,6 +334,8 @@ public sealed partial class WFBenchSystem : EntitySystem
 
         lines.Add(string.Empty);
         lines.Add(Loc.GetString("wf-bench-ticket-total", ("total", ticket.Total), ("level", LevelName(ticket.Level))));
+        if (ticket.Total < ticket.Uncapped)
+            lines.Add(Loc.GetString("wf-bench-ticket-capped", ("uncapped", ticket.Uncapped)));
         lines.Add(Loc.GetString("wf-bench-ticket-paid", ("paid", ticket.Paid), ("owed", ticket.Owed)));
         if (ticket.Level == WFPenaltyLevel.Outlawry)
             lines.Add(Loc.GetString("wf-bench-ticket-outlawry"));

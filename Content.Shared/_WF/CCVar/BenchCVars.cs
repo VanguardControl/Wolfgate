@@ -10,6 +10,14 @@ public sealed class BenchCVars
     public static readonly CVarDef<float> Range =
         CVarDef.Create("wf.bench.range", 3f, CVar.SERVERONLY);
 
+    /// <summary>Most one ticket may fine, however many charges it carries.</summary>
+    public static readonly CVarDef<int> TicketCap =
+        CVarDef.Create("wf.bench.ticket_cap", 200000, CVar.SERVER | CVar.REPLICATED);
+
+    /// <summary>Most one person may be fined across all their tickets in a round; pardoned tickets don't count.</summary>
+    public static readonly CVarDef<int> RoundCap =
+        CVarDef.Create("wf.bench.round_cap", 400000, CVar.SERVERONLY);
+
     /// <summary>Minutes a ticket's debt may stand before the offender is Wanted.</summary>
     public static readonly CVarDef<int> DeadlineMinutes =
         CVarDef.Create("wf.bench.deadline_minutes", 30, CVar.SERVERONLY);

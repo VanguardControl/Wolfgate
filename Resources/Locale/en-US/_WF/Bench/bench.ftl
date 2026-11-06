@@ -28,6 +28,7 @@ wf-bench-summary = { $count ->
     [one] 1 charge
    *[other] { $count } charges
 }: { $total } thlr, { $level }
+wf-bench-summary-capped = {" "}(capped)
 wf-bench-issue = Issue ticket
 wf-bench-issued = Ticket #{ $number } issued.
 
@@ -77,6 +78,7 @@ wf-bench-ticket-ship = Vessel: { $ship }
 wf-bench-ticket-judge = Judge: { $name }, at { $time }
 wf-bench-ticket-charge = - { $title } ({ $level }): { $fine } thlr
 wf-bench-ticket-total = [bold]Fine: { $total } thlr. Penalty: { $level }.[/bold]
+wf-bench-ticket-capped = The charges add up to { $uncapped } thlr. The Bench's limit applies.
 wf-bench-ticket-paid = Taken from your account: { $paid } thlr. Owed: { $owed } thlr.
 wf-bench-ticket-debt = What you owe is taken from your earnings. Still owed after { $minutes } minutes, or over the Bench's limit, you are Wanted.
 wf-bench-ticket-outlawry = You are outlawed. Any citizen may bring you before the Bench.

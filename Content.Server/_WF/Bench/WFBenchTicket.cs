@@ -15,6 +15,9 @@ public sealed class WFBenchTicket
     public string Notes = string.Empty;
     public List<WFBenchChargeView> Charges = new();
     public int Total;
+
+    /// <summary>The charges' sum before the soft limits.</summary>
+    public int Uncapped;
     public int Paid;
     public int Owed;
     public WFPenaltyLevel Level;
