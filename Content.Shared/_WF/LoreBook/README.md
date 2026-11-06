@@ -116,14 +116,21 @@ in the upstream `_Mono` lore, factions and star system pages.
   - the ADS guide stays in the guidebook under WFFactionsGuide; its lore page is here
   - smuggling is a duty guide, kept in the guidebook under WFFactionsGuide
   - the station's judges
-- [`Resources/Prototypes/_Mono/Guidebook/lore.yml`](../../../Resources/Prototypes/_Mono/Guidebook/lore.yml): the first chapter of the lore book; was name: Lore
+- [`Resources/Prototypes/_Mono/Guidebook/lore.yml`](../../../Resources/Prototypes/_Mono/Guidebook/lore.yml)
+  - the first chapter of the lore book; was name: Lore
+  - was Quick Timeline
 - [`Resources/Prototypes/_Mono/Guidebook/starsystem.yml`](../../../Resources/Prototypes/_Mono/Guidebook/starsystem.yml)
+  - the page is now The Kyphrus System
   - the star system pages moved to the lore book
   - Verda's city
 - [`Resources/ServerInfo/_Mono/Guidebook/BeginnerGuide.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/BeginnerGuide.xml): point new players at the lore book
+- [`Resources/ServerInfo/_Mono/Guidebook/Factions/caelestinus.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Factions/caelestinus.xml): one origin for Caelestinus, which now holds the Bench; the upstream text is kept in the comment below
+- [`Resources/ServerInfo/_Mono/Guidebook/Lore/Primer.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Lore/Primer.xml): the opening page, rewritten for the Collapse, the Lattice and the Bench; the upstream text is kept in the comment below
+- [`Resources/ServerInfo/_Mono/Guidebook/Lore/Timeline.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Lore/Timeline.xml): the history, carried through the Collapse and the Caelestinus Accord; the upstream text is kept in the comment below
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml): the primer is in the lore book; was a textlink
 - [`Resources/ServerInfo/_Mono/Guidebook/StarSystem/Aerumna.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/StarSystem/Aerumna.xml): Aerumna is the xenonid homeworld since the biomass died back
 - [`Resources/ServerInfo/_Mono/Guidebook/StarSystem/Asclepiu.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/StarSystem/Asclepiu.xml): Verda's present-day wildlife and its city
+- [`Resources/ServerInfo/_Mono/Guidebook/StarSystem/Colossus.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/StarSystem/Colossus.xml): the star system page, before and after the Collapse; the upstream text is kept in the comment below
 - [`Resources/ServerInfo/_Mono/Guidebook/StarSystem/Fervidus.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/StarSystem/Fervidus.xml): Fervidus's present-day wildlife after the Collapse
 - [`Resources/ServerInfo/_Mono/Guidebook/StarSystem/Kyphrus.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/StarSystem/Kyphrus.xml): Kyphrus has since collapsed into a black hole
 - [`Resources/ServerInfo/_Mono/Guidebook/StarSystem/Merak.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/StarSystem/Merak.xml): Merak's present-day wildlife after the Collapse

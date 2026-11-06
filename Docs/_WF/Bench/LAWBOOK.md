@@ -1,8 +1,10 @@
 # The Common Writ of the Bench
 
-*Draft for review.* The sector's in-character law, upheld by the Bench (Caelestinus Central's judges). Judges ticket
-offenders from a Bench app on their PDA; the fine is taken from the offender's bank at once, and anything they can't
-cover is taken from what they earn afterwards.
+*Draft for review.* The sector's in-character law. Under the Caelestinus Accord, signed by the TSF and the Vanguard
+after the Collapse, the anchors and Caelestinus Central are held by the Bench: the Overseer and the judges, sworn to
+neither navy. Judges ticket offenders from a Bench app on their PDA; the fine is taken from the offender's bank at once,
+and anything they can't cover is taken from what they earn afterwards. In game, the Writ is a lore book page under
+Caelestinus, and judges carry it as a book.
 
 > By the hand of the Bench of Caelestinus. Binding on every soul within the anchors and beyond them. Ignorance of the
 > Writ is no defence.

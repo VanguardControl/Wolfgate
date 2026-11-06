@@ -14,9 +14,11 @@ wf-lore-book-link-tooltip = Opens the lore book.
 
 wf-lore-entry-primer = Welcome to Colossus
 wf-lore-entry-present-day = The Sector Today
+wf-lore-entry-history = A Short History
+wf-lore-entry-system = The Kyphrus System
 wf-lore-entry-reavers = Ashfall Reavers
 wf-lore-entry-ads = Automated Defense System
-wf-lore-entry-judges = The Judges
+wf-lore-entry-judges = The Bench
 wf-lore-entry-collapse = The Collapse
 wf-lore-entry-carcinoma = Carcinoma
 wf-lore-entry-crocus = Crocus

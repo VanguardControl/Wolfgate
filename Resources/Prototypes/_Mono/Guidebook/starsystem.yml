@@ -1,6 +1,6 @@
 - type: guideEntry
   id: MonoStarSystem
-  name: guide-entry-stars
+  name: wf-lore-entry-system # WOLFGATE(LoreBook): the page is now The Kyphrus System
   text: "/ServerInfo/_Mono/Guidebook/StarSystem/Colossus.xml"
   priority: 10
   lore: true # WOLFGATE(LoreBook): the star system pages moved to the lore book
