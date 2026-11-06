@@ -126,3 +126,4 @@
   children:
   - WFLoreJudges
   # WOLFGATE END
+  - WFCommonWrit # WOLFGATE(Bench): the Common Writ
