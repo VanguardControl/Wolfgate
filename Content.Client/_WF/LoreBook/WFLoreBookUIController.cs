@@ -2,7 +2,9 @@ using Content.Client.Gameplay;
 using Content.Client.Lobby;
 using Content.Client.UserInterface.Controls;
 using Content.Client.UserInterface.Systems.MenuBar.Widgets;
+using Content.Shared._WF.LoreBook;
 using Content.Shared.Guidebook;
+using Robust.Shared.Configuration;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
@@ -13,9 +15,20 @@ using static Robust.Client.UserInterface.Controls.BaseButton;
 namespace Content.Client._WF.LoreBook;
 
 /// <summary>Opens the lore book from its top-bar button, the game menu, the lobby, examine and lore links.</summary>
-public sealed partial class WFLoreBookUIController : UIController, IOnStateExited<LobbyState>, IOnStateExited<GameplayState>
+public sealed partial class WFLoreBookUIController : UIController, IOnStateExited<LobbyState>, IOnStateExited<GameplayState>,
+    IOnStateEntered<LobbyState>, IOnStateEntered<GameplayState>
 {
+    [Dependency] private IConfigurationManager _config = default!;
     [Dependency] private IPrototypeManager _proto = default!;
+
+    /// <summary>
+    /// The book's edition. Raising it opens the book once for every player on their next lobby or round, at
+    /// <see cref="EditionPage"/>.
+    /// </summary>
+    public const int Edition = 1;
+
+    /// <summary>Where a new edition opens.</summary>
+    private const string EditionPage = "WFLoreUnmooring";
 
     private static readonly SoundSpecifier OpenSound = new SoundPathSpecifier("/Audio/_Goobstation/Items/handling/book_pickup.ogg");
 
@@ -26,6 +39,27 @@ public sealed partial class WFLoreBookUIController : UIController, IOnStateExite
     public WFLoreBookWindow? Window => _window;
 
     private MenuButton? LoreBookButton => UIManager.GetActiveUIWidgetOrNull<GameTopMenuBar>()?.LoreBookButton;
+
+    public void OnStateEntered(LobbyState state)
+    {
+        ShowNewEdition();
+    }
+
+    public void OnStateEntered(GameplayState state)
+    {
+        ShowNewEdition();
+    }
+
+    /// <summary>Opens the book once for a player who has not seen this edition, then remembers that they have.</summary>
+    private void ShowNewEdition()
+    {
+        if (_config.GetCVar(WFLoreBookCVars.SeenEdition) >= Edition)
+            return;
+
+        _config.SetCVar(WFLoreBookCVars.SeenEdition, Edition);
+        _config.SaveToFile();
+        Open(EditionPage);
+    }
 
     public void OnStateExited(LobbyState state)
     {

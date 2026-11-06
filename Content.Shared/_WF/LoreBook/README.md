@@ -13,7 +13,13 @@ examine: list them in a `wfLoreLink` prototype (children of a listed prototype i
 Some pages unsettle the book. A guide entry's `unease` (0 to 1) builds up as it is read in an open book
 (`WFLoreBookWindow.Unease.cs`): letters on every page start to slip, then the book writes lines of its own between
 paragraphs (`wf-lore-book-whisper-*`), and deep in, its title, chapter trail and page numbers slip too. Closing the
-book and opening it again clears it. The Lattice's pages (the Unmooring, the Lattice, the Choir) carry unease.
+book and opening it again clears it. Past a little unease the open page stops holding still: it rewrites itself every
+moment or so, letters trade places and words turn to the DS13 glyph font (`WFLoreGlyphs`), and quiet whispers play
+under it (`WFLoreBookWhispers`), more often and louder as the book corrupts. The Lattice's pages (the Unmooring, the
+Lattice, the Choir) carry unease. Pages turn with one of two page-flip sounds (`WFLoreBookPageTurn`).
+
+Raising `WFLoreBookUIController.Edition` opens the book once for every player, at the Unmooring page, on their next lobby
+or round; `wf.lorebook.seen_edition` (client, saved) remembers who has seen it.
 
 Entry points: `WFLoreBookUIController` (open, toggle, link redirects), `WFLoreBookWindow`, `WFLoreBookSystem` (which
 entries and entities are lore, the examine verb), `WFLoreLinkTag`, `GuideEntry.Lore` and `WFLoreLinkPrototype`.
@@ -28,6 +34,7 @@ in the upstream `_Mono` lore, factions and star system pages.
 ### Shared
 
 - [`Content.Shared/_WF/LoreBook/GuideEntry.Lore.cs`](GuideEntry.Lore.cs)
+- [`Content.Shared/_WF/LoreBook/WFLoreBookCVars.cs`](WFLoreBookCVars.cs)
 - [`Content.Shared/_WF/LoreBook/WFLoreLinkPrototype.cs`](WFLoreLinkPrototype.cs)
 
 ### Client
@@ -49,6 +56,7 @@ in the upstream `_Mono` lore, factions and star system pages.
 - [`Resources/Prototypes/_WF/LoreBook/guidebook.yml`](../../../Resources/Prototypes/_WF/LoreBook/guidebook.yml)
 - [`Resources/Prototypes/_WF/LoreBook/links.yml`](../../../Resources/Prototypes/_WF/LoreBook/links.yml)
 - [`Resources/Prototypes/_WF/LoreBook/lore.yml`](../../../Resources/Prototypes/_WF/LoreBook/lore.yml)
+- [`Resources/Prototypes/_WF/LoreBook/unease.yml`](../../../Resources/Prototypes/_WF/LoreBook/unease.yml)
 
 ### Localization
 
@@ -60,6 +68,15 @@ in the upstream `_Mono` lore, factions and star system pages.
 - [`Resources/Textures/_WF/LoreBook/lorebook.svg.192dpi.png`](../../../Resources/Textures/_WF/LoreBook/lorebook.svg.192dpi.png)
 - [`Resources/Textures/_WF/LoreBook/lorebook.svg.192dpi.png.yml`](../../../Resources/Textures/_WF/LoreBook/lorebook.svg.192dpi.png.yml)
 - [`Resources/Textures/_WF/LoreBook/page.png`](../../../Resources/Textures/_WF/LoreBook/page.png)
+
+### Audio
+
+- [`Resources/Audio/_WF/LoreBook/attributions.yml`](../../../Resources/Audio/_WF/LoreBook/attributions.yml)
+- [`Resources/Audio/_WF/LoreBook/page_flip1.ogg`](../../../Resources/Audio/_WF/LoreBook/page_flip1.ogg)
+- [`Resources/Audio/_WF/LoreBook/page_flip2.ogg`](../../../Resources/Audio/_WF/LoreBook/page_flip2.ogg)
+- [`Resources/Audio/_WF/LoreBook/whisper1.ogg`](../../../Resources/Audio/_WF/LoreBook/whisper1.ogg)
+- [`Resources/Audio/_WF/LoreBook/whisper2.ogg`](../../../Resources/Audio/_WF/LoreBook/whisper2.ogg)
+- [`Resources/Audio/_WF/LoreBook/whisper3.ogg`](../../../Resources/Audio/_WF/LoreBook/whisper3.ogg)
 
 ### Guidebook
 

@@ -135,7 +135,11 @@ public sealed partial class WFLoreBookWindow : BaseWindow, ILinkClickHandler
             return;
 
         if (_current >= 0)
+        {
             StyleRow(_pages[_current], false);
+            if (_current != index)
+                PlayPageTurn();
+        }
 
         _current = index;
         var page = _pages[index];
