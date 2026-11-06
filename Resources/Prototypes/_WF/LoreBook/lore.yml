@@ -44,6 +44,7 @@
   priority: 20
   children:
   - WFLoreMonolith
+  - WFLoreChoir
   - WFLoreChimera
   - WFLoreXenonids
 

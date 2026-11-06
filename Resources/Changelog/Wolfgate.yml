@@ -5957,3 +5957,57 @@ Entries:
   id: 100366
   time: '2026-11-06T06:06:51.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/507
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Reality anchors now hold the sector together. Fly past them and the
+        Unmooring sets in: Drift builds up, you start seeing and hearing things,
+        and the far bands are marked as restricted, unsafe space.
+    - type: Add
+      message: >-
+        The outer bands pay out more ore, and exotic matter, which sells high
+        and builds Drift stabilisers, anchor charms and relay anchors.
+    - type: Add
+      message: >-
+        The six Lattice anchors are shielded stations with drones guarding them.
+        Destroying one is a sector-wide breach that shrinks anchored space and
+        makes Kyphrus look wrong.
+    - type: Add
+      message: >-
+        Players deep in Drift may be offered the Choir, an opt-in antagonist
+        faction.
+    - type: Tweak
+      message: Monolith ships only turn up in the Deep, past 30 km.
+  id: 100367
+  time: '2026-11-06T09:48:06.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/508
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        The Common Writ is now the sector's law, upheld by the judges. Read it
+        in the lore book or the law book judges carry.
+    - type: Add
+      message: >-
+        Judges have a Bench app on their PDA to ticket people within a few
+        steps. The fine comes straight out of the offender's account.
+    - type: Add
+      message: >-
+        Fines you can't pay become Bench debt, taken from half of what you earn.
+        Leave it too long or let it grow too big and you are Wanted.
+    - type: Add
+      message: Outlawry charges make you Wanted at once, with a bounty on the board.
+    - type: Add
+      message: Monolith stones are now unlawful material, and examining one says so.
+    - type: Tweak
+      message: >-
+        The Roswell's port bow gun is now a WRIT disabler harpoon that draws a
+        fresh dart two minutes after each shot.
+    - type: Tweak
+      message: >-
+        The Lightning swaps one TOVEK for a SHRIKE ion disruptor to stop ships
+        that won't heave to.
+  id: 100368
+  time: '2026-11-06T10:50:17.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/516

@@ -135,7 +135,11 @@ public sealed partial class WFLoreBookWindow : BaseWindow, ILinkClickHandler
             return;
 
         if (_current >= 0)
+        {
             StyleRow(_pages[_current], false);
+            if (_current != index)
+                PlayPageTurn();
+        }
 
         _current = index;
         var page = _pages[index];
@@ -148,9 +152,11 @@ public sealed partial class WFLoreBookWindow : BaseWindow, ILinkClickHandler
         PageBody.RemoveAllChildren();
         using (var file = _res.ContentFileReadText(page.Entry.Text))
         {
-            if (!_parsing.TryAddMarkup(PageBody, file.ReadToEnd()))
+            if (!_parsing.TryAddMarkup(PageBody, Unsettle(file.ReadToEnd(), page.Entry)))
                 Logger.GetSawmill("lorebook").Error($"Failed to parse lore page {page.Entry.ID}.");
         }
+
+        GatherGlyphs();
 
         PrevSlot.RemoveAllChildren();
         NextSlot.RemoveAllChildren();

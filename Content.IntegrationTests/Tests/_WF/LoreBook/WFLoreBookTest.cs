@@ -23,6 +23,41 @@ public sealed class WFLoreBookTest
 {
     private static readonly Regex LinkPattern = new("\\[(textlink|lorelink)=\"[^\"]*\" link=\"([^\"]+)\"\\]");
 
+    /// <summary>However hard a page is corrupted, it still parses, and some of its words turn to glyphs.</summary>
+    [Test]
+    public async Task CorruptedPagesStillParse()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        var client = pair.Client;
+        await client.WaitIdleAsync();
+        var lore = client.System<WFLoreBookSystem>();
+        var prototypes = client.ResolveDependency<IPrototypeManager>();
+        var parsing = client.ResolveDependency<DocumentParsingManager>();
+        var resources = client.ResolveDependency<IResourceManager>();
+
+        await client.WaitAssertion(() =>
+        {
+            var glyphs = 0;
+            var rng = new System.Random(5);
+            foreach (var entry in prototypes.EnumeratePrototypes<GuideEntryPrototype>().Where(e => e.Unease > 0f && lore.IsLore(e.ID)))
+            {
+                using var file = resources.ContentFileReadText(entry.Text);
+                var text = file.ReadToEnd();
+                for (var i = 0; i < 20; i++)
+                {
+                    var corrupt = WFLoreBookWindow.Distort(rng, text, 0.45f, 0.3f, 0.35f);
+                    glyphs += Regex.Matches(corrupt, "WFLoreGlyphs").Count;
+                    Assert.That(parsing.TryAddMarkup(new Robust.Client.UserInterface.Controls.BoxContainer(), corrupt), Is.True,
+                        $"{entry.ID} didn't parse once corrupted: {corrupt}");
+                }
+            }
+
+            Assert.That(glyphs, Is.GreaterThan(0), "no word ever turned to glyphs.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     [Test]
     public async Task LoreAndGuideAreSplit()
     {

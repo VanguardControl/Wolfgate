@@ -7,4 +7,8 @@ public partial class GuideEntry
     /// </summary>
     [DataField]
     public bool Lore;
+
+    /// <summary>How much reading this lore page unsettles the open book, 0 to 1. The book corrupts as it builds up.</summary>
+    [DataField]
+    public float Unease;
 }
