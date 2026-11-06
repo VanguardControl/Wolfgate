@@ -5881,3 +5881,10 @@ Entries:
   id: 100362
   time: '2026-11-05T23:56:30.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/510
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Round end and round start no longer freeze the server for as long.
+  id: 100363
+  time: '2026-11-06T04:38:49.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/514

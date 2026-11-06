@@ -310,7 +310,10 @@ public sealed partial class WFContractSystem
                         continue;
 
                     if (!_encounters.TrySpawn(encounterProto, site, out var encounter, offBudget: true))
+                    {
+                        Log.Warning($"Bounty contract {contract.Id} could not start {encounterId} at {site}.");
                         continue;
+                    }
 
                     contract.Site = site;
                     contract.EncounterEntity = encounter;
@@ -704,20 +707,31 @@ public sealed partial class WFContractSystem
         return false;
     }
 
-    /// <summary>Open space at a distance from a station, clear of grids, stations and gravity wells.</summary>
+    /// <summary>
+    /// Open space at a distance from a station, clear of grids, stations and gravity wells. A crowded band is tried
+    /// again wider and with half the station clearance, so busy sectors still find a site.
+    /// </summary>
     private MapCoordinates? PickSite(EntityUid station, float min, float max, float clearance)
     {
         if (_station.GetLargestGrid(station) is not { } grid)
             return null;
 
         var centre = _transform.GetMapCoordinates(grid);
-        for (var attempt = 0; attempt < 40; attempt++)
+        var far = Math.Max(min, max);
+        for (var pass = 0; pass < 3; pass++)
         {
-            var point = centre.Position + _random.NextAngle().ToVec() * _random.NextFloat(min, Math.Max(min, max));
-            if (_scheduler.IsClearSpace(centre.MapId, point, SiteClearance, clearance))
-                return new MapCoordinates(point, centre.MapId);
+            for (var attempt = 0; attempt < 40; attempt++)
+            {
+                var point = centre.Position + _random.NextAngle().ToVec() * _random.NextFloat(min, far);
+                if (_scheduler.IsClearSpace(centre.MapId, point, SiteClearance, clearance))
+                    return new MapCoordinates(point, centre.MapId);
+            }
+
+            far *= 1.5f;
+            clearance *= 0.5f;
         }
 
+        Log.Warning($"No clear contract site {min}-{max} m from {ToPrettyString(station)}.");
         return null;
     }
 
