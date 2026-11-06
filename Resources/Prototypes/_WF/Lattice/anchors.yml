@@ -258,6 +258,7 @@
   - type: WFLatticeRelay
     strength: 0.3
     settleSeconds: 5
+    needsFuel: false
 
 - type: entity
   parent: BaseFlatpack
