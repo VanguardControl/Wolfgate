@@ -81,6 +81,8 @@ public sealed class WFDriftMindTest
             Assert.That(drift!.Mind, Is.GreaterThan(3f));
             Assert.That(drift.MindLevel, Is.GreaterThan(0));
             Assert.That(drift.Flavour, Is.EqualTo(WFDriftFlavour.Monolith));
+            var gauge = entities.System<AlertsSystem>().GetActiveAlerts(mob)!.Values.Single(alert => alert.Type == "WFDrift");
+            Assert.That(gauge.Severity, Is.GreaterThanOrEqualTo((short) 22), "a Monolith's Drift didn't show on the red gauge.");
         });
 
         await pair.CleanReturnAsync();

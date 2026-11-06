@@ -35,8 +35,8 @@ public sealed partial class WFDriftMindSystem : EntitySystem
 
     private static readonly ProtoId<AlertPrototype> DriftAlert = "WFDrift";
 
-    /// <summary>The gauge's filled steps; one more severity past them is the garbled dial of the Deep.</summary>
-    private const short GaugeSteps = 6;
+    /// <summary>The gauge's top step, one per Drift level; one more severity past it is the garbled dial of the Deep.</summary>
+    private const short GaugeSteps = 20;
 
     /// <summary>The profile whose hallucinations play off a map with no Lattice.</summary>
     private static readonly ProtoId<WFLatticeProfilePrototype> FallbackProfile = "WFDefault";
@@ -180,10 +180,12 @@ public sealed partial class WFDriftMindSystem : EntitySystem
                 continue;
             }
 
-            var max = (int) (100f / WFDriftComponent.LevelStep);
-            var severity = (short) Math.Clamp(MathF.Round(level * GaugeSteps / (float) max), 0, GaugeSteps);
+            var severity = (short) Math.Clamp(level, 0, GaugeSteps);
             if (Garbled(xform.MapUid, band))
                 severity = GaugeSteps + 1;
+            // A Monolith's hold on the head reads in red, when it is the greater.
+            else if (own is { Flavour: WFDriftFlavour.Monolith, Mind: > 0f } && own.MindLevel >= (carrier?.Level ?? 0))
+                severity += GaugeSteps + 2;
 
             _alerts.ShowAlert(uid, DriftAlert, severity);
         }

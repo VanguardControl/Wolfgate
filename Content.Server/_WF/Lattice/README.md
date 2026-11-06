@@ -30,7 +30,8 @@ vicinity, falling off over its `range`, more when carried, and a lump on touch o
 It fades at 0.4 a second once nothing feeds it. The Unmooring's hallucinations play off the greater of the two, and off
 a map with no Lattice they play off the head alone with the `WFDefault` profile. The Choir and the Remade hold none.
 
-**Gauge.** `WFDriftMindSystem` shows the `WFDrift` alert, a dial among the status icons filled to the greater of the two;
+**Gauge.** `WFDriftMindSystem` shows the `WFDrift` alert, a dial among the status icons with a step per Drift level, filled to the greater of the two and red when a Monolith's
+Drift is the greater;
 it shows only while out of anchored space or holding Drift, and in a garbling band it shows an unreadable dial.
 
 **Garbling.** In a garbling band (the Deep) text garbles more the deeper it is, and flickers on clients
