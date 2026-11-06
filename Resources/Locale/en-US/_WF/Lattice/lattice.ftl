@@ -151,3 +151,5 @@ wf-lattice-defence-title = ANCHOR DEFENCE
 wf-lattice-defence-under-fire = Reality anchor {$anchor} is under fire from {$attacker}. Its shield is holding. Cease fire.
 wf-lattice-defence = Reality anchor {$anchor}'s shield is down. Defensive protocols engaged against {$attacker}. Its drones and lances will answer.
 wf-lattice-defence-unknown = an unknown vessel
+
+wf-drift-meter-label = DRIFT

@@ -24,6 +24,15 @@ on a planet, their ground or grid at the world's place in the sector. Ghosts are
 someone is aboard. The field component carries the anchors and thresholds to clients. `WFLatticeMath` holds the field,
 band, depth and garble sums.
 
+**Drift in the head.** Apart from a carrier's Drift, a person holds their own (`WFDriftComponent.Mind`,
+`WFDriftMindSystem`). A Monolith's dread feeds it (red on the gauge), and so does any entity with `WFDriftSource`: by
+vicinity, falling off over its `range`, more when carried, and a lump on touch or pick-up (exotic matter has a weak one).
+It fades at 0.4 a second once nothing feeds it. The Unmooring's hallucinations play off the greater of the two, and off
+a map with no Lattice they play off the head alone with the `WFDefault` profile. The Choir and the Remade hold none.
+
+**Gauge.** `WFDriftMeterOverlay` is a dial at the right of the screen showing the greater of the two; it shows only while
+out of anchored space or holding Drift, and in the Deep its needle shakes and its readings garble.
+
 **Garbling.** In a garbling band (the Deep) text garbles more the deeper it is, and flickers on clients
 (`WFLatticeViewSystem`): radar contact names by the deeper of the viewer and the contact, the console's own position and
 the radar's cursor and scanner readouts by the viewer, and the Scion hint whispers' coordinates by where the hulk is
@@ -99,6 +108,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 
 - [`Content.Server/_WF/Lattice/WFChoirSystem.cs`](WFChoirSystem.cs)
 - [`Content.Server/_WF/Lattice/WFDriftEffectsSystem.cs`](WFDriftEffectsSystem.cs)
+- [`Content.Server/_WF/Lattice/WFDriftMindSystem.cs`](WFDriftMindSystem.cs)
 - [`Content.Server/_WF/Lattice/WFLatticeShelterSystem.cs`](WFLatticeShelterSystem.cs)
 - [`Content.Server/_WF/Lattice/WFLatticeSystem.cs`](WFLatticeSystem.cs)
 - [`Content.Server/_WF/Lattice/WFLatticeSystem.Defence.cs`](WFLatticeSystem.Defence.cs)
@@ -108,6 +118,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 
 - [`Content.Shared/_WF/Lattice/WFChoir.cs`](../../../Content.Shared/_WF/Lattice/WFChoir.cs)
 - [`Content.Shared/_WF/Lattice/WFDriftComponent.cs`](../../../Content.Shared/_WF/Lattice/WFDriftComponent.cs)
+- [`Content.Shared/_WF/Lattice/WFDriftSourceComponent.cs`](../../../Content.Shared/_WF/Lattice/WFDriftSourceComponent.cs)
 - [`Content.Shared/_WF/Lattice/WFLatticeAnchorComponent.cs`](../../../Content.Shared/_WF/Lattice/WFLatticeAnchorComponent.cs)
 - [`Content.Shared/_WF/Lattice/WFLatticeFieldComponent.cs`](../../../Content.Shared/_WF/Lattice/WFLatticeFieldComponent.cs)
 - [`Content.Shared/_WF/Lattice/WFLatticeHallucination.cs`](../../../Content.Shared/_WF/Lattice/WFLatticeHallucination.cs)
@@ -119,6 +130,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 ### Client
 
 - [`Content.Client/_WF/Lattice/ShuttleNavControl.Lattice.cs`](../../../Content.Client/_WF/Lattice/ShuttleNavControl.Lattice.cs)
+- [`Content.Client/_WF/Lattice/WFDriftMeterOverlay.cs`](../../../Content.Client/_WF/Lattice/WFDriftMeterOverlay.cs)
 - [`Content.Client/_WF/Lattice/WFDriftOverlay.cs`](../../../Content.Client/_WF/Lattice/WFDriftOverlay.cs)
 - [`Content.Client/_WF/Lattice/WFLatticeHallucinationSystem.cs`](../../../Content.Client/_WF/Lattice/WFLatticeHallucinationSystem.cs)
 - [`Content.Client/_WF/Lattice/WFLatticeHumSystem.cs`](../../../Content.Client/_WF/Lattice/WFLatticeHumSystem.cs)
@@ -129,6 +141,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFChoirTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFChoirTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFDriftEffectsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFDriftEffectsTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Lattice/WFDriftMindTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFDriftMindTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeShelterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeShelterTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeStationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeStationTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeTest.cs)

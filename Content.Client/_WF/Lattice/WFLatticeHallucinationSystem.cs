@@ -34,6 +34,7 @@ public sealed partial class WFLatticeHallucinationSystem : EntitySystem
 
         SubscribeNetworkEvent<WFLatticeHallucinationEvent>(OnHallucination);
         _overlays.AddOverlay(new WFDriftOverlay());
+        _overlays.AddOverlay(new WFDriftMeterOverlay());
     }
 
     public override void Shutdown()
@@ -41,19 +42,32 @@ public sealed partial class WFLatticeHallucinationSystem : EntitySystem
         base.Shutdown();
 
         _overlays.RemoveOverlay<WFDriftOverlay>();
+        _overlays.RemoveOverlay<WFDriftMeterOverlay>();
         Clear();
     }
 
-    /// <summary>The local player's Drift level: their ship's, or their own off a ship.</summary>
+    /// <summary>The local player's Drift level: their ship's or their own, or what they carry in their head if that is more.</summary>
     public int LocalLevel()
     {
+        return Math.Max(LocalDrift()?.Level ?? 0, LocalMind()?.MindLevel ?? 0);
+    }
+
+    /// <summary>The local player's own Drift, which holds what a Monolith or another source has put in their head.</summary>
+    public WFDriftComponent? LocalMind()
+    {
+        return _player.LocalEntity is { } mob && TryComp<WFDriftComponent>(mob, out var own) ? own : null;
+    }
+
+    /// <summary>The Drift the local player carries: their ship's, or their own off a ship.</summary>
+    public WFDriftComponent? LocalDrift()
+    {
         if (_player.LocalEntity is not { } mob)
-            return 0;
+            return null;
 
         if (Transform(mob).GridUid is { } grid && TryComp<WFDriftComponent>(grid, out var ship))
-            return ship.Level;
+            return ship;
 
-        return TryComp<WFDriftComponent>(mob, out var own) ? own.Level : 0;
+        return TryComp<WFDriftComponent>(mob, out var own) ? own : null;
     }
 
     private void OnHallucination(WFLatticeHallucinationEvent ev)

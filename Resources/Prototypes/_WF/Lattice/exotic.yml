@@ -50,6 +50,13 @@
     color: "#b040e0"
   - type: Item
     size: Tiny
+  # Matter from outside the Lattice's hold still carries a little of it.
+  - type: WFDriftSource
+    rate: 0.1
+    range: 2
+    carried: 0.15
+    touch: 1
+    cap: 30
 
 - type: entity
   parent: WFMaterialExoticMatter

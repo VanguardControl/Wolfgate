@@ -330,6 +330,10 @@ public sealed partial class WFLatticeSystem : EntitySystem
                 if (carrier != mob && TryComp<WFLatticeShelterComponent>(mob, out var charm))
                     own *= 1f - Math.Clamp(charm.Shelter, 0f, 1f);
 
+                // What they carry in their own head counts as much as where they are.
+                if (carrier != mob && TryComp<WFDriftComponent>(mob, out var head))
+                    own = Math.Max(own, head.Mind);
+
                 // The Choir are at home out here: nothing they see is wrong to them.
                 if (HasComp<WFChoirMemberComponent>(mob))
                     continue;

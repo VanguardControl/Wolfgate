@@ -23,4 +23,23 @@ public sealed partial class WFDriftComponent : Component
     /// <summary>Depth into its band, 0 to 1, for clients that can't work it out themselves, such as on a planet.</summary>
     [DataField, AutoNetworkedField]
     public float Depth;
+
+    /// <summary>On a person: Drift they carry in their own head, from a Monolith or another source, wherever they are. Server only.</summary>
+    [DataField]
+    public float Mind;
+
+    /// <summary><see cref="Mind"/> in steps of <see cref="LevelStep"/>.</summary>
+    [DataField, AutoNetworkedField]
+    public int MindLevel;
+
+    /// <summary>What last put Drift in their head.</summary>
+    [DataField, AutoNetworkedField]
+    public WFDriftFlavour Flavour;
+}
+
+/// <summary>Where a person's Drift came from, for how it feels.</summary>
+public enum WFDriftFlavour : byte
+{
+    Unmooring,
+    Monolith,
 }
