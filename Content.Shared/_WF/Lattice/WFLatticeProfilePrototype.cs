@@ -23,6 +23,10 @@ public sealed partial class WFLatticeProfilePrototype : IPrototype
     [DataField]
     public float AnchorAngle = 30f;
 
+    /// <summary>How far from an anchor its beams to its neighbours start: about the edge of its station's shield, in metres.</summary>
+    [DataField]
+    public float BeamOffset = 22f;
+
     /// <summary>What is spawned for each primary anchor.</summary>
     [DataField]
     public EntProtoId AnchorPrototype = "WFLatticeAnchorMarker";

@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Shared._WF.Lattice;
+using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
@@ -13,9 +14,22 @@ namespace Content.Client._WF.Lattice;
 public sealed partial class WFLatticeViewSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IOverlayManager _overlays = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        _overlays.AddOverlay(new WFLatticeBeamOverlay());
+    }
+
+    public override void Shutdown()
+    {
+        base.Shutdown();
+        _overlays.RemoveOverlay<WFLatticeBeamOverlay>();
+    }
 
     /// <summary>Seconds between changes in how a garbled text reads.</summary>
     private const double FlickerSeconds = 0.6;

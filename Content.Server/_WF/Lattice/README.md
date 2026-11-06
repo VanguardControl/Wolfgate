@@ -34,6 +34,9 @@ a map with no Lattice they play off the head alone with the `WFDefault` profile.
 Drift is the greater;
 it shows only while out of anchored space or holding Drift, and in a garbling band it shows an unreadable dial.
 
+**Beams.** Clients draw a living violet beam between each pair of neighbouring primary anchors (`WFLatticeBeamOverlay`),
+starting at the shield edge (`beamOffset`). A lost anchor breaks the two beams that ran to it.
+
 **Garbling.** In a garbling band (the Deep) text garbles more the deeper it is, and flickers on clients
 (`WFLatticeViewSystem`): radar contact names by the deeper of the viewer and the contact, the console's own position and
 the radar's cursor and scanner readouts by the viewer, and the Scion hint whispers' coordinates by where the hulk is
@@ -132,6 +135,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 
 - [`Content.Client/_WF/Lattice/ShuttleNavControl.Lattice.cs`](../../../Content.Client/_WF/Lattice/ShuttleNavControl.Lattice.cs)
 - [`Content.Client/_WF/Lattice/WFDriftOverlay.cs`](../../../Content.Client/_WF/Lattice/WFDriftOverlay.cs)
+- [`Content.Client/_WF/Lattice/WFLatticeBeamOverlay.cs`](../../../Content.Client/_WF/Lattice/WFLatticeBeamOverlay.cs)
 - [`Content.Client/_WF/Lattice/WFLatticeHallucinationSystem.cs`](../../../Content.Client/_WF/Lattice/WFLatticeHallucinationSystem.cs)
 - [`Content.Client/_WF/Lattice/WFLatticeHumSystem.cs`](../../../Content.Client/_WF/Lattice/WFLatticeHumSystem.cs)
 - [`Content.Client/_WF/Lattice/WFLatticeRings.cs`](../../../Content.Client/_WF/Lattice/WFLatticeRings.cs)
