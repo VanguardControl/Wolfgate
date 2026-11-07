@@ -13,6 +13,9 @@ public sealed partial class ResearchSystem
 
     private void OnGetPointsPerSecond(Entity<ResearchPointSourceComponent> source, ref ResearchServerGetPointsPerSecondEvent args)
     {
+        if (!WFPassivePoints) // WOLFGATE(Blueprints): no passive points; science earns them actively to fund hunts
+            return;
+
         if (CanProduce(source))
             args.Points += source.Comp.PointsPerSecond;
     }

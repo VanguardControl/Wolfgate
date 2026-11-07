@@ -112,6 +112,16 @@ public sealed class WFBlueprintTest
             Assert.That(locator.Comp.Hunt, Is.Null, "The hunt outlived its shards.");
             Assert.That(record.Sites[0].BlueprintClaim, Is.Null, "The site stayed claimed.");
 
+            // The fee comes out of the server's research points first.
+            var research = server.System<ResearchSystem>();
+            var serverComp = entMan.GetComponent<ResearchServerComponent>(researchServer);
+            locator.Comp.Fees = new[] { 1000, 1000, 1000 };
+            locator.Comp.NextHunt = TimeSpan.Zero;
+            research.ModifyServerPoints(researchServer, 1500 - serverComp.Points, serverComp);
+            Assert.That(blueprints.TryLocate(locator, locatorUid, new List<string> { "WFPatternOmnitool" }, out error), Is.True, error);
+            Assert.That(serverComp.Points, Is.EqualTo(500), "The fee wasn't taken from research points.");
+            blueprints.Abandon(locator);
+
             // A Construct unlocks its pattern's recipes on the server; a second copy is refused.
             var construct = constructs[0];
             var patternId = entMan.GetComponent<WFBlueprintConstructComponent>(construct).Pattern!.Value;
@@ -132,14 +142,36 @@ public sealed class WFBlueprintTest
             Assert.That(basics, Is.Not.Empty);
             Assert.That(basics.All(t => techs.Contains(t.ID)), Is.True, "A tier-1 technology was not unlocked at map init.");
 
-            // A tier-3 technology is hunt-only: points can't unlock it, its Construct can.
-            var research = server.System<ResearchSystem>();
+            // Every technology past tier 1 has a pattern, so points unlock nothing.
+            var patternTechs = proto.EnumeratePrototypes<WFBlueprintPatternPrototype>()
+                .Where(p => p.Technology != null).Select(p => p.Technology!.Value.Id).ToHashSet();
+            var missing = proto.EnumeratePrototypes<TechnologyPrototype>()
+                .Where(t => t.Tier > 1 && !t.Hidden && !patternTechs.Contains(t.ID)).Select(t => t.ID).ToList();
+            Assert.That(missing, Is.Empty, "Technologies without a pattern; rerun Tools/_WF/Blueprints/gen_techweb_patterns.py.");
+
+            // A hunt-only technology: points can't unlock it, its Construct can.
             var huntOnly = proto.EnumeratePrototypes<WFBlueprintPatternPrototype>()
                 .First(p => p.Technology is { } t && supported.Contains(proto.Index(t).Discipline));
             var tech = proto.Index(huntOnly.Technology!.Value);
-            Assert.That(tech.Tier, Is.EqualTo(3));
+            Assert.That(tech.Tier, Is.GreaterThan(1));
             Assert.That(research.IsTechnologyAvailable(db, tech), Is.False, "A hunt-only technology could be researched.");
             Assert.That(blueprints.Fits(locatorUid, huntOnly), Is.True);
+
+            // A technology whose prerequisites aren't known can't be located yet.
+            var blocked = proto.EnumeratePrototypes<WFBlueprintPatternPrototype>()
+                .FirstOrDefault(p => p.Technology != null && blueprints.Fits(locatorUid, p) && !blueprints.PrerequisitesKnown(locatorUid, p));
+            if (blocked != null)
+            {
+                locator.Comp.NextHunt = TimeSpan.Zero;
+                locator.Comp.Fees = new[] { 0, 0, 0 };
+                Assert.That(blueprints.TryLocate(locator, locatorUid, new List<string> { blocked.ID }, out error), Is.False);
+                Assert.That(error, Is.EqualTo("wf-blueprint-locator-prerequisites"));
+            }
+
+            // Decoding arrays: none on this ship, and the speed-up has a floor.
+            Assert.That(blueprints.CountArrays(locatorUid), Is.Zero);
+            Assert.That(WFBlueprintDecode.Scale(0), Is.EqualTo(1f));
+            Assert.That(WFBlueprintDecode.Scale(20), Is.EqualTo(0.4f));
 
             var techConstruct = blueprints.SpawnFor("WFBlueprintConstruct", huntOnly, new EntityCoordinates(ship.Owner, 0.5f, 0.5f), "wf-blueprint-construct-name");
             Assert.That(blueprints.TryInsertConstruct(locator, (techConstruct, entMan.GetComponent<WFBlueprintConstructComponent>(techConstruct)), locatorUid), Is.True);

@@ -66,6 +66,12 @@ public sealed partial class WFBlueprintSystem
             return false;
         }
 
+        if (patterns.Any(p => !PrerequisitesKnown(ent, p)))
+        {
+            error = "wf-blueprint-locator-prerequisites";
+            return false;
+        }
+
         var tier = patterns[0].Tier;
         if (!TryPickSite(tier, out var ground, out var index))
         {
@@ -74,11 +80,18 @@ public sealed partial class WFBlueprintSystem
         }
 
         var fee = ent.Comp.Fees[Math.Clamp(tier - 1, 0, ent.Comp.Fees.Length - 1)];
-        if (fee > 0 && !_bank.TryBankWithdraw(user, fee))
+        var fromPoints = 0;
+        if (_research.TryGetClientServer(ent, out var serverUid, out var server))
+            fromPoints = Math.Clamp(server.Points, 0, fee);
+
+        if (fee > fromPoints && !_bank.TryBankWithdraw(user, fee - fromPoints))
         {
             error = "wf-blueprint-locator-no-funds";
             return false;
         }
+
+        if (fromPoints > 0)
+            _research.ModifyServerPoints(serverUid!.Value, -fromPoints, server);
 
         var site = Comp<WFPlanetPoiComponent>(ground).Sites[index];
         var hunt = new WFBlueprintHunt

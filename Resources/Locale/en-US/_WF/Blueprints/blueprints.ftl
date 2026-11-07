@@ -1,5 +1,4 @@
 wf-blueprint-locator-title = Artifact Blueprint Locator
-wf-blueprint-console-button = Lost patterns
 wf-blueprint-locator-status-unlinked = No research server linked.
 wf-blueprint-locator-status-ready = Ready to locate.
 wf-blueprint-locator-status-hunting = Hunt in progress.
@@ -9,8 +8,8 @@ wf-blueprint-locator-search = Search patterns
 wf-blueprint-locator-tier-all = All
 wf-blueprint-locator-hide-known = Hide known
 wf-blueprint-locator-none-shown = Nothing matches.
-wf-blueprint-locator-pick-one = Pick a pattern to see what it prints.
-    Use a shard on this console to decode it, then its Construct to unlock the pattern.
+wf-blueprint-locator-pick-one = Pick a technology or relic to see what it unlocks.
+    Use a shard on this console to decode it, then its Construct to unlock it.
 wf-blueprint-locator-prints = Prints
 wf-blueprint-locator-material = {$name} ×{$amount}
 wf-blueprint-locator-detail-known = This server already knows this pattern.
@@ -25,7 +24,13 @@ wf-blueprint-locator-hunt = [bold]{$site}[/bold] on {$world} (tier {$tier}): {$p
 wf-blueprint-locator-abandon = Abandon
 wf-blueprint-locator-locate = Locate
 wf-blueprint-locator-pick = Pick up to {$max} patterns of one tier.
-wf-blueprint-locator-fee = Fee: {$fee} spesos ({$count}/{$max})
+wf-blueprint-locator-fee = Fee: { $points ->
+    [0] {$spesos} spesos
+   *[other] { $spesos ->
+        [0] {$points} research points
+       *[other] {$points} research points + {$spesos} spesos
+    }
+} ({$count}/{$max})
 wf-blueprint-tier = { $tier ->
     [1] Tier I: Recovered
     [2] Tier II: Lost
@@ -37,7 +42,7 @@ wf-blueprint-tier-short = { $tier ->
    *[other] III
 }
 wf-blueprint-pattern-owned = {$name} (known)
-wf-blueprint-tech-desc = Lost {$discipline} research. It can't be researched with points; recover it to unlock the whole node.
+wf-blueprint-tech-desc = Lost {$discipline} research. Recover its pattern to unlock the whole node.
 lathe-category-wf-patterns = Patterns
 
 wf-blueprint-locator-busy = A hunt is already running.
@@ -45,7 +50,8 @@ wf-blueprint-locator-cooldown = The locator is still recalibrating.
 wf-blueprint-locator-unlinked = The locator isn't linked to a research server.
 wf-blueprint-locator-invalid = Pick up to four unknown patterns of one tier.
 wf-blueprint-locator-no-site = No site of that tier is free right now.
-wf-blueprint-locator-no-funds = You can't pay the locate fee.
+wf-blueprint-locator-prerequisites = Recover the technology's prerequisites first.
+wf-blueprint-locator-no-funds = The server's research points and your bank can't cover the locate fee.
 wf-blueprint-locator-started = Shards located at {$site} on {$world}.
 wf-blueprint-locator-abandoned = Hunt abandoned.
 
@@ -153,3 +159,29 @@ wf-pattern-xray-cells = X-ray laser cells
 wf-pattern-xray-cells-desc = Cells that make the cell lasers fire x-rays. One each for revolver, SMG and sniper.
 wf-pattern-pulse-cells = Pulse laser cells
 wf-pattern-pulse-cells-desc = Cells that make the cell lasers fire pulse beams. One each for revolver, SMG and sniper.
+
+wf-codex-tab = Codex
+wf-relics-tab = Relics
+wf-codex-status = {$server}: {$status}
+wf-codex-points = Research points: [color=#fab325]{$points}[/color]. They pay for hunts before your bank.
+wf-codex-arrays = { $arrays ->
+    [0] No decoding arrays linked.
+   *[other] Decoding arrays: {$arrays}. Decoding takes {$percent}% as long.
+}
+wf-codex-legend-known = Known
+wf-codex-legend-huntable = Can be hunted
+wf-codex-legend-hunting = Being hunted
+wf-codex-legend-locked = Needs prerequisites
+wf-codex-discipline = {$known}/{$total}
+wf-codex-tier-line = {$discipline} · {$tier}
+wf-codex-tier-inherited = Inherited Codex: every server starts with it.
+wf-codex-tier-inherited-short = Inherited Codex
+wf-codex-recovered-by = Recovered by a tier {$tier} pattern hunt.
+wf-codex-inherited-desc = Common knowledge every lathe in the sector still holds.
+wf-codex-state-inherited = Every research server starts with this.
+wf-codex-state-hunting = Its shards are out there now. Bring them home and decode them here.
+wf-codex-state-locked = Recover {$prerequisites} first.
+wf-codex-state-huntable = Add it to a hunt request to locate its shards.
+wf-codex-state-foreign = This server can't use it.
+wf-codex-generic-unlock = • {$text}
+wf-codex-pattern-hunting = {$name} (being hunted)

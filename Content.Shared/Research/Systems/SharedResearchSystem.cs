@@ -167,7 +167,8 @@ public abstract partial class SharedResearchSystem : EntitySystem
 
         if (includeCost)
         {
-            description.AddMarkupOrThrow(Loc.GetString("research-console-cost", ("amount", technology.Cost)));
+            WFAddRecoveryLine(description, technology); // WOLFGATE(Blueprints): technology is recovered by hunts, not bought
+            // description.AddMarkupOrThrow(Loc.GetString("research-console-cost", ("amount", technology.Cost))); // WOLFGATE(Blueprints)
             description.PushNewline();
         }
 

@@ -1,7 +1,10 @@
 - type: entity
   id: DataFarmResearchCircuitboard
   parent: BaseMachineCircuitboard
-  name: data farm (research) circuitboard
+  # WOLFGATE(Blueprints) START: research datafarms are decoding arrays
+  # name: data farm (research) circuitboard
+  name: decoding array circuitboard
+  # WOLFGATE END
   description: Looks like you could use a screwdriver to change the board type. Unable to be flatpacked due to complex components.
   components:
   - type: Sprite

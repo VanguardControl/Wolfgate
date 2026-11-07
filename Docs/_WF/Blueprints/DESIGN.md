@@ -105,14 +105,21 @@ An abandoned hunt, or one still unfinished when the round ends, has its unclaime
 
 ## Patterns
 
-The Codex is split by tier (decided 2026-11-07):
+BAS replaces points research entirely (decided 2026-11-07):
 
 - **Tier 1: free.** Every tier-1 technology a server's disciplines cover is unlocked when the server starts, so every
   ship has the basics.
-- **Tier 2: points.** Normal research, so science still has a job.
-- **Tier 3: hunt-only.** Each tier-3 technology, faction trees included, has a generated pattern
-  (`_WF/Blueprints/techweb.yml`). Points can't unlock it; a Construct unlocks the whole node. A faction's node is only
-  offered on that faction's servers.
+- **Tiers 2 and 3: hunt-only.** Each technology, faction trees included, has a generated pattern
+  (`_WF/Blueprints/techweb.yml`): tier 2 is a Recovered hunt, tier 3 a Lost or Forgotten one by cost. Points can't
+  unlock it; a Construct unlocks the whole node. A faction's node is only offered on that faction's servers.
+- **Prerequisites still matter.** A technology can only be located once its prerequisites are known, so the tree is
+  climbed hunt by hunt.
+- **Points fund hunts.** Research points only pay locate fees, before the bank. Nothing earns them passively any more,
+  which ends the Sevastopol point-disk loop. Active science (artifacts, anomalies, xenobiology) and research disks found
+  as loot still earn them, so science crews pay for the hunts.
+- **Datafarms are decoding arrays.** Each powered one linked to the server speeds up decoding.
+- **One window.** The R&D console opens the Codex window (tree, relics, detail, hunt bar); the old points window is
+  gone, and the guidebook's Science pages describe hunting.
 
 Beyond the techweb, BAS patterns are also new things that can't be had any other way.
 

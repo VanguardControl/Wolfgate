@@ -4,6 +4,41 @@
 # Arsenal
 
 - type: wfBlueprintPattern
+  id: WFTechBasicShuttleArmament
+  name: research-technology-basic-shuttle-armament
+  tier: 1
+  icon: PowerCageHigh
+  technology: BasicShuttleArmament
+
+- type: wfBlueprintPattern
+  id: WFTechHardsuitsArmored
+  name: research-technology-hardsuits-armored
+  tier: 1
+  icon: ClothingOuterHardsuitPrivateSecurity
+  technology: HardsuitsArmored
+
+- type: wfBlueprintPattern
+  id: WFTechMercArmementSimple
+  name: research-technology-merc-armement-simple
+  tier: 1
+  icon: WeaponSubMachineGunVector9x19mm
+  technology: MercArmementSimple
+
+- type: wfBlueprintPattern
+  id: WFTechConcentratedLaserWeaponry
+  name: research-technology-concentrated-laser-weaponry
+  tier: 1
+  icon: WeaponLaserCannon
+  technology: ConcentratedLaserWeaponry
+
+- type: wfBlueprintPattern
+  id: WFTechMercArmementAdvanced
+  name: research-technology-merc-armement-advanced
+  tier: 1
+  icon: WeaponLMGRatel
+  technology: MercArmementAdvanced
+
+- type: wfBlueprintPattern
   id: WFTechAdvancedMeleeCombatOptions
   name: research-technology-advanced-melee-combat-options
   tier: 2
@@ -32,6 +67,69 @@
   technology: PortableMicrofusionWeaponry
 
 # CivilianServices
+
+- type: wfBlueprintPattern
+  id: WFTechBiochemicalStasis
+  name: research-technology-biochemical-stasis
+  tier: 1
+  icon: StasisBedMachineCircuitboard
+  technology: BiochemicalStasis
+
+- type: wfBlueprintPattern
+  id: WFTechRadioMusicCommunications
+  name: research-technology-radio-music-communication
+  tier: 1
+  icon: VinylPlayer
+  technology: RadioMusicCommunications
+
+- type: wfBlueprintPattern
+  id: WFTechIndustrialMedicine
+  name: research-technology-industrial-medicine
+  tier: 1
+  icon: MedicalAssembler
+  technology: IndustrialMedicine
+
+- type: wfBlueprintPattern
+  id: WFTechAdvancedCleaning
+  name: research-technology-advanced-cleaning
+  tier: 1
+  icon: AdvMopItem
+  technology: AdvancedCleaning
+
+- type: wfBlueprintPattern
+  id: WFTechAdvancedPersonalPropulsion
+  name: research-technology-advanced-personal-propulsion
+  tier: 1
+  icon: JetpackVoid
+  technology: AdvancedPersonalPropulsion
+
+- type: wfBlueprintPattern
+  id: WFTechAdvancedTreatment
+  name: research-technology-advanced-treatment
+  tier: 1
+  icon: EnergyScalpel
+  technology: AdvancedTreatment
+
+- type: wfBlueprintPattern
+  id: WFTechHONKMech
+  name: research-technology-honk-mech
+  tier: 1
+  icon: MechHonkerFilled
+  technology: HONKMech
+
+- type: wfBlueprintPattern
+  id: WFTechCyberneticEnhancements
+  name: research-technology-cybernetic-enhancements
+  tier: 1
+  icon: SecurityCyberneticEyes
+  technology: CyberneticEnhancements
+
+- type: wfBlueprintPattern
+  id: WFTechSyringeGun
+  name: research-technology-syringe-gun
+  tier: 1
+  icon: LauncherSyringe
+  technology: SyringeGun
 
 - type: wfBlueprintPattern
   id: WFTechBluespaceChemistry
@@ -64,6 +162,55 @@
 # Experimental
 
 - type: wfBlueprintPattern
+  id: WFTechDeterrenceTechnologies
+  name: research-technology-deterrence
+  tier: 1
+  icon: HoloprojectorField
+  technology: DeterrenceTechnologies
+
+- type: wfBlueprintPattern
+  id: WFTechThermalVisionTech
+  name: research-technology-thermal-vision
+  tier: 1
+  icon: ClothingEyesThermalVisionGoggles
+  technology: ThermalVisionTech
+
+- type: wfBlueprintPattern
+  id: WFTechAdvancedResearch
+  name: research-technology-advanced-research
+  tier: 1
+  icon: WeaponPistolCHIMP
+  technology: AdvancedResearch
+
+- type: wfBlueprintPattern
+  id: WFTechAdvancedParts
+  name: research-technology-advanced-parts
+  tier: 1
+  icon: AdvancedCapacitorStockPart
+  technology: AdvancedParts
+
+- type: wfBlueprintPattern
+  id: WFTechAiTechnology
+  name: research-technology-ai
+  tier: 1
+  icon: PlayerStationAiEmpty
+  technology: AiTechnology
+
+- type: wfBlueprintPattern
+  id: WFTechNightVisionTech
+  name: research-technology-night-vision
+  tier: 1
+  icon: ClothingEyesNightVisionGoggles
+  technology: NightVisionTech
+
+- type: wfBlueprintPattern
+  id: WFTechBluespaceTethering
+  name: research-technology-bluespace-tethering
+  tier: 1
+  icon: ClothingShoesBootsMagVoid
+  technology: BluespaceTethering
+
+- type: wfBlueprintPattern
   id: WFTechMagnetsTechAdvanced
   name: research-technology-magnets-tech-advanced
   tier: 2
@@ -92,6 +239,69 @@
   technology: ShuttleCtlaAdvancedDriveResearch
 
 # FactionUniversal
+
+- type: wfBlueprintPattern
+  id: WFTechPrintableExplosives
+  name: research-technology-printable-explosives
+  tier: 1
+  icon: C4
+  technology: PrintableExplosives
+
+- type: wfBlueprintPattern
+  id: WFTechAdvancedProcessing
+  name: research-technology-processing-advanced
+  tier: 1
+  icon: IndustrialFurnaceEconomyCompact
+  technology: AdvancedProcessing
+
+- type: wfBlueprintPattern
+  id: WFTechUniversalPlastitaniumCore
+  name: research-technology-universal-ap-plastitanium
+  tier: 1
+  icon: SheetPlasteel
+  technology: UniversalPlastitaniumCore
+
+- type: wfBlueprintPattern
+  id: WFTechUniversalTorpedoAmmo
+  name: research-technology-universal-asm220-ammo
+  tier: 1
+  icon: Asm220TorpedoHE
+  technology: UniversalTorpedoAmmo
+
+- type: wfBlueprintPattern
+  id: WFTechUraniumProcessingAdvanced
+  name: research-technology-uranium-processing-advanced
+  tier: 1
+  icon: UraniumEnrichedProcessingIcon
+  technology: UraniumProcessingAdvanced
+
+- type: wfBlueprintPattern
+  id: WFTechDraconicMunitions
+  name: research-technology-draconic-munitions
+  tier: 1
+  icon: AmmoBox9x19mmIncendiary
+  technology: DraconicMunitions
+
+- type: wfBlueprintPattern
+  id: WFTechUraniumMunitions
+  name: research-technology-uranium-munitions
+  tier: 1
+  icon: AmmoBox9x19mmUranium
+  technology: UraniumMunitions
+
+- type: wfBlueprintPattern
+  id: WFTechUniversalMaterialResearchT2
+  name: research-technology-universal-engsci-2
+  tier: 1
+  icon: SheetPlasteel
+  technology: UniversalMaterialResearchT2
+
+- type: wfBlueprintPattern
+  id: WFTechUniversalMaterialResearchT3
+  name: research-technology-universal-engsci-3
+  tier: 1
+  icon: SheetPlastitanium
+  technology: UniversalMaterialResearchT3
 
 - type: wfBlueprintPattern
   id: WFTechUniversalTorpedoAmmoAdvanced
@@ -124,6 +334,55 @@
 # Industrial
 
 - type: wfBlueprintPattern
+  id: WFTechShuttlecraft
+  name: research-technology-shuttlecraft
+  tier: 1
+  icon: Thruster
+  technology: Shuttlecraft
+
+- type: wfBlueprintPattern
+  id: WFTechMechanicalCompression
+  name: research-technology-mechanical-compression
+  tier: 1
+  icon: MachineFlatpacker
+  technology: MechanicalCompression
+
+- type: wfBlueprintPattern
+  id: WFTechNuclearPowerRecycling
+  name: research-technology-nuclear-recycling
+  tier: 1
+  icon: NuclearCentrifuge
+  technology: NuclearPowerRecycling
+
+- type: wfBlueprintPattern
+  id: WFTechAdvancedAtmospherics
+  name: research-technology-advanced-atmospherics
+  tier: 1
+  icon: GasThermoMachineHellfireFreezer
+  technology: AdvancedAtmospherics
+
+- type: wfBlueprintPattern
+  id: WFTechMassExcavation
+  name: research-technology-excavation
+  tier: 1
+  icon: MiningDrillDiamond
+  technology: MassExcavation
+
+- type: wfBlueprintPattern
+  id: WFTechHardsuitsSpecialized
+  name: research-technology-hardsuits-specialized
+  tier: 1
+  icon: ClothingOuterHardsuitEngineering
+  technology: HardsuitsSpecialized
+
+- type: wfBlueprintPattern
+  id: WFTechAdvancedToolsTechnology
+  name: research-technology-advanced-tools
+  tier: 1
+  icon: WelderExperimental
+  technology: AdvancedToolsTechnology
+
+- type: wfBlueprintPattern
   id: WFTechConstructionBags
   name: research-technology-construction-bags
   tier: 2
@@ -154,6 +413,20 @@
 # MechaEngineering
 
 - type: wfBlueprintPattern
+  id: WFTechMechCombat
+  name: research-technology-mechs-combat
+  tier: 1
+  icon: MechGygaxBattery
+  technology: MechCombat
+
+- type: wfBlueprintPattern
+  id: WFTechBroadsword
+  name: research-technology-broadsword
+  tier: 1
+  icon: AFInterceptor
+  technology: Broadsword
+
+- type: wfBlueprintPattern
   id: WFTechFlailSubtypes
   name: research-technology-flail-subtypes
   tier: 2
@@ -170,6 +443,27 @@
 # Mieyo
 
 - type: wfBlueprintPattern
+  id: WFTechMieyoCorpsecRifles
+  name: research-technology-mieyo-corpsec-rifles
+  tier: 1
+  icon: WeaponRifleOsaka
+  technology: MieyoCorpsecRifles
+
+- type: wfBlueprintPattern
+  id: WFTechMieyoCorpsecSuits
+  name: research-technology-mieyo-corpsec-gear
+  tier: 1
+  icon: ClothingOuterHardsuitMieyoCombat
+  technology: MieyoCorpsecSuits
+
+- type: wfBlueprintPattern
+  id: WFTechMieyoBionicsT2
+  name: research-technology-mieyo-bionics-basic
+  tier: 1
+  icon: MantisBlade
+  technology: MieyoBionicsT2
+
+- type: wfBlueprintPattern
   id: WFTechMieyoBionicsBlackFlash
   name: research-technology-mieyo-bionics-sakimoto
   tier: 3
@@ -183,7 +477,44 @@
   icon: OrganHeartSandevistan
   technology: MieyoBionicsSandevistan
 
+# RogueEquipment
+
+- type: wfBlueprintPattern
+  id: WFTechRogueAdvancedEquipment
+  name: research-technology-rogue-advanced-equipment
+  tier: 1
+  icon: ClothingOuterHardsuitAshen
+  technology: RogueAdvancedEquipment
+
+- type: wfBlueprintPattern
+  id: WFTechRogueSyndicateTacsuits
+  name: research-technology-rogue-syndicate-tacsuits
+  tier: 1
+  icon: ClothingOuterHardsuitJuggernaut
+  technology: RogueSyndicateTacsuits
+
 # RogueGear
+
+- type: wfBlueprintPattern
+  id: WFTechRogueHypospray
+  name: research-technology-rogue-hypospray
+  tier: 1
+  icon: Hypospray
+  technology: RogueHypospray
+
+- type: wfBlueprintPattern
+  id: WFTechPDVBasicBionics
+  name: research-technology-pdv-ias
+  tier: 1
+  icon: OrganInternalAirSystem
+  technology: PDVBasicBionics
+
+- type: wfBlueprintPattern
+  id: WFTechRogueEmag
+  name: research-technology-rogue-emag
+  tier: 1
+  icon: Emag
+  technology: RogueEmag
 
 - type: wfBlueprintPattern
   id: WFTechPDVAdvancedBorgModule
@@ -211,6 +542,20 @@
 # RogueWeaponry
 
 - type: wfBlueprintPattern
+  id: WFTechRogueSubsonic
+  name: research-technology-rogue-subsonic
+  tier: 1
+  icon: WeaponSubMachineGunMla73
+  technology: RogueSubsonic
+
+- type: wfBlueprintPattern
+  id: WFTechRogueAdvancedGuns
+  name: research-technology-rogue-advanced-guns
+  tier: 1
+  icon: WeaponLauncherPanzero
+  technology: RogueAdvancedGuns
+
+- type: wfBlueprintPattern
   id: WFTechRogueHeavyWeapons
   name: research-technology-rogue-heavy-weapons
   tier: 2
@@ -234,6 +579,13 @@
 # TsfmcEquipment
 
 - type: wfBlueprintPattern
+  id: WFTechTsfmcAdvancedEquipment
+  name: research-technology-tsfmc-advanced-equipment
+  tier: 1
+  icon: ClothingOuterHardsuitM86
+  technology: TsfmcAdvancedEquipment
+
+- type: wfBlueprintPattern
   id: WFTechTsfmcExperimentalEquipment
   name: research-technology-tsfmc-experimental-equipment
   tier: 3
@@ -241,6 +593,20 @@
   technology: TsfmcExperimentalEquipment
 
 # TsfmcGear
+
+- type: wfBlueprintPattern
+  id: WFTechTsfNanofoam
+  name: research-technology-tsfmc-nanofoam
+  tier: 1
+  icon: NanolaminateFoamGrenade
+  technology: TsfNanofoam
+
+- type: wfBlueprintPattern
+  id: WFTechTsfMeds
+  name: research-technology-tsfmc-advanced-meds
+  tier: 1
+  icon: MedkitCombatFilled
+  technology: TsfMeds
 
 - type: wfBlueprintPattern
   id: WFTechTSFAdvancedBorgModule
@@ -259,6 +625,13 @@
 # TsfmcShipyard
 
 - type: wfBlueprintPattern
+  id: WFTechTsfTierTwoVouchers
+  name: research-technology-tsfmc-tier-two-vouchers
+  tier: 1
+  icon: ShipVoucherTsfT2
+  technology: TsfTierTwoVouchers
+
+- type: wfBlueprintPattern
   id: WFTechWFTsfCapitalVouchers
   name: research-technology-wf-tsf-capital-vouchers
   tier: 3
@@ -275,6 +648,20 @@
 # TsfmcWeaponry
 
 - type: wfBlueprintPattern
+  id: WFTechTsfAdvancedWeapons
+  name: research-technology-tsfmc-advanced-weapons
+  tier: 1
+  icon: WeaponRifleAnnie
+  technology: TsfAdvancedWeapons
+
+- type: wfBlueprintPattern
+  id: WFTechTsfEshield
+  name: research-technology-tsfmc-eshield
+  tier: 1
+  icon: EnergyShield
+  technology: TsfEshield
+
+- type: wfBlueprintPattern
   id: WFTechTsfSuperBallistics
   name: research-technology-tsfmc-super-ballistics
   tier: 2
@@ -289,6 +676,34 @@
   technology: TsfSuperWeapons
 
 # Ussp
+
+- type: wfBlueprintPattern
+  id: WFTechUsspAk410
+  name: research-technology-ussp-guns-ak410
+  tier: 1
+  icon: WeaponRifleAK410
+  technology: UsspAk410
+
+- type: wfBlueprintPattern
+  id: WFTechUsspMediumGuns
+  name: research-technology-ussp-guns-medium
+  tier: 1
+  icon: WeaponRifleAK502
+  technology: UsspMediumGuns
+
+- type: wfBlueprintPattern
+  id: WFTechUsspMediumSuits
+  name: research-technology-ussp-suits-medium
+  tier: 1
+  icon: ClothingOuterHardsuitUsspL27
+  technology: UsspMediumSuits
+
+- type: wfBlueprintPattern
+  id: WFTechUsspMediumShips
+  name: research-technology-ussp-ships-medium
+  tier: 1
+  icon: ShipVoucherDrakon
+  technology: UsspMediumShips
 
 - type: wfBlueprintPattern
   id: WFTechUsspAdvancedGuns
@@ -321,6 +736,27 @@
 # ViperGroup
 
 - type: wfBlueprintPattern
+  id: WFTechViperGroupHardsuitBasic
+  name: research-technology-viper-group-basic
+  tier: 1
+  icon: ClothingOuterHardsuitViperGroupStandard
+  technology: ViperGroupHardsuitBasic
+
+- type: wfBlueprintPattern
+  id: WFTechWFViperGroupHackHarpoon
+  name: wf-boarding-tech-hack-harpoon
+  tier: 1
+  icon: WFHackHarpoonGun
+  technology: WFViperGroupHackHarpoon
+
+- type: wfBlueprintPattern
+  id: WFTechViperGroupShipyardAdvanced
+  name: research-technology-viper-group-shipyard-adv
+  tier: 1
+  icon: ShipVoucherVGWolf
+  technology: ViperGroupShipyardAdvanced
+
+- type: wfBlueprintPattern
   id: WFTechViperGroupHardsuitHeavy
   name: research-technology-viper-group-heavy
   tier: 2
@@ -333,3 +769,19 @@
   tier: 3
   icon: ShipVoucherVGWolf
   technology: ViperGroupShipyardElite
+
+# WFAsf
+
+- type: wfBlueprintPattern
+  id: WFTechWFAsfLPCLodestar
+  name: wf-asf-research-lpc-lodestar
+  tier: 1
+  icon: WFAsfVoucherLodestar
+  technology: WFAsfLPCLodestar
+
+- type: wfBlueprintPattern
+  id: WFTechWFAsfAegisModsuit
+  name: wf-asf-research-aegis-modsuit
+  tier: 1
+  icon: WFAsfClothingModsuitAegis
+  technology: WFAsfAegisModsuit

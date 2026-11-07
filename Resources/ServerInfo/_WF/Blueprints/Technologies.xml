@@ -1,0 +1,18 @@
+<Document>
+# Technologies
+
+Tier-1 technology is the Inherited Codex: every research server starts with it. Everything above tier 1 is recovered by hunting its pattern from the R&D console. A technology can only be hunted once its prerequisites are known.
+
+## Industrial
+<GuideTechDisciplineEmbed Discipline="Industrial"/>
+
+## Arsenal
+<GuideTechDisciplineEmbed Discipline="Arsenal"/>
+
+## Experimental
+<GuideTechDisciplineEmbed Discipline="Experimental"/>
+
+## Civilian Services
+<GuideTechDisciplineEmbed Discipline="CivilianServices"/>
+
+</Document>

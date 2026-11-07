@@ -2,6 +2,7 @@ using System.Linq;
 using Content.Server._NF.Bank;
 using Content.Server._WF.PlanetPois;
 using Content.Server.Power.EntitySystems;
+using Content.Server.Research.Components;
 using Content.Server.Research.Systems;
 using Content.Server.Storage.EntitySystems;
 using Content.Shared._WF.Blueprints;
@@ -52,7 +53,9 @@ public sealed partial class WFBlueprintSystem : EntitySystem
         SubscribeLocalEvent<WFBlueprintLocatorComponent, BoundUIOpenedEvent>(OnLocatorOpened);
         SubscribeLocalEvent<WFBlueprintLocatorComponent, WFBlueprintLocateMessage>(OnLocate);
         SubscribeLocalEvent<WFBlueprintLocatorComponent, WFBlueprintAbandonMessage>(OnAbandon);
-        SubscribeLocalEvent<WFBlueprintLocatorComponent, WFBlueprintOpenLocatorMessage>(OnOpenLocator);
+        SubscribeLocalEvent<WFBlueprintLocatorComponent, ResearchServerPointsChangedEvent>(OnResearchChanged);
+        SubscribeLocalEvent<WFBlueprintLocatorComponent, ResearchRegistrationChangedEvent>(OnResearchChanged);
+        SubscribeLocalEvent<WFBlueprintLocatorComponent, TechnologyDatabaseModifiedEvent>(OnResearchChanged);
         SubscribeLocalEvent<WFBlueprintLocatorComponent, WFBlueprintDecodeDoAfterEvent>(OnDecoded);
         SubscribeLocalEvent<WFBlueprintLocatorComponent, InteractUsingEvent>(OnLocatorInteractUsing);
         SubscribeLocalEvent<WFBlueprintLocatorComponent, ComponentShutdown>(OnLocatorShutdown);
@@ -68,9 +71,23 @@ public sealed partial class WFBlueprintSystem : EntitySystem
             UpdateUi(ent);
     }
 
-    private void OnOpenLocator(Entity<WFBlueprintLocatorComponent> ent, ref WFBlueprintOpenLocatorMessage args)
+    private void OnResearchChanged<T>(Entity<WFBlueprintLocatorComponent> ent, ref T args)
     {
-        _ui.OpenUi(ent.Owner, WFBlueprintLocatorUiKey.Key, args.Actor);
+        if (_ui.IsUiOpen(ent.Owner, WFBlueprintLocatorUiKey.Key))
+            UpdateUi(ent);
+    }
+
+    /// <summary>Whether every prerequisite of the pattern's technology is known; a relic pattern has none.</summary>
+    public bool PrerequisitesKnown(EntityUid locator, WFBlueprintPatternPrototype pattern)
+    {
+        if (pattern.Technology is not { } techId || !_proto.TryIndex(techId, out var tech))
+            return true;
+
+        if (!TryGetDatabase(locator, out _, out var db))
+            return false;
+
+        var techs = db.UnlockedTechnologies;
+        return tech.TechnologyPrerequisites.All(p => techs.Contains(p));
     }
 
     /// <summary>Whether the locator's server already holds the pattern's technology and every recipe.</summary>
@@ -93,6 +110,24 @@ public sealed partial class WFBlueprintSystem : EntitySystem
         return true;
     }
 
+    /// <summary>Powered decoding arrays (research datafarms) linked to the locator's server.</summary>
+    public int CountArrays(EntityUid locator)
+    {
+        if (!_research.TryGetClientServer(locator, out _, out var server))
+            return 0;
+
+        var arrays = 0;
+        foreach (var client in server.Clients)
+        {
+            if (!HasComp<ResearchServerComponent>(client)
+                && TryComp<ResearchPointSourceComponent>(client, out var source)
+                && _research.CanProduce((client, source)))
+                arrays++;
+        }
+
+        return arrays;
+    }
+
     private bool TryGetDatabase(EntityUid locator, out EntityUid server, out TechnologyDatabaseComponent db)
     {
         server = default;
@@ -108,12 +143,22 @@ public sealed partial class WFBlueprintSystem : EntitySystem
 
     public void UpdateUi(Entity<WFBlueprintLocatorComponent> ent)
     {
-        var linked = TryGetDatabase(ent, out _, out _);
+        var linked = TryGetDatabase(ent, out _, out var db);
         var patterns = new List<WFBlueprintPatternState>();
         foreach (var pattern in _proto.EnumeratePrototypes<WFBlueprintPatternPrototype>().OrderBy(p => p.Tier).ThenBy(p => p.ID))
         {
             if (Fits(ent, pattern))
-                patterns.Add(new WFBlueprintPatternState(pattern.ID, IsOwned(ent, pattern)));
+                patterns.Add(new WFBlueprintPatternState(pattern.ID, IsOwned(ent, pattern), PrerequisitesKnown(ent, pattern)));
+        }
+
+        var known = new HashSet<string>();
+        var disciplines = new List<string>();
+        if (linked)
+        {
+            var techs = db.UnlockedTechnologies;
+            var supported = db.SupportedDisciplines;
+            known.UnionWith(techs);
+            disciplines.AddRange(supported);
         }
 
         WFBlueprintHuntState? hunt = null;
@@ -128,8 +173,11 @@ public sealed partial class WFBlueprintSystem : EntitySystem
                 active.Shards.Count);
         }
 
+        var hasServer = _research.TryGetClientServer(ent, out _, out var server);
         _ui.SetUiState(ent.Owner, WFBlueprintLocatorUiKey.Key,
-            new WFBlueprintLocatorState(linked, patterns, ent.Comp.Fees, ent.Comp.MaxPatterns, hunt, ent.Comp.NextHunt));
+            new WFBlueprintLocatorState(linked, hasServer ? server!.ServerName : null, patterns, ent.Comp.Fees,
+                ent.Comp.MaxPatterns, hunt, ent.Comp.NextHunt, hasServer ? Math.Max(0, server!.Points) : 0, known, disciplines,
+                CountArrays(ent)));
     }
 
     private void OnLocatorInteractUsing(Entity<WFBlueprintLocatorComponent> ent, ref InteractUsingEvent args)
@@ -250,7 +298,7 @@ public sealed partial class WFBlueprintSystem : EntitySystem
             return;
         }
 
-        var time = ent.Comp.DecodeTimes[Math.Clamp(pattern.Tier - 1, 0, ent.Comp.DecodeTimes.Length - 1)];
+        var time = ent.Comp.DecodeTimes[Math.Clamp(pattern.Tier - 1, 0, ent.Comp.DecodeTimes.Length - 1)] * WFBlueprintDecode.Scale(CountArrays(ent));
         var doAfter = new DoAfterArgs(EntityManager, user, TimeSpan.FromSeconds(time), new WFBlueprintDecodeDoAfterEvent(), ent, ent, shard)
         {
             BreakOnMove = true,

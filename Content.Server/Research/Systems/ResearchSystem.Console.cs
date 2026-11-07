@@ -75,9 +75,6 @@ public sealed partial class ResearchSystem
                     if (unlockedTechs.Contains(proto.ID))
                         return ResearchAvailability.Researched;
 
-                    if (WFIsHuntOnly(proto.ID)) // WOLFGATE(Blueprints): hunt-only technology never shows as researchable
-                        return ResearchAvailability.Unavailable;
-
                     var prereqsMet = proto.TechnologyPrerequisites.All(p => unlockedTechs.Contains(p));
                     var canAfford = server.Points >= proto.Cost;
 

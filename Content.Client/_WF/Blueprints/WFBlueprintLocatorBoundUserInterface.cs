@@ -1,9 +1,10 @@
 using Content.Shared._WF.Blueprints;
+using Content.Shared.Research.Components;
 using Robust.Client.UserInterface;
 
 namespace Content.Client._WF.Blueprints;
 
-/// <summary>Opens the locator window and sends its requests.</summary>
+/// <summary>Opens the R&D console window and sends its requests.</summary>
 public sealed class WFBlueprintLocatorBoundUserInterface : BoundUserInterface
 {
     [ViewVariables]
@@ -20,6 +21,7 @@ public sealed class WFBlueprintLocatorBoundUserInterface : BoundUserInterface
         _window = this.CreateWindow<WFBlueprintLocatorWindow>();
         _window.OnLocate += patterns => SendMessage(new WFBlueprintLocateMessage(patterns));
         _window.OnAbandon += () => SendMessage(new WFBlueprintAbandonMessage());
+        _window.OnServer += () => SendMessage(new ConsoleServerSelectionMessage());
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)
