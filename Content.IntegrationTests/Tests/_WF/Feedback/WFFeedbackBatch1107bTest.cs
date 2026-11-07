@@ -461,4 +461,41 @@ public sealed class WFFeedbackBatch1107bTest
         });
         await pair.CleanReturnAsync();
     }
+
+    /// <summary>#617: a dose of vitae in a corpse heals it and brings it back.</summary>
+    [Test]
+    public async Task VitaeWorksOnTheDead()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var mobState = entMan.System<Content.Shared.Mobs.Systems.MobStateSystem>();
+
+        EntityUid body = default;
+        await server.WaitAssertion(() => body = entMan.SpawnEntity("MobHuman", map.GridCoords));
+        await pair.RunTicksSync(5);
+
+        await server.WaitAssertion(() =>
+        {
+            var blunt = server.ProtoMan.Index<Content.Shared.Damage.Prototypes.DamageTypePrototype>("Blunt");
+            entMan.System<Content.Shared.Damage.DamageableSystem>()
+                .TryChangeDamage(body, new Content.Shared.Damage.DamageSpecifier(blunt, 300), true);
+            mobState.ChangeMobState(body, Content.Shared.Mobs.MobState.Dead);
+            Assert.That(mobState.IsDead(body), Is.True, "Test setup: the body should be dead.");
+            Assert.That(entMan.System<Content.Server.Body.Systems.BloodstreamSystem>()
+                .TryAddToChemicals(body, new Content.Shared.Chemistry.Components.Solution("WFVitae", 10)), Is.True);
+        });
+        await pair.RunSeconds(6);
+
+        await server.WaitAssertion(() =>
+        {
+            var blood = entMan.GetComponent<Content.Server.Body.Components.BloodstreamComponent>(body);
+            var left = entMan.System<Content.Shared.Chemistry.EntitySystems.SharedSolutionContainerSystem>()
+                .TryGetSolution(body, blood.ChemicalSolutionName, out _, out var chem) ? chem.GetTotalPrototypeQuantity("WFVitae") : -1;
+            var dmg = entMan.GetComponent<Content.Shared.Damage.DamageableComponent>(body).TotalDamage;
+            Assert.That(mobState.IsDead(body), Is.False, $"Vitae did nothing for the corpse (vitae left {left}, damage {dmg}).");
+        });
+        await pair.CleanReturnAsync();
+    }
 }
