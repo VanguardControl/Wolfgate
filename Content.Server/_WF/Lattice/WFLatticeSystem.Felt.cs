@@ -29,7 +29,7 @@ public sealed partial class WFLatticeSystem
     private const float SleepShare = 0.2f;
     private const float ShelteredSleepShare = 0.5f;
 
-    private readonly List<EntityUid> _company = new();
+    [Dependency] private WFCodaFleshSystem _flesh = default!;
 
     /// <summary>Works out and stores the Drift one person feels aboard a carrier.</summary>
     private float Feel(EntityUid mob, EntityUid carrier, WFDriftComponent drift, List<(ICommonSession Session, EntityUid Mob)> aboard,
@@ -120,6 +120,7 @@ public sealed partial class WFLatticeSystem
 
         drift.Residue = 0f;
         drift.Drift = 0f;
+        _flesh.Clear(ship);
         drift.Level = 0;
         Dirty(ship, drift);
     }

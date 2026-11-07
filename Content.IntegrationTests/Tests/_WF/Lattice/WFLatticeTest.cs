@@ -38,11 +38,11 @@ public sealed class WFLatticeTest
             }
 
             Assert.That(anchors, Has.Count.EqualTo(6));
-            Assert.That(lattice.BandAt(map.MapUid, new Vector2(10000f, 0f)), Is.EqualTo(0));
-            Assert.That(lattice.BandAt(map.MapUid, new Vector2(0f, 21000f)), Is.EqualTo(1));
-            Assert.That(lattice.BandAt(map.MapUid, new Vector2(-27500f, 0f)), Is.EqualTo(2));
-            Assert.That(lattice.BandAt(map.MapUid, new Vector2(0f, -35500f)), Is.EqualTo(3));
-            Assert.That(lattice.BandAt(map.MapUid, new Vector2(45000f, 0f)), Is.EqualTo(4));
+            Assert.That(lattice.BandAt(map.MapUid, new Vector2(20000f, 0f)), Is.EqualTo(0));
+            Assert.That(lattice.BandAt(map.MapUid, new Vector2(0f, 34000f)), Is.EqualTo(1));
+            Assert.That(lattice.BandAt(map.MapUid, new Vector2(-46500f, 0f)), Is.EqualTo(2));
+            Assert.That(lattice.BandAt(map.MapUid, new Vector2(0f, -59500f)), Is.EqualTo(3));
+            Assert.That(lattice.BandAt(map.MapUid, new Vector2(72000f, 0f)), Is.EqualTo(4));
 
             // Setting up again keeps the anchors it has.
             lattice.Setup(map.MapUid);
@@ -58,10 +58,10 @@ public sealed class WFLatticeTest
 
             var lost = anchors[0];
             var direction = Vector2.Normalize(transform.GetWorldPosition(lost));
-            Assert.That(lattice.BandAt(map.MapUid, direction * 16000f), Is.EqualTo(0));
+            Assert.That(lattice.BandAt(map.MapUid, direction * 25500f), Is.EqualTo(0));
             entities.DeleteEntity(lost);
-            Assert.That(lattice.BandAt(map.MapUid, direction * 16000f), Is.EqualTo(1));
-            Assert.That(lattice.BandAt(map.MapUid, -direction * 16000f), Is.EqualTo(0));
+            Assert.That(lattice.BandAt(map.MapUid, direction * 25500f), Is.EqualTo(1));
+            Assert.That(lattice.BandAt(map.MapUid, -direction * 25500f), Is.EqualTo(0));
         });
 
         // Clients get the anchors that are left once the field next ticks.

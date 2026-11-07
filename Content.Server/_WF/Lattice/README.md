@@ -3,8 +3,8 @@
 The sector's boundary. Reality anchors round Caelestinus Central hold off Kyphrus's Unmooring; the further from their
 hold, the worse it gets. The field is banded Unison, Detune, Dissonance, Feedback and the Coda, whose name comes out garbled.
 Crossing into another band shows a popup and a notification chip, and radars draw the band edges in place of the
-drone rings, which they line up with: the band edges are the map's drone rings (18, 24, 31 and 40 km on the default
-worldgen), or the profile's edges if the rings don't line up. The full design and build order are in `Docs/_WF/Lattice/DESIGN.md`.
+drone rings: the band edges are the profile's (28, 40, 53 and 66 km), and the default worldgen's biomes change at the same
+distances; a map whose drone rings line up one per edge uses those instead. The full design and build order are in `Docs/_WF/Lattice/DESIGN.md`.
 
 **How it works.** `WFLatticeSystem` puts `WFLatticeFieldComponent` on every map with world generation and spawns the
 profile's six primary anchors on a 3 km hexagon if the map has none. Each is a station loaded from the profile's
@@ -74,7 +74,23 @@ gyroscopes, or every APC breaker. Flickers and doors are the commonest. On the c
 into a Remade blade (`WFCodaMutationSystem`, `mutationChance` a minute, doubling at full Drift): `WFCodaArmBlade` in
 one hand, unremovable. It withers away after `mutationWither` (10 min) out of the Coda.
 
-**The dead rise. In the Coda (`riseBand`) a body that lies dead for `riseDelay` seconds (60) starts to turn Remade
+**The leviathan** (`WFCodaHazardSystem.Leviathan.cs`, client `WFLeviathanSystem`). About once in 40 minutes (`leviathanChance`,
+more often deeper; 20 min `leviathanCooldown` per ship) something vast finds a crewed ship in the Coda. It circles as
+garbled contacts at the edge of the radar for 25 s, slides past beneath the hull (a dark shape drawn under the world,
+violet-rimmed, two pale eyes) while the power flickers and screens shake, and half the time brushes the hull: a shove,
+6 s of dead engines and up to `leviathanTear` (3) outer tiles torn away, dead-end spurs first, never under anyone or a helm
+and never splitting the ship. Then it sinks away and leaves 8 Drift in every head aboard. It can't be fought.
+
+**Flesh** (`WFCodaFleshSystem`). On an unsheltered crewed ship in the Coda, a flesh knot (`WFCodaFleshNode`) takes root
+now and then on open floor away from the crew (`fleshChance`, at most `fleshMaxNodes` per ship). Every 6 s it grows a
+tile or two of Remade corruption (`WFCorruptionSystem.GrowLoose`: the Monolith's floor and wall growth, but spreading
+only from its knot) within 6 tiles, up to 40. The knot feeds Drift to anyone near. Kill it and its flesh dies over a
+minute; out of the Coda it withers within 5-10 minutes; Clean Drift at a drydock strips it at once.
+
+**Drones.** Only the low tiers spawn: T0 in the inner Wilds, T1 from Detune out, rarest in the Coda. The T2 spawners are
+gone from every biome.
+
+**The dead rise.** In the Coda (`riseBand`) a body that lies dead for `riseDelay` seconds (60) starts to turn Remade
 (`WFDeepRisingSystem`, through `WFRemadeConversionSystem`), unless its ship or the body itself is sheltered. If it was
 a player's, they are asked whether to rise with it and play the Remade; a no leaves it to the NPC AI.
 
@@ -121,8 +137,11 @@ vision closes to a throbbing tunnel ringed with red glyphs for about three secon
 can lose a small animal (under 30 kg) about once in 25 minutes: it dies and turns, through the Remade conversion. A
 `WFLatticeShelterComponent` on the ship (or a person) keeps a share of the Drift off and stops the taking.
 
-**Rewards and shelter.** Asteroid rocks broken out in the bands drop more ore (each band's `yield`, up to 1.6 in the
-Deep, through `WFLatticeSystem.YieldAt` in `WFAsteroidSystem`) and from the Dissonance band on, exotic matter
+**Rocks.** Each band out has fewer rocks than the last (`WFDensityDetune` to `WFDensityCoda` in `worldgen.yml`), and
+the inner zone's are thinned too, so the rich rocks are a long trip out.
+
+**Rewards and shelter.** Asteroid rocks broken out in the bands drop more ore (each band's `yield`, up to 1.8 in the
+Coda, through `WFLatticeSystem.YieldAt` in `WFAsteroidSystem`) and, in the Coda only, exotic matter
 (`WFMaterialExoticMatter`, 3,000 a shard, `exotic` shards per vein). The autolathe makes two things from it: the Drift
 stabiliser flatpack (5 shards; 15 kW while running), which shelters the ship it is anchored on from 80% of Drift gain
 and stops the taking, and the anchor charm (1 shard), worn round the neck, which keeps half the Drift off its wearer.
@@ -171,7 +190,7 @@ least 4, four is 1).
 
 **Coda-only encounters.** An encounter with `latticeBand` above zero is placed at its distances from the sector's centre
 and only where the band is at least that; with no Lattice it falls back to distances from a player. The Monolith hulk,
-the guarded hulk and the adrift freighter use band 4 at 41-47 km.
+the guarded hulk and the adrift freighter use band 4 at 68-76 km.
 
 **Lore and guide.** The lore book keeps The Unmooring, The Lattice and The Choir in its Forbidden chapter
 (`Resources/ServerInfo/_WF/LoreBook`); The Sector Today, The Collapse and The Monolith link to them. The guidebook page
@@ -196,8 +215,10 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Content.Server/_WF/Lattice/WFBandSignatureSystem.cs`](WFBandSignatureSystem.cs)
 - [`Content.Server/_WF/Lattice/WFChoirRoleComponent.cs`](WFChoirRoleComponent.cs)
 - [`Content.Server/_WF/Lattice/WFChoirSystem.cs`](WFChoirSystem.cs)
+- [`Content.Server/_WF/Lattice/WFCodaFleshSystem.cs`](WFCodaFleshSystem.cs)
 - [`Content.Server/_WF/Lattice/WFCodaFlutterComponent.cs`](WFCodaFlutterComponent.cs)
 - [`Content.Server/_WF/Lattice/WFCodaHazardSystem.cs`](WFCodaHazardSystem.cs)
+- [`Content.Server/_WF/Lattice/WFCodaHazardSystem.Leviathan.cs`](WFCodaHazardSystem.Leviathan.cs)
 - [`Content.Server/_WF/Lattice/WFCodaMutationSystem.cs`](WFCodaMutationSystem.cs)
 - [`Content.Server/_WF/Lattice/WFDeepRisingSystem.cs`](WFDeepRisingSystem.cs)
 - [`Content.Server/_WF/Lattice/WFDriftEffectsSystem.cs`](WFDriftEffectsSystem.cs)
@@ -231,6 +252,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Content.Shared/_WF/Lattice/WFLatticeProfilePrototype.cs`](../../../Content.Shared/_WF/Lattice/WFLatticeProfilePrototype.cs)
 - [`Content.Shared/_WF/Lattice/WFLatticeShelterComponent.cs`](../../../Content.Shared/_WF/Lattice/WFLatticeShelterComponent.cs)
 - [`Content.Shared/_WF/Lattice/WFLatticeShelterSources.cs`](../../../Content.Shared/_WF/Lattice/WFLatticeShelterSources.cs)
+- [`Content.Shared/_WF/Lattice/WFLeviathan.cs`](../../../Content.Shared/_WF/Lattice/WFLeviathan.cs)
 - [`Content.Shared/_WF/Lattice/WFSongExcision.cs`](../../../Content.Shared/_WF/Lattice/WFSongExcision.cs)
 
 ### Client
@@ -246,6 +268,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Content.Client/_WF/Lattice/WFLatticeRings.cs`](../../../Content.Client/_WF/Lattice/WFLatticeRings.cs)
 - [`Content.Client/_WF/Lattice/WFLatticeSkyOverlay.cs`](../../../Content.Client/_WF/Lattice/WFLatticeSkyOverlay.cs)
 - [`Content.Client/_WF/Lattice/WFLatticeViewSystem.cs`](../../../Content.Client/_WF/Lattice/WFLatticeViewSystem.cs)
+- [`Content.Client/_WF/Lattice/WFLeviathanSystem.cs`](../../../Content.Client/_WF/Lattice/WFLeviathanSystem.cs)
 
 ### Integration tests
 
@@ -277,6 +300,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Resources/Prototypes/_WF/Lattice/reagents.yml`](../../../Resources/Prototypes/_WF/Lattice/reagents.yml)
 - [`Resources/Prototypes/_WF/Lattice/shaders.yml`](../../../Resources/Prototypes/_WF/Lattice/shaders.yml)
 - [`Resources/Prototypes/_WF/Lattice/weapons.yml`](../../../Resources/Prototypes/_WF/Lattice/weapons.yml)
+- [`Resources/Prototypes/_WF/Lattice/worldgen.yml`](../../../Resources/Prototypes/_WF/Lattice/worldgen.yml)
 
 ### Localization
 
@@ -324,9 +348,16 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Resources/Maps/_Mono/POI/pdvhelios.yml`](../../../Resources/Maps/_Mono/POI/pdvhelios.yml): Mapped a station anchor beside an APC so Helios stays anchored space past the Lattice's hold.
 - [`Resources/Maps/_Mono/POI/underground.yml`](../../../Resources/Maps/_Mono/POI/underground.yml): Mapped a station anchor beside an APC so the Syndicate FOB stays anchored space past the Lattice's hold.
 - [`Resources/Prototypes/_Mono/Entities/World/Biome/basic.yml`](../../../Resources/Prototypes/_Mono/Entities/World/Biome/basic.yml)
-  - wider Lattice bands, Detune 18-24 km
-  - wider Lattice bands, Dissonance 24-31 km
-  - wider Lattice bands, Feedback 31-40 km
+  - fewer rocks near home, so the good ones are a trip out
+  - no high-tier drones anywhere
+  - anchored space reaches 28 km
+  - wider Lattice bands, Detune 28-40 km
+  - each band thins its own rocks
+  - wider Lattice bands, Dissonance 40-53 km
+  - only the low-tier drones out past the hold
+  - wider Lattice bands, Feedback 53-66 km
+  - the Coda has the fewest rocks of all
+  - only the low-tier drones out past the hold, rarest in the Coda
 - [`Resources/Prototypes/_NF/Guidebook/nf14.yml`](../../../Resources/Prototypes/_NF/Guidebook/nf14.yml): the bands, Drift, exotic matter and the anchors
 - [`Resources/Prototypes/Entities/Structures/Machines/lathe.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/lathe.yml): Drift stabiliser, anchor charm and relay anchor recipes
 

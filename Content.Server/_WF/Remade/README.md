@@ -246,6 +246,7 @@ does on its own. `wf_remade outbreak [uid]` forces an outbreak.
 - [`Content.Server/_WF/Remade/Corruption/WFCorruptionSystem.Blood.cs`](Corruption/WFCorruptionSystem.Blood.cs)
 - [`Content.Server/_WF/Remade/Corruption/WFCorruptionSystem.cs`](Corruption/WFCorruptionSystem.cs)
 - [`Content.Server/_WF/Remade/Corruption/WFCorruptionSystem.Doors.cs`](Corruption/WFCorruptionSystem.Doors.cs)
+- [`Content.Server/_WF/Remade/Corruption/WFCorruptionSystem.Loose.cs`](Corruption/WFCorruptionSystem.Loose.cs)
 - [`Content.Server/_WF/Remade/Corruption/WFCorruptionSystem.Nodes.cs`](Corruption/WFCorruptionSystem.Nodes.cs)
 - [`Content.Server/_WF/Remade/Corruption/WFCorruptionSystem.Sanctuary.cs`](Corruption/WFCorruptionSystem.Sanctuary.cs)
 - [`Content.Server/_WF/Remade/Corruption/WFCorruptionSystem.Smoothing.cs`](Corruption/WFCorruptionSystem.Smoothing.cs)

@@ -1,5 +1,5 @@
-# The Lattice round the sector's centre. Band edges follow the drone rings (18, 24, 31 and 40 km on the default
-# worldgen); the edges here are used when the rings don't line up. Drift rates are per second, out of 100, and each band
+# The Lattice round the sector's centre. Band edges are 28, 40, 53 and 66 km; the default worldgen's biomes change at
+# the same distances. A map whose drone rings line up one per edge uses those instead. Drift rates are per second, out of 100, and each band
 # stops at its maxDrift, so a ship climbs slowly and only the Coda reaches the worst (about 10 minutes a band). Yield
 # multiplies asteroid ore; exotic is exotic matter shards per vein.
 - type: wfLatticeProfile
@@ -106,43 +106,42 @@
     color: "#60c0e0"
   - name: wf-lattice-band-slack
     message: wf-lattice-enter-slack
-    edge: 18000
+    edge: 28000
     drift: 0.03
     maxDrift: 20
     chip: Advisory
     color: "#e0b040"
-    yield: 1.1
+    yield: 1.2
   - name: wf-lattice-band-adrift
     message: wf-lattice-enter-adrift
-    edge: 24000
+    edge: 40000
     drift: 0.06
     maxDrift: 40
     chip: Warning
     color: "#e08030"
-    yield: 1.25
-    exotic: 0.005
+    yield: 1.35
   - name: wf-lattice-band-untethered
     message: wf-lattice-enter-untethered
-    edge: 31000
+    edge: 53000
     drift: 0.1
     maxDrift: 65
     chip: Warning
     color: "#e04030"
-    yield: 1.4
-    exotic: 0.015
+    yield: 1.5
     flash: true
     ftl: false
   - name: wf-lattice-band-deep
     message: wf-lattice-enter-deep
-    edge: 40000
+    edge: 66000
     drift: 0.12
     driftGrowth: 1.2
     maxDrift: 100
     garbled: true
     chip: Warning
     color: "#d030a0"
-    yield: 1.6
-    exotic: 0.04
+    yield: 1.8
+    # Exotic matter is found only in the Coda.
+    exotic: 0.06
     flash: true
     ftl: false
 

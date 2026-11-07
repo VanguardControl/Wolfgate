@@ -32,7 +32,7 @@ namespace Content.Server._WF.Lattice;
 /// The Coda is not a place to linger. A crewed ship out there is found by Remade hunters the longer it stays, has its
 /// structure eaten unless a stabiliser runs, and has its thrusters, gyroscopes and power give out now and then.
 /// </summary>
-public sealed class WFCodaHazardSystem : EntitySystem
+public sealed partial class WFCodaHazardSystem : EntitySystem
 {
     [Dependency] private ApcSystem _apc = default!;
     [Dependency] private DamageableSystem _damage = default!;
@@ -49,6 +49,7 @@ public sealed class WFCodaHazardSystem : EntitySystem
     [Dependency] private ThrusterSystem _thrusters = default!;
     [Dependency] private TurfSystem _turf = default!;
     [Dependency] private WFLatticeSystem _lattice = default!;
+    [Dependency] private WFCodaFleshSystem _flesh = default!;
 
     private static readonly ProtoId<DamageTypePrototype> Structural = "Structural";
     private static readonly SoundSpecifier BoardSound = new SoundCollectionSpecifier("WFDreadMenace");
@@ -84,6 +85,7 @@ public sealed class WFCodaHazardSystem : EntitySystem
         public float RotClock;
         public float FailureClock;
         public TimeSpan HuntersAfter;
+        public TimeSpan LeviathanAfter;
         public readonly List<EntityUid> Hunters = new();
     }
 
@@ -105,6 +107,7 @@ public sealed class WFCodaHazardSystem : EntitySystem
 
         var now = _timing.CurTime;
         RestoreFailures(now);
+        UpdateLeviathans(now);
         Flutter(now);
         if (now < _next)
             return;
@@ -156,6 +159,12 @@ public sealed class WFCodaHazardSystem : EntitySystem
                 if (!sheltered)
                     Rot((grid, gridComp), crew, depth, profile);
             }
+
+            // Flesh takes root on an unsheltered ship, and now and then something vast passes by.
+            if (!sheltered)
+                _flesh.Roll((grid, gridComp), crew, depth, profile, seconds);
+
+            RollLeviathan((grid, gridComp), ship, crew, depth, profile, seconds, now);
 
             // Faults come quicker the longer the ship stays and the deeper it is.
             ship.FailureClock += seconds * (1f + depth + Math.Min(ship.Exposure / 300f, 1f));
@@ -266,6 +275,12 @@ public sealed class WFCodaHazardSystem : EntitySystem
         {
             _popup.PopupEntity(Loc.GetString("wf-coda-hunters"), mob, mob, PopupType.LargeCaution);
         }
+    }
+
+    /// <summary>An open floor tile well away from the crew, for something to take root or come aboard.</summary>
+    public bool TryFindQuietFloor(Entity<MapGridComponent> grid, List<EntityUid> crew, out EntityCoordinates at)
+    {
+        return TryFindBoarding(grid, crew, out at);
     }
 
     /// <summary>An open floor tile well away from the crew.</summary>

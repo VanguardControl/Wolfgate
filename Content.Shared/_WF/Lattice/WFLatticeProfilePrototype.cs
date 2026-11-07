@@ -189,6 +189,26 @@ public sealed partial class WFLatticeProfilePrototype : IPrototype
     [DataField]
     public int CleanDriftPrice = 150;
 
+    /// <summary>Chance a minute, at the Coda's edge, that Remade flesh takes root on an unsheltered crewed ship; it doubles far out.</summary>
+    [DataField]
+    public float FleshChance = 0.04f;
+
+    /// <summary>Most flesh nodes rooted on one ship.</summary>
+    [DataField]
+    public int FleshMaxNodes = 3;
+
+    /// <summary>Chance a minute, at the Coda's edge, that the leviathan finds a crewed ship; it doubles far out.</summary>
+    [DataField]
+    public float LeviathanChance = 0.025f;
+
+    /// <summary>Seconds after the leviathan passes a ship before it can find it again.</summary>
+    [DataField]
+    public float LeviathanCooldown = 1200f;
+
+    /// <summary>Most outer hull tiles its touch tears away.</summary>
+    [DataField]
+    public int LeviathanTear = 3;
+
     /// <summary>Least band in which an unsheltered person's flesh can twist into a Remade's.</summary>
     [DataField]
     public int MutationBand = 4;

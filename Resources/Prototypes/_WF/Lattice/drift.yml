@@ -81,3 +81,62 @@
     Steel: 300
     Glass: 200
     Gold: 50
+
+# A knot of Remade flesh the Coda roots on a ship. Flesh creeps out from it across the floor and up the walls; kill it and
+# its flesh dies. WFCodaFleshSystem adds its node component when it takes root.
+- type: entity
+  id: WFCodaFleshNode
+  name: flesh knot
+  description: A swollen knot of grey-red flesh grown into the deck. It pulses slowly. Something in it is listening.
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Transform
+    anchored: true
+  - type: Clickable
+  - type: InteractionOutline
+  - type: Sprite
+    sprite: _WF/Remade/Structures/growths.rsi
+    drawdepth: FloorObjects
+    layers:
+    - state: growth
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.35
+        density: 60
+        hard: false
+        layer:
+        - MidImpassable
+  - type: Damageable
+    damageModifierSet: Wood
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 80
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: gib
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+  - type: Flammable
+    fireSpread: true
+    damage:
+      types:
+        Heat: 4
+  - type: Reactive
+    groups:
+      Flammable: [ Touch ]
+      Extinguish: [ Touch ]
+  - type: WFDriftSource
+    rate: 0.3
+    range: 4
+    carried: 0
+    touch: 2
+    cap: 60
