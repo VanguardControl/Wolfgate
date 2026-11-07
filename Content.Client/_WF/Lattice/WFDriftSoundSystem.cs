@@ -27,6 +27,7 @@ public sealed class WFDriftSoundSystem : EntitySystem
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedMapSystem _maps = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
 
     /// <summary>How much quieter the world sounds in the Detune band.</summary>
@@ -147,7 +148,7 @@ public sealed class WFDriftSoundSystem : EntitySystem
             return at;
 
         var centre = _transform.GetMapCoordinates(local);
-        if (centre.MapId != point.MapId)
+        if (centre.MapId != point.MapId || !_maps.MapExists(point.MapId))
             return at;
 
         return new MapCoordinates(centre.Position * 2f - point.Position, point.MapId);
@@ -156,7 +157,11 @@ public sealed class WFDriftSoundSystem : EntitySystem
     private void Play(string file, AudioParams audioParams, MapCoordinates? at)
     {
         var sound = new SoundPathSpecifier(file);
-        var played = at is { } point && _transform.ToCoordinates(point) is var coords && coords.IsValid(EntityManager)
+        // A sound heard on a map that has since gone is dropped, not played from nowhere.
+        if (at is { } point && !_maps.MapExists(point.MapId))
+            return;
+
+        var played = at is { } place && _transform.ToCoordinates(place) is var coords && coords.IsValid(EntityManager)
             ? _audio.PlayStatic(sound, Filter.Local(), coords, false, audioParams)
             : _audio.PlayGlobal(sound, Filter.Local(), false, audioParams);
 
