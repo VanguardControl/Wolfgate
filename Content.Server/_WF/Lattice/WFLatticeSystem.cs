@@ -320,6 +320,7 @@ public sealed partial class WFLatticeSystem : EntitySystem
             drift.Drift = drift.Drift > cap
                 ? Math.Max(cap, drift.Drift - OverCapFade * seconds)
                 : Math.Clamp(drift.Drift + rate * seconds, 0f, cap);
+            Soak(carrier, drift, index, profile, seconds);
             var level = (int) (drift.Drift / WFDriftComponent.LevelStep);
             if (drift.Band != index || drift.Level != level || MathF.Abs(drift.Depth - depth) >= 0.05f || drift.NoFtl == band.Ftl)
             {
@@ -349,14 +350,10 @@ public sealed partial class WFLatticeSystem : EntitySystem
 
             foreach (var (session, mob) in aboard)
             {
-                var own = drift.Drift;
-                // A person's own charm shelters them on a ship that has none.
-                if (carrier != mob && TryComp<WFLatticeShelterComponent>(mob, out var charm))
-                    own *= 1f - Math.Clamp(charm.Shelter, 0f, 1f);
+                var felt = Feel(mob, carrier, drift, aboard, profile);
 
                 // What they carry in their own head counts as much as where they are.
-                if (carrier != mob && TryComp<WFDriftComponent>(mob, out var head))
-                    own = Math.Max(own, head.Mind);
+                var own = Math.Max(felt, CompOrNull<WFDriftComponent>(mob)?.Mind ?? 0f);
 
                 // The Choir are at home out here: nothing they see is wrong to them.
                 if (HasComp<WFChoirMemberComponent>(mob))

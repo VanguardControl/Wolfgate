@@ -1,0 +1,83 @@
+# Cutting a Coda-twisted arm away: open it up, saw through, and cut the blade free. What comes off is Remade tissue.
+- type: entity
+  parent: SurgeryBase
+  id: WFSurgeryCutTwistedArm
+  name: Cut Away the Twisted Arm
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenIncision
+    steps:
+    - SurgeryStepSawBones
+    - WFLatticeStepCutTwistedArm
+  - type: SurgeryPartCondition
+    part: Arm
+  - type: WFTwistedArmCondition
+
+- type: entity
+  parent: SurgeryStepBase
+  id: WFLatticeStepCutTwistedArm
+  name: Cut the blade free
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Scalpel
+    duration: 8
+  - type: Sprite
+    sprite: Objects/Weapons/Melee/armblade.rsi
+    state: icon
+  - type: WFTwistedArmRemoval
+  - type: SurgeryStepEmoteEffect
+
+# What's left of a twisted arm. Researchers pay well for it.
+- type: entity
+  parent: BaseItem
+  id: WFRemadeTissue
+  name: Remade tissue
+  description: Bone and flesh grown wrong, cut from someone the Coda got its hands on. It is still warm.
+  components:
+  - type: Sprite
+    sprite: Objects/Weapons/Melee/armblade.rsi
+    state: icon
+    color: "#9a7a86"
+  - type: Item
+    size: Small
+  - type: StaticPrice
+    price: 2500
+  - type: WFDriftSource
+    rate: 0
+    range: 0
+    carried: 0.05
+    touch: 1
+    cap: 25
+
+# Logs the Drift where it is carried. The deeper the band, the more each minute is worth; sell it for what it logged.
+- type: entity
+  parent: BaseItem
+  id: WFDriftLogger
+  name: drift logger
+  description: Counts the Unmooring wherever it is carried. Station science buys its readings; the further out, the more they pay.
+  components:
+  - type: Sprite
+    sprite: Objects/Tools/geiger.rsi
+    color: "#c0a0ff"
+    layers:
+    - state: geiger_base
+  - type: Item
+    sprite: Objects/Tools/geiger.rsi
+    size: Small
+  - type: StaticPrice
+    price: 100
+  - type: WFDriftLogger
+
+- type: latheRecipe
+  id: WFDriftLogger
+  result: WFDriftLogger
+  categories:
+  - Tools
+  completetime: 4
+  materials:
+    Steel: 300
+    Glass: 200
+    Gold: 50

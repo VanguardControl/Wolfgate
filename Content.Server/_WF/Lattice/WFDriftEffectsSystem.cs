@@ -144,15 +144,18 @@ public sealed partial class WFDriftEffectsSystem : EntitySystem
                 _audio.PlayStatic(_random.Pick(Sounds), Filter.SinglePlayer(session), Near(mob, 3f, 6f), true);
                 return;
             case WFLatticeHallucinationKind.Blip:
-                // A contact somewhere out in the dark round the ship.
-                RaiseNetworkEvent(new WFLatticeHallucinationEvent(kind, GetNetCoordinates(Near(mob, 400f, 1500f, true)), 25f, seed), session);
+                // A contact somewhere out in the dark round the ship; now and then a true one.
+                var contact = _random.Prob(TrueBlipChance) && TrueThing(mob, BlipRange) is { } real
+                    ? real
+                    : Near(mob, 400f, 1500f, true);
+                RaiseNetworkEvent(new WFLatticeHallucinationEvent(kind, GetNetCoordinates(contact), 25f, seed), session);
                 return;
             case WFLatticeHallucinationKind.Glimpse:
-                RaiseNetworkEvent(new WFLatticeHallucinationEvent(kind, GetNetCoordinates(Near(mob, 4f, 7f)), 0.6f, seed), session);
+                Shared(session, mob, new WFLatticeHallucinationEvent(kind, GetNetCoordinates(Near(mob, 4f, 7f)), 0.6f, seed));
                 return;
             case WFLatticeHallucinationKind.Phantom:
                 var at = Near(mob, 5f, 8f);
-                RaiseNetworkEvent(new WFLatticeHallucinationEvent(kind, GetNetCoordinates(at), 8f, seed), session);
+                Shared(session, mob, new WFLatticeHallucinationEvent(kind, GetNetCoordinates(at), 8f, seed));
                 _audio.PlayStatic(Menace, Filter.SinglePlayer(session), at, true);
                 return;
             case WFLatticeHallucinationKind.Pulse:
@@ -160,14 +163,14 @@ public sealed partial class WFDriftEffectsSystem : EntitySystem
                 _audio.PlayGlobal(PulseSound, session);
                 return;
             case WFLatticeHallucinationKind.Bleed:
-                RaiseNetworkEvent(new WFLatticeHallucinationEvent(kind, GetNetCoordinates(Transform(mob).Coordinates), _random.NextFloat(6f, 14f), seed), session);
+                Shared(session, mob, new WFLatticeHallucinationEvent(kind, GetNetCoordinates(Transform(mob).Coordinates), _random.NextFloat(6f, 14f), seed));
                 return;
             case WFLatticeHallucinationKind.Mirror:
                 RaiseNetworkEvent(new WFLatticeHallucinationEvent(kind, GetNetCoordinates(new EntityCoordinates(mob, Vector2.Zero)), _random.NextFloat(2f, 6f), seed), session);
                 _popup.PopupEntity(Loc.GetString("wf-lattice-mirror"), mob, session, PopupType.LargeCaution);
                 return;
             case WFLatticeHallucinationKind.Swarm:
-                RaiseNetworkEvent(new WFLatticeHallucinationEvent(kind, GetNetCoordinates(Transform(mob).Coordinates), _random.NextFloat(1.2f, 2.5f), seed), session);
+                Shared(session, mob, new WFLatticeHallucinationEvent(kind, GetNetCoordinates(Transform(mob).Coordinates), _random.NextFloat(1.2f, 2.5f), seed));
                 _audio.PlayStatic(Menace, Filter.SinglePlayer(session), Transform(mob).Coordinates, true);
                 return;
             case WFLatticeHallucinationKind.Turn:
@@ -189,6 +192,9 @@ public sealed partial class WFDriftEffectsSystem : EntitySystem
                 var line = Loc.GetString($"wf-lattice-mimic-{_random.Next(1, MimicLines + 1)}", ("name", Name(mob)));
                 var said = Loc.GetString("wf-lattice-mimic-wrap", ("name", Name(speaker)), ("message", line));
                 _chat.ChatMessageToOne(ChatChannel.Local, line, said, EntityUid.Invalid, false, session.Channel);
+                return;
+            default:
+                ShowLie(session, mob, kind, seed);
                 return;
         }
     }

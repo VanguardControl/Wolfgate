@@ -30,6 +30,14 @@ vicinity, falling off over its `range`, more when carried, and a lump on touch o
 It fades at 0.4 a second once nothing feeds it. The Unmooring's hallucinations play off the greater of the two, and off
 a map with no Lattice they play off the head alone with the `WFDefault` profile. The Choir and the Remade hold none.
 
+**What a person feels.** The Lattice works out what each person aboard feels (`WFDriftComponent.Felt`, `FeltLevel`,
+`WFLatticeSystem.Felt.cs`), which drives their hallucinations, gauge, screen warp and mutations: their ship's Drift, less
+their anchor charm, less half while grounded by lodestar (`WFLodestar`: haloperidol, silver and iron; `WFGround`), less a
+fifth asleep or half asleep on a sheltered ship, less a tenth for each sane crewmate within 8 m (at most 30%), and 15%
+worse with nobody near. Sleep also clears Drift from the head three times faster. A ship in the Coda soaks Drift into
+its hull (`residueRate` a minute up to `residueMax`), and its Drift never falls below that until a drydock's Clean Drift
+(`cleanDriftPrice` a point, credit consoles only) scrubs it.
+
 **Gauge.** `WFDriftMindSystem` shows the `WFDrift` alert, a dial among the status icons with a step per Drift level, filled to the greater of the two and red when a Monolith's
 Drift is the greater;
 it shows only while out of anchored space or holding Drift, and in a garbling band it shows an unreadable dial.
@@ -91,7 +99,21 @@ when approached. Each goes to that one player only: chat and sound by a single-p
 `effectInterval` (20 s) towards `effectIntervalAtMax` (4 s) as Drift climbs, and from 80 Drift two come at once,
 three from 95. Higher up: blood round them (40), a crewmate saying something they never said (50), a crewmate seen as a
 Remade for a few seconds (60), a ring of Remade that vanish when approached (80), and themselves seen as a Remade (90).
-Past 90 the screen warp climbs steeply. Rarely, from 40 Drift, a pulse hits:
+Past 90 the screen warp climbs steeply. Some lie about the game itself (`WFDriftEffectsSystem.Lies.cs`): their own
+ship twice on radar (45), echoes, where sounds round them play again from the other side (50), a door or person that isn't
+there for a few seconds (55), a false oxygen, pressure or heat warning (`WFFalse*` alerts, 60), and a silence where every
+sound stops and then everything missed plays at once (85; `WFDriftSoundSystem` on the client). Some tell the truth: a
+third of radar blips are a real lost ship or Monolith within 4 km, and a knowing (50) names a place out there that is real
+60% of the time. Blood, glimpses, phantoms and swarms are shared with anyone else aboard also past 70.
+
+**Band signatures** (`WFBandSignatureSystem`, client `WFDriftSoundSystem`): in Detune sound goes dull, in Dissonance a
+door a player opens waits a beat first, and in Feedback a player's words sometimes come back to them on the radio, a
+little wrong.
+
+**Loggers, tissue and couriers.** The drift logger (autolathe) counts readings while carried, 1, 3, 8 and 20 a minute from
+Detune to the Coda, up to 1,500, and sells for 4 cr a reading. A twisted arm can be cut away in surgery
+(`WFSurgeryCutTwistedArm`), leaving Remade tissue (2,500 cr). A ship moving a Monolith faster than 1 m/s puts Drift in
+every head aboard and can't hide its name on radar (`WFDriftLoggerSystem`). Rarely, from 40 Drift, a pulse hits:
 vision closes to a throbbing tunnel ringed with red glyphs for about three seconds over a sub-bass heartbeat
 (`WFDriftPulseOverlay`, `drift_pulse.ogg`); it holds still with reduced motion. Admins can show any of them with
 `wfhallucinate <kind> [username]`. From 30 Drift the screen warps
@@ -171,6 +193,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 ### Server
 
 - [`Content.Server/_WF/Lattice/ShuttleConsoleSystem.Lattice.cs`](ShuttleConsoleSystem.Lattice.cs)
+- [`Content.Server/_WF/Lattice/WFBandSignatureSystem.cs`](WFBandSignatureSystem.cs)
 - [`Content.Server/_WF/Lattice/WFChoirRoleComponent.cs`](WFChoirRoleComponent.cs)
 - [`Content.Server/_WF/Lattice/WFChoirSystem.cs`](WFChoirSystem.cs)
 - [`Content.Server/_WF/Lattice/WFCodaFlutterComponent.cs`](WFCodaFlutterComponent.cs)
@@ -178,12 +201,15 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Content.Server/_WF/Lattice/WFCodaMutationSystem.cs`](WFCodaMutationSystem.cs)
 - [`Content.Server/_WF/Lattice/WFDeepRisingSystem.cs`](WFDeepRisingSystem.cs)
 - [`Content.Server/_WF/Lattice/WFDriftEffectsSystem.cs`](WFDriftEffectsSystem.cs)
+- [`Content.Server/_WF/Lattice/WFDriftEffectsSystem.Lies.cs`](WFDriftEffectsSystem.Lies.cs)
+- [`Content.Server/_WF/Lattice/WFDriftLoggerSystem.cs`](WFDriftLoggerSystem.cs)
 - [`Content.Server/_WF/Lattice/WFDriftMindSystem.cs`](WFDriftMindSystem.cs)
 - [`Content.Server/_WF/Lattice/WFHallucinateCommand.cs`](WFHallucinateCommand.cs)
 - [`Content.Server/_WF/Lattice/WFLatticeShelterSystem.cs`](WFLatticeShelterSystem.cs)
 - [`Content.Server/_WF/Lattice/WFLatticeSystem.Barrier.cs`](WFLatticeSystem.Barrier.cs)
 - [`Content.Server/_WF/Lattice/WFLatticeSystem.cs`](WFLatticeSystem.cs)
 - [`Content.Server/_WF/Lattice/WFLatticeSystem.Defence.cs`](WFLatticeSystem.Defence.cs)
+- [`Content.Server/_WF/Lattice/WFLatticeSystem.Felt.cs`](WFLatticeSystem.Felt.cs)
 - [`Content.Server/_WF/Lattice/WFLatticeSystem.Ftl.cs`](WFLatticeSystem.Ftl.cs)
 - [`Content.Server/_WF/Lattice/WFLatticeSystem.LostShips.cs`](WFLatticeSystem.LostShips.cs)
 - [`Content.Server/_WF/Lattice/WFLatticeSystem.RelayFuel.cs`](WFLatticeSystem.RelayFuel.cs)
@@ -193,8 +219,11 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 ### Shared
 
 - [`Content.Shared/_WF/Lattice/WFChoir.cs`](../../../Content.Shared/_WF/Lattice/WFChoir.cs)
+- [`Content.Shared/_WF/Lattice/WFCodaMutation.cs`](../../../Content.Shared/_WF/Lattice/WFCodaMutation.cs)
 - [`Content.Shared/_WF/Lattice/WFDriftComponent.cs`](../../../Content.Shared/_WF/Lattice/WFDriftComponent.cs)
+- [`Content.Shared/_WF/Lattice/WFDriftLoggerComponent.cs`](../../../Content.Shared/_WF/Lattice/WFDriftLoggerComponent.cs)
 - [`Content.Shared/_WF/Lattice/WFDriftSourceComponent.cs`](../../../Content.Shared/_WF/Lattice/WFDriftSourceComponent.cs)
+- [`Content.Shared/_WF/Lattice/WFGround.cs`](../../../Content.Shared/_WF/Lattice/WFGround.cs)
 - [`Content.Shared/_WF/Lattice/WFLatticeAnchorComponent.cs`](../../../Content.Shared/_WF/Lattice/WFLatticeAnchorComponent.cs)
 - [`Content.Shared/_WF/Lattice/WFLatticeFieldComponent.cs`](../../../Content.Shared/_WF/Lattice/WFLatticeFieldComponent.cs)
 - [`Content.Shared/_WF/Lattice/WFLatticeHallucination.cs`](../../../Content.Shared/_WF/Lattice/WFLatticeHallucination.cs)
@@ -210,6 +239,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Content.Client/_WF/Lattice/WFChoirIconSystem.cs`](../../../Content.Client/_WF/Lattice/WFChoirIconSystem.cs)
 - [`Content.Client/_WF/Lattice/WFDriftOverlay.cs`](../../../Content.Client/_WF/Lattice/WFDriftOverlay.cs)
 - [`Content.Client/_WF/Lattice/WFDriftPulseOverlay.cs`](../../../Content.Client/_WF/Lattice/WFDriftPulseOverlay.cs)
+- [`Content.Client/_WF/Lattice/WFDriftSoundSystem.cs`](../../../Content.Client/_WF/Lattice/WFDriftSoundSystem.cs)
 - [`Content.Client/_WF/Lattice/WFLatticeBeamOverlay.cs`](../../../Content.Client/_WF/Lattice/WFLatticeBeamOverlay.cs)
 - [`Content.Client/_WF/Lattice/WFLatticeHallucinationSystem.cs`](../../../Content.Client/_WF/Lattice/WFLatticeHallucinationSystem.cs)
 - [`Content.Client/_WF/Lattice/WFLatticeHumSystem.cs`](../../../Content.Client/_WF/Lattice/WFLatticeHumSystem.cs)
@@ -222,6 +252,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFChoirTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFChoirTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFCodaHazardTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFCodaHazardTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFDeepRisingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFDeepRisingTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Lattice/WFDriftDepthTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFDriftDepthTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFDriftEffectsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFDriftEffectsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFDriftMindTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFDriftMindTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeFtlTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeFtlTest.cs)
@@ -239,9 +270,11 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Resources/Prototypes/_WF/Lattice/alerts.yml`](../../../Resources/Prototypes/_WF/Lattice/alerts.yml)
 - [`Resources/Prototypes/_WF/Lattice/anchors.yml`](../../../Resources/Prototypes/_WF/Lattice/anchors.yml)
 - [`Resources/Prototypes/_WF/Lattice/choir.yml`](../../../Resources/Prototypes/_WF/Lattice/choir.yml)
+- [`Resources/Prototypes/_WF/Lattice/drift.yml`](../../../Resources/Prototypes/_WF/Lattice/drift.yml)
 - [`Resources/Prototypes/_WF/Lattice/exotic.yml`](../../../Resources/Prototypes/_WF/Lattice/exotic.yml)
 - [`Resources/Prototypes/_WF/Lattice/guidebook.yml`](../../../Resources/Prototypes/_WF/Lattice/guidebook.yml)
 - [`Resources/Prototypes/_WF/Lattice/lattice.yml`](../../../Resources/Prototypes/_WF/Lattice/lattice.yml)
+- [`Resources/Prototypes/_WF/Lattice/reagents.yml`](../../../Resources/Prototypes/_WF/Lattice/reagents.yml)
 - [`Resources/Prototypes/_WF/Lattice/shaders.yml`](../../../Resources/Prototypes/_WF/Lattice/shaders.yml)
 - [`Resources/Prototypes/_WF/Lattice/weapons.yml`](../../../Resources/Prototypes/_WF/Lattice/weapons.yml)
 

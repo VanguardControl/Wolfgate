@@ -45,6 +45,24 @@ public enum WFLatticeHallucinationKind : byte
 
     /// <summary>Someone near them says something they never said.</summary>
     Mimic,
+
+    /// <summary>Something near them, a door, a wall or a person, isn't there for a few seconds. The coordinates are on it.</summary>
+    Vanish,
+
+    /// <summary>Their own ship shows on the radar a second time, somewhere close.</summary>
+    Double,
+
+    /// <summary>A warning on their screen that isn't true: low oxygen, pressure or heat.</summary>
+    FalseAlert,
+
+    /// <summary>Sounds round them play again a moment later, from the wrong side.</summary>
+    Echo,
+
+    /// <summary>Every sound stops for a while, then everything they missed plays at once.</summary>
+    Silence,
+
+    /// <summary>They just know where something is out in the dark. Sometimes they're right.</summary>
+    Knowing,
 }
 
 /// <summary>Tells one client to show a hallucination at a place.</summary>

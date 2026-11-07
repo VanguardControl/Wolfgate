@@ -74,7 +74,11 @@ public sealed partial class WFLatticeHallucinationSystem : EntitySystem
         if (_player.LocalEntity is { } mob && (HasComp<WFChoirMemberComponent>(mob) || HasComp<GhostComponent>(mob)))
             return 0;
 
-        return Math.Max(LocalDrift()?.Level ?? 0, LocalMind()?.MindLevel ?? 0);
+        // What they feel, which the server works out from their ship, charm, sleep and company, or else their ship's.
+        if (LocalMind() is { } own)
+            return Math.Max(own.FeltLevel, own.MindLevel);
+
+        return LocalDrift()?.Level ?? 0;
     }
 
     /// <summary>The local player's own Drift, which holds what a Monolith or another source has put in their head.</summary>
@@ -105,6 +109,7 @@ public sealed partial class WFLatticeHallucinationSystem : EntitySystem
                 _pulse.Start(ev.Seconds, ev.Seed);
                 break;
             case WFLatticeHallucinationKind.Blip:
+            case WFLatticeHallucinationKind.Double:
                 Blips.Add((_transform.ToMapCoordinates(coordinates), ends, ev.Seed));
                 break;
             case WFLatticeHallucinationKind.Glimpse:
@@ -123,7 +128,10 @@ public sealed partial class WFLatticeHallucinationSystem : EntitySystem
                 break;
             case WFLatticeHallucinationKind.Turn:
             case WFLatticeHallucinationKind.Mirror:
-                Turn(coordinates.EntityId, ev.Seed, ends);
+                Turn(coordinates.EntityId, ev.Seed, ends, true);
+                break;
+            case WFLatticeHallucinationKind.Vanish:
+                Turn(coordinates.EntityId, ev.Seed, ends, false);
                 break;
         }
     }
@@ -154,14 +162,19 @@ public sealed partial class WFLatticeHallucinationSystem : EntitySystem
         }
     }
 
-    /// <summary>Hides a person's sprite and stands a Remade in their place, following them, until it ends.</summary>
-    private void Turn(EntityUid target, int seed, TimeSpan ends)
+    /// <summary>Hides something's sprite until it ends, standing a Remade in its place if asked.</summary>
+    private void Turn(EntityUid target, int seed, TimeSpan ends, bool remade)
     {
         if (TerminatingOrDeleted(target) || !TryComp<SpriteComponent>(target, out var real) || _turned.Exists(t => t.Target == target))
             return;
 
-        var stand = Spawn(FigurePrototype, new EntityCoordinates(target, Vector2.Zero));
-        Dress(stand, new System.Random(seed).Next(WFDreadGlimpses.All.Length));
+        var stand = EntityUid.Invalid;
+        if (remade)
+        {
+            stand = Spawn(FigurePrototype, new EntityCoordinates(target, Vector2.Zero));
+            Dress(stand, new System.Random(seed).Next(WFDreadGlimpses.All.Length));
+        }
+
         _turned.Add(new Turned(target, stand, real.Visible, ends));
         real.Visible = false;
     }
@@ -180,7 +193,7 @@ public sealed partial class WFLatticeHallucinationSystem : EntitySystem
 
     private void Unturn(Turned turned)
     {
-        if (!TerminatingOrDeleted(turned.Stand))
+        if (turned.Stand.IsValid() && !TerminatingOrDeleted(turned.Stand))
             Del(turned.Stand);
 
         if (!TerminatingOrDeleted(turned.Target) && TryComp<SpriteComponent>(turned.Target, out var sprite))
@@ -196,7 +209,7 @@ public sealed partial class WFLatticeHallucinationSystem : EntitySystem
         for (var i = _turned.Count - 1; i >= 0; i--)
         {
             var turned = _turned[i];
-            if (now < turned.Ends && !TerminatingOrDeleted(turned.Target) && !TerminatingOrDeleted(turned.Stand))
+            if (now < turned.Ends && !TerminatingOrDeleted(turned.Target) && (!turned.Stand.IsValid() || !TerminatingOrDeleted(turned.Stand)))
                 continue;
 
             Unturn(turned);

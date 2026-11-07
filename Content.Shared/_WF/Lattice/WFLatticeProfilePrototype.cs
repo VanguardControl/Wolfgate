@@ -177,6 +177,18 @@ public sealed partial class WFLatticeProfilePrototype : IPrototype
     [DataField]
     public Vector2 FailureSeconds = new(8f, 20f);
 
+    /// <summary>Drift a minute a ship in the Coda soaks into its hull, which it keeps until a drydock cleans it.</summary>
+    [DataField]
+    public float ResidueRate = 0.5f;
+
+    /// <summary>The most Drift a hull can soak in.</summary>
+    [DataField]
+    public float ResidueMax = 30f;
+
+    /// <summary>What a drydock charges to clean each point of soaked-in Drift out of a hull.</summary>
+    [DataField]
+    public int CleanDriftPrice = 150;
+
     /// <summary>Least band in which an unsheltered person's flesh can twist into a Remade's.</summary>
     [DataField]
     public int MutationBand = 4;

@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared._WF.Lattice;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
@@ -32,6 +33,26 @@ public sealed class WFCodaMutationSystem : EntitySystem
     private static readonly SoundSpecifier TwistSound = new SoundPathSpecifier("/Audio/Effects/gib2.ogg");
 
     private TimeSpan _next;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<WFTwistedArmRemovalComponent, SurgeryStepEvent>(OnRemoved);
+    }
+
+    /// <summary>A surgeon cuts the twisted arm away; what's left is Remade tissue, worth something to the right buyer.</summary>
+    private void OnRemoved(Entity<WFTwistedArmRemovalComponent> ent, ref SurgeryStepEvent args)
+    {
+        if (!TryComp<WFCodaMutatedComponent>(args.Body, out var mutated))
+            return;
+
+        if (!TerminatingOrDeleted(mutated.Blade))
+            Del(mutated.Blade);
+
+        RemComp<WFCodaMutatedComponent>(args.Body);
+        Spawn(ent.Comp.Tissue, Transform(args.Body).Coordinates);
+        _popup.PopupEntity(Loc.GetString("wf-coda-mutate-removed"), args.Body, args.Body, PopupType.Medium);
+    }
 
     public override void Update(float frameTime)
     {
@@ -83,6 +104,7 @@ public sealed class WFCodaMutationSystem : EntitySystem
         var mutated = EnsureComp<WFCodaMutatedComponent>(mob);
         mutated.Blade = blade;
         mutated.OutSince = null;
+        Dirty(mob, mutated);
         _audio.PlayPvs(TwistSound, mob);
         _popup.PopupEntity(Loc.GetString("wf-coda-mutate"), mob, mob, PopupType.LargeCaution);
         _popup.PopupEntity(Loc.GetString("wf-coda-mutate-others", ("name", mob)), mob, Filter.PvsExcept(mob), true, PopupType.MediumCaution);
@@ -131,21 +153,11 @@ public sealed class WFCodaMutationSystem : EntitySystem
         if (!TryComp<WFDriftComponent>(carrier, out var drift))
             return null;
 
-        var own = CompOrNull<WFDriftComponent>(mob)?.Mind ?? 0f;
+        var head = CompOrNull<WFDriftComponent>(mob);
+        var felt = head?.FeltLevel > 0 ? head.Felt : drift.Drift;
+        var own = head?.Mind ?? 0f;
         var sheltered = TryComp<WFLatticeShelterComponent>(carrier, out var shelter) && shelter.StopsTaking
                         || TryComp<WFLatticeShelterComponent>(mob, out var charm) && charm.StopsTaking;
-        return (drift.Band, Math.Max(drift.Drift, own), sheltered);
+        return (drift.Band, Math.Max(felt, own), sheltered);
     }
-}
-
-/// <summary>A person whose arm the Coda has twisted into a blade.</summary>
-[RegisterComponent]
-public sealed partial class WFCodaMutatedComponent : Component
-{
-    [ViewVariables]
-    public EntityUid Blade;
-
-    /// <summary>When they last left the Coda with it, or null while inside.</summary>
-    [ViewVariables]
-    public TimeSpan? OutSince;
 }

@@ -221,6 +221,16 @@ wf-coda-mutate = Your arm twists, splits and hardens. It isn't yours any more.
 wf-coda-mutate-others = {CAPITALIZE(THE($name))}'s arm twists and splits into a blade of bone.
 wf-coda-mutate-wither = The thing your arm became withers and falls away.
 wf-lattice-mirror = You look down at yourself. That isn't you.
+wf-lattice-feedback-wrap = [color=#2cdb2c]\[Common\] [bold]{$name}[/bold] says, "{$message}"[/color]
+wf-lattice-knowing = [italic]You know, without knowing how, that something waits out there. Near {$x}, {$y}.[/italic]
+wf-coda-mutate-removed = The twisted arm is gone. You feel lighter.
+wf-drift-logger-examine = It has logged [color=#c0a0ff]{$readings}[/color] readings.
+wf-reagent-effect-guidebook-ground = { $chance ->
+        [1] Keeps
+        *[other] keep
+    } half the Drift felt off while it lasts and clears some from the head
+reagent-name-wf-lodestar = lodestar
+reagent-desc-wf-lodestar = A heavy, faintly glowing sedative that holds a mind to where it is. Keeps half the Drift off while it lasts.
 wf-lattice-mimic-wrap = [bold]{$name}[/bold] says, "{$message}"
 wf-lattice-mimic-1 = {$name}. Look at me. Look at what you are.
 wf-lattice-mimic-2 = We should open the airlock. Just to see.

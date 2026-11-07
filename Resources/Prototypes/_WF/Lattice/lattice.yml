@@ -55,6 +55,25 @@
   - kind: Mirror
     minDrift: 90
     weight: 1.5
+  # Lies about the game itself, and the rare true thing.
+  - kind: Double
+    minDrift: 45
+    weight: 1
+  - kind: Echo
+    minDrift: 50
+    weight: 1.5
+  - kind: Knowing
+    minDrift: 50
+    weight: 1
+  - kind: Vanish
+    minDrift: 55
+    weight: 1.5
+  - kind: FalseAlert
+    minDrift: 60
+    weight: 1.5
+  - kind: Silence
+    minDrift: 85
+    weight: 0.5
   # The Coda's hazards for a crewed ship: hunter packs board the longer it stays (from three minutes in), its structure
   # rots unless a stabiliser runs, and thrusters, gyroscopes or power give out now and then.
   hazardBand: 4
