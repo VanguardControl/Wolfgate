@@ -83,7 +83,6 @@
     - Seax
     - Xiphos
     # WOLFGATE(OldVessels) START: classic ships returned at this tier
-    - Welder
     - Hoplite
     - Spica
     - Syringe
@@ -114,6 +113,7 @@
     - Calypso
     - Dagger
     - Fracture
+    - Welder
 
 - type: entity
   parent: ShipVoucherTsfT0
