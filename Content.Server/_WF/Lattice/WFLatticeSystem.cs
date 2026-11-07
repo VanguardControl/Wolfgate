@@ -423,7 +423,8 @@ public sealed partial class WFLatticeSystem : EntitySystem
             if (xform.MapUid != map || !anchor.Active)
                 continue;
 
-            _anchors.Add((_transform.GetWorldPosition(xform), anchor.Strength));
+            // Secondary anchors carry their strength negated: they hold a local well, not the bands.
+            _anchors.Add((_transform.GetWorldPosition(xform), anchor.Primary ? anchor.Strength : -anchor.Strength));
             if (anchor.Primary)
                 _primaries++;
         }

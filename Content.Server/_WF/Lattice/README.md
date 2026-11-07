@@ -3,8 +3,11 @@
 The sector's boundary. Reality anchors round Caelestinus Central hold off Kyphrus's Unmooring; the further from their
 hold, the worse it gets. The field is banded Unison, Detune, Dissonance, Feedback and the Coda, whose name comes out garbled.
 Crossing into another band shows a popup and a notification chip, and radars draw the band edges in place of the
-drone rings: the band edges are the profile's (28, 40, 53 and 66 km), and the default worldgen's biomes change at the same
-distances; a map whose drone rings line up one per edge uses those instead. The full design and build order are in `Docs/_WF/Lattice/DESIGN.md`.
+drone rings: the band edges are the profile's (20, 34, 50 and 66 km), and the default worldgen's biomes change at the same
+distances (`droneRingEdges: false`, so a map's drone rings never move them). Only the six primary anchors set the bands,
+so the edges are near-circles that pull in only on the side of a lost primary. Secondary anchors (relays, a station's own)
+carry their strength negated and hold only a local well of anchored space (`WFLatticeMath.LocalHold`, about 2 km for a
+relay), so they never bend the far bands. The full design and build order are in `Docs/_WF/Lattice/DESIGN.md`.
 
 **How it works.** `WFLatticeSystem` puts `WFLatticeFieldComponent` on every map with world generation and spawns the
 profile's six primary anchors on a 3 km hexagon if the map has none. Each is a station loaded from the profile's
@@ -342,7 +345,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Content.Client/Shuttles/UI/NavScreen.xaml.cs`](../../../Content.Client/Shuttles/UI/NavScreen.xaml.cs): the ship's own position garbles too.
 - [`Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs)
   - radar contacts only this player sees.
-  - in the Coda the radar goes blind in wandering wedges.
+  - the Coda shows only as static on every scanner.
   - contact names garble out past the Lattice's hold.
 - [`Content.Server/Shuttles/Systems/ShuttleConsoleSystem.FTL.cs`](../../Shuttles/Systems/ShuttleConsoleSystem.FTL.cs)
   - drives don't work past the Lattice's hold
@@ -352,12 +355,12 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Resources/Prototypes/_Mono/Entities/World/Biome/basic.yml`](../../../Resources/Prototypes/_Mono/Entities/World/Biome/basic.yml)
   - fewer rocks near home, so the good ones are a trip out
   - no high-tier drones anywhere
-  - anchored space reaches 28 km
-  - wider Lattice bands, Detune 28-40 km
+  - anchored space reaches 20 km
+  - wider Lattice bands, Detune 20-34 km
   - each band thins its own rocks
-  - wider Lattice bands, Dissonance 40-53 km
+  - wider Lattice bands, Dissonance 34-50 km
   - only the low-tier drones out past the hold
-  - wider Lattice bands, Feedback 53-66 km
+  - wider Lattice bands, Feedback 50-66 km
   - the Coda has the fewest rocks of all
   - only the low-tier drones out past the hold, rarest in the Coda
 - [`Resources/Prototypes/_NF/Guidebook/nf14.yml`](../../../Resources/Prototypes/_NF/Guidebook/nf14.yml): the bands, Drift, exotic matter and the anchors

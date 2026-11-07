@@ -7,10 +7,10 @@
 
   Your radar draws the band edges as rings, in place of the old drone zone rings. Crossing one shows a warning.
 
-  - [bold]Unison[/bold], up to about 28 km from the centre: safe. Drift fades here.
-  - [bold]Detune[/bold], 28 to 40 km: Drift builds slowly. Fewer rocks, but ore yields a little more.
-  - [bold]Dissonance[/bold], 40 to 53 km: Drift builds faster. Rocks are sparser and richer.
-  - [bold]Feedback[/bold], 53 to 66 km: Drift builds fast. FTL drives stop working. Few rocks, but rich ones.
+  - [bold]Unison[/bold], up to about 20 km from the centre: safe. Drift fades here.
+  - [bold]Detune[/bold], 20 to 34 km: Drift builds slowly. Fewer rocks, but ore yields a little more.
+  - [bold]Dissonance[/bold], 34 to 50 km: Drift builds faster. Rocks are sparser and richer.
+  - [bold]Feedback[/bold], 50 to 66 km: Drift builds fast. FTL drives stop working. Few rocks, but rich ones.
   - [bold]the Coda[/bold], past 66 km: Drift climbs fastest of all, up to its cap. No FTL. Names and coordinates garble. Stay a while and Remade hunters come aboard; the hull rots and Remade flesh takes root unless a stabiliser runs; power, doors and engines fail now and then; the radar goes blind in patches; and something vast lives out there. The richest rocks, the only exotic matter, and Monolith hulks.
 
   If an anchor is destroyed, the bands move inward on its side.

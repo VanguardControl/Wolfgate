@@ -21,10 +21,10 @@ below are for an intact Lattice and slide inward where anchors fall.
 
 | Band | About | Drone zone | Drift | Threats | Reward |
 |---|---|---|---|---|---|
-| Unison | 0-28 km | none | fades | none | baseline |
-| Detune | 28-40 km | 1 | slow | comm static, rare whispers, phantom radar blips | more ore, more metallic rocks |
-| Dissonance | 40-53 km | 2 | moderate | false hails, ghost contacts, footsteps, glimpses, screen warping | rich ore, rare exotic matter |
-| Feedback | 53-66 km | 3 | fast | hallucinated Remade, nav drift | exotic matter deposits |
+| Unison | 0-20 km | none | fades | none | baseline |
+| Detune | 20-34 km | 1 | slow | comm static, rare whispers, phantom radar blips | more ore, more metallic rocks |
+| Dissonance | 34-50 km | 2 | moderate | false hails, ghost contacts, footsteps, glimpses, screen warping | rich ore, rare exotic matter |
+| Feedback | 50-66 km | 3 | fast | hallucinated Remade, nav drift | exotic matter deposits |
 | the Coda | 66 km+ | 4 | exponential | small animals aboard turn Remade (low chance), Monolith hulks | the best salvage, dense exotic matter |
 
 - **Edges follow the drone rings.** The default worldgen (`MonoDefault`) is nearly empty inside 18 km apart from the

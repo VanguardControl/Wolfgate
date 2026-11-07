@@ -817,7 +817,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
             }
         }
         #endregion
-        DrawWfLatticeDeadZones(handle); // WOLFGATE(Lattice): in the Coda the radar goes blind in wandering wedges.
+        DrawWfLatticeDeadZones(handle, worldToView, xform.MapUid); // WOLFGATE(Lattice): the Coda shows only as static on every scanner.
         DrawWfCoordinateReadout(handle); // WOLFGATE(Waypoints): cursor and scanner coordinates over everything else.
     }
 
