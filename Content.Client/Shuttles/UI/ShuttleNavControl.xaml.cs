@@ -89,10 +89,9 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
 
     #region Mono
     // These 2 handle timing updates
-    // WOLFGATE(Performance) START: a zero interval made the gate always pass and the sweep divide by zero.
-    // The client throttle in RadarBlipsSystem owns the refresh rate now, and the sweep hand keeps a period of its own.
-    // protected const float RadarUpdateInterval = 0f;
-    protected const float RadarUpdateInterval = 0.05f;
+    protected const float RadarUpdateInterval = 0f;
+    // WOLFGATE(Performance) START: the sweep divided by the zero interval, so the sweep hand keeps a period of its own.
+    // The request gate stays open; the throttle in RadarBlipsSystem owns the refresh rate.
     protected const float RadarSweepPeriod = 1f;
     private float _wfSweep; // WOLFGATE(Performance): the sweep hand's own timer, since the request accumulator is zeroed each frame
     // WOLFGATE END

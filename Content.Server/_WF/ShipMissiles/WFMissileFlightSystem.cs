@@ -123,12 +123,10 @@ public sealed partial class WFMissileFlightSystem : EntitySystem
 
             velocity += MissileGuidance.LosNormal(relPos) * command * frameTime;
 
-            if (!boosting)
-            {
-                var turned = velocity.Length();
-                if (turned > 0f)
-                    velocity *= speed / turned;
-            }
+            // Diverters only turn the airframe, boosting or not; the motor below is what changes speed.
+            var turned = velocity.Length();
+            if (turned > 0f)
+                velocity *= speed / turned;
 
             // The launch transient costs no divert impulse: off-rail stabilisation is free.
             if (!transient)

@@ -115,6 +115,14 @@
   - type: MiningGatheringSoft
   - type: MiningGatheringHard
   # WOLFGATE(ShipMissiles) START: the carrier only seeks; WFMissileFlightSystem flies the missile
+  # Upstream carrier, which flew the missile itself:
+  # - type: TargetSeeking
+  #   acceleration: 140
+  #   detectionRange: 1200
+  #   scanArc: 15
+  #   launchSpeed: 150
+  #   maxSpeed: 300
+  #   trackDelay: 0.1
   - type: TargetSeeking
     acceleration: 0
     launchSpeed: 0
@@ -197,6 +205,15 @@
   - type: MiningGatheringSoft
   - type: MiningGatheringHard
   # WOLFGATE(ShipMissiles) START: the carrier only seeks; WFMissileFlightSystem flies the missile
+  # Upstream carrier, which flew the missile itself:
+  # - type: TargetSeeking
+  #   acceleration: 250
+  #   detectionRange: 1600
+  #   scanArc: 25
+  #   launchSpeed: 90
+  #   maxSpeed: 240
+  #   trackDelay: 0.2
+  #   trackingAlgorithm: AdvancedPredictive
   - type: TargetSeeking
     acceleration: 0
     launchSpeed: 0
@@ -232,6 +249,13 @@
   categories: [ HideSpawnMenu ]
   components:
   # WOLFGATE(ShipMissiles) START: motor only, no seeker and no diverters
+  # Upstream carrier, which flew the missile itself:
+  # - type: TargetSeeking
+  #   acceleration: 150
+  #   detectionRange: 0
+  #   scanArc: 0
+  #   launchSpeed: 90
+  #   maxSpeed: 300
   - type: TargetSeeking
     acceleration: 0
     launchSpeed: 0
@@ -297,6 +321,14 @@
   - type: MiningGatheringSoft
   - type: MiningGatheringHard
   # WOLFGATE(ShipMissiles) START: the carrier only seeks; WFMissileFlightSystem flies the missile
+  # Upstream carrier, which flew the missile itself:
+  # - type: TargetSeeking
+  #   acceleration: 180
+  #   detectionRange: 2400
+  #   scanArc: 35
+  #   launchSpeed: 120
+  #   maxSpeed: 350
+  #   trackDelay: 0.15
   - type: TargetSeeking
     acceleration: 0
     launchSpeed: 0
@@ -364,6 +396,15 @@
   - type: MiningGatheringSoft
   - type: MiningGatheringHard
   # WOLFGATE(ShipMissiles) START: the carrier only seeks; WFMissileFlightSystem flies the missile
+  # Upstream carrier, which flew the missile itself:
+  # - type: TargetSeeking
+  #   acceleration: 360 # PD skillcheck
+  #   detectionRange: 700
+  #   scanArc: 20
+  #   launchSpeed: 300
+  #   maxSpeed: 650
+  #   trackDelay: 0
+  #   trackingAlgorithm: AdvancedPredictive
   - type: TargetSeeking
     acceleration: 0
     launchSpeed: 0
@@ -434,6 +475,14 @@
   - type: MiningGatheringSoft
   - type: MiningGatheringHard
   # WOLFGATE(ShipMissiles) START: the carrier only seeks; WFMissileFlightSystem flies the missile
+  # Upstream carrier, which flew the missile itself:
+  # - type: TargetSeeking
+  #   acceleration: 220
+  #   detectionRange: 2400
+  #   scanArc: 35
+  #   launchSpeed: 60
+  #   maxSpeed: 300
+  #   trackDelay: 0.2
   - type: TargetSeeking
     acceleration: 0
     launchSpeed: 0
