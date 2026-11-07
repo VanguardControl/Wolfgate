@@ -329,6 +329,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - restore the licence header removed by Kill Spdx
   - the company is passed through the constructor
   - copies keep the company
+  - digits are allowed in names, as the validation regex above already allows them
   - count downsides first so a positive trait isn't dropped by set order
   - MemberwiseEquals - Equals(other) resolved to this override and recursed forever.
   - hash only what MemberwiseEquals compares by value

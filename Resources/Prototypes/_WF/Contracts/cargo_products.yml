@@ -4,6 +4,7 @@
 - type: cargoProduct
   id: WFEmergencyBruteKit
   parent: EmergencyBruteKit
+  cost: 700 # the filled kit sells for 635
 
 - type: cargoProduct
   id: WFEmergencyBurnKit

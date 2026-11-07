@@ -1,10 +1,18 @@
 using Content.Shared._WF.RMCCore.Tether;
 using Content.Shared.Throwing;
+using Robust.Shared.Network;
+using Robust.Shared.Timing;
 
 namespace Content.Shared._WF.Xenonids.Hook;
 
 public sealed partial class XenoHookSystem : EntitySystem
 {
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private INetManager _net = default!;
+
+    /// <summary>The longest a hook holds on: a pull lands well inside this, but in zero gravity it never lands.</summary>
+    public static readonly TimeSpan MaxHold = TimeSpan.FromSeconds(1.5);
+
     public override void Initialize()
     {
         base.Initialize();
@@ -13,6 +21,23 @@ public sealed partial class XenoHookSystem : EntitySystem
         SubscribeLocalEvent<XenoHookComponent, EntityTerminatingEvent>(OnHookDelete);
         SubscribeLocalEvent<XenoHookedComponent, StopThrowEvent>(OnHookedStop);
         SubscribeLocalEvent<XenoHookedComponent, ComponentShutdown>(OnHookedRemoved);
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        // The release time isn't networked; the server lets go and the client follows its state.
+        if (_net.IsClient)
+            return;
+
+        var now = _timing.CurTime;
+        var query = EntityQueryEnumerator<XenoHookedComponent>();
+        while (query.MoveNext(out var uid, out var hooked))
+        {
+            if (now >= hooked.ReleaseAt)
+                RemCompDeferred<XenoHookedComponent>(uid);
+        }
     }
 
     private void OnHookSourceMove(Entity<XenoHookComponent> xeno, ref MoveEvent args)
@@ -65,7 +90,7 @@ public sealed partial class XenoHookSystem : EntitySystem
         if (HasComp<XenoHookedComponent>(target))
             return false;
 
-        EnsureComp<XenoHookedComponent>(target);
+        EnsureComp<XenoHookedComponent>(target).ReleaseAt = _timing.CurTime + MaxHold;
         xeno.Comp.Hooked.Add(target);
         Dirty(xeno);
 
