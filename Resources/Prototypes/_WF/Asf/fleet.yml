@@ -261,7 +261,7 @@
   category: Medium # 313 tiles
   group: Custom
   shuttlePath: /SharedMaps/_WF/Asf/revelation.yml
-  guidebookPage: /Resources/ServerInfo/_WF/Guidebook
+  guidebookPage: ShipyardRevelation
   class:
   - Science
   engine:
