@@ -179,8 +179,9 @@ public sealed class WFCodaHazardTest
         await pair.RunSeconds(47f);
         await server.WaitAssertion(() =>
         {
-            var node = entities.EntityQuery<WFCodaFleshNodeComponent>().Single();
-            Assert.That(node.Tiles.Count, Is.GreaterThan(3), "the flesh didn't creep out from its node.");
+            // The Coda may root another knot of its own meanwhile; the seeded one has had the longest to grow.
+            var grown = entities.EntityQuery<WFCodaFleshNodeComponent>().Max(node => node.Tiles.Count);
+            Assert.That(grown, Is.GreaterThan(3), "the flesh didn't creep out from its node.");
 
             var gridComp = entities.GetComponent<MapGridComponent>(map.Grid);
             var tilesAfter = maps.GetAllTiles(map.Grid, gridComp).Count();

@@ -248,12 +248,15 @@ public sealed class WFLatticeStationTest
             }
         });
 
-        await pair.RunSeconds(8f);
-        await server.WaitAssertion(() =>
+        // Turret targeting is planned off the tick, so give a slow runner a while before calling it.
+        var hurt = FixedPoint2.Zero;
+        for (var second = 0; second < 30 && hurt <= FixedPoint2.Zero; second++)
         {
-            var hurt = boarders.Max(b => entities.GetComponent<DamageableComponent>(b).TotalDamage);
-            Assert.That(hurt, Is.GreaterThan(FixedPoint2.Zero), "the spires let every boarder walk about unhurt.");
-        });
+            await pair.RunSeconds(1f);
+            await server.WaitPost(() => hurt = boarders.Max(b => entities.GetComponent<DamageableComponent>(b).TotalDamage));
+        }
+
+        Assert.That(hurt, Is.GreaterThan(FixedPoint2.Zero), "the spires let every boarder walk about unhurt.");
 
         await pair.CleanReturnAsync();
     }
@@ -326,13 +329,21 @@ public sealed class WFLatticeStationTest
             lattice.Strike(station, attacker, 1f);
         });
 
-        await pair.RunSeconds(4f);
-        await server.WaitAssertion(() =>
+        var engaged = false;
+        var fired = false;
+        for (var second = 0; second < 30 && !(engaged && fired); second++)
         {
-            Assert.That(entities.GetComponent<WFLatticeAnchorStationComponent>(station).Engaged, Is.True, "the station didn't engage once its shield fell.");
-            Assert.That(Bolts(entities), Is.GreaterThan(0), "the lances didn't fire with the shield down.");
-            entities.DeleteEntity(crewman);
-        });
+            await pair.RunSeconds(1f);
+            await server.WaitPost(() =>
+            {
+                engaged |= entities.GetComponent<WFLatticeAnchorStationComponent>(station).Engaged;
+                fired |= Bolts(entities) > 0;
+            });
+        }
+
+        Assert.That(engaged, Is.True, "the station didn't engage once its shield fell.");
+        Assert.That(fired, Is.True, "the lances didn't fire with the shield down.");
+        await server.WaitPost(() => entities.DeleteEntity(crewman));
 
         // Nobody left alive aboard: the lances go quiet, and their bolts burn out.
         await pair.RunSeconds(8f);
