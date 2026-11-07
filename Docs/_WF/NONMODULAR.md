@@ -267,6 +267,11 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - see WfSetAudible
   - forget a finished track's audio entity, whose uid would otherwise still be networked
 - [`Content.Shared/_Goobstation/StationRadio/Systems/VinylPlayerSystem.cs`](../../Content.Shared/_Goobstation/StationRadio/Systems/VinylPlayerSystem.cs): forget a finished track's audio entity, whose uid would otherwise still be networked
+- [`Content.Shared/_Mono/BlackFlash/BlackFlashComponent.cs`](../../Content.Shared/_Mono/BlackFlash/BlackFlashComponent.cs)
+  - resolve the Black Flash damage specification type
+  - document the armed action's flat damage bonus
+  - a flat 100 damage
+- [`Content.Shared/_Mono/BlackFlash/BlackFlashSystem.cs`](../../Content.Shared/_Mono/BlackFlash/BlackFlashSystem.cs): apply configured flat damage after melee modifiers
 - [`Content.Shared/_Mono/Economy/SharedCreditReceiverSystem.cs`](../../Content.Shared/_Mono/Economy/SharedCreditReceiverSystem.cs): _log was never assigned, so every log line in TryCashPayment threw a NullReferenceException
 - [`Content.Shared/_Mono/ShipGuns/ShipGunClassComponent.cs`](../../Content.Shared/_Mono/ShipGuns/ShipGunClassComponent.cs): restore the licence header removed by Kill Spdx
 - [`Content.Shared/_Mono/Traits/Physical/BionicLegsComponent.cs`](../../Content.Shared/_Mono/Traits/Physical/BionicLegsComponent.cs): restore the licence header removed by Kill Spdx
@@ -351,6 +356,8 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Shared/Temperature/Systems/SharedTemperatureSystem.cs`](../../Content.Shared/Temperature/Systems/SharedTemperatureSystem.cs): a band takes the slowdown of the lowest threshold above it; warming past a threshold gave it that threshold's heavier slowdown
 - [`Content.Shared/Traits/Assorted/AlcoholToleranceComponent.cs`](../../Content.Shared/Traits/Assorted/AlcoholToleranceComponent.cs): restore the licence header removed by Kill Spdx
 - [`Content.Shared/Traits/TraitPrototype.cs`](../../Content.Shared/Traits/TraitPrototype.cs): restore the licence header removed by Kill Spdx
+- [`Content.Shared/Weapons/Melee/Events/MeleeHitEvent.cs`](../../Content.Shared/Weapons/Melee/Events/MeleeHitEvent.cs): support hit damage that bypasses melee modifier sets
+- [`Content.Shared/Weapons/Melee/SharedMeleeWeaponSystem.cs`](../../Content.Shared/Weapons/Melee/SharedMeleeWeaponSystem.cs): apply configured damage after melee modifier sets
 - [`Content.Shared/Weapons/Ranged/Events/RequestShootEvent.cs`](../../Content.Shared/Weapons/Ranged/Events/RequestShootEvent.cs): restore the licence header removed by Kill Spdx
 - [`Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.Revolver.cs`](../../Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.Revolver.cs): C# % keeps the sign, index 0 gave -1 and crashed the server
 - [`LEGAL.md`](../../LEGAL.md)
