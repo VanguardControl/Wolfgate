@@ -138,18 +138,18 @@
     - SimpleHostile
   - type: BasicEntityAmmoProvider
     proto: WFLatticeFlechetteVolley
-  # Snaps round and fires near enough at once: the base turret turns at 90 degrees a second.
+  # Snaps round and fires near enough at once: the base turret turns at 90 degrees a second, this one at about 690.
   - type: HTN
     rootTask:
       task: TurretCompound
     blackboard:
       RotateSpeed: !type:Single
-        40
+        12
       SoundTargetInLOS: !type:SoundPathSpecifier
         path: /Audio/Effects/double_beep.ogg
   - type: MouseRotator
-    angleTolerance: 20
-    rotationSpeed: 3600
+    angleTolerance: 15
+    rotationSpeed: 720
     simple4DirMode: false
   - type: Gun
     fireRate: 3

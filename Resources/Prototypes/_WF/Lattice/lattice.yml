@@ -187,7 +187,5 @@
 - type: entity
   parent: ArmBlade
   id: WFCodaArmBlade
-  name: twisted arm
-  description: Bone and flesh where an arm used to be, split and hardened into a blade. It still twitches.
   components:
   - type: Unremoveable

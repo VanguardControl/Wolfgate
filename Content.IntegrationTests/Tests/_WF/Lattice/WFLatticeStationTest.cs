@@ -226,7 +226,7 @@ public sealed class WFLatticeStationTest
         var lattice = entities.System<WFLatticeSystem>();
         var transform = entities.System<SharedTransformSystem>();
 
-        EntityUid boarder = default;
+        var boarders = new System.Collections.Generic.List<EntityUid>();
         await server.WaitAssertion(() =>
         {
             lattice.Setup(map.MapUid);
@@ -238,17 +238,21 @@ public sealed class WFLatticeStationTest
                 .ToList();
             Assert.That(spires, Has.Count.EqualTo(4), "the anchor station should have its four spire turrets.");
 
-            var spire = transform.GetWorldPosition(spires[0]);
+            // One boarder by each spire, so a wall in one spire's way can't decide the test.
             var core = transform.GetWorldPosition(station.Core);
-            var at = spire + System.Numerics.Vector2.Normalize(core - spire) * 2.5f;
-            boarder = entities.SpawnEntity("MobHuman", new MapCoordinates(at, map.MapId));
+            foreach (var spireUid in spires)
+            {
+                var spire = transform.GetWorldPosition(spireUid);
+                var at = spire + System.Numerics.Vector2.Normalize(core - spire) * 2.5f;
+                boarders.Add(entities.SpawnEntity("MobHuman", new MapCoordinates(at, map.MapId)));
+            }
         });
 
         await pair.RunSeconds(8f);
         await server.WaitAssertion(() =>
         {
-            var hurt = entities.GetComponent<DamageableComponent>(boarder).TotalDamage;
-            Assert.That(hurt, Is.GreaterThan(FixedPoint2.Zero), "the spires let a boarder walk about unhurt.");
+            var hurt = boarders.Max(b => entities.GetComponent<DamageableComponent>(b).TotalDamage);
+            Assert.That(hurt, Is.GreaterThan(FixedPoint2.Zero), "the spires let every boarder walk about unhurt.");
         });
 
         await pair.CleanReturnAsync();

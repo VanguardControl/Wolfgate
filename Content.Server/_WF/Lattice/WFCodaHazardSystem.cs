@@ -405,9 +405,13 @@ public sealed partial class WFCodaHazardSystem : EntitySystem
             if (xform.GridUid != grid || HasComp<WFCrashApcFaultComponent>(uid))
                 continue;
 
+            // A flicker already running keeps its later end and its rhythm.
+            var running = HasComp<WFCodaFlutterComponent>(uid);
             var flutter = EnsureComp<WFCodaFlutterComponent>(uid);
-            flutter.Until = until;
-            flutter.Next = _timing.CurTime;
+            if (!running || until > flutter.Until)
+                flutter.Until = until;
+            if (!running)
+                flutter.Next = _timing.CurTime;
             any = true;
         }
 

@@ -251,3 +251,15 @@ wf-lattice-mimic-12 = {$name}, we already turned. You're the last one.
 
 surgery-popup-step-WFLatticeStepExciseSong = {$user} is cutting the song out of {$target}'s brain.
 surgery-popup-step-WFLatticeStepCutTwistedArm = {$user} is cutting the twisted blade free of {$target}'s arm.
+
+# The Coda and Drift depth.
+ent-WFCodaArmBlade = twisted arm
+    .desc = Bone and flesh where an arm used to be, split and hardened into a blade. It still twitches.
+ent-WFSurgeryCutTwistedArm = Cut Away the Twisted Arm
+ent-WFLatticeStepCutTwistedArm = Cut the blade free
+ent-WFRemadeTissue = Remade tissue
+    .desc = Bone and flesh grown wrong, cut from someone the Coda got its hands on. It is still warm.
+ent-WFDriftLogger = drift logger
+    .desc = Counts the Unmooring wherever it is carried. Station science buys its readings; the further out, the more they pay.
+ent-WFCodaFleshNode = flesh knot
+    .desc = A swollen knot of grey-red flesh grown into the deck. It pulses slowly. Something in it is listening.

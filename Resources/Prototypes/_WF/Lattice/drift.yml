@@ -2,7 +2,6 @@
 - type: entity
   parent: SurgeryBase
   id: WFSurgeryCutTwistedArm
-  name: Cut Away the Twisted Arm
   categories: [ HideSpawnMenu ]
   components:
   - type: Surgery
@@ -17,7 +16,6 @@
 - type: entity
   parent: SurgeryStepBase
   id: WFLatticeStepCutTwistedArm
-  name: Cut the blade free
   categories: [ HideSpawnMenu ]
   components:
   - type: SurgeryStep
@@ -34,8 +32,6 @@
 - type: entity
   parent: BaseItem
   id: WFRemadeTissue
-  name: Remade tissue
-  description: Bone and flesh grown wrong, cut from someone the Coda got its hands on. It is still warm.
   components:
   - type: Sprite
     sprite: Objects/Weapons/Melee/armblade.rsi
@@ -56,8 +52,6 @@
 - type: entity
   parent: BaseItem
   id: WFDriftLogger
-  name: drift logger
-  description: Counts the Unmooring wherever it is carried. Station science buys its readings; the further out, the more they pay.
   components:
   - type: Sprite
     sprite: Objects/Tools/geiger.rsi
@@ -86,8 +80,6 @@
 # its flesh dies. WFCodaFleshSystem adds its node component when it takes root.
 - type: entity
   id: WFCodaFleshNode
-  name: flesh knot
-  description: A swollen knot of grey-red flesh grown into the deck. It pulses slowly. Something in it is listening.
   placement:
     mode: SnapgridCenter
   components:
@@ -95,6 +87,7 @@
     anchored: true
   - type: Clickable
   - type: InteractionOutline
+  - type: Appearance
   - type: Sprite
     sprite: _WF/Remade/Structures/growths.rsi
     drawdepth: FloorObjects

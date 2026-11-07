@@ -90,10 +90,12 @@ public sealed partial class WFLatticeSystem
         var now = _timing.CurTime;
         comp.Hostiles[enemy] = now + TimeSpan.FromSeconds(profile.HostileSeconds);
         comp.ProvokedUntil = now + TimeSpan.FromSeconds(profile.HostileSeconds);
-        if (now >= comp.NextAlert)
+        // Engaged either way, so the defence pass doesn't raise a second alarm while this one's cooldown runs.
+        var alarm = !comp.Engaged && now >= comp.NextAlert;
+        comp.Engaged = true;
+        if (alarm)
         {
             comp.NextAlert = now + TimeSpan.FromSeconds(profile.AlertCooldown);
-            comp.Engaged = true;
             Alert(station, comp, "wf-lattice-defence", enemy, true);
         }
 

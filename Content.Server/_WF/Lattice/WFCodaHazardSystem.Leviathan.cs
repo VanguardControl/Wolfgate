@@ -197,13 +197,27 @@ public sealed partial class WFCodaHazardSystem
             if (torn >= most)
                 break;
 
-            // An earlier tear may have changed this tile's neighbours.
-            if (!Clear(grid, at))
+            // An earlier tear may have changed this tile's neighbours, so check it is still safe to take.
+            if (!Clear(grid, at) || !Removable(grid, at))
                 continue;
 
             _maps.SetTile(grid.Owner, grid.Comp, at, Tile.Empty);
             torn++;
         }
+    }
+
+    /// <summary>Whether taking a tile leaves the rest joined: a dead-end tip, or a corner whose two neighbours meet diagonally.</summary>
+    private bool Removable(Entity<MapGridComponent> grid, Vector2i at)
+    {
+        var up = Filled(grid, at + new Vector2i(0, 1));
+        var down = Filled(grid, at + new Vector2i(0, -1));
+        var left = Filled(grid, at + new Vector2i(-1, 0));
+        var right = Filled(grid, at + new Vector2i(1, 0));
+        var filled = (up ? 1 : 0) + (down ? 1 : 0) + (left ? 1 : 0) + (right ? 1 : 0);
+        if (filled == 1)
+            return true;
+
+        return filled == 2 && up != down && Filled(grid, at + new Vector2i(right ? 1 : -1, up ? 1 : -1));
     }
 
     private bool Filled(Entity<MapGridComponent> grid, Vector2i at)
