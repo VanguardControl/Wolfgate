@@ -256,6 +256,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Server/_WF/Planets/CEZLevelsSystem.Wolfgate.cs`](CEZLevelsSystem.Wolfgate.cs)
 - [`Content.Server/_WF/Planets/Commands/WFPlanetCommand.cs`](Commands/WFPlanetCommand.cs)
 - [`Content.Server/_WF/Planets/ExplosionSystem.WFPlanets.cs`](ExplosionSystem.WFPlanets.cs)
+- [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFAdoptStanders.cs`](Flight/CEZLevelsSystem.WFAdoptStanders.cs)
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFFlight.cs`](Flight/CEZLevelsSystem.WFFlight.cs)
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFGravityCache.cs`](Flight/CEZLevelsSystem.WFGravityCache.cs)
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFLandingClearance.cs`](Flight/CEZLevelsSystem.WFLandingClearance.cs)
@@ -746,6 +747,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.Transit.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.Transit.cs)
   - a grid on a planet orbit layer holds its height instead of sinking.
   - hulls leave orbit through transit and never hop below ground.
+  - crates and players the ground layer still owns ride the hull off the planet.
   - riders' contacts with the old map must not survive the move.
   - hulls never descend below a planet's ground.
   - a held climb pops out into a planet's orbit layer instead of pinning under it.

@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Numerics;
 using Content.Server._NF.Bank;
+using Content.Server._WF.Planets.Flight;
 using Content.Server._WF.TradeGoods.Systems;
 using Content.Server.Cargo.Systems;
 using Content.Server.Destructible;
@@ -351,7 +352,8 @@ public sealed partial class WFDrydockSystem : EntitySystem
                 continue;
 
             var total = ent.Comp.TotalDamage;
-            if (total <= FixedPoint2.Zero)
+            var faulted = HasComp<WFCrashApcFaultComponent>(ent);
+            if (total <= FixedPoint2.Zero && !faulted)
                 continue;
 
             // Patching a part costs its rebuild price times the share of its health lost, never more than rebuilding it.
@@ -448,9 +450,12 @@ public sealed partial class WFDrydockSystem : EntitySystem
 
     private void ApplyHeal(WFDrydockWorkItem item)
     {
-        if (!TryComp<DamageableComponent>(item.Target, out var damageable) ||
-            TerminatingOrDeleted(item.Target) ||
-            damageable.TotalDamage <= FixedPoint2.Zero)
+        if (!TryComp<DamageableComponent>(item.Target, out var damageable) || TerminatingOrDeleted(item.Target))
+            return;
+
+        // A crash-faulted APC has no damage; the repair clears the fault the way a multitool would.
+        RemComp<WFCrashApcFaultComponent>(item.Target);
+        if (damageable.TotalDamage <= FixedPoint2.Zero)
             return;
 
         _damageable.SetAllDamage(item.Target, damageable, FixedPoint2.Zero);
