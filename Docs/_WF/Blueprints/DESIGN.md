@@ -124,7 +124,19 @@ recipes and isn't tied to a Codex technology.
 
 Unknown patterns are Tier III Builder pieces that aren't on the locator's list until someone finds one.
 
-### Starter catalogue
+### Recovered catalogue (live)
+
+The first 46 patterns are existing entities nothing else hands out, found by indexing every prototype reference and
+judging the leftovers: Goobstation's cell lasers, X-ray and pulse cells, mantis blades and Sandevistan; Mono's Century,
+Centurion and Director suits, Ashstorm LMG, heavy pulse cannon and EMP rounds; upstream's minigun, rocket salvo,
+experimental RCD, mirror and clockwork shields, hypereutactic blade and healing staff; Frontier's breaching anchor and
+elite pirate suit; and more. They are listed in `Resources/Prototypes/_WF/Blueprints/patterns.yml`.
+
+Left out on purpose: antagonist kit, admin and debug items, variants of things you can buy, round-ending bombs and
+infinite ship ammo. Structures without a flatpack (Curio pre-fracture turrets, the unlimited-range holopads, the
+pirate cannon) wait for one.
+
+### New-feature catalogue
 
 These are candidates, not commitments. Each one names the existing system it builds on. "Unknown" means it can't be
 listed and only turns up on a Tier III hunt.

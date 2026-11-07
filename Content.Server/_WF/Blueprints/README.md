@@ -13,6 +13,15 @@ A hunt ends when every shard has been decoded or destroyed, or when it is abando
 removed, carried ones stay). The site is then released and the locator recalibrates for five minutes. Expeditions and
 hunts never share a site (`WFPlanetPoiSite.BlueprintClaim`).
 
+The locator window lists every pattern by tier with a search box, tier filter and a "hide known" switch; the detail
+pane shows what a pattern prints and what that costs, and the request bar holds the picked patterns as chips, the fee
+and the Locate button, or the running hunt and its Abandon button.
+
+The 46 patterns are items nothing else in the game hands out: entities with no lathe recipe, store, loot table or
+loadout, judged one by one (a few of upstream's unplaced items, Goobstation's cell lasers and autosurgeon implants,
+Mono's faction suits and ship gear, Frontier's leftovers). Their recipes print at the protolathe under the Patterns
+category. Not included on purpose: antagonist kit, admin items, hull-breaching bombs and infinite ship ammo.
+
 Entry points: `WFBlueprintSystem` (locator UI, decoding, unlock) and `WFBlueprintSystem.Hunts` (site choice, shard
 placement, hunt end). Patterns are `wfBlueprintPattern` prototypes in `Resources/Prototypes/_WF/Blueprints`, with their
 recipes in the protolathe's `WFBlueprintPatterns` pack. The full design and later phases are in
@@ -36,6 +45,7 @@ recipes in the protolathe's `WFBlueprintPatterns` pack. The full design and late
 
 ### Client
 
+- [`Content.Client/_WF/Blueprints/FancyResearchConsoleMenu.Blueprints.cs`](../../../Content.Client/_WF/Blueprints/FancyResearchConsoleMenu.Blueprints.cs)
 - [`Content.Client/_WF/Blueprints/WFBlueprintLocatorBoundUserInterface.cs`](../../../Content.Client/_WF/Blueprints/WFBlueprintLocatorBoundUserInterface.cs)
 - [`Content.Client/_WF/Blueprints/WFBlueprintLocatorWindow.xaml`](../../../Content.Client/_WF/Blueprints/WFBlueprintLocatorWindow.xaml)
 - [`Content.Client/_WF/Blueprints/WFBlueprintLocatorWindow.xaml.cs`](../../../Content.Client/_WF/Blueprints/WFBlueprintLocatorWindow.xaml.cs)
