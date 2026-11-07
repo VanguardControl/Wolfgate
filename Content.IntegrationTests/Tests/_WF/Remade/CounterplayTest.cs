@@ -83,7 +83,10 @@ public sealed class CounterplayTest
             entMan.GetComponent<WFMonolithComponent>(scion).Resonance = 40f;
         });
 
+        // Growth spreads on a 10 % roll a second, so the first few tiles can take a while: give it up to two minutes.
         await pair.RunSeconds(40f);
+        for (var i = 0; i < 16 && entMan.EntityQuery<WFCorruptionComponent>().Count() <= 4; i++)
+            await pair.RunSeconds(5f);
 
         await server.WaitAssertion(() =>
         {

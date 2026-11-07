@@ -227,6 +227,8 @@ public sealed class WFLatticeStationTest
         var transform = entities.System<SharedTransformSystem>();
 
         var boarders = new System.Collections.Generic.List<EntityUid>();
+        // No player is near, so the sleep pass would put the spires to sleep at a random point in their first seconds.
+        await server.WaitPost(() => server.CfgMan.SetCVar(Content.Shared.CCVar.CCVars.NPCPauseWhenNoPlayersInRange, false));
         await server.WaitAssertion(() =>
         {
             lattice.Setup(map.MapUid);
@@ -326,12 +328,25 @@ public sealed class WFLatticeStationTest
             lattice.Strike(station, attacker, 1f);
         });
 
-        await pair.RunSeconds(4f);
+        // The explosive lances can wreck the one-tile attacker within seconds, which ends the fight, so watch for it.
+        var engaged = false;
+        var fired = false;
+        for (var i = 0; i < 16 && !(engaged && fired); i++)
+        {
+            await pair.RunSeconds(0.25f);
+            await server.WaitPost(() =>
+            {
+                engaged |= entities.GetComponent<WFLatticeAnchorStationComponent>(station).Engaged;
+                fired |= Bolts(entities) > 0;
+            });
+        }
+
         await server.WaitAssertion(() =>
         {
-            Assert.That(entities.GetComponent<WFLatticeAnchorStationComponent>(station).Engaged, Is.True, "the station didn't engage once its shield fell.");
-            Assert.That(Bolts(entities), Is.GreaterThan(0), "the lances didn't fire with the shield down.");
-            entities.DeleteEntity(crewman);
+            Assert.That(engaged, Is.True, "the station didn't engage once its shield fell.");
+            Assert.That(fired, Is.True, "the lances didn't fire with the shield down.");
+            if (entities.EntityExists(crewman))
+                entities.DeleteEntity(crewman);
         });
 
         // Nobody left alive aboard: the lances go quiet, and their bolts burn out.

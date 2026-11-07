@@ -816,6 +816,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Server/Pinpointer/PinpointerSystem.cs`](../../Pinpointer/PinpointerSystem.cs)
   - a hop moves the pinpointer's map like a jump
   - pinpointers find their target again after a hop
+- [`Content.Server/Salvage/RestrictedRangeSystem.cs`](../../Salvage/RestrictedRangeSystem.cs): one fixture per edge, not one chain fixture with many child edges
 - [`Content.Server/Shuttles/Systems/ShuttleSystem.FasterThanLight.cs`](../../Shuttles/Systems/ShuttleSystem.FasterThanLight.cs)
   - a hull mid-hop can't jump, nor can a ship docked to one
   - the docking branch never calls TrySetupFTL, so it asks the same gate.
