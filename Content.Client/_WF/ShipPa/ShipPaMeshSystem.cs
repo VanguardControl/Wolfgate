@@ -61,6 +61,7 @@ public sealed partial class ShipPaMeshSystem : EntitySystem
         public EntityUid Speaker;
         public ShipPaBroadcast Broadcast = default!;
         public float Fade;
+        public ShipPaDrift Drift;
     }
 
     private sealed record Candidate(EntityUid Grid, EntityUid Speaker, ShipPaBroadcast Broadcast, float Score);
@@ -390,12 +391,11 @@ public sealed partial class ShipPaMeshSystem : EntitySystem
         if (!audio.Playing && voice.Broadcast.IsPlaying(_timing.CurTime))
             audio.StartPlaying();
 
-        // Correct only significant clock drift; seeking every frame would itself create glitches.
-        var expected = voice.Broadcast.Position(_timing.CurTime);
-        var error = Math.Abs(audio.PlaybackPosition - expected);
-        if (voice.Broadcast.Loop)
-            error = Math.Min(error, Math.Abs(voice.Broadcast.Length - error));
-        if (error > 0.15f)
+        // Correct only lasting drift, against the smooth clock: the game clock's stalls and catch-ups would
+        // otherwise seek the track at every server hiccup, and seeking is the skip players hear.
+        var expected = voice.Drift.Expected(voice.Broadcast.Position(_timing.CurTime), _timing.RealTime,
+            voice.Broadcast.Length, voice.Broadcast.Loop);
+        if (ShipPaDrift.NeedsSeek(audio.PlaybackPosition, expected, voice.Broadcast.Length, voice.Broadcast.Loop))
             audio.PlaybackPosition = expected;
     }
 
