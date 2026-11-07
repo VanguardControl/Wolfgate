@@ -225,7 +225,7 @@ public sealed partial class WFCodaHazardSystem
         return _maps.TryGetTileRef(grid.Owner, grid.Comp, at, out var tile) && !tile.Tile.IsEmpty;
     }
 
-    /// <summary>Whether a tile has no one on it or beside it, and no helm.</summary>
+    /// <summary>Whether a tile has no one on it or beside it, no helm, and no flesh knot.</summary>
     private bool Clear(Entity<MapGridComponent> grid, Vector2i at)
     {
         if (!Filled(grid, at))
@@ -234,7 +234,7 @@ public sealed partial class WFCodaHazardSystem
         var anchored = _maps.GetAnchoredEntitiesEnumerator(grid.Owner, grid.Comp, at);
         while (anchored.MoveNext(out var uid))
         {
-            if (HasComp<ShuttleConsoleComponent>(uid))
+            if (HasComp<ShuttleConsoleComponent>(uid) || HasComp<WFCodaFleshNodeComponent>(uid))
                 return false;
         }
 

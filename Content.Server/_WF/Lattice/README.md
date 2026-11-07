@@ -67,8 +67,10 @@ least 6 m from the crew (5 min cooldown, at most 8 alive per ship); every 20 s 2
 `rotDamage` structural damage unless a stabiliser runs; and a `failureChance` roll every `failureInterval` (30 s at the
 edge, down to about 10 s deep in and after five minutes) makes something give out for 8-20 s: power flickering on and
 off ship-wide (`WFCodaFlutterComponent` on each APC), doors slamming, opening or bolting, half the thrusters, half the
-gyroscopes, or every APC breaker. Flickers and doors are the commonest. On the client the radar goes blind in two wandering wedges
-(`ShuttleNavControl.Lattice.cs`). Relays and stabilisers don't stop hunters or failures.
+gyroscopes, or every APC breaker. Flickers and doors are the commonest. On the client every scope, helm and mass scanner alike, goes blind in two
+wandering wedges and fills with static (`ShuttleNavControl.Lattice.cs`): crawling specks and a rolling interference band,
+denser deeper in, and bursts of snow that white the scope out for a moment, more often far out. Reduced motion slows the
+static and drops the bursts. Relays and stabilisers don't stop hunters or failures.
 
 **Twisted flesh.** In `mutationBand` at `mutationMinDrift` (80) or more and unsheltered, a person's arm can twist
 into a Remade blade (`WFCodaMutationSystem`, `mutationChance` a minute, doubling at full Drift): `WFCodaArmBlade` in
