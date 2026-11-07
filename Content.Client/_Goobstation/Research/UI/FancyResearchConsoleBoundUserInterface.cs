@@ -1,6 +1,7 @@
 using System.Linq;
 using Content.Shared.Research.Components;
 using Content.Shared.Research.Prototypes;
+using Content.Shared._WF.Blueprints; // WOLFGATE(Blueprints)
 using JetBrains.Annotations;
 using Robust.Client.UserInterface;
 using Robust.Shared.Prototypes;
@@ -36,6 +37,7 @@ public sealed class FancyResearchConsoleBoundUserInterface : BoundUserInterface
         {
             SendMessage(new ConsoleServerSelectionMessage());
         };
+        _consoleMenu.WFBindPatternsButton(() => SendMessage(new WFBlueprintOpenLocatorMessage())); // WOLFGATE(Blueprints)
     }
 
     public override void OnProtoReload(PrototypesReloadedEventArgs args)

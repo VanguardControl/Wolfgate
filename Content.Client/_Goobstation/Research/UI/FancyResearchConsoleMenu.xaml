@@ -22,6 +22,8 @@
             </BoxContainer>
             <BoxContainer Orientation="Vertical" VerticalExpand="True" HorizontalAlignment="Right">
                 <Button Name="ServerButton" Text="{Loc 'research-console-menu-server-selection-button'}" MinHeight="40"/>
+                <!-- WOLFGATE(Blueprints): opens the pattern locator -->
+                <Button Name="WFPatternsButton" Text="{Loc 'wf-blueprint-console-button'}" MinHeight="40" Margin="0 4 0 0"/>
             </BoxContainer>
         </BoxContainer>
         <BoxContainer Orientation="Horizontal"

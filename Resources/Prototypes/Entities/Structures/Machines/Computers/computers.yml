@@ -704,6 +704,10 @@
         type: ResearchClientBoundUserInterface
       enum.WiresUiKey.Key:
         type: WiresBoundUserInterface
+      # WOLFGATE(Blueprints) START: the pattern locator window
+      enum.WFBlueprintLocatorUiKey.Key:
+        type: WFBlueprintLocatorBoundUserInterface
+      # WOLFGATE END
   - type: ApcPowerReceiver
     powerLoad: 1000
   - type: Computer
@@ -721,6 +725,7 @@
   - type: ShipRepairable
     repairTime: 4
     repairCost: 8
+  - type: WFBlueprintLocator # WOLFGATE(Blueprints): hunts lost patterns and decodes their shards
 
 - type: entity
   parent: BaseComputerAiAccess
