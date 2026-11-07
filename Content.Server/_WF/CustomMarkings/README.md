@@ -30,7 +30,8 @@ Entry points: the server `CustomMarkingSystem` (library, saving, art requests, a
 `CustomMarkingLibraryWindow` and `CustomMarkingEditorWindow` (creator UI), `CustomMarkingArt`,
 `CustomMarkingErase` and `CustomMarkingRules` (the art, its erase mask and the limits, shared).
 
-Admin: saving new art is logged under the Identity log type with its hash. The Remove custom markings verb takes
+Admin: the `WFAppearanceStudio` feature ban (FeatureBans) stops a player saving custom markings and takes them off
+their body. Saving new art is logged under the Identity log type with its hash. The Remove custom markings verb takes
 them off a live character. The Block custom markings verb, or `custommarkingblock <hash> [true/false]`, blocks the
 art itself: it comes off every body, is no longer sent to anyone and can't be saved again. A client that was told
 art is blocked only asks for it again after reconnecting, so a lifted block shows from then. CVars:
@@ -101,6 +102,7 @@ nothing uses is kept, 0 to keep it forever).
 
 ### Server
 
+- [`Content.Server/_WF/CustomMarkings/CustomMarkingArtBlockedEvent.cs`](CustomMarkingArtBlockedEvent.cs)
 - [`Content.Server/_WF/CustomMarkings/CustomMarkingBlockCommand.cs`](CustomMarkingBlockCommand.cs)
 - [`Content.Server/_WF/CustomMarkings/CustomMarkingSaveResult.cs`](CustomMarkingSaveResult.cs)
 - [`Content.Server/_WF/CustomMarkings/CustomMarkingStoredArt.cs`](CustomMarkingStoredArt.cs)

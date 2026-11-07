@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
 using Content.Server.Database;
+using Content.Server._WF.AppearanceStudio;
+using Content.Server._WF.FeatureBans;
 using Content.Shared._WF.CustomMarkings;
 using Content.Shared.Administration;
 using Content.Shared.Database;
@@ -32,6 +34,7 @@ public sealed partial class CustomMarkingSystem : EntitySystem
     [Dependency] private IServerDbManager _db = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FeatureBanSystem _featureBans = default!;
 
     private const int MaxCachedArt = 2048;
     private static readonly TimeSpan SaveCooldown = TimeSpan.FromSeconds(1);
@@ -175,6 +178,9 @@ public sealed partial class CustomMarkingSystem : EntitySystem
     {
         if (!Enabled)
             return CustomMarkingSaveResult.Fail("wf-custom-marking-error-disabled");
+
+        if (_featureBans.IsBanned(session.UserId, StudioSystem.Feature))
+            return CustomMarkingSaveResult.Fail("wf-feature-banned");
 
         var now = _timing.RealTime;
         if (_nextSave.TryGetValue(session, out var next) && now < next)
@@ -343,6 +349,10 @@ public sealed partial class CustomMarkingSystem : EntitySystem
             if (humanoid.CustomMarkings.RemoveAll(marking => marking.Hash == hash) > 0)
                 Dirty(uid, humanoid);
         }
+
+        // Studio warps are art too.
+        var ev = new CustomMarkingArtBlockedEvent(hash);
+        RaiseLocalEvent(ref ev);
 
         // Clients drop art they already hold when told there is none.
         RaiseNetworkEvent(new CustomMarkingArtEvent(hash, null));

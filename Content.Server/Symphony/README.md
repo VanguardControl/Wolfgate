@@ -24,8 +24,89 @@ The hooks for the SSymphony panel. It is the one module outside `_WF`: its files
 - Whitelist by Discord: with `symphony.url` set, a player the whitelist turns away gets a one-time link ticket, and
   the launcher's connect-failed screen shows Link Discord and Copy link buttons. A revoke is re-checked on reconnect.
 
+- Web character creator (hook version 14): `/symphony/characters` and `/symphony/creator/*`, laid out below.
+
 `SharedSymphony.ModuleVersion` is the contract version; bump it when the status field, the refusal keys, the link
 ticket table, the feedback table or any of the endpoints change.
+
+## Web character creator
+
+SSymphony signs a player in with Discord, picks an account they own through `discord_links`, and edits that
+account's characters here. The user id is trusted as given (SSymphony never sends one it hasn't proven); every rule
+about what a character may be is applied here, as in the game's creator. All routes take
+`authorization: SS14Token <admin.api_token>` (401 otherwise). Errors are JSON `{"error": "<code>", "detail": "..."}`;
+a bare 404 means an older build without the route.
+
+### Profiles as JSON
+
+A profile is `HumanoidCharacterProfile` as the game's serializer writes it: the `profile:` mapping of the creator's
+Export YAML, as JSON. Keys are the DataField names, camelCase (`name`, `species`, `age`, `sex`, `gender`,
+`appearance {hair, hairColor, facialHair, facialHairColor, eyeColor, skinColor, height, width, markings}`,
+`jobPriorities`, `loadouts`, `traitPreferences`, `studioTweaks`, `customMarkings`, ...). Every scalar is a JSON string
+with YAML's meaning (`"18"`, `"true"`, `"#FFE0D0FF"`); a node with a YAML type tag carries it as a `"!type"` key.
+Send profiles back in the same shape; a field left out takes its default. `sex` is `Male`, `Female` or `Unsexed`.
+
+### GET /symphony/characters?user=&lt;guid&gt;
+
+`200 {"symphony_module": 14, "user": "<guid>", "online": bool, "selected": int, "max_slots": int, "slots": [{"slot": int, "etag": "<16 hex>", "profile": {...}}]}`.
+Empty slots are left out. `online` says the player is connected; their live preferences are read then, else the
+stored ones. `404 no_preferences`: the account never played on this server.
+
+### PUT /symphony/characters?user=&lt;guid&gt;&slot=&lt;int&gt;
+
+Body `{"etag": "<from GET, null for an empty slot>", "profile": {...}}`. Answers
+`200 {"slot", "etag", "profile", "kept": [...]}` with the profile as the game cleaned and stored it. `kept` names the
+fields held at their stored values: always `bankBalance`, `persistentData` and `augments`, plus `studioTweaks` and
+`customMarkings` for a player with the `WFAppearanceStudio` feature ban. A connected player's creator is sent the
+change. Errors: `409 stale` with `"current"` (the slot as stored, or null) when the etag no longer matches;
+`400 bad_slot`, `400 bad_request`, `400 bad_profile` (with the reader's message); `403 banned` (an active server ban);
+`404 no_preferences`.
+
+### POST /symphony/characters/validate?user=&lt;guid&gt;
+
+Body `{"profile": {...}}`; `200 {"profile": {...}}`, cleaned as a save would be and not stored.
+
+### GET /symphony/creator/catalog[?version=&lt;v&gt;]
+
+Everything the creator offers, built once per build or prototype reload and served from memory. `ETag` is the
+version; a matching `If-None-Match` or `?version=` gets `304`.
+
+- `version`, `symphony_module`.
+- `limits`: `studio {enabled, maxOffset, minScale, maxScale, warps}` and
+  `customMarkings {enabled, maxWorn, maxFrames, eraseBody, bodyReach}`.
+- `layers`: the `HumanoidVisualLayers` names in enum order.
+- `dolls`: `{"<species>": {"prototype": "<entity>", "layers": [...]}}`, the doll entity's Sprite layers after
+  inheritance in draw order (first is the bottom), raw. Body layers are mapped by `HumanoidVisualLayers` names,
+  clothing slots by bookmark keys such as `jumpsuit` and `head`.
+- `prototypes`: `{"<kind>": {"<id>": <raw YAML mapping as written>}}` for `species`, `speciesBaseSprites`,
+  `humanoidBaseSprite` (`baseSprite: {sprite, state}`, `matchSkin`, `layerAlpha`), `marking`, `markingPoints`,
+  `loadout`, `loadoutGroup`, `roleLoadout`, `startingGear`, `trait`, and `entity`: the dolls and every entity a loadout
+  or starting gear names, with their parents' components merged in (a component's fields override its parent's)
+  and cut to `id`, `parent`, `name` and their Sprite, Clothing and Item components.
+- `names`: localised names by kind (`species`, `marking`, `trait`, `job`, `entity`).
+- `rsis`: every `.rsi` directory the catalog names, relative to `/Textures`.
+
+Drawing a body as the game does (`Content.Client/Humanoid/HumanoidAppearanceSystem.cs`): each layer of
+`speciesBaseSprites` uses its `humanoidBaseSprite`, except Chest and Head, which use `<id><Sex>` (`<id>` when
+Unsexed). With `matchSkin` the layer is `skinColor` at `layerAlpha`. Hair and facial hair are markings named by
+`appearance.hair`/`facialHair`, coloured by `hairColor`/`facialHairColor`. A marking goes just above the layer its
+`bodyPart` names, in profile order; sprite `i` takes `markingColors[i]`, or the colour of the sprite `colorLinks` ties
+it to, else white; a marking with `visible: false` isn't drawn. The doll is scaled by `height` and `width`. Studio
+tweaks: see `Content.Client/_WF/AppearanceStudio/StudioSpriteSystem.cs` and the AppearanceStudio module README.
+
+### GET /symphony/creator/rsi?path=&lt;rsi dir&gt;/&lt;file&gt;
+
+The file under `/Textures`, for `meta.json` or a `.png` inside a directory listed in the catalog's `rsis`
+(`?path=Mobs/Species/Human/parts.rsi/head_m.png`). `ETag` is the catalog version. `404 not_in_catalog` for anything
+else, `404 missing` when the file isn't there.
+
+### GET /symphony/creator/art?hash=&lt;64 hex&gt;
+
+Custom marking and studio warp art as `image/png`: a 64x64 sheet per frame (facings south and north on the top row,
+east and west below), frames stacked downward. Animated art adds `X-Frame-Times` (milliseconds, comma separated)
+and `X-Ping-Pong: 1`. A warp is linear data: red `128 + dx`, green `128 - dy` (image y down), alpha 0 cuts; it draws
+the item's pixel at `(x + dx, y + dy)` inside the item's own 32x32 frame. `404 missing` when there is none or an admin
+blocked it.
 
 <!-- WOLFGATE-GENERATED START -->
 <!-- Generated by python Tools/_WF/Ci/modules.py --write. Don't edit by hand. -->
@@ -38,10 +119,13 @@ ticket table, the feedback table or any of the endpoints change.
 - [`Content.Server/Connection/ConnectionManager.Symphony.cs`](../Connection/ConnectionManager.Symphony.cs)
 - [`Content.Server/GameTicking/GameTicker.Symphony.cs`](../GameTicking/GameTicker.Symphony.cs)
 - [`Content.Server/Symphony/SymphonyApi.cs`](SymphonyApi.cs)
+- [`Content.Server/Symphony/SymphonyCharactersSystem.cs`](SymphonyCharactersSystem.cs)
 - [`Content.Server/Symphony/SymphonyCommandsSystem.cs`](SymphonyCommandsSystem.cs)
+- [`Content.Server/Symphony/SymphonyCreatorSystem.cs`](SymphonyCreatorSystem.cs)
 - [`Content.Server/Symphony/SymphonyCVarsSystem.cs`](SymphonyCVarsSystem.cs)
 - [`Content.Server/Symphony/SymphonyFeedbackSystem.cs`](SymphonyFeedbackSystem.cs)
 - [`Content.Server/Symphony/SymphonyHubSystem.cs`](SymphonyHubSystem.cs)
+- [`Content.Server/Symphony/SymphonyJson.cs`](SymphonyJson.cs)
 - [`Content.Server/Symphony/SymphonyLinkTickets.cs`](SymphonyLinkTickets.cs)
 - [`Content.Server/Symphony/SymphonyLobbySystem.cs`](SymphonyLobbySystem.cs)
 - [`Content.Server/Symphony/SymphonyPlayersSystem.cs`](SymphonyPlayersSystem.cs)

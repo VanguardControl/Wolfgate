@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Content.Server.Chat.Managers;
 using Content.Server.Database;
 using Content.Server.GameTicking;
+using Content.Server._WF.FeatureBans; // WOLFGATE(FeatureBans)
+using Content.Shared._WF.FeatureBans; // WOLFGATE(FeatureBans)
 using Content.Shared.CCVar;
 using Content.Shared.Database;
 using Content.Shared.Players;
@@ -237,12 +239,16 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
     // Removing it will clutter the note list. Please also make sure that department bans are applied to roles with the same DateTimeOffset.
     public async void CreateRoleBan(NetUserId? target, string? targetUsername, NetUserId? banningAdmin, (IPAddress, int)? addressRange, ImmutableTypedHwid? hwid, string role, uint? minutes, NoteSeverity severity, string reason, DateTimeOffset timeOfBan)
     {
-        if (!_prototypeManager.TryIndex(role, out JobPrototype? _))
+        // WOLFGATE(FeatureBans) START: a Wolfgate feature is banned like a job, under its own prefix
+        var feature = _prototypeManager.HasIndex<WFFeatureBanPrototype>(role);
+        if (!feature && !_prototypeManager.TryIndex(role, out JobPrototype? _))
+        // if (!_prototypeManager.TryIndex(role, out JobPrototype? _))
+        // WOLFGATE END
         {
             throw new ArgumentException($"Invalid role '{role}'", nameof(role));
         }
 
-        role = string.Concat(JobPrefix, role);
+        role = string.Concat(feature ? WFFeatureBans.Prefix : JobPrefix, role); // WOLFGATE(FeatureBans)
         DateTimeOffset? expires = null;
         if (minutes > 0)
         {
@@ -280,6 +286,7 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
         if (target != null && _playerManager.TryGetSessionById(target.Value, out var session))
         {
             SendRoleBans(session);
+            _systems.GetEntitySystem<FeatureBanSystem>().Banned(session, role); // WOLFGATE(FeatureBans): the feature takes back what the player has of it
         }
     }
 

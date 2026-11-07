@@ -1,4 +1,4 @@
-﻿namespace Content.Shared.Symphony;
+namespace Content.Shared.Symphony;
 
 /// <summary>
 /// The contract between this build and the SSymphony panel. Bump <see cref="ModuleVersion"/> whenever the status
@@ -25,9 +25,10 @@ public static class SharedSymphony
     /// needs, for the panel's staff handbook. Version 11 added /symphony/lobby/shenanigans, which sets a lobby shenanigan
     /// off for every client, and the list of them in /symphony/lobby. Version 12 added {"clear": true} there, which takes
     /// them all away. Version 13 added stealth to each player in /symphony/players, so the panel can count the staff on
-    /// for players without giving a stealthed admin away.
+    /// for players without giving a stealthed admin away. Version 14 added the web character creator: /symphony/characters
+    /// (list, save, validate) and /symphony/creator/catalog, /rsi and /art.
     /// </summary>
-    public const int ModuleVersion = 13;
+    public const int ModuleVersion = 14;
 
     /// <summary>
     /// Key of the one-time Discord link URL in a whitelist refusal's structured properties.
