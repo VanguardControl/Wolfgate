@@ -18,6 +18,7 @@ public sealed partial class ResearchSystem
     // WOLFGATE START: a server's clients follow its grid
     private void OnServerMapInit(EntityUid uid, ResearchServerComponent component, MapInitEvent args)
     {
+        WFGrantBasicTechnologies(uid); // WOLFGATE(Blueprints): tier-1 technology is free on every server
         LinkGridClients(uid, component);
     }
 

@@ -13,8 +13,9 @@ public sealed partial class WFBlueprintPatternPrototype : IPrototype
     [DataField(required: true)]
     public LocId Name;
 
-    [DataField(required: true)]
-    public LocId Description;
+    /// <summary>What it does; a technology's pattern may leave it out and is described by its discipline.</summary>
+    [DataField]
+    public LocId? Description;
 
     /// <summary>1 Recovered, 2 Lost, 3 Forgotten: where its shard lies and how long it takes to decode.</summary>
     [DataField]
@@ -25,6 +26,10 @@ public sealed partial class WFBlueprintPatternPrototype : IPrototype
     public EntProtoId Icon;
 
     /// <summary>The lathe recipes it unlocks on the linked research server.</summary>
-    [DataField(required: true)]
+    [DataField]
     public List<ProtoId<LatheRecipePrototype>> Recipes = new();
+
+    /// <summary>A technology it unlocks; that technology can't be researched with points.</summary>
+    [DataField]
+    public ProtoId<TechnologyPrototype>? Technology;
 }

@@ -51,7 +51,7 @@ public sealed partial class WFBlueprintSystem
         var patterns = new List<WFBlueprintPatternPrototype>();
         foreach (var id in ids.Distinct())
         {
-            if (!_proto.TryIndex<WFBlueprintPatternPrototype>(id, out var pattern) || IsOwned(ent, pattern))
+            if (!_proto.TryIndex<WFBlueprintPatternPrototype>(id, out var pattern) || IsOwned(ent, pattern) || !Fits(ent, pattern))
             {
                 error = "wf-blueprint-locator-invalid";
                 return false;

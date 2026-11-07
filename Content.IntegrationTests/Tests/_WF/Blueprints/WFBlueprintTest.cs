@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Content.Server._WF.Blueprints;
 using Content.Server._WF.PlanetPois;
+using Content.Server.Research.Systems;
 using Content.Shared._WF.Blueprints;
 using Content.Shared.Maps;
 using Content.Shared.Research.Components;
+using Content.Shared.Research.Prototypes;
 using Content.Shared.Salvage;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
@@ -121,6 +123,35 @@ public sealed class WFBlueprintTest
 
             var copy = blueprints.SpawnFor("WFBlueprintConstruct", proto.Index(patternId), new EntityCoordinates(ship.Owner, 0.5f, 0.5f), "wf-blueprint-construct-name");
             Assert.That(blueprints.TryInsertConstruct(locator, (copy, entMan.GetComponent<WFBlueprintConstructComponent>(copy)), locatorUid), Is.False);
+
+            // Every tier-1 technology of the server's disciplines is free from the start.
+            var supported = db.SupportedDisciplines;
+            var techs = db.UnlockedTechnologies;
+            var basics = proto.EnumeratePrototypes<TechnologyPrototype>()
+                .Where(t => t.Tier == 1 && !t.Hidden && supported.Contains(t.Discipline)).ToList();
+            Assert.That(basics, Is.Not.Empty);
+            Assert.That(basics.All(t => techs.Contains(t.ID)), Is.True, "A tier-1 technology was not unlocked at map init.");
+
+            // A tier-3 technology is hunt-only: points can't unlock it, its Construct can.
+            var research = server.System<ResearchSystem>();
+            var huntOnly = proto.EnumeratePrototypes<WFBlueprintPatternPrototype>()
+                .First(p => p.Technology is { } t && supported.Contains(proto.Index(t).Discipline));
+            var tech = proto.Index(huntOnly.Technology!.Value);
+            Assert.That(tech.Tier, Is.EqualTo(3));
+            Assert.That(research.IsTechnologyAvailable(db, tech), Is.False, "A hunt-only technology could be researched.");
+            Assert.That(blueprints.Fits(locatorUid, huntOnly), Is.True);
+
+            var techConstruct = blueprints.SpawnFor("WFBlueprintConstruct", huntOnly, new EntityCoordinates(ship.Owner, 0.5f, 0.5f), "wf-blueprint-construct-name");
+            Assert.That(blueprints.TryInsertConstruct(locator, (techConstruct, entMan.GetComponent<WFBlueprintConstructComponent>(techConstruct)), locatorUid), Is.True);
+            Assert.That(db.UnlockedTechnologies, Does.Contain(tech.ID));
+            var techRecipes = db.UnlockedRecipes;
+            Assert.That(tech.RecipeUnlocks.All(r => techRecipes.Contains(r)), Is.True, "The technology's recipes were not unlocked.");
+
+            // A faction's technology isn't offered to a server without its discipline.
+            var foreign = proto.EnumeratePrototypes<WFBlueprintPatternPrototype>()
+                .FirstOrDefault(p => p.Technology is { } t && proto.Index(t).GetAllDisciplines().All(d => !supported.Contains(d)));
+            if (foreign != null)
+                Assert.That(blueprints.Fits(locatorUid, foreign), Is.False);
         });
 
         await server.WaitPost(() =>

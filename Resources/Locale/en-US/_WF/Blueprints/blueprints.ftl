@@ -37,6 +37,7 @@ wf-blueprint-tier-short = { $tier ->
    *[other] III
 }
 wf-blueprint-pattern-owned = {$name} (known)
+wf-blueprint-tech-desc = Lost {$discipline} research. It can't be researched with points; recover it to unlock the whole node.
 lathe-category-wf-patterns = Patterns
 
 wf-blueprint-locator-busy = A hunt is already running.

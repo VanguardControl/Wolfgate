@@ -105,8 +105,16 @@ An abandoned hunt, or one still unfinished when the round ends, has its unclaime
 
 ## Patterns
 
-The Codex stays whole. Everything a ship needs from day to day stays in points research, and BAS takes nothing away
-from it. BAS patterns are new things that can't be had any other way.
+The Codex is split by tier (decided 2026-11-07):
+
+- **Tier 1: free.** Every tier-1 technology a server's disciplines cover is unlocked when the server starts, so every
+  ship has the basics.
+- **Tier 2: points.** Normal research, so science still has a job.
+- **Tier 3: hunt-only.** Each tier-3 technology, faction trees included, has a generated pattern
+  (`_WF/Blueprints/techweb.yml`). Points can't unlock it; a Construct unlocks the whole node. A faction's node is only
+  offered on that faction's servers.
+
+Beyond the techweb, BAS patterns are also new things that can't be had any other way.
 
 `wfBlueprintPattern` prototype: tier, site tags, minigame pool, and the recipes the pattern unlocks. It holds its own
 recipes and isn't tied to a Codex technology.

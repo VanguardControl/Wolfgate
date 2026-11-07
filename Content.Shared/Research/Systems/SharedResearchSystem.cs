@@ -70,6 +70,9 @@ public abstract partial class SharedResearchSystem : EntitySystem
         if (tech.Hidden)
             return false;
 
+        if (WFIsHuntOnly(tech.ID)) // WOLFGATE(Blueprints): tier-3 technology is recovered by hunting, not points
+            return false;
+
         if (!component.SupportedDisciplines.Contains(tech.Discipline))
             return false;
 

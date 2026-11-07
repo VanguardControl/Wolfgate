@@ -73,10 +73,14 @@ public sealed partial class WFBlueprintSystem : EntitySystem
         _ui.OpenUi(ent.Owner, WFBlueprintLocatorUiKey.Key, args.Actor);
     }
 
-    /// <summary>Whether the locator's server already holds every recipe of the pattern.</summary>
+    /// <summary>Whether the locator's server already holds the pattern's technology and every recipe.</summary>
     public bool IsOwned(EntityUid locator, WFBlueprintPatternPrototype pattern)
     {
         if (!TryGetDatabase(locator, out _, out var db))
+            return false;
+
+        var techs = db.UnlockedTechnologies;
+        if (pattern.Technology is { } tech && !techs.Contains(tech))
             return false;
 
         var unlocked = db.UnlockedRecipes;
@@ -108,7 +112,8 @@ public sealed partial class WFBlueprintSystem : EntitySystem
         var patterns = new List<WFBlueprintPatternState>();
         foreach (var pattern in _proto.EnumeratePrototypes<WFBlueprintPatternPrototype>().OrderBy(p => p.Tier).ThenBy(p => p.ID))
         {
-            patterns.Add(new WFBlueprintPatternState(pattern.ID, IsOwned(ent, pattern)));
+            if (Fits(ent, pattern))
+                patterns.Add(new WFBlueprintPatternState(pattern.ID, IsOwned(ent, pattern)));
         }
 
         WFBlueprintHuntState? hunt = null;
@@ -171,9 +176,37 @@ public sealed partial class WFBlueprintSystem : EntitySystem
         return true;
     }
 
-    /// <summary>Adds every recipe of the pattern to the server's database.</summary>
+    /// <summary>
+    /// Whether the locator's server can use the pattern: a technology's pattern needs one of its disciplines, so a
+    /// faction's technology is only hunted from that faction's servers.
+    /// </summary>
+    public bool Fits(EntityUid locator, WFBlueprintPatternPrototype pattern)
+    {
+        if (pattern.Technology is not { } techId || !_proto.TryIndex(techId, out var tech))
+            return true;
+
+        if (!TryGetDatabase(locator, out _, out var db))
+            return false;
+
+        var supported = db.SupportedDisciplines;
+        foreach (var discipline in tech.GetAllDisciplines())
+        {
+            if (supported.Contains(discipline))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>Adds the pattern's technology and every recipe to the server's database.</summary>
     public void Unlock(EntityUid server, WFBlueprintPatternPrototype pattern)
     {
+        if (pattern.Technology is { } tech && _proto.TryIndex(tech, out var technology))
+        {
+            _research.AddTechnology(server, technology);
+            _research.UpdateTechnologyCards(server);
+        }
+
         foreach (var recipe in pattern.Recipes)
         {
             _research.AddLatheRecipe(server, recipe);

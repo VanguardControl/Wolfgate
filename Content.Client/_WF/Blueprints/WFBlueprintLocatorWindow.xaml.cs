@@ -177,7 +177,7 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
 
             var name = Loc.GetString(pattern.Name);
             if (search.Length > 0 && !name.Contains(search, StringComparison.OrdinalIgnoreCase)
-                && !Loc.GetString(pattern.Description).Contains(search, StringComparison.OrdinalIgnoreCase))
+                && !Describe(pattern).Contains(search, StringComparison.OrdinalIgnoreCase))
                 continue;
 
             if (lastTier != pattern.Tier)
@@ -231,10 +231,10 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
         DetailName.Text = Loc.GetString(pattern.Name);
         DetailTier.Text = Loc.GetString("wf-blueprint-tier", ("tier", pattern.Tier));
         DetailTier.FontColorOverride = TierColour(pattern.Tier);
-        DetailDescription.SetMessage(FormattedMessage.FromMarkupPermissive(Loc.GetString(pattern.Description)));
+        DetailDescription.SetMessage(FormattedMessage.FromMarkupPermissive(Describe(pattern)));
 
         DetailRecipes.RemoveAllChildren();
-        foreach (var recipeId in pattern.Recipes)
+        foreach (var recipeId in AllRecipes(pattern))
         {
             if (!_proto.TryIndex(recipeId, out var recipe))
                 continue;
@@ -321,6 +321,37 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
                 ("count", _selected.Count), ("max", state.MaxPatterns))
             : string.Empty;
         LocateButton.Disabled = !state.Linked || cooling || _selected.Count == 0;
+    }
+
+    /// <summary>The pattern's own description, or for a technology's pattern the technology and its discipline.</summary>
+    private string Describe(WFBlueprintPatternPrototype pattern)
+    {
+        if (pattern.Description is { } desc)
+            return Loc.GetString(desc);
+
+        if (pattern.Technology is { } techId && _proto.TryIndex(techId, out var tech)
+            && _proto.TryIndex(tech.Discipline, out var discipline))
+            return Loc.GetString("wf-blueprint-tech-desc", ("discipline", Loc.GetString(discipline.Name)));
+
+        return string.Empty;
+    }
+
+    /// <summary>The pattern's recipes, then its technology's.</summary>
+    private IEnumerable<ProtoId<LatheRecipePrototype>> AllRecipes(WFBlueprintPatternPrototype pattern)
+    {
+        foreach (var recipe in pattern.Recipes)
+        {
+            yield return recipe;
+        }
+
+        if (pattern.Technology is { } techId && _proto.TryIndex(techId, out var tech))
+        {
+            foreach (var recipe in tech.RecipeUnlocks)
+            {
+                if (!pattern.Recipes.Contains(recipe))
+                    yield return recipe;
+            }
+        }
     }
 
     private static Color TierColour(int tier)
