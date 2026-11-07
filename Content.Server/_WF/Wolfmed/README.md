@@ -374,6 +374,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPlaytestThreeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPlaytestThreeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPlaytestTwoTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPlaytestTwoTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPodWeldsChassisTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPodWeldsChassisTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRadiationHelmTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRadiationHelmTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRemainingCausesTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRemainingCausesTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRevivalStopwatchTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRevivalStopwatchTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRevivalTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRevivalTest.cs)
