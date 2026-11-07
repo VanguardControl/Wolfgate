@@ -1,4 +1,4 @@
-<Document>
+<!-- WOLFGATE(Weapons) START: ship gunnery specs brought in line with the current weapons --><Document>
   # Energy Weapons Specifications
   Notes:
   - For munitions that accelerate over time (such as missiles), range is a rough estimate.
@@ -319,4 +319,4 @@
     </ColorBox>
   </Table>
 
-</Document>
+<!-- WOLFGATE END --></Document>

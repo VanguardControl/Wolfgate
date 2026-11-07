@@ -1,4 +1,4 @@
-<Document>
+<!-- WOLFGATE(Weapons) START: ship gunnery specs brought in line with the current weapons --><Document>
   # Missile Weapons Specifications
   Notes:
   - Munition range and ammo capacity is taken from the standard magazine and ammunition that comes loaded with the weapon.
@@ -259,4 +259,4 @@
     </ColorBox>
   </Table>
 
-</Document>
+<!-- WOLFGATE END --></Document>
