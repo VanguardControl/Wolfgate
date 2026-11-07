@@ -98,7 +98,9 @@ tweaks: see `Content.Client/_WF/AppearanceStudio/StudioSpriteSystem.cs` and the 
 
 The file under `/Textures`, for `meta.json` or a `.png` inside a directory listed in the catalog's `rsis`
 (`?path=Mobs/Species/Human/parts.rsi/head_m.png`). `ETag` is the catalog version. `404 not_in_catalog` for anything
-else, `404 missing` when the file isn't there.
+else, `404 missing` when the file isn't there. A packaged server has no `Textures` (server packaging leaves them out
+and Wolfgate's builds aren't hybrid ACZ), so there every file answers `404 no_textures`; SSymphony then serves the
+file from its own checkout of the fork, still limited to the catalog's `rsis`.
 
 ### GET /symphony/creator/art?hash=&lt;64 hex&gt;
 

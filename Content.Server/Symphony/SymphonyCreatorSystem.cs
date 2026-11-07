@@ -156,7 +156,10 @@ public sealed class SymphonyCreatorSystem : EntitySystem
         var resource = TextureRoot / dir / file;
         if (!_resources.TryContentFileRead(resource, out var stream))
         {
-            await context.RespondJsonAsync(SymphonyJson.Error("missing"), HttpStatusCode.NotFound);
+            // A packaged server ships without Textures (only the client needs them); say so, so the panel can fall
+            // back to its own copy instead of reading every file as missing.
+            var code = _resources.ContentGetDirectoryEntries(TextureRoot).Any() ? "missing" : "no_textures";
+            await context.RespondJsonAsync(SymphonyJson.Error(code), HttpStatusCode.NotFound);
             return;
         }
 
