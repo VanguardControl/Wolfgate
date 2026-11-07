@@ -100,6 +100,8 @@ public sealed partial class WFMissileFlightSystem
         {
             flight.Seeker = WFMissileSeekerState.Lost;
             _targetSeeking.SetSeekerTarget((uid, carrier), null, xform);
+            // Upstream would reacquire the same hull on its next tick; a lost seeker stays lost.
+            carrier.SeekingDisabled = true;
             return false;
         }
 

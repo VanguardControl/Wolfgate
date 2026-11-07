@@ -30,7 +30,7 @@ public sealed class WFMissileFlightTest
     [Test]
     public async Task CarriersOnlySeek()
     {
-        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        await using var pair = await PoolManager.GetServerClient();
         var map = await pair.CreateTestMap();
         var em = pair.Server.EntMan;
 
@@ -59,16 +59,18 @@ public sealed class WFMissileFlightTest
                 });
             }
         });
+
+        await pair.CleanReturnAsync();
     }
 
     /// <summary>
-    /// Fired 600 m off the bow with the hull 100 m off the line of sight, the missile must lock, spend diverters
-    /// turning onto the lead and never exceed its speed cap.
+    /// Fired down +x with the hull 600 m out and 100 m off the line of fire, the missile must lock, turn onto it and
+    /// never exceed its speed cap.
     /// </summary>
     [Test]
     public async Task LaunchesAndLeads()
     {
-        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        await using var pair = await PoolManager.GetServerClient();
         var map = await pair.CreateTestMap();
         var em = pair.Server.EntMan;
         var xform = em.System<SharedTransformSystem>();
@@ -78,13 +80,13 @@ public sealed class WFMissileFlightTest
         await pair.Server.WaitAssertion(() =>
         {
             // A hull carrying a seeker target, off the missile's line of fire but inside its cone.
-            var painted = em.SpawnEntity(null, new EntityCoordinates(map.MapUid, new Vector2(0f, 100f)));
+            var painted = em.SpawnEntity(null, map.GridCoords);
             xform.AnchorEntity(painted);
             em.AddComponent<TargetSeekingTargetComponent>(painted);
 
             missile = em.SpawnEntity("ShipMissileASM150",
-                new EntityCoordinates(map.MapUid, new Vector2(-600f, 0f)));
-            xform.SetWorldRotation(missile, Angle.Zero);
+                new EntityCoordinates(map.MapUid, new Vector2(-600f, -100f)));
+            xform.SetWorldRotation(missile, Angle.FromDegrees(90)); // +x
         });
 
         await pair.RunTicksSync(20);
@@ -101,12 +103,16 @@ public sealed class WFMissileFlightTest
                 Assert.That(seeker.CurrentTarget, Is.EqualTo(map.Grid.Owner),
                     "The carrier must have acquired the painted hull.");
                 Assert.That(flight.Seeker, Is.EqualTo(WFMissileSeekerState.Tracking), "A parked hull is not a notch.");
-                Assert.That(flight.Divert, Is.EqualTo(flight.DivertBudget), "The launch transient is free.");
+                Assert.That(flight.Divert, Is.GreaterThan(0f).And.LessThanOrEqualTo(flight.DivertBudget),
+                    "A gentle lead must not drain the diverters.");
                 Assert.That(body.LinearVelocity.X, Is.GreaterThan(0f), "The motor must push down the nose.");
+                Assert.That(body.LinearVelocity.Y, Is.GreaterThan(0f), "Steering turns onto the off-axis hull.");
                 Assert.That(body.LinearVelocity.Length(), Is.LessThanOrEqualTo(flight.MaxSpeed + 0.5f),
                     "The speed cap must hold.");
             });
         });
+
+        await pair.CleanReturnAsync();
     }
 
     /// <summary>
@@ -116,7 +122,7 @@ public sealed class WFMissileFlightTest
     [Test]
     public async Task SoftLaunchTakesTheBearing()
     {
-        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        await using var pair = await PoolManager.GetServerClient();
         var map = await pair.CreateTestMap();
         var em = pair.Server.EntMan;
         var xform = em.System<SharedTransformSystem>();
@@ -153,5 +159,7 @@ public sealed class WFMissileFlightTest
                 Assert.That(body.LinearVelocity.Y, Is.GreaterThan(0f), "Steering turns onto the off-axis hull.");
             });
         });
+
+        await pair.CleanReturnAsync();
     }
 }

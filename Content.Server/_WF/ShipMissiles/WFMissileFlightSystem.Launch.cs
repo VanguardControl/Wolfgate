@@ -39,7 +39,9 @@ public sealed partial class WFMissileFlightSystem
     private void AcquireAtLaunch(EntityUid uid, TransformComponent xform, WFMissileFlightComponent flight,
         TargetSeekingComponent carrier, Vector2 ownPos)
     {
-        if (flight.LaunchAcquireCone <= 0f || flight.LaunchAcquireRange <= 0f || carrier.SeekingDisabled)
+        // A missile without diverters can't steer onto a lock, so it must not raise one.
+        if (flight.LaunchAcquireCone <= 0f || flight.LaunchAcquireRange <= 0f || flight.Divert0 <= 0f ||
+            carrier.SeekingDisabled)
             return;
 
         var nose = _transform.GetWorldRotation(xform).ToWorldVec();
@@ -77,4 +79,5 @@ public sealed partial class WFMissileFlightSystem
 
         if (best != null)
             _targetSeeking.SetSeekerTarget((uid, carrier), best.Value, xform);
-    }}
+    }
+}

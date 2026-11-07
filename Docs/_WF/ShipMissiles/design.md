@@ -38,7 +38,9 @@ values. `Direct` matters: the predictive laws divide by closure rate or accelera
 put a NaN into the transform. `turnRate: 0` makes `RotateToFaceSystem.TryRotateTo` write the current rotation
 back, which is a no-op.
 
-That leaves no edit to `_Mono` C#, and flares, alerts and radar keep working for free. The cost is that
+Flares, alerts and radar keep working for free. The one other reader of the flight terms is the NPC gunner
+(`ShipTargetingSystem`), which leads a seeker by its `acceleration`; it now reads `boostAccel` from
+`WFMissileFlight` instead, since the carrier's is zero. The cost is that
 acquisition is upstream's: instant, nearest blip in the cone, no seeker acquisition timer. `trackDelay` already
 covers the launch window, so nothing is lost for gameplay.
 
@@ -52,12 +54,13 @@ launcher's velocity.
 
 For `launchTransient` seconds afterwards the missile stabilises for free: `launchTurnMultiplier` extra authority, a
 command damped from `launchDamping` up to full, and no divert impulse spent. Upstream's `scanArc` is 7.5 to 17.5
-degrees of half-cone, far too narrow to hand a missile a target at release, so the transient also gets its own wider
-`launchAcquireCone` and range. Once it ends, upstream's rules — and the flare decoys that read `scanArc` — are
+degrees of half-cone, far too narrow to hand a missile a target at release, so on the release tick the missile looks
+once inside its own wider `launchAcquireCone` and range. A missile with no diverters (the unguided ASM-150) skips this,
+so it never raises a lock it cannot fly. Once it ends, upstream's rules — and the flare decoys that read `scanArc` — are
 untouched, which is why the soft launch cannot be used to make flares stronger.
 
-The one `_Mono` C# edit in the module is the three lines that store the console's aim point on a fired missile, inside
-the existing `AmmoShotEvent` handler. It has to live there: a second subscription to `GunComponent, AmmoShotEvent`
+The console's aim point is stored on a fired missile by a short loop inside the existing `AmmoShotEvent` handler,
+ahead of its `TargetGuided` loop (none of the flown missiles is `TargetGuided`). It has to live there: a second subscription to `GunComponent, AmmoShotEvent`
 would crash the server at startup.
 
 ## Notch and memory

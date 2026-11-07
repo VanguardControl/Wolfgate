@@ -61,6 +61,7 @@ Design notes: `Docs/_WF/ShipMissiles/design.md`.
 ## Non-modular edits
 
 - [`Content.Server/_Mono/FireControl/FireControlSystem.TargetGuided.cs`](../../_Mono/FireControl/FireControlSystem.TargetGuided.cs): tell a soft-launched missile where the console aimed, before its seeker locks
+- [`Content.Server/_Mono/NPC/HTN/ShipTargetingSystem.cs`](../../_Mono/NPC/HTN/ShipTargetingSystem.cs): a flown missile's carrier has zero thrust, so lead it on its motor instead
 - [`Resources/Prototypes/_Mono/Entities/SpaceArtillery/SpaceArtillery/Missile/projectiles.yml`](../../../Resources/Prototypes/_Mono/Entities/SpaceArtillery/SpaceArtillery/Missile/projectiles.yml)
   - the carrier only seeks; WFMissileFlightSystem flies the missile
   - motor only, no seeker and no diverters

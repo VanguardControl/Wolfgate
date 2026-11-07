@@ -88,6 +88,17 @@ public sealed partial class FireControlSystem
             }
         }
 
+        // WOLFGATE(ShipMissiles) START: tell a soft-launched missile where the console aimed, before its seeker locks
+        foreach (var projectileUid in args.FiredProjectiles)
+        {
+            if (TryComp<Content.Server._WF.ShipMissiles.WFMissileFlightComponent>(projectileUid, out var wfMissile) &&
+                !_wfHack.RefusesGuidance(projectileUid, targetCoords.Value))
+            {
+                wfMissile.Designated = _xform.ToMapCoordinates(targetCoords.Value);
+            }
+        }
+        // WOLFGATE END
+
         foreach (var projectileUid in args.FiredProjectiles)
         {
             if (!TryComp<TargetGuidedComponent>(projectileUid, out var guidedComp))
@@ -107,14 +118,6 @@ public sealed partial class FireControlSystem
             guidedComp.TargetPosition = targetCoords.Value;
             if (_wfHack.RefusesGuidance(projectileUid, targetCoords.Value)) // WOLFGATE(BoardingAction): a locked-down ship can't launch a missile at the hacker.
                 guidedComp.TargetPosition = null;
-
-            // WOLFGATE(ShipMissiles) START: tell a soft-launched missile where the console aimed, before its seeker locks
-            if (!_wfHack.RefusesGuidance(projectileUid, targetCoords.Value) &&
-                TryComp<Content.Server._WF.ShipMissiles.WFMissileFlightComponent>(projectileUid, out var wfMissile))
-            {
-                wfMissile.Designated = _xform.ToMapCoordinates(targetCoords.Value);
-            }
-            // WOLFGATE END
 
             // Add to our tracking list for cursor position updates
             _activeMissiles.Add(projectileUid);

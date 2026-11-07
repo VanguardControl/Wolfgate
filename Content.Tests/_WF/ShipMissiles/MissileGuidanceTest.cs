@@ -118,8 +118,10 @@ public sealed class MissileGuidanceTest
     {
         var nose = new Vector2(1f, 0f);
 
-        var inside = MissileGuidance.ClampBearing(nose, new Vector2(1f, 0.2f), 90f);
-        Assert.That(Vector2.Dot(nose, inside), Is.GreaterThan(0.99f), "A bearing inside the limit is kept.");
+        var goal = new Vector2(1f, 0.2f);
+        var inside = MissileGuidance.ClampBearing(nose, goal, 90f);
+        Assert.That(Vector2.Dot(Vector2.Normalize(goal), inside), Is.EqualTo(1f).Within(1e-5f),
+            "A bearing inside the limit is kept.");
 
         var clamped = MissileGuidance.ClampBearing(nose, new Vector2(-1f, 0f), 45f);
         // 45 degrees off the nose is a dot of cos(45) = 0.707, no further.
