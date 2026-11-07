@@ -389,7 +389,11 @@ public sealed partial class InternetSoundSystem : EntitySystem
 
         // Told to play before the audio was here: join it that far in rather than from the top.
         if (_pendingPlays.Remove(header.Id, out var since))
+        {
             StartGlobal(header.Id, (float) (_timing.RealTime - since).TotalSeconds);
+            if (_popupId == header.Id)
+                _popup?.SetPlaying();
+        }
     }
 
     /// <summary>

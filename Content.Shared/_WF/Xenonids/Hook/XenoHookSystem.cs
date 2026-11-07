@@ -1,4 +1,5 @@
 using Content.Shared._WF.RMCCore.Tether;
+using Content.Shared._WF.Xenonids.TailSeize;
 using Content.Shared.Throwing;
 using Robust.Shared.Network;
 using Robust.Shared.Timing;
@@ -41,6 +42,8 @@ public sealed partial class XenoHookSystem : EntitySystem
             if (TryComp<XenoHookComponent>(hooked.Source, out var source))
                 source.Hooked.Remove(uid);
             RemCompDeferred<XenoHookedComponent>(uid);
+            // A pull that never landed gives no slow or root, and a later throw mustn't hand them out.
+            RemCompDeferred<VictimTailSeizedComponent>(uid);
         }
     }
 
