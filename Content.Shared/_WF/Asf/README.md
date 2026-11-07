@@ -249,6 +249,7 @@ The wardrobe sprites and the seven hulls come from
 - [`Resources/SharedMaps/_WF/Asf/lamplighter.yml`](../../../Resources/SharedMaps/_WF/Asf/lamplighter.yml)
 - [`Resources/SharedMaps/_WF/Asf/lodestar.yml`](../../../Resources/SharedMaps/_WF/Asf/lodestar.yml)
 - [`Resources/SharedMaps/_WF/Asf/porter.yml`](../../../Resources/SharedMaps/_WF/Asf/porter.yml)
+- [`Resources/SharedMaps/_WF/Asf/revelation.yml`](../../../Resources/SharedMaps/_WF/Asf/revelation.yml)
 - [`Resources/SharedMaps/_WF/Asf/vigil.yml`](../../../Resources/SharedMaps/_WF/Asf/vigil.yml)
 
 ### Guidebook
