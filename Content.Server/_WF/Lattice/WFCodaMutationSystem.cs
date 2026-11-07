@@ -30,6 +30,9 @@ public sealed class WFCodaMutationSystem : EntitySystem
     [Dependency] private WFDriftMindSystem _mind = default!;
 
     private static readonly TimeSpan Tick = TimeSpan.FromSeconds(10);
+
+    /// <summary>Seconds out of the Coda before a mutation withers, off any map with a Lattice profile.</summary>
+    private const float FallbackWither = 600f;
     private static readonly SoundSpecifier TwistSound = new SoundPathSpecifier("/Audio/Effects/gib2.ogg");
 
     private TimeSpan _next;
@@ -91,13 +94,17 @@ public sealed class WFCodaMutationSystem : EntitySystem
             return false;
 
         var hand = _random.Pick(hands.Hands.Values.ToList());
-        if (hand.HeldEntity != null && !_hands.TryDrop(mob, hand, checkActionBlocker: false, handsComp: hands))
+        var held = hand.HeldEntity;
+        if (held != null && !_hands.TryDrop(mob, hand, checkActionBlocker: false, handsComp: hands))
             return false;
 
         var blade = Spawn(profile.MutationArm, Transform(mob).Coordinates);
         if (!_hands.TryPickup(mob, blade, hand, checkActionBlocker: false, animate: false, handsComp: hands))
         {
             Del(blade);
+            // Give back what they were holding, so a failed twist costs them nothing.
+            if (held is { } item && !TerminatingOrDeleted(item))
+                _hands.TryPickup(mob, item, hand, checkActionBlocker: false, animate: false, handsComp: hands);
             return false;
         }
 
@@ -132,7 +139,7 @@ public sealed class WFCodaMutationSystem : EntitySystem
             }
 
             comp.OutSince ??= now;
-            if (now - comp.OutSince.Value < TimeSpan.FromSeconds(profile?.MutationWither ?? 600f))
+            if (now - comp.OutSince.Value < TimeSpan.FromSeconds(profile?.MutationWither ?? FallbackWither))
                 continue;
 
             Del(comp.Blade);

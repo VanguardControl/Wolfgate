@@ -33,6 +33,7 @@ public sealed class WFDriftLoggerSystem : EntitySystem
     private const float CourierSpeed = 1f;
 
     private TimeSpan _next;
+    private readonly HashSet<EntityUid> _courierShips = new();
 
     public override void Initialize()
     {
@@ -85,6 +86,7 @@ public sealed class WFDriftLoggerSystem : EntitySystem
     /// <summary>A ship moving a Monolith drags its crew's Drift up, and its name shows on every radar.</summary>
     private void Couriers(float seconds)
     {
+        _courierShips.Clear();
         var stones = EntityQueryEnumerator<WFMonolithComponent, TransformComponent>();
         while (stones.MoveNext(out _, out _, out var xform))
         {
@@ -92,16 +94,21 @@ public sealed class WFDriftLoggerSystem : EntitySystem
                 || HasComp<MapComponent>(grid)
                 || !HasComp<ShuttleComponent>(grid)
                 || !TryComp<PhysicsComponent>(grid, out var body)
-                || body.LinearVelocity.Length() < CourierSpeed)
+                || body.LinearVelocity.Length() < CourierSpeed
+                || !_courierShips.Add(grid))
                 continue;
 
             _shuttle.RemoveIFFFlag(grid, IFFFlags.HideLabel | IFFFlags.HideLabelAlways);
-            var crew = EntityQueryEnumerator<ActorComponent, TransformComponent>();
-            while (crew.MoveNext(out var person, out _, out var personXform))
-            {
-                if (personXform.GridUid == grid)
-                    _mind.Add(person, CourierDrift * seconds, WFDriftFlavour.Monolith);
-            }
+        }
+
+        if (_courierShips.Count == 0)
+            return;
+
+        var crew = EntityQueryEnumerator<ActorComponent, TransformComponent>();
+        while (crew.MoveNext(out var person, out _, out var personXform))
+        {
+            if (personXform.GridUid is { } on && _courierShips.Contains(on))
+                _mind.Add(person, CourierDrift * seconds, WFDriftFlavour.Monolith);
         }
     }
 

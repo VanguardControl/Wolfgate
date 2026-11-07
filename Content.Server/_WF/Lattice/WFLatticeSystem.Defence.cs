@@ -121,38 +121,27 @@ public sealed partial class WFLatticeSystem
     /// <summary>Every so often marks what can be damaged on each station, so builds and repairs are covered too.</summary>
     private void MarkParts(TimeSpan now)
     {
-        var due = false;
-        var stations = EntityQueryEnumerator<WFLatticeAnchorStationComponent>();
-        while (stations.MoveNext(out _, out var comp))
+        var stations = EntityQueryEnumerator<WFLatticeAnchorStationComponent, TransformComponent>();
+        while (stations.MoveNext(out _, out var comp, out var xform))
         {
             if (now < comp.NextMark)
                 continue;
 
             comp.NextMark = now + TimeSpan.FromSeconds(30);
-            due = true;
-        }
+            // Only what stands on the station itself, not the whole world.
+            var children = xform.ChildEnumerator;
+            while (children.MoveNext(out var uid))
+            {
+                if (HasComp<DamageableComponent>(uid)
+                    && !HasComp<WFLatticeAnchorComponent>(uid)
+                    && !HasComp<MobStateComponent>(uid))
+                    EnsureComp<WFLatticeStationPartComponent>(uid);
 
-        if (!due)
-            return;
-
-        var parts = EntityQueryEnumerator<DamageableComponent, TransformComponent>();
-        while (parts.MoveNext(out var uid, out _, out var xform))
-        {
-            if (xform.GridUid is { } grid
-                && HasComp<WFLatticeAnchorStationComponent>(grid)
-                && !HasComp<WFLatticeAnchorComponent>(uid)
-                && !HasComp<MobStateComponent>(uid))
-                EnsureComp<WFLatticeStationPartComponent>(uid);
-        }
-
-        // The hardpoints and their lances can't be unbolted and carried off.
-        var mounts = EntityQueryEnumerator<AnchorableComponent, TransformComponent>();
-        while (mounts.MoveNext(out var uid, out _, out var xform))
-        {
-            if (xform.GridUid is { } grid
-                && HasComp<WFLatticeAnchorStationComponent>(grid)
-                && (HasComp<HardpointComponent>(uid) || HasComp<WFLatticeDefenceWeaponComponent>(uid)))
-                RemCompDeferred<AnchorableComponent>(uid);
+                // The hardpoints and their lances can't be unbolted and carried off.
+                if (HasComp<AnchorableComponent>(uid)
+                    && (HasComp<HardpointComponent>(uid) || HasComp<WFLatticeDefenceWeaponComponent>(uid)))
+                    RemCompDeferred<AnchorableComponent>(uid);
+            }
         }
     }
 

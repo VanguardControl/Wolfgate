@@ -98,10 +98,10 @@ public sealed partial class WFLatticeSystem
             drift.Drift = drift.Residue;
     }
 
-    /// <summary>What a drydock charges to clean the Drift soaked into a ship's hull; 0 if a point or less has soaked in.</summary>
+    /// <summary>What a drydock charges to clean the Drift soaked into a ship's hull, a whole point at least; 0 if none has.</summary>
     public int CleanDriftQuote(EntityUid ship)
     {
-        if (!TryComp<WFDriftComponent>(ship, out var drift) || drift.Residue < 1f)
+        if (!TryComp<WFDriftComponent>(ship, out var drift) || drift.Residue <= 0f)
             return 0;
 
         var price = _proto.TryIndex<WFLatticeProfilePrototype>("WFDefault", out var profile) ? profile.CleanDriftPrice : 150;

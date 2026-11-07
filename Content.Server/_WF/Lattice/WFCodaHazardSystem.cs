@@ -451,7 +451,11 @@ public sealed class WFCodaHazardSystem : EntitySystem
 
             if (TryComp<DoorBoltComponent>(door, out var bolts) && !bolts.BoltsDown)
             {
+                // An unpowered door's bolts don't move, so only count one that took.
                 _doors.SetBoltsDown((door, bolts), true);
+                if (!bolts.BoltsDown)
+                    continue;
+
                 _failed.Add((door, until, Failure.Bolt));
                 any = true;
             }

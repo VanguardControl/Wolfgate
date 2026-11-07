@@ -89,6 +89,8 @@ public sealed class WFCodaHazardTest
             players.SetAttachedEntity(players.Sessions.Single(), mob, force: true);
             apc = entities.SpawnEntity("APCBasic", map.GridCoords.Offset(new Vector2(2f, 0f)));
             door = entities.SpawnEntity("AirlockGlass", map.GridCoords.Offset(new Vector2(-2f, 0f)));
+            // No APC feeds it here; a powered door is what the fault acts on.
+            entities.GetComponent<Content.Server.Power.Components.ApcPowerReceiverComponent>(door).NeedsPower = false;
         });
 
         await pair.RunSeconds(7f);
@@ -98,6 +100,9 @@ public sealed class WFCodaHazardTest
             Assert.That(hazards.FailNow(map.Grid.Owner, 3, 5f), Is.True, "the power didn't flicker.");
             Assert.That(entities.HasComponent<WFCodaFlutterComponent>(apc), Is.True);
             Assert.That(hazards.FailNow(map.Grid.Owner, 4, 5f), Is.True, "no door moved.");
+            var doorState = entities.GetComponent<Content.Shared.Doors.Components.DoorComponent>(door).State;
+            var bolted = entities.TryGetComponent<Content.Shared.Doors.Components.DoorBoltComponent>(door, out var bolts) && bolts.BoltsDown;
+            Assert.That(bolted || doorState != Content.Shared.Doors.Components.DoorState.Closed, Is.True, "the ship's only door neither moved nor bolted.");
 
             var profile = protos.Index<WFLatticeProfilePrototype>("WFDefault");
             Assert.That(entities.System<WFCodaMutationSystem>().Mutate(mob, profile), Is.True, "the arm didn't twist.");

@@ -706,9 +706,33 @@ public sealed partial class WFDrydockSystem : EntitySystem
     /// <summary>Cleans the Drift soaked into the berthed hull, at once, for the quoted price.</summary>
     private void OnCleanDrift(EntityUid uid, WFDrydockConsoleComponent comp, WFDrydockCleanDriftMessage args)
     {
-        if (HasComp<WFDrydockChopShopComponent>(uid) || HasComp<WFDrydockMaterialPaymentComponent>(uid)
-            || !TryGetWorkableShip(uid, comp, args.Actor, out var berthed))
+        if (HasComp<WFDrydockChopShopComponent>(uid) || HasComp<WFDrydockMaterialPaymentComponent>(uid))
             return;
+
+        // Cleaning needs no cranes and leaves any booking for the berthed ship in place.
+        if (GetBerthedShip(uid, comp) is not { } berthed)
+        {
+            Deny(uid, comp, args.Actor, Loc.GetString("drydock-console-no-ship"));
+            return;
+        }
+
+        if (HasComp<WFDrydockJobComponent>(uid))
+        {
+            Deny(uid, comp, args.Actor, Loc.GetString("drydock-console-busy"));
+            return;
+        }
+
+        if (TryComp<WFDrydockBookingComponent>(uid, out var booking) && booking.Ship != berthed)
+        {
+            Deny(uid, comp, args.Actor, Loc.GetString("drydock-console-reserved", ("berth", BerthLabel(uid, comp)), ("ship", Name(booking.Ship))));
+            return;
+        }
+
+        if (IsShipyardGrid(uid, comp, berthed))
+        {
+            Deny(uid, comp, args.Actor, Loc.GetString("drydock-console-own-grid"));
+            return;
+        }
 
         var price = _lattice.CleanDriftQuote(berthed);
         if (price <= 0)

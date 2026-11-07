@@ -277,8 +277,9 @@ public sealed partial class WFLatticeSystem
             return;
 
         var attacker = args.Origin is { } origin && TryComp<TransformComponent>(origin, out var from) ? from.GridUid : null;
-        Strike(grid, attacker, 1f);
+        // The direct-hit alarm goes first, so the weaker under-fire advisory can't take its cooldown.
         Provoke(grid, args.Origin);
+        Strike(grid, attacker, 1f);
     }
 
     /// <summary>A hit on anything else on the station is answered at once too.</summary>
