@@ -113,7 +113,9 @@
     - Calypso
     - Dagger
     - Fracture
+    # WOLFGATE(OldVessels) START: New WF T1 Ships
     - Welder
+    - # WOLFGATE END
 
 - type: entity
   parent: ShipVoucherTsfT0
