@@ -246,3 +246,4 @@ wf-lattice-mimic-11 = Let it in. It's cold out there.
 wf-lattice-mimic-12 = {$name}, we already turned. You're the last one.
 
 surgery-popup-step-WFLatticeStepExciseSong = {$user} is cutting the song out of {$target}'s brain.
+surgery-popup-step-WFLatticeStepCutTwistedArm = {$user} is cutting the twisted blade free of {$target}'s arm.
