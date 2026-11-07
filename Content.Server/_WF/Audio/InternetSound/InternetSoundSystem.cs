@@ -435,6 +435,8 @@ public sealed partial class InternetSoundSystem : EntitySystem
         try
         {
             track.Length = _audio.GetAudioLength(new ResolvedPathSpecifier(InternetSoundResources.PathFor(id)));
+            if (track.Length <= TimeSpan.Zero)
+                throw new InvalidDataException("the audio has no length");
         }
         catch (Exception e)
         {

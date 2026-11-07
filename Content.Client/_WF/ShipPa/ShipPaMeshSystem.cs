@@ -386,6 +386,8 @@ public sealed partial class ShipPaMeshSystem : EntitySystem
         if (_timing.Paused || (_replay.Replay != null && !_replay.Playing))
         {
             audio.Pause();
+            // Real time runs on through a pause; anchor afresh when it ends.
+            voice.Drift = default;
             return;
         }
         if (!audio.Playing && voice.Broadcast.IsPlaying(_timing.CurTime))

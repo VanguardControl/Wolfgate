@@ -90,8 +90,8 @@ public sealed class InternetSoundCVars
         CVarDef.Create("wf.internet_sound.timeout", 120, CVar.SERVERONLY);
 
     /// <summary>
-    /// Largest converted file in megabytes that will be sent to clients. At the default rate and bitrate a
-    /// full-length track is under 2 MB, so this only catches something having gone wrong.
+    /// Largest converted file in megabytes that will be sent to clients. At the default 64 kbps a full-length
+    /// track is about 3.4 MB. A bitrate past about 150 kbps needs this raised, or long tracks are refused.
     /// </summary>
     public static readonly CVarDef<int> MaxSizeMb =
         CVarDef.Create("wf.internet_sound.max_size_mb", 8, CVar.SERVERONLY);

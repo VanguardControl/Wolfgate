@@ -35,8 +35,12 @@ public sealed partial class XenoHookSystem : EntitySystem
         var query = EntityQueryEnumerator<XenoHookedComponent>();
         while (query.MoveNext(out var uid, out var hooked))
         {
-            if (now >= hooked.ReleaseAt)
-                RemCompDeferred<XenoHookedComponent>(uid);
+            if (now < hooked.ReleaseAt)
+                continue;
+
+            if (TryComp<XenoHookComponent>(hooked.Source, out var source))
+                source.Hooked.Remove(uid);
+            RemCompDeferred<XenoHookedComponent>(uid);
         }
     }
 
@@ -68,7 +72,9 @@ public sealed partial class XenoHookSystem : EntitySystem
 
         foreach (var hooked in xeno.Comp.Hooked)
         {
-            RemCompDeferred<XenoHookedComponent>(hooked);
+            // A target since let go and hooked by someone else stays on the other hook.
+            if (TryComp<XenoHookedComponent>(hooked, out var comp) && comp.Source == xeno.Owner)
+                RemCompDeferred<XenoHookedComponent>(hooked);
         }
 
         xeno.Comp.Hooked.Clear();
@@ -90,7 +96,9 @@ public sealed partial class XenoHookSystem : EntitySystem
         if (HasComp<XenoHookedComponent>(target))
             return false;
 
-        EnsureComp<XenoHookedComponent>(target).ReleaseAt = _timing.CurTime + MaxHold;
+        var hooked = EnsureComp<XenoHookedComponent>(target);
+        hooked.ReleaseAt = _timing.CurTime + MaxHold;
+        hooked.Source = xeno;
         xeno.Comp.Hooked.Add(target);
         Dirty(xeno);
 

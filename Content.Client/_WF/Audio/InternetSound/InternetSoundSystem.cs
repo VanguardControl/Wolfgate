@@ -503,9 +503,10 @@ public sealed partial class InternetSoundSystem : EntitySystem
         if (_stopped.Contains(ev.Id))
             return;
 
+        // The server can say play before this client has even seen the header; keep the word until the audio comes.
         if (_received.Contains(ev.Id))
             StartGlobal(ev.Id, 0f);
-        else if (_loading.Contains(ev.Id))
+        else
             _pendingPlays[ev.Id] = _timing.RealTime;
     }
 
