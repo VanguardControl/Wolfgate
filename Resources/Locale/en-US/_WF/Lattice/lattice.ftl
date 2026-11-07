@@ -215,5 +215,34 @@ wf-coda-rot = The hull groans. Something out here is eating the ship.
 wf-coda-fail-thrusters = The thrusters cough and die.
 wf-coda-fail-gyros = The gyroscopes spin down. The ship won't turn.
 wf-coda-fail-power = The lights go out. The breakers have tripped.
+wf-coda-fail-flutter = The power stutters. The lights won't stay on.
+wf-coda-fail-doors = Somewhere aboard, the doors are moving on their own.
+wf-coda-mutate = Your arm twists, splits and hardens. It isn't yours any more.
+wf-coda-mutate-others = {CAPITALIZE(THE($name))}'s arm twists and splits into a blade of bone.
+wf-coda-mutate-wither = The thing your arm became withers and falls away.
+wf-lattice-mirror = You look down at yourself. That isn't you.
+wf-lattice-feedback-wrap = [color=#2cdb2c]\[Common\] [bold]{$name}[/bold] says, "{$message}"[/color]
+wf-lattice-knowing = [italic]You know, without knowing how, that something waits out there. Near {$x}, {$y}.[/italic]
+wf-coda-mutate-removed = The twisted arm is gone. You feel lighter.
+wf-drift-logger-examine = It has logged [color=#c0a0ff]{$readings}[/color] readings.
+wf-reagent-effect-guidebook-ground = { $chance ->
+        [1] Keeps
+        *[other] keep
+    } half the Drift felt off while it lasts and clears some from the head
+reagent-name-wf-lodestar = lodestar
+reagent-desc-wf-lodestar = A heavy, faintly glowing sedative that holds a mind to where it is. Keeps half the Drift off while it lasts.
+wf-lattice-mimic-wrap = [bold]{$name}[/bold] says, "{$message}"
+wf-lattice-mimic-1 = {$name}. Look at me. Look at what you are.
+wf-lattice-mimic-2 = We should open the airlock. Just to see.
+wf-lattice-mimic-3 = I've been dead for an hour. Nobody noticed.
+wf-lattice-mimic-4 = Can you hear it singing? It knows your name, {$name}.
+wf-lattice-mimic-5 = Your face is wrong. Your face is wrong. Your face is wrong.
+wf-lattice-mimic-6 = Don't turn around.
+wf-lattice-mimic-7 = It's in the vents. It's been in the vents the whole time.
+wf-lattice-mimic-8 = I'm so hungry, {$name}.
+wf-lattice-mimic-9 = We were never crew. We were cargo.
+wf-lattice-mimic-10 = You're bleeding. Why aren't you bleeding?
+wf-lattice-mimic-11 = Let it in. It's cold out there.
+wf-lattice-mimic-12 = {$name}, we already turned. You're the last one.
 
 surgery-popup-step-WFLatticeStepExciseSong = {$user} is cutting the song out of {$target}'s brain.

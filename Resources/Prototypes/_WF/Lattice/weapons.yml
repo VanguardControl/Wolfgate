@@ -107,9 +107,9 @@
   - type: Projectile
     damage:
       types:
-        Piercing: 10
-        Slash: 9
-    armorPenetration: 0.5
+        Piercing: 14
+        Slash: 12
+    armorPenetration: 0.6
   - type: Tracer
     color: "#d070ffff"
     length: 2
@@ -121,8 +121,8 @@
   components:
   - type: ProjectileSpread
     proto: WFLatticeFlechette
-    count: 4
-    spread: 14
+    count: 5
+    spread: 12
 
 - type: entity
   parent: BaseWeaponTurret
@@ -138,13 +138,26 @@
     - SimpleHostile
   - type: BasicEntityAmmoProvider
     proto: WFLatticeFlechetteVolley
+  # Snaps round and fires near enough at once: the base turret turns at 90 degrees a second.
+  - type: HTN
+    rootTask:
+      task: TurretCompound
+    blackboard:
+      RotateSpeed: !type:Single
+        40
+      SoundTargetInLOS: !type:SoundPathSpecifier
+        path: /Audio/Effects/double_beep.ogg
+  - type: MouseRotator
+    angleTolerance: 20
+    rotationSpeed: 3600
+    simple4DirMode: false
   - type: Gun
-    fireRate: 1.2
-    projectileSpeed: 45
+    fireRate: 3
+    projectileSpeed: 70
     minAngle: 2
-    maxAngle: 10
-    angleIncrease: 1
-    angleDecay: 6
+    maxAngle: 8
+    angleIncrease: 0.5
+    angleDecay: 8
     selectedMode: FullAuto
     availableModes:
     - FullAuto
