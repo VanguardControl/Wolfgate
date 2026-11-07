@@ -2,7 +2,7 @@
   id: Forge
   parent: BaseStructure
   name: forge
-  description: A primitive method of refining ores. Barely hot enough to make steel.
+  description: A primitive method of refining ores. Barely hot enough to make steel. Smelts iron, sand, gold, silver and copper ore into stock you take out of its menu. # WOLFGATE: say what it smelts and where the metal goes
   components:
   - type: Sprite
     noRot: true

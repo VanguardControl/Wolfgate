@@ -254,5 +254,6 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.Server/Station/Systems/StationJobsSystem.cs`](../../Station/Systems/StationJobsSystem.cs): private scenario stations stay out of the late-join job list
 - [`Content.Shared/CCVar/CCVars.Game.cs`](../../../Content.Shared/CCVar/CCVars.Game.cs): give players six minutes to configure and join scenario lobbies.
 - [`Resources/ConfigPresets/_Mono/monolithCore.toml`](../../../Resources/ConfigPresets/_Mono/monolithCore.toml): keep the Monolith preset's pregame setup window at six minutes.
+- [`Resources/Prototypes/Loadouts/role_loadouts.yml`](../../../Resources/Prototypes/Loadouts/role_loadouts.yml): ship crews take this job, so it gets the Frontier kit: survival box, hardsuits and HUDs
 
 <!-- WOLFGATE-GENERATED END -->
