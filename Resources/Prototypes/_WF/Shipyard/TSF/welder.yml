@@ -11,7 +11,7 @@
   category: Medium # 371 tiles
   group: Security
   access: Security
-  shuttlePath: SharedMaps/_WF/Shipyard/Shuttles/TSF/welder.yml
+  shuttlePath: /SharedMaps/_WF/Shipyard/Shuttles/TSF/welder.yml
   guidebookPage: null
   class:
   - Patrol
@@ -25,7 +25,7 @@
 - type: gameMap
   id: Welder
   mapName: 'Welder'
-  mapPath: SharedMaps/_WF/Shipyard/Shuttles/TSF/welder.yml
+  mapPath: /SharedMaps/_WF/Shipyard/Shuttles/TSF/welder.yml
   minPlayers: 0
   stations:
     Welder:
