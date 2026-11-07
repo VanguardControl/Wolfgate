@@ -414,4 +414,51 @@ public sealed class WFFeedbackBatch1107bTest
         Assert.That(server.System<SharedAccessSystem>().TrySetTags(card!.Value, new[] { new ProtoId<AccessLevelPrototype>(tag) }), Is.True);
         return mob;
     }
+
+    /// <summary>#599/#593: TSF contractors are paid no Federation Military Credits by encounters, campaigns or the trade war.</summary>
+    [Test]
+    public async Task TsfContractorsGetNoFederationCredits()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var protos = pair.Server.ResolveDependency<Robust.Shared.Prototypes.IPrototypeManager>();
+
+        await pair.Server.WaitAssertion(() =>
+        {
+            const string contractor = "TSFCivilian";
+            const string credit = "FederationMilitaryCredit1";
+            foreach (var encounter in protos.EnumeratePrototypes<Content.Shared._WF.Encounters.WFEncounterPrototype>())
+            {
+                foreach (var reward in encounter.Rewards)
+                {
+                    if (reward.CreditEntity?.Id == credit)
+                        Assert.That(reward.CreditCompanies, Does.Not.Contain(contractor), $"{encounter.ID} pays contractors FMC.");
+                }
+            }
+
+            foreach (var market in protos.EnumeratePrototypes<Content.Shared._WF.TradeGoods.WFTradeMarketPrototype>())
+            {
+                foreach (var navy in market.Navies)
+                {
+                    if (navy.CreditEntity?.Id == credit && navy.Companies.Any(c => c == contractor))
+                        Assert.That(navy.Unpaid.Any(c => c == contractor), Is.True, $"{market.ID} pays contractors FMC.");
+                }
+            }
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>#588: an atmospheric technician's ID opens air alarms.</summary>
+    [Test]
+    public async Task AtmosTechHasAtmosphericsAccess()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var protos = pair.Server.ResolveDependency<Robust.Shared.Prototypes.IPrototypeManager>();
+
+        await pair.Server.WaitAssertion(() =>
+        {
+            var job = protos.Index<Content.Shared.Roles.JobPrototype>("AtmosphericTechnician");
+            Assert.That(job.Access.Any(a => a == "Atmospherics"), Is.True);
+        });
+        await pair.CleanReturnAsync();
+    }
 }

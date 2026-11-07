@@ -182,5 +182,6 @@ refresh of everyone.
 - [`Content.Shared/NightVision/SharedNightVisionSystem.cs`](../../../Content.Shared/NightVision/SharedNightVisionSystem.cs): clear the wearer's overlay, not the clothing's
 - [`Resources/Prototypes/_HL/Body/Organs/synth.yml`](../../../Resources/Prototypes/_HL/Body/Organs/synth.yml): cryoxadone drains from a Synth like it does from a human
 - [`Resources/Prototypes/Entities/Structures/Machines/Computers/computers.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/Computers/computers.yml): the MMC liaison can skip bounties too
+- [`Resources/Prototypes/Roles/Jobs/Engineering/atmospheric_technician.yml`](../../../Resources/Prototypes/Roles/Jobs/Engineering/atmospheric_technician.yml): atmos techs can use air alarms
 
 <!-- WOLFGATE-GENERATED END -->
