@@ -375,6 +375,8 @@ public sealed class SectorTest
         await server.WaitPost(() =>
         {
             crewman = WFRemadeDirectorTest.SpawnCrewman(pair, WFRemadeDirectorTest.At(map, 0, 0));
+            // The Director only wakes for a living crewman, and the carp sometimes died under CI load before it got there.
+            entMan.System<Content.Shared.Damage.Systems.SharedGodmodeSystem>().EnableGodmode(crewman);
             var site = server.ResolveDependency<IPrototypeManager>().Index<WFRemadeSitePrototype>(Adrift);
             Assert.That(sites.TryStartSite(site, Far(map), false, out encounter), Is.True, "the adrift site didn't start.");
         });
@@ -450,7 +452,8 @@ public sealed class SectorTest
         await WFRemadeDirectorTest.RunUntil(pair, () => director.Seeded, 15);
         await server.WaitAssertion(() =>
         {
-            Assert.That(director.Seeded, Is.True, "the Director never woke for the crew.");
+            Assert.That(director.Seeded, Is.True, $"the Director never woke for the crew: crewman {entMan.GetComponent<Content.Shared.Mobs.Components.MobStateComponent>(crewman).CurrentState}, "
+                + $"{(transforms.GetWorldPosition(crewman) - transforms.GetWorldPosition(scion)).Length():F1} m from a {monolith.Stage} stone.");
             Assert.That(director.Biomass, Is.GreaterThan(0f));
             entMan.System<WFEncounterSystem>().End(encounter);
             server.PlayerMan.SetAttachedEntity(pair.Player!, null);

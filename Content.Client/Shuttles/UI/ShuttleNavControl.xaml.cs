@@ -90,6 +90,11 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
     #region Mono
     // These 2 handle timing updates
     protected const float RadarUpdateInterval = 0f;
+    // WOLFGATE(Performance) START: the sweep divided by the zero interval, so the sweep hand keeps a period of its own.
+    // The request gate stays open; the throttle in RadarBlipsSystem owns the refresh rate.
+    protected const float RadarSweepPeriod = 1f;
+    private float _wfSweep; // WOLFGATE(Performance): the sweep hand's own timer, since the request accumulator is zeroed each frame
+    // WOLFGATE END
     protected float _updateAccumulator = 0f;
 
     // doesn't support absolute panning and angle follow, but why would you need that?
@@ -518,6 +523,11 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
     protected override void FrameUpdate(FrameEventArgs args)
     {
         base.FrameUpdate(args);
+        // WOLFGATE(Performance) START: the sweep hand turns on its own timer, so it keeps moving while requests are throttled
+        _wfSweep += args.DeltaSeconds;
+        if (_wfSweep >= RadarSweepPeriod)
+            _wfSweep -= RadarSweepPeriod;
+        // WOLFGATE END
         WfSaveDisplaySettings(); // WOLFGATE(Shuttles): keep a changed radar display choice for the next radar.
         WfUpdateWaypoints(); // WOLFGATE(Waypoints): keep the panel on the grid's current list.
 
@@ -732,7 +742,10 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
         #region Mono
         // Draw radar line
         // First, figure out which angle to draw.
-        var updateRatio = _updateAccumulator / RadarUpdateInterval;
+        // WOLFGATE(Performance) START: this divided by a zero interval and drew the sweep to a NaN point every frame
+        // var updateRatio = _updateAccumulator / RadarUpdateInterval;
+        var updateRatio = _wfSweep / RadarSweepPeriod;
+        // WOLFGATE END
 
         Angle angle = updateRatio * Math.Tau;
         var origin = ScalePosition(-new Vector2(Offset.X, -Offset.Y));

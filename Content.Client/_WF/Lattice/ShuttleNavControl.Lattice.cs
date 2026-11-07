@@ -102,7 +102,8 @@ public partial class ShuttleNavControl
         var still = IoCManager.Resolve<IConfigurationManager>().GetCVar(CCVars.ReducedMotion);
         var random = still ? new System.Random((int) (time * 2f)) : _wfStatic;
         var burst = !still && time % WfSnowEvery < WfSnowSeconds;
-        var specks = (int) (codaCells * cell * cell / 1000f * WfStaticDensity * (burst ? 2.5f : 1f));
+        // Specks are scattered over the whole scope and kept only where it shows the Coda, so this gives the density there.
+        var specks = (int) (size.X * size.Y / 1000f * WfStaticDensity * (burst ? 2.5f : 1f));
         for (var i = 0; i < specks; i++)
         {
             var at = new Vector2((float) random.NextDouble() * size.X, (float) random.NextDouble() * size.Y);
