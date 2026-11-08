@@ -1,4 +1,5 @@
 #nullable enable
+using System.Linq;
 using Content.Server._Mono.AmmoLoader;
 using Content.Server._NF.Shipyard.Components;
 using Content.Shared._CE.ZLevels.Flight;
@@ -8,6 +9,12 @@ using Content.Shared._WF.Planets;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
 using Content.Shared.Materials;
+using Content.Server.Station.Systems;
+using Content.Shared._WF.CCVar;
+using Content.Shared.Maps;
+using Content.Shared.Salvage.Expeditions;
+using Robust.Shared.Map.Components;
+using Robust.Shared.Maths;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
@@ -18,6 +25,66 @@ namespace Content.IntegrationTests.Tests._WF.Feedback;
 [TestFixture]
 public sealed class WFFeedbackBatch1108Test
 {
+    private const string ExpeditionMap = "WFFeedback1108ExpeditionMap";
+
+    [TestPrototypes]
+    private const string Prototypes = $@"
+- type: gameMap
+  id: {ExpeditionMap}
+  minPlayers: 0
+  mapName: {ExpeditionMap}
+  mapPath: /Maps/Test/empty.yml
+  stations:
+    Station:
+      mapNameTemplate: {ExpeditionMap}
+      stationProto: StandardNanotrasenStation
+      components:
+        - type: SalvageExpeditionData
+";
+
+    /// <summary>
+    /// Report 641: a generated expedition claimed from a ship that can't jump off a planet is refused, instead of
+    /// leaving the console claimed at 00:00 with the ship never arriving.
+    /// </summary>
+    [Test]
+    public async Task ExpeditionRefusedBelowOrbit()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var proto = server.ProtoMan;
+        var maps = em.System<SharedMapSystem>();
+        var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
+
+        var station = EntityUid.Invalid;
+        var console = EntityUid.Invalid;
+
+        await server.WaitPost(() =>
+        {
+            server.CfgMan.SetCVar(PlanetCVars.PlanetExpeditions, false);
+            var shipMap = maps.CreateMap(out var shipMapId);
+            em.EnsureComponent<WFPlanetLayerComponent>(shipMap);
+            var ship = maps.CreateGridEntity(shipMapId);
+            maps.SetTile(ship.Owner, ship.Comp, Vector2i.Zero, new Tile(tileDefs["FloorSteel"].TileId));
+            console = em.SpawnEntity("ComputerSalvageExpedition", new EntityCoordinates(ship.Owner, 0.5f, 0.5f));
+            station = em.System<StationSystem>().InitializeNewStation(proto.Index<GameMapPrototype>(ExpeditionMap).Stations["Station"], new[] { ship.Owner }, ExpeditionMap);
+        });
+
+        await server.WaitPost(() => em.GetComponent<SalvageExpeditionDataComponent>(station).NextOffer = TimeSpan.Zero);
+        await pair.RunTicksSync(5);
+
+        await server.WaitAssertion(() =>
+        {
+            var data = em.GetComponent<SalvageExpeditionDataComponent>(station);
+            Assert.That(data.Missions, Is.Not.Empty, "No generated offers.");
+            em.EventBus.RaiseLocalEvent(console, new ClaimSalvageMessage { Index = data.Missions.Keys.First() });
+            Assert.That(data.Claimed, Is.False, "A ship on a planet's surface claimed a jump it can't make.");
+        });
+
+        await server.WaitPost(() => server.CfgMan.SetCVar(PlanetCVars.PlanetExpeditions, true));
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Report 639: a judge's voucher ship flies under Caelestinus, not unaffiliated.</summary>
     [Test]
     public async Task JudgeVoucherShipIsCaelestinus()

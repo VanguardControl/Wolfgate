@@ -31,7 +31,11 @@ Lupine engine fork; see `Docs/_WF/Engine/README.md`.
 ## Non-modular edits
 
 - [`Content.Server/_CE/ZLevels/Chat/CEZLevelsSpeakingSystem.cs`](../../_CE/ZLevels/Chat/CEZLevelsSpeakingSystem.cs): the speaker can be deleted with its map before this fires
-- [`Content.Server/_Mono/StationEvents/AutoExtendRuleSystem.cs`](../../_Mono/StationEvents/AutoExtendRuleSystem.cs): a watched grid can be deleted before the rule ends
+- [`Content.Server/_Mono/StationEvents/AutoExtendRuleComponent.cs`](../../_Mono/StationEvents/AutoExtendRuleComponent.cs): guards near a vault kept it from ever leaving after its departure warning
+- [`Content.Server/_Mono/StationEvents/AutoExtendRuleSystem.cs`](../../_Mono/StationEvents/AutoExtendRuleSystem.cs)
+  - extensions are capped
+  - a watched grid can be deleted before the rule ends
+  - count each extension against the cap
 - [`Content.Server/_NF/StationEvents/Events/BluespaceCargoRule.cs`](../../_NF/StationEvents/Events/BluespaceCargoRule.cs)
   - with no free tile, the grid's own coordinates were on the map and could anchor to another grid
   - pass the map, since terrain with no tracked air reads its mixture from there

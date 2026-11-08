@@ -28,7 +28,7 @@ public sealed partial class AutoExtendRuleSystem : EntitySystem
                 continue;
             }
 
-            if (stationEv.EndTime == null)
+            if (stationEv.EndTime == null || extendRule.Extensions >= extendRule.MaxExtensions) // WOLFGATE(LiveFixes): extensions are capped
                 continue;
 
             // if we're too early to check then don't
@@ -82,8 +82,15 @@ public sealed partial class AutoExtendRuleSystem : EntitySystem
                     break;
             }
 
+            // WOLFGATE(LiveFixes) START: count each extension against the cap
+            // if (hasNearbyPlayer)
+            //     stationEv.EndTime += extendRule.ExtendBy;
             if (hasNearbyPlayer)
+            {
                 stationEv.EndTime += extendRule.ExtendBy;
+                extendRule.Extensions++;
+            }
+            // WOLFGATE END
         }
 
         foreach (var uid in unExtendQueue)
