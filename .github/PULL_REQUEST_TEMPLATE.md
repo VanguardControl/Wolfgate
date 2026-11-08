@@ -7,7 +7,7 @@
 <!-- Discuss how this would affect game balance or explain why it was changed. Link any relevant discussions or issues. -->
 
 ## Media
-<!-- Attach media if the PR makes ingame changes (clothing, items, features, etc). 
+<!-- Attach media if the PR makes ingame changes (clothing, items, features, etc).
 Small fixes/refactors are exempt. Media may be used in SS14 progress reports with credit. -->
 
 ## Requirements
@@ -15,7 +15,7 @@ Small fixes/refactors are exempt. Media may be used in SS14 progress reports wit
 - [ ] I have read relevant guidelines/documentation to this PR found on [our devwiki](https://monolith-station.github.io/mono-docs/).
 - [ ] I have added media to this PR or it does not require an ingame showcase.
 <!-- WOLFGATE(Contributing) START: AI checkbox and disclosure follow the Wolfgate AI policy -->
-- [ ] This PR follows the [AI-generated content policy](https://github.com/VanguardControl/Wolfgate/blob/main/Docs/_WF/Contributing/AI_POLICY.md): I understand and have tested any AI-assisted code, and any AI-generated sprites or audio have been substantially reworked by hand.
+- [ ] This PR follows the [AI-generated content policy](https://github.com/VanguardControl/Wolfgate/blob/main/Docs/_WF/Contributing/AI_POLICY.md).
 
 **AI use:** <!-- Required if the diff is over 1,000 lines, optional otherwise: "None", or the model and what for, e.g. "Claude Opus 5.5 used for systems and tests". -->
 <!-- WOLFGATE END -->
