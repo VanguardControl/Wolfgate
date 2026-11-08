@@ -6,6 +6,8 @@ using Content.Server.StationEvents.Components;
 using Content.Shared.CCVar;
 using Content.Shared.Preferences;
 using Content.Shared.Wires;
+using Content.Shared._WF.Construction;
+using Content.Shared.Construction;
 using Robust.Shared.Configuration;
 using Content.Server._NF.Shipyard.Components;
 using Content.Shared._CE.ZLevels.Flight;
@@ -261,6 +263,31 @@ public sealed class WFFeedbackBatch1108Test
                 Assert.That(ev.EndTime - server.Timing.CurTime, Is.GreaterThan(TimeSpan.FromSeconds(17)));
                 Assert.That(ev.WarningAnnounced, Is.False, "The final extension didn't re-arm the departure warning.");
             });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Reports 648 and 649: a kit used on a machine comes back out when the machine is taken apart.</summary>
+    [Test]
+    public async Task KitsComeBackOnDeconstruction()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var lathe = em.SpawnEntity("Autolathe", map.GridCoords);
+            var kit = em.SpawnEntity("LatheUpgradeKitHyper", map.GridCoords);
+            em.System<WFKitRefundSystem>().RecordKit(lathe, kit);
+            em.DeleteEntity(kit);
+
+            em.EventBus.RaiseLocalEvent(lathe, new MachineDeconstructedEvent());
+            var back = em.System<EntityLookupSystem>().GetEntitiesInRange(map.GridCoords, 1f)
+                .Count(e => em.GetComponent<MetaDataComponent>(e).EntityPrototype?.ID == "LatheUpgradeKitHyper");
+            Assert.That(back, Is.EqualTo(1), "The upgrade kit wasn't given back.");
         });
 
         await pair.CleanReturnAsync();
