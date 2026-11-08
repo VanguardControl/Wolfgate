@@ -2,7 +2,7 @@
 
 AI use is allowed when contributing to Wolfgate. However, you are responsible for everything you submit, regardless of how it was made.
 
-This page covers what is and isn't allowed regarding AI-generated content, what you have to disclose and what reviewers do about it.
+This page covers what is and isn't allowed regarding AI-generated content.
 
 ## Code
 
