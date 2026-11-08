@@ -1,5 +1,7 @@
 using System.Numerics;
 using Content.Server._Mono.FireControl;
+using Content.Server._WF.NpcCrew.Systems;
+using Content.Shared.Ghost;
 using Content.Shared._Crescent.Hardpoints;
 using Content.Shared._Crescent.ShipShields;
 using Content.Shared.Construction.Components;
@@ -27,6 +29,10 @@ namespace Content.Server._WF.Lattice;
 public sealed partial class WFLatticeSystem
 {
     [Dependency] private FireControlSystem _fireControl = default!;
+    [Dependency] private WFCrewSystem _crew = default!;
+
+    /// <summary>How long before the same trespasser is named again.</summary>
+    private static readonly TimeSpan TrespassRepeat = TimeSpan.FromMinutes(5);
 
     /// <summary>Seconds between the lances' aiming passes.</summary>
     private const float DefenceInterval = 0.25f;
@@ -81,13 +87,28 @@ public sealed partial class WFLatticeSystem
     /// </summary>
     public void Provoke(EntityUid station, EntityUid? origin)
     {
-        if (origin is not { } source
-            || Attacker(station, source) is not { } enemy
-            || !TryComp<WFLatticeAnchorStationComponent>(station, out var comp)
+        if (!TryComp<WFLatticeAnchorStationComponent>(station, out var comp)
             || !TryGetProfile(station, out var profile))
             return;
 
         var now = _timing.CurTime;
+        if (origin is not { } source || Attacker(station, source) is not { } enemy)
+        {
+            // Untraceable, but the sector still hears it.
+            if (now >= comp.NextAlert)
+            {
+                comp.NextAlert = now + TimeSpan.FromSeconds(profile.AlertCooldown);
+                Alert(station, comp, "wf-lattice-defence-struck", null, true);
+            }
+
+            return;
+        }
+
+        // Whoever struck it directly is never forgiven: the person, and the ship they did it from.
+        comp.Grudges.Add(enemy);
+        if (_crew.Wielder(source) is var person && person != enemy && HasComp<ActorComponent>(person))
+            comp.Grudges.Add(person);
+
         comp.Hostiles[enemy] = now + TimeSpan.FromSeconds(profile.HostileSeconds);
         comp.ProvokedUntil = now + TimeSpan.FromSeconds(profile.HostileSeconds);
         // Engaged either way, so the defence pass doesn't raise a second alarm while this one's cooldown runs.
@@ -107,6 +128,9 @@ public sealed partial class WFLatticeSystem
     {
         if (!Exists(source))
             return null;
+
+        // A hitscan gun names itself as the origin; it is whoever holds it.
+        source = _crew.Wielder(source);
 
         var grid = Transform(source).GridUid;
         EntityUid enemy;
@@ -219,7 +243,14 @@ public sealed partial class WFLatticeSystem
         var stations = EntityQueryEnumerator<WFLatticeAnchorStationComponent, TransformComponent>();
         while (stations.MoveNext(out var uid, out var comp, out var xform))
         {
-            if (comp.Hostiles.Count == 0)
+            if (now >= comp.NextTrespassCheck)
+            {
+                comp.NextTrespassCheck = now + TimeSpan.FromSeconds(1);
+                CheckTrespass(uid, comp, now);
+            }
+
+            comp.Grudges.RemoveWhere(g => TerminatingOrDeleted(g));
+            if (comp.Hostiles.Count == 0 && comp.Grudges.Count == 0)
             {
                 comp.Engaged = false;
                 continue;
@@ -238,32 +269,45 @@ public sealed partial class WFLatticeSystem
                 comp.Strikes.Remove(enemy);
             }
 
-            if (comp.Hostiles.Count == 0 || !TryGetProfile(uid, out var profile))
+            if (!TryGetProfile(uid, out var profile))
                 continue;
-
-            // The shield holding means the station is not yet in danger, unless something struck it directly.
-            if (now >= comp.ProvokedUntil && !ShieldDown(uid))
-            {
-                comp.Engaged = false;
-                continue;
-            }
 
             var from = _transform.GetWorldPosition(xform);
             EntityUid? target = null;
             var best = profile.DefenceRange;
-            foreach (var enemy in comp.Hostiles.Keys)
+
+            // A grudge is answered shield or no shield: the person on foot, or whatever they are aboard now.
+            foreach (var grudge in comp.Grudges)
+            {
+                if (GrudgeTarget(uid, grudge) is { } carrier)
+                    Consider(carrier);
+            }
+
+            // Otherwise the shield holding means the station is not yet in danger, unless something struck it directly.
+            if (now < comp.ProvokedUntil || ShieldDown(uid))
+            {
+                foreach (var enemy in comp.Hostiles.Keys)
+                {
+                    Consider(enemy);
+                }
+            }
+
+            void Consider(EntityUid enemy)
             {
                 var enemyXform = Transform(enemy);
                 if (enemyXform.MapUid != xform.MapUid)
-                    continue;
+                    return;
 
                 var distance = Vector2.Distance(from, _transform.GetWorldPosition(enemyXform));
                 if (distance > best || !Crewed(enemy))
-                    continue;
+                    return;
 
                 best = distance;
                 target = enemy;
             }
+
+            if (target == null)
+                comp.Engaged = false;
 
             if (target is not { } aim)
                 continue;
@@ -271,11 +315,43 @@ public sealed partial class WFLatticeSystem
             if (!comp.Engaged)
             {
                 comp.Engaged = true;
-                Alert(uid, comp, "wf-lattice-defence", aim, true);
+                Alert(uid, comp, ShieldDown(uid) ? "wf-lattice-defence" : "wf-lattice-defence-grudge", aim, true);
                 Defend(uid, aim);
             }
 
             FireLances(uid, aim);
+        }
+    }
+
+    /// <summary>What to shoot for a grudge: a ship as it is, a person on foot, or the ship a person is aboard.</summary>
+    private EntityUid? GrudgeTarget(EntityUid station, EntityUid grudge)
+    {
+        if (TerminatingOrDeleted(grudge))
+            return null;
+
+        if (!HasComp<MobStateComponent>(grudge))
+            return grudge;
+
+        var grid = Transform(grudge).GridUid;
+        if (grid is { } aboard && aboard != station && !HasComp<MapComponent>(aboard)
+            && !HasComp<WFLatticeAnchorStationComponent>(aboard))
+            return aboard;
+
+        return grudge;
+    }
+
+    /// <summary>Names every player aboard the station to the sector, once every few minutes each.</summary>
+    private void CheckTrespass(EntityUid station, WFLatticeAnchorStationComponent comp, TimeSpan now)
+    {
+        var players = EntityQueryEnumerator<ActorComponent, MobStateComponent, TransformComponent>();
+        while (players.MoveNext(out var uid, out _, out var state, out var xform))
+        {
+            if (xform.GridUid != station || state.CurrentState == MobState.Dead || HasComp<GhostComponent>(uid)
+                || comp.Trespassers.TryGetValue(uid, out var next) && now < next)
+                continue;
+
+            comp.Trespassers[uid] = now + TrespassRepeat;
+            Alert(station, comp, "wf-lattice-trespass", uid, false);
         }
     }
 

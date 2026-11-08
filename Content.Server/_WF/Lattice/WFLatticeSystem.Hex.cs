@@ -3,6 +3,7 @@ using System.Numerics;
 using Content.Server._WF.Remade.Monolith;
 using Content.Shared._WF.Lattice;
 using Content.Shared.Popups;
+using Content.Shared.Shuttles.Components;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics.Components;
@@ -147,6 +148,10 @@ public sealed partial class WFLatticeSystem
             if (xform.MapUid != map.Owner || !anchor.Active || anchor.Ward <= 0f)
                 continue;
 
+            // A ring on every radar would give away a station that hides from afar; the primaries are public.
+            if (!anchor.Primary && HiddenFromAfar(xform.GridUid))
+                continue;
+
             wards.Add(_transform.GetWorldPosition(xform));
             radii.Add(anchor.Ward);
         }
@@ -160,6 +165,13 @@ public sealed partial class WFLatticeSystem
 
         if (dirty)
             Dirty(map);
+    }
+
+    /// <summary>Whether a grid keeps itself off radars at range: its IFF hides it or its label.</summary>
+    private bool HiddenFromAfar(EntityUid? grid)
+    {
+        return grid is { } uid && TryComp<IFFComponent>(uid, out var iff)
+               && (iff.Flags & (IFFFlags.Hide | IFFFlags.HideLabel | IFFFlags.HideLabelAlways)) != 0;
     }
 
     private static bool Same(List<Vector2> a, List<Vector2> b)

@@ -104,6 +104,17 @@ public sealed partial class WFLatticeAnchorStationComponent : Component
     /// <summary>When the station next marks what is on it, so a hit on any of it is noticed.</summary>
     [ViewVariables]
     public TimeSpan NextMark;
+
+    /// <summary>People and ships that struck the station directly: it fires on them whenever they are in reach, for good.</summary>
+    [ViewVariables]
+    public HashSet<EntityUid> Grudges = new();
+
+    /// <summary>Players named as trespassers aboard, and when they may be named again.</summary>
+    [ViewVariables]
+    public Dictionary<EntityUid, TimeSpan> Trespassers = new();
+
+    [ViewVariables]
+    public TimeSpan NextTrespassCheck;
 }
 
 /// <summary>Something on an anchor station whose damage the station answers at once.</summary>

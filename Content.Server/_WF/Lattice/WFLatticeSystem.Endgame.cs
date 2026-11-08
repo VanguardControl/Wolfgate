@@ -4,6 +4,7 @@ using Content.Server.Light.EntitySystems;
 using Content.Server.Station.Components;
 using Content.Shared._WF.Announcements;
 using Content.Shared._WF.Lattice;
+using Content.Shared.Damage;
 using Content.Shared.Destructible;
 using Content.Shared.Light.Components;
 using Robust.Shared.Audio;
@@ -40,6 +41,43 @@ public sealed partial class WFLatticeSystem
     {
         SubscribeLocalEvent<WFLatticeBreachEvent>(OnBreach);
         SubscribeLocalEvent<WFLatticeCentralAnchorComponent, DestructionEventArgs>(OnCentralDestroyed);
+        SubscribeLocalEvent<WFLatticeCentralAnchorComponent, DamageChangedEvent>(OnCentralDamaged);
+    }
+
+    /// <summary>When Central's anchor may next call out an attack on it.</summary>
+    private TimeSpan _nextCentralAlert;
+
+    private static readonly TimeSpan CentralAlertGap = TimeSpan.FromSeconds(30);
+
+    /// <summary>Anyone hurting Central's anchor is named to the sector.</summary>
+    private void OnCentralDamaged(Entity<WFLatticeCentralAnchorComponent> ent, ref DamageChangedEvent args)
+    {
+        var now = _timing.CurTime;
+        if (!args.DamageIncreased || now < _nextCentralAlert)
+            return;
+
+        _nextCentralAlert = now + CentralAlertGap;
+        var attacker = Loc.GetString("wf-lattice-defence-unknown");
+        if (args.Origin is { } origin && Exists(origin))
+        {
+            var who = _crew.Wielder(origin);
+            attacker = HasComp<Content.Shared.Mobs.Components.MobStateComponent>(who)
+                ? Name(who)
+                : Transform(who).GridUid is { } grid ? Name(grid) : Name(who);
+        }
+
+        var text = Loc.GetString("wf-lattice-central-struck", ("attacker", attacker));
+        _chat.DispatchGlobalAnnouncement(text, Loc.GetString("wf-lattice-chip-sender"), true, BreachSound, EndColor);
+        RaiseNetworkEvent(new WFAnnouncementChipEvent
+        {
+            Level = WFAnnounceChipLevel.Warning,
+            Accent = EndColor,
+            Title = Loc.GetString("wf-lattice-central-struck-title"),
+            Text = text,
+            Sender = Loc.GetString("wf-lattice-chip-sender"),
+            Duration = 20f,
+            Flash = true,
+        });
     }
 
     private void OnBreach(ref WFLatticeBreachEvent args)

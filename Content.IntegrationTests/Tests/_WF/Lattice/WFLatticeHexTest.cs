@@ -5,6 +5,8 @@ using Content.Server._WF.Remade.Corruption;
 using Content.Server._WF.Remade.Monolith;
 using Content.Server.Cargo.Components;
 using Content.Server.Cargo.Systems;
+using Content.Server.Shuttles.Systems;
+using Content.Shared.Shuttles.Components;
 using Content.Shared._WF.Lattice;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
@@ -94,7 +96,7 @@ public sealed class WFLatticeHexTest
         await server.WaitPost(() => xforms.SetWorldPosition(carrier.Owner, gap * 0.8f));
         await server.WaitRunTicks(5);
 
-        EntityUid sold = default, warded = default, unwarded = default;
+        EntityUid sold = default, warded = default, unwarded = default, hiddenWard = default;
         await server.WaitAssertion(() =>
         {
             var field = entities.GetComponent<WFLatticeFieldComponent>(map.MapUid);
@@ -107,6 +109,14 @@ public sealed class WFLatticeHexTest
             maps.SetTile(ward.Owner, ward.Comp, Vector2i.Zero, map.Tile.Tile);
             entities.SpawnEntity("WFLatticeCentralAnchor", new EntityCoordinates(ward.Owner, new Vector2(0.5f, 0.5f)));
             warded = ward.Owner;
+
+            // A station that hides from afar keeps its ward but shows no ring on radar.
+            var hidden = maps.CreateGridEntity(map.MapId);
+            xforms.SetWorldPosition(hidden.Owner, far + new Vector2(0f, -4000f));
+            maps.SetTile(hidden.Owner, hidden.Comp, Vector2i.Zero, map.Tile.Tile);
+            entities.System<ShuttleSystem>().AddIFFFlag(hidden.Owner, IFFFlags.HideLabelAlways);
+            entities.SpawnEntity("WFLatticeCentralAnchor", new EntityCoordinates(hidden.Owner, new Vector2(0.5f, 0.5f)));
+            hiddenWard = hidden.Owner;
 
             var outside = maps.CreateGridEntity(map.MapId);
             xforms.SetWorldPosition(outside.Owner, far + new Vector2(2000f, 0f));
@@ -127,6 +137,11 @@ public sealed class WFLatticeHexTest
         {
             Assert.That(corruption.IsWarded(warded), Is.True, "the central anchor doesn't keep corruption off its grid.");
             Assert.That(corruption.IsWarded(unwarded), Is.False, "an anchor's ward reaches 2 km.");
+            Assert.That(corruption.IsWarded(hiddenWard), Is.True, "a hidden station's anchor keeps no corruption off.");
+            var rings = entities.GetComponent<WFLatticeFieldComponent>(map.MapUid).Wards;
+            Assert.That(rings.Any(r => Vector2.Distance(r, xforms.GetWorldPosition(warded)) < 5f), Is.True, "a ward has no ring on radar.");
+            Assert.That(rings.Any(r => Vector2.Distance(r, xforms.GetWorldPosition(hiddenWard)) < 5f), Is.False,
+                "a hidden station's ward ring gives it away on radar.");
             Assert.That(entities.HasComponent<CargoSellBlacklistComponent>(sold), Is.False, "a Scion on a main station won't sell.");
             Assert.That(entities.HasComponent<CargoSellBlacklistComponent>(scion), Is.True, "a Scion sells away from a main station.");
             var price = entities.System<PricingSystem>().GetPrice(scion);

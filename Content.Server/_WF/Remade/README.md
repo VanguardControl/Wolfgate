@@ -404,6 +404,7 @@ does on its own. `wf_remade outbreak [uid]` forces an outbreak.
 - [`Content.Shared/_WF/Remade/Signals/WFSignalMath.cs`](../../../Content.Shared/_WF/Remade/Signals/WFSignalMath.cs)
 - [`Content.Shared/_WF/Remade/Structures/WFGrowthShared.cs`](../../../Content.Shared/_WF/Remade/Structures/WFGrowthShared.cs)
 - [`Content.Shared/_WF/Remade/Ward/WFWardFieldComponent.cs`](../../../Content.Shared/_WF/Remade/Ward/WFWardFieldComponent.cs)
+- [`Content.Shared/_WF/Remade/WFHeavyPull.cs`](../../../Content.Shared/_WF/Remade/WFHeavyPull.cs)
 - [`Content.Shared/_WF/Remade/WFMonolithMath.cs`](../../../Content.Shared/_WF/Remade/WFMonolithMath.cs)
 - [`Content.Shared/_WF/Remade/WFMonolithTapComponent.cs`](../../../Content.Shared/_WF/Remade/WFMonolithTapComponent.cs)
 - [`Content.Shared/_WF/Remade/WFMonolithTapDropSystem.cs`](../../../Content.Shared/_WF/Remade/WFMonolithTapDropSystem.cs)

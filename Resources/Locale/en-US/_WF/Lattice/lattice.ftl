@@ -160,6 +160,11 @@ wf-lattice-defence-title = ANCHOR DEFENCE
 wf-lattice-defence-under-fire = Reality anchor {$anchor} is under fire from {$attacker}. Its shield is holding. Cease fire.
 wf-lattice-defence = Reality anchor {$anchor}'s shield is down. Defensive protocols engaged against {$attacker}. Its drones and lances will answer.
 wf-lattice-defence-unknown = an unknown vessel
+wf-lattice-defence-struck = Reality anchor {$anchor} has been struck. Its defences are on alert.
+wf-lattice-defence-grudge = Reality anchor {$anchor} is firing on {$attacker}, who attacked it. It does not forget.
+wf-lattice-trespass = Trespasser aboard reality anchor {$anchor}: {$attacker}.
+wf-lattice-central-struck = {$attacker} is attacking Caelestinus Central's anchor.
+wf-lattice-central-struck-title = Central anchor under attack
 
 wf-drift-alert-name = Drift
 wf-drift-alert-desc = How far reality has slipped from you. It fills out past anchored space and drains back inside it.
