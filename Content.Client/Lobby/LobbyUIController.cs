@@ -378,6 +378,7 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
 
     private void SaveProfile()
     {
+        _profileEditor?.FlushAppearanceStudio(); // WOLFGATE(AppearanceStudio): a studio edit still in its commit delay is saved too
         DebugTools.Assert(EditedProfile != null);
 
         if (EditedProfile == null || EditedSlot == null)

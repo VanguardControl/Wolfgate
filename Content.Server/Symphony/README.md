@@ -64,9 +64,11 @@ change. Errors: `409 stale` with `"current"` (the slot as stored, or null) when 
 `400 bad_slot`, `400 bad_request`, `400 bad_profile` (with the reader's message); `403 banned` (an active server ban);
 `404 no_preferences`.
 
-### POST /symphony/characters/validate?user=&lt;guid&gt;
+### POST /symphony/characters/validate?user=&lt;guid&gt;[&slot=&lt;int&gt;]
 
-Body `{"profile": {...}}`; `200 {"profile": {...}}`, cleaned as a save would be and not stored.
+Body `{"profile": {...}}`; `200 {"profile": {...}}`, cleaned as a save would be and not stored. Pass `slot` to
+hold the same fields a save to that slot would hold (bank, persistent data, augments, and the studio fields under a
+feature ban); without it they take their defaults.
 
 ### GET /symphony/creator/catalog[?version=&lt;v&gt;]
 

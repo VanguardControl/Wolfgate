@@ -553,12 +553,18 @@ public sealed class StudioSpriteSystem : EntitySystem
         if (!TryComp<SpriteComponent>(uid, out var sprite))
             return;
 
+        var tweaks = CompOrNull<HumanoidAppearanceComponent>(uid)?.StudioTweaks;
         foreach (var part in Enum.GetValues<HumanoidVisualLayers>())
         {
-            if (_sprite.LayerMapTryGet((uid, sprite), part, out var index, false)
-                && sprite[index] is SpriteComponent.Layer { Visible: true } layer
-                && layer.State.IsValid)
-                parts.Add(part.ToString());
+            if (!_sprite.LayerMapTryGet((uid, sprite), part, out var index, false)
+                || sprite[index] is not SpriteComponent.Layer layer
+                || !layer.State.IsValid)
+                continue;
+
+            // A part the studio hides is invisible but must stay listed, or it couldn't be shown again.
+            var name = part.ToString();
+            if (layer.Visible || tweaks != null && StudioRules.Find(tweaks, StudioTarget.Body, name) != null)
+                parts.Add(name);
         }
     }
 

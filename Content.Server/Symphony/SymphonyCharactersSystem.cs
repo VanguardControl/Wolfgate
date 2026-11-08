@@ -95,7 +95,8 @@ public sealed class SymphonyCharactersSystem : EntitySystem
             else if (path == ValidatePath && context.RequestMethod == HttpMethod.Post)
             {
                 var body = await ReadBody(context);
-                answer = await await _tasks.OnMainThread(() => Validate(user, body));
+                int? validateSlot = int.TryParse(query["slot"], out var parsed) ? parsed : null;
+                answer = await await _tasks.OnMainThread(() => Validate(user, body, validateSlot));
             }
             else
             {
@@ -212,7 +213,7 @@ public sealed class SymphonyCharactersSystem : EntitySystem
     }
 
     /// <summary>POST /symphony/characters/validate. Main thread.</summary>
-    public async Task<Answer> Validate(NetUserId user, JsonObject? body)
+    public async Task<Answer> Validate(NetUserId user, JsonObject? body, int? slot = null)
     {
         if (body == null || !body.TryGetPropertyValue("profile", out var json) || json is not JsonObject)
             return new Answer(HttpStatusCode.BadRequest, SymphonyJson.Error("bad_request", "expected {\"profile\": {...}}"));
@@ -220,8 +221,10 @@ public sealed class SymphonyCharactersSystem : EntitySystem
         if (!TryParse(json, out var profile, out var error))
             return new Answer(HttpStatusCode.BadRequest, SymphonyJson.Error("bad_profile", error));
 
-        var (_, session) = await Load(user);
-        profile = Keep(await _featureBans.IsBannedAsync(user, StudioRules.Feature), profile, null, new JsonArray());
+        // Held fields come from the slot being edited, as a save would take them; an empty or unnamed slot uses defaults.
+        var (prefs, session) = await Load(user);
+        var old = slot is { } index ? prefs?.Characters.GetValueOrDefault(index) as HumanoidCharacterProfile : null;
+        profile = Keep(await _featureBans.IsBannedAsync(user, StudioRules.Feature), profile, old, new JsonArray());
         profile.EnsureValid(session!, _dependencies);
         return new Answer(HttpStatusCode.OK, new JsonObject { ["profile"] = ToJson(profile) });
     }

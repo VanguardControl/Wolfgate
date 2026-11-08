@@ -335,6 +335,13 @@ public sealed class StudioWindow : CustomMarkingWindow
         _commitIn = CommitDelay;
     }
 
+    /// <summary>Sends an edit still waiting out its commit delay now; nothing when none is waiting.</summary>
+    public void FlushPending()
+    {
+        if (_commitIn >= 0f)
+            Flush();
+    }
+
     private void Flush()
     {
         _commitIn = -1f;

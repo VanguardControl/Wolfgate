@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Content.Server.Administration.Managers;
 using Content.Server.Database;
 using Content.Shared._WF.FeatureBans;
-using Robust.Server.Player;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
@@ -15,7 +14,6 @@ public sealed class FeatureBanSystem : EntitySystem
 {
     [Dependency] private IBanManager _bans = default!;
     [Dependency] private IServerDbManager _db = default!;
-    [Dependency] private IPlayerManager _players = default!;
 
     /// <summary>
     /// Whether a CONNECTED player has a live ban from a feature, from the ban manager's cache. An offline account
@@ -27,14 +25,12 @@ public sealed class FeatureBanSystem : EntitySystem
     }
 
     /// <summary>
-    /// Whether an account has a live ban from a feature, connected or not: the ban manager's cache for a connected
-    /// player, the database otherwise (the web creator edits offline accounts).
+    /// Whether an account has a live ban from a feature, connected or not. Read from the database, not the ban
+    /// manager's cache: the web creator edits offline accounts, and the cache keeps a timed ban past its expiry
+    /// until the next restart.
     /// </summary>
     public async Task<bool> IsBannedAsync(NetUserId user, ProtoId<WFFeatureBanPrototype> feature)
     {
-        if (_players.TryGetSessionById(user, out _) && _bans.GetRoleBans(user) is { } cached)
-            return cached.Contains(WFFeatureBans.Role(feature));
-
         var role = WFFeatureBans.Role(feature);
         var bans = await _db.GetServerRoleBansAsync(null, user, null, null, includeUnbanned: false);
         var now = DateTimeOffset.Now;

@@ -89,6 +89,7 @@ which removes it from every body.
 - [`Content.Client/Clothing/ClientClothingSystem.cs`](../../../Content.Client/Clothing/ClientClothingSystem.cs): a warp the player painted for this slot replaces the species map
 - [`Content.Client/Hands/Systems/HandsSystem.cs`](../../../Content.Client/Hands/Systems/HandsSystem.cs): a warp the player painted for this hand comes first
 - [`Content.Client/Humanoid/HumanoidAppearanceSystem.cs`](../../../Content.Client/Humanoid/HumanoidAppearanceSystem.cs): the doll is placed like the character
+- [`Content.Client/Lobby/LobbyUIController.cs`](../../../Content.Client/Lobby/LobbyUIController.cs): a studio edit still in its commit delay is saved too
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs)
   - the new doll is placed for the preview facing
   - the studio closes with the editor

@@ -54,6 +54,12 @@ public sealed partial class HumanoidProfileEditor
         window.Close();
     }
 
+    /// <summary>Hands the profile any studio edit still waiting out its commit delay, before a save reads it.</summary>
+    public void FlushAppearanceStudio()
+    {
+        _studioWindow?.FlushPending();
+    }
+
     private void OpenAppearanceStudio()
     {
         CloseAppearanceStudio();
