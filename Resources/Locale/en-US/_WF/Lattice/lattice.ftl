@@ -263,3 +263,59 @@ ent-WFDriftLogger = drift logger
     .desc = Counts the Unmooring wherever it is carried. Station science buys its readings; the further out, the more they pay.
 ent-WFCodaFleshNode = flesh knot
     .desc = A swollen knot of grey-red flesh grown into the deck. It pulses slowly. Something in it is listening.
+
+ent-WFLatticeCentralAnchor = central anchor
+    .desc = Caelestinus Central's own reality anchor. While it stands, corruption can't grow on the station.
+
+wf-lattice-hex-turned-back = The hex field throws the Scion back. Nothing of the Monolith crosses a standing beam.
+wf-lattice-hex-ftl-refused = The FTL drive won't lock on. Something aboard can't be taken inside the hex field.
+
+wf-lattice-unstring-title = The Unstringing
+wf-lattice-unstring = The last reality anchor has fallen. The Lattice is gone. Nothing holds anywhere in the sector now, not a relay, not a station's own anchor. FTL drives are dead. Survive.
+wf-lattice-unstring-chip = The last anchor has fallen. The Coda is everywhere.
+
+wf-lattice-tacet-title = Tacet
+wf-lattice-tacet = Kyphrus has collapsed in on itself. The light it bent is gone, and every light in the sector went with it.
+wf-lattice-tacet-chip = Kyphrus has imploded. The lights are going out.
+
+wf-lattice-central-lost-title = Central anchor lost
+wf-lattice-central-lost = Caelestinus Central's anchor has been destroyed. Nothing keeps the growth off the station now.
+wf-lattice-central-lost-chip = Caelestinus Central's anchor is gone. Corruption can reach the station.
+
+cmd-wflattice-desc = Brings on the end of the Lattice, or sends a Scion's flesh ships, on your sector.
+cmd-wflattice-help = Usage: wflattice <siege|unstring|tacet>
+cmd-wflattice-no-field = No sector has a Lattice.
+cmd-wflattice-no-scion = No Scion on this sector.
+cmd-wflattice-siege-sent = Sent {$count} flesh ships.
+
+ent-WFLatticeStatusCartridge = Lattice status cartridge
+    .desc = A PDA program that reads the Lattice: the anchors, the hex field, and the band you are in.
+ent-WFLatticeStatusConsole = Lattice status console
+    .desc = Reads the Lattice: the anchors, the hex field, Central's anchor and anything coming for them.
+ent-WFFlatpackLatticeStatusConsole = Lattice status console flatpack
+    .desc = A flatpack for a Lattice status console.
+
+wf-lattice-status-program-name = Lattice
+wf-lattice-status-window = Lattice status
+wf-lattice-status-title = LATTICE // STATUS
+wf-lattice-status-no-signal = NO SIGNAL. There is no Lattice here.
+wf-lattice-status-unstrung = UNSTRUNG
+wf-lattice-status-tacet = TACET
+wf-lattice-status-state = STATE
+wf-lattice-status-state-holding = Holding
+wf-lattice-status-state-failing = Failing
+wf-lattice-status-state-unstrung = The Unstringing
+wf-lattice-status-integrity = INTEGRITY
+wf-lattice-status-hex = HEX FIELD
+wf-lattice-status-hex-sealed = Sealed. Nothing of a Monolith gets in.
+wf-lattice-status-hex-broken = Breached: {$count ->
+    [one] 1 beam down
+   *[other] {$count} beams down
+}
+wf-lattice-status-central = CENTRAL ANCHOR
+wf-lattice-status-central-holding = Holding. No growth on the station.
+wf-lattice-status-central-lost = Lost
+wf-lattice-status-flesh = FLESH SHIPS
+wf-lattice-status-flesh-none = None
+wf-lattice-status-flesh-count = {$count} closing on the anchors
+wf-lattice-status-band = YOUR BAND

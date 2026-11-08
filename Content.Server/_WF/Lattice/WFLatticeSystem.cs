@@ -59,11 +59,17 @@ public sealed partial class WFLatticeSystem : EntitySystem
             _seen.Clear();
             _ovals.Clear();
             _nextLostShip.Clear();
+            _hex.Clear();
+            _scionLast.Clear();
+            _beamPopup.Clear();
+            _central.Clear();
+            _tacetAt.Clear();
         });
         InitializeStations();
         InitializeDefence();
         InitializeFtl();
         InitializeRelayFuel();
+        InitializeEndgame();
     }
 
     public override void Update(float frameTime)
@@ -71,6 +77,7 @@ public sealed partial class WFLatticeSystem : EntitySystem
         base.Update(frameTime);
         UpdateDefence(frameTime);
         HoldBarriers();
+        HoldScions();
 
         _accumulator += frameTime;
         if (_accumulator < Interval)
@@ -280,6 +287,9 @@ public sealed partial class WFLatticeSystem : EntitySystem
 
         GatherAnchors(map);
         SyncAnchors(map);
+        SyncHex(map);
+        PlaceCentral(map);
+        UpdateEndgame(map);
         RollLostShip(map, profile);
         foreach (var gone in _seen.Keys.Where(uid => TerminatingOrDeleted(uid)).ToList())
         {
@@ -416,8 +426,13 @@ public sealed partial class WFLatticeSystem : EntitySystem
     private void GatherAnchors(EntityUid map)
     {
         _anchors.Clear();
-        var query = EntityQueryEnumerator<WFLatticeAnchorComponent, TransformComponent>();
         _primaries = 0;
+
+        // Unstrung, nothing holds: not a relay, not a station's own anchor.
+        if (TryComp<WFLatticeFieldComponent>(map, out var unstrung) && unstrung.Unstrung)
+            return;
+
+        var query = EntityQueryEnumerator<WFLatticeAnchorComponent, TransformComponent>();
         while (query.MoveNext(out _, out var anchor, out var xform))
         {
             if (xform.MapUid != map || !anchor.Active)

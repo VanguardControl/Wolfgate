@@ -15,7 +15,15 @@ public sealed partial class WFLatticeAnchorComponent : Component
     /// <summary>One of the Lattice's original anchors, whose loss is a breach.</summary>
     [DataField]
     public bool Primary;
+
+    /// <summary>How far round it corruption can't grow while it stands, in metres; 0 for none.</summary>
+    [DataField]
+    public float Ward;
 }
+
+/// <summary>Caelestinus Central's own anchor: keeps corruption off the station while it stands.</summary>
+[RegisterComponent]
+public sealed partial class WFLatticeCentralAnchorComponent : Component;
 
 /// <summary>A player-built anchor: holds the field only while powered, anchored, parked and fed exotic matter.</summary>
 [RegisterComponent]

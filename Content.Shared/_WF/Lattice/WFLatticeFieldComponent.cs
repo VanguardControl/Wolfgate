@@ -30,4 +30,43 @@ public sealed partial class WFLatticeFieldComponent : Component
     /// <summary>Each anchor's strength, matching <see cref="Anchors"/>.</summary>
     [DataField, AutoNetworkedField]
     public List<float> Strengths = new();
+
+    /// <summary>The primary anchors' places round the ring, in order; beam i runs from corner i to the next.</summary>
+    [DataField, AutoNetworkedField]
+    public List<Vector2> Hex = new();
+
+    /// <summary>Whether each beam of <see cref="Hex"/> still stands.</summary>
+    [DataField, AutoNetworkedField]
+    public List<bool> HexUp = new();
+
+    /// <summary>Each corner's anchor station name, matching <see cref="Hex"/>, for the status app.</summary>
+    [DataField, AutoNetworkedField]
+    public List<string> HexNames = new();
+
+    /// <summary>Whether each corner's anchor still stands, matching <see cref="Hex"/>.</summary>
+    [DataField, AutoNetworkedField]
+    public List<bool> HexAlive = new();
+
+    /// <summary>Whether Caelestinus Central's own anchor stands.</summary>
+    [DataField, AutoNetworkedField]
+    public bool CentralStanding;
+
+    /// <summary>Flesh ships sent against the anchors that are still out there.</summary>
+    [DataField, AutoNetworkedField]
+    public int FleshShips;
+
+    /// <summary>Every standing anchor that keeps corruption off, and how far.</summary>
+    [DataField, AutoNetworkedField]
+    public List<Vector2> Wards = new();
+
+    [DataField, AutoNetworkedField]
+    public List<float> WardRadii = new();
+
+    /// <summary>The Unstringing: every primary anchor is gone, nothing holds anywhere, and the Coda is everywhere.</summary>
+    [DataField, AutoNetworkedField]
+    public bool Unstrung;
+
+    /// <summary>Tacet: Kyphrus has imploded and the sector has gone dark.</summary>
+    [DataField, AutoNetworkedField]
+    public bool Tacet;
 }

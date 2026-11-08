@@ -689,6 +689,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
         DrawCrewGroups(handle, xform, worldToView); // WOLFGATE(NpcCrew): Admin tags and battlegroup lines for NPC-crewed ships.
         DrawEncounterMarkers(handle, xform, worldToView); // WOLFGATE(Encounters): Sector markers for visible encounters.
         DrawWfLatticePhantoms(handle, worldToView, xform.MapUid); // WOLFGATE(Lattice): radar contacts only this player sees.
+        DrawWfLatticeHex(handle, worldToView, xform.MapUid); // WOLFGATE(Lattice): the hex field's beams and the anchors' wards.
         DrawWfWaypoints(handle, worldToView, xform.MapUid); // WOLFGATE(Waypoints): the crew's marked positions.
 
         // Frontier Corvax: north line drawing
