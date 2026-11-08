@@ -84,6 +84,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Server/_WF/Performance/GCQueueSystem.WFMinAge.cs`](GCQueueSystem.WFMinAge.cs)
 - [`Content.Server/_WF/Performance/IgnitionSourceSystem.WFLit.cs`](IgnitionSourceSystem.WFLit.cs)
 - [`Content.Server/_WF/Performance/LocalityLoaderSystem.WFDespawn.cs`](LocalityLoaderSystem.WFDespawn.cs)
+- [`Content.Server/_WF/Performance/NavMapSystem.WFPlanetLayers.cs`](NavMapSystem.WFPlanetLayers.cs)
 - [`Content.Server/_WF/Performance/NavMapSystem.WFRemoved.cs`](NavMapSystem.WFRemoved.cs)
 - [`Content.Server/_WF/Performance/RadarBlipSystem.WFCache.cs`](RadarBlipSystem.WFCache.cs)
 - [`Content.Server/_WF/Performance/ShipSteererComponent.WFStagger.cs`](ShipSteererComponent.WFStagger.cs)
@@ -91,6 +92,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Server/_WF/Performance/SimpleFloorPlanPopulatorSystem.WFBudget.cs`](SimpleFloorPlanPopulatorSystem.WFBudget.cs)
 - [`Content.Server/_WF/Performance/WFAsteroidCullSystem.cs`](WFAsteroidCullSystem.cs)
 - [`Content.Server/_WF/Performance/WFDockIndexSystem.cs`](WFDockIndexSystem.cs)
+- [`Content.Server/_WF/Performance/WFGridDeleteSystem.cs`](WFGridDeleteSystem.cs)
 - [`Content.Server/_WF/Performance/WFGridDeleteWatchSystem.cs`](WFGridDeleteWatchSystem.cs)
 - [`Content.Server/_WF/Performance/WFSerializerWarmupSystem.cs`](WFSerializerWarmupSystem.cs)
 - [`Content.Server/_WF/Performance/WorldControllerSystem.WFIdleHelms.cs`](WorldControllerSystem.WFIdleHelms.cs)
@@ -120,6 +122,8 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/Performance/GridDeleteTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/GridDeleteTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Performance/NavMapPlanetLayerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/NavMapPlanetLayerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFAroundColliderTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFAroundColliderTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFAsteroidCullTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFAsteroidCullTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFBottomlessRegenTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFBottomlessRegenTest.cs)
@@ -332,6 +336,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - idle movers skipped
   - Enum.GetValues allocated every tick per shuttle
 - [`Content.Server/Pinpointer/NavMapSystem.cs`](../../Pinpointer/NavMapSystem.cs)
+  - a planet layer grid's nav map would cover the whole world and nothing shows it
   - back in use, so no longer a removal
   - deltas name removed chunks; the rebuild below takes back any still in use
   - the history of removed chunks stays bounded
@@ -347,6 +352,11 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - UI state is pushed at 4 Hz, and only for generators with a viewer
   - ActiveUserInterfaceComponent is the engine's open-UI marker
   - skip the ActiveUserInterfaceComponent slot
+- [`Content.Server/Procedural/DungeonJob/DungeonJob.PostGenCornerClutter.cs`](../../Procedural/DungeonJob/DungeonJob.PostGenCornerClutter.cs): yield between tiles so a big dungeon never finishes in one tick
+- [`Content.Server/Procedural/DungeonJob/DungeonJob.PostGenCorridorDecalSkirting.cs`](../../Procedural/DungeonJob/DungeonJob.PostGenCorridorDecalSkirting.cs): yield between tiles so a big dungeon never finishes in one tick
+- [`Content.Server/Procedural/DungeonJob/DungeonJob.PostGenDungeonEntrance.cs`](../../Procedural/DungeonJob/DungeonJob.PostGenDungeonEntrance.cs): yield between entrances so a big dungeon never finishes in one tick
+- [`Content.Server/Procedural/DungeonJob/DungeonJob.PostGenEntranceFlank.cs`](../../Procedural/DungeonJob/DungeonJob.PostGenEntranceFlank.cs): yield between spawns so a big dungeon never finishes in one tick
+- [`Content.Server/Procedural/DungeonJob/DungeonJob.PostGenRoomEntrance.cs`](../../Procedural/DungeonJob/DungeonJob.PostGenRoomEntrance.cs): yield between rooms so a big dungeon never finishes in one tick
 - [`Content.Server/Shuttles/Systems/DockingSystem.Shuttle.cs`](../../Shuttles/Systems/DockingSystem.Shuttle.cs)
   - rule out pairs that land elsewhere before the tile walk, not after
   - chunk-first walk, same result; this ran per dock pair for every fixture

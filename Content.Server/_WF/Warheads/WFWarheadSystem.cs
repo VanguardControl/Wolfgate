@@ -314,7 +314,7 @@ public sealed partial class WFWarheadSystem : EntitySystem
             && !HasComp<MapComponent>(gridUid))
         {
             _adminLog.Add(LogType.Explosion, LogImpact.Extreme, $"Warhead deleted grid {ToPrettyString(gridUid)}");
-            Del(gridUid);
+            EntityManager.System<Content.Server._WF.Performance.WFGridDeleteSystem>().QueueDel(gridUid);
         }
 
         Erase(coords, payload.EraseRadius);

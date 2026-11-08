@@ -858,7 +858,8 @@ public sealed partial class WFEncounterSystem : EntitySystem
         if (ship.Virtual)
         {
             _objectives.Cancel(ship.Grid, ship.Group);
-            Del(ship.Grid);
+            // The whole hull went in one tick; the grid deleter spreads its contents over several.
+            EntityManager.System<Content.Server._WF.Performance.WFGridDeleteSystem>().QueueDel(ship.Grid);
             return;
         }
 
