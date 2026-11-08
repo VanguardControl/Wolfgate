@@ -56,5 +56,6 @@ None.
 ## Non-modular edits
 
 - [`.gitmodules`](../../../.gitmodules): The engine submodule points at the Lupine fork (branch wolfgate/v291) instead of space-wizards.
+- [`BuildChecker/git_helper.py`](../../../BuildChecker/git_helper.py): pick up the Lupine URL in clones made before the submodule moved off space-wizards
 
 <!-- WOLFGATE-GENERATED END -->
