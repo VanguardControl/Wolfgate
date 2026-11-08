@@ -16,6 +16,7 @@ using Content.Shared.Verbs;
 using Robust.Server.Player;
 using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
+using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
@@ -40,7 +41,8 @@ public sealed class StudioSystem : EntitySystem
 
     private static readonly TimeSpan SaveCooldown = TimeSpan.FromSeconds(1);
 
-    private readonly Dictionary<ICommonSession, TimeSpan> _nextSave = new();
+    /// <summary>When each account may save a warp again; by account, so the web creator shares the cooldown.</summary>
+    private readonly Dictionary<NetUserId, TimeSpan> _nextSave = new();
 
     public override void Initialize()
     {
@@ -74,7 +76,7 @@ public sealed class StudioSystem : EntitySystem
         string? error;
         try
         {
-            (hash, error) = await SaveWarp(session, msg.Pixels);
+            (hash, error) = await SaveWarp(session.UserId, session.Name, msg.Pixels, session);
         }
         catch (Exception e)
         {
@@ -86,16 +88,27 @@ public sealed class StudioSystem : EntitySystem
             RaiseNetworkEvent(new StudioWarpSaveResultEvent(msg.Request, hash, error), session);
     }
 
-    private async Task<(string? Hash, string? Error)> SaveWarp(ICommonSession session, byte[]? pixels)
+    /// <summary>How long an account must wait before it may save a warp again; zero when it may now.</summary>
+    public TimeSpan CooldownLeft(NetUserId user)
+    {
+        var left = _nextSave.GetValueOrDefault(user) - _timing.RealTime;
+        return left > TimeSpan.Zero ? left : TimeSpan.Zero;
+    }
+
+    /// <summary>
+    /// Checks and stores a warp for an account, from the game's editor or the web creator. Returns its hash, or a
+    /// locale id saying why not. <paramref name="session"/> only names the player in the admin log.
+    /// </summary>
+    public async Task<(string? Hash, string? Error)> SaveWarp(NetUserId user, string actor, byte[]? pixels, ICommonSession? session = null)
     {
         if (!_cfg.GetCVar(StudioCVars.Enabled) || !_cfg.GetCVar(StudioCVars.Warps))
             return (null, "wf-studio-error-disabled");
 
-        if (IsBanned(session))
+        if (_featureBans.IsBanned(user, Feature))
             return (null, "wf-feature-banned");
 
         var now = _timing.RealTime;
-        if (_nextSave.TryGetValue(session, out var next) && now < next)
+        if (_nextSave.TryGetValue(user, out var next) && now < next)
             return (null, "wf-studio-error-cooldown");
 
         if (CustomMarkingArt.FromPixels(pixels, maxFrames: 1) is not { } art || StudioWarp.FromArt(art) is not { } warp)
@@ -104,16 +117,19 @@ public sealed class StudioSystem : EntitySystem
         if (warp.IsNeutral())
             return (null, "wf-studio-error-neutral");
 
-        _nextSave[session] = now + SaveCooldown;
+        _nextSave[user] = now + SaveCooldown;
 
         var hash = CustomMarkingSystem.Hash(art);
-        var error = await _db.StoreStudioWarpAsync(session.UserId, hash, new CustomMarkingStoredArt(art.ToPng(), null, null),
+        var error = await _db.StoreStudioWarpAsync(user, hash, new CustomMarkingStoredArt(art.ToPng(), null, null),
             _cfg.GetCVar(CustomMarkingCVars.DailyArtLimit));
 
         if (error != null)
             return (null, error);
 
-        _adminLog.Add(LogType.Identity, LogImpact.Low, $"{session:player} saved studio warp {hash}");
+        if (session != null)
+            _adminLog.Add(LogType.Identity, LogImpact.Low, $"{session:player} saved studio warp {hash}");
+        else
+            _adminLog.Add(LogType.Identity, LogImpact.Low, $"{actor} ({user}) saved studio warp {hash} from the web creator");
         return (hash, null);
     }
 
@@ -199,6 +215,6 @@ public sealed class StudioSystem : EntitySystem
     private void OnPlayerStatusChanged(object? sender, SessionStatusEventArgs args)
     {
         if (args.NewStatus == SessionStatus.Disconnected)
-            _nextSave.Remove(args.Session);
+            _nextSave.Remove(args.Session.UserId);
     }
 }

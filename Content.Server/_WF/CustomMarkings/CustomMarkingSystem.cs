@@ -50,7 +50,8 @@ public sealed partial class CustomMarkingSystem : EntitySystem
     /// <summary>Art by hash as read from the database; null where it has none to show.</summary>
     private readonly Dictionary<string, Task<CustomMarkingStoredArt?>> _art = new();
 
-    private readonly Dictionary<ICommonSession, TimeSpan> _nextSave = new();
+    /// <summary>When each account may save again; by account, so the web creator shares the game's cooldown.</summary>
+    private readonly Dictionary<NetUserId, TimeSpan> _nextSave = new();
 
     /// <summary>When each session's art request budget will be full again.</summary>
     private readonly Dictionary<ICommonSession, TimeSpan> _artBudgetFull = new();
@@ -163,7 +164,7 @@ public sealed partial class CustomMarkingSystem : EntitySystem
     private async void OnSave(CustomMarkingSaveEvent msg, EntitySessionEventArgs args)
     {
         var session = args.SenderSession;
-        var result = await Save(session, msg);
+        var (result, _) = await Save(session.UserId, session.Name, msg, session);
 
         if (session.Status == SessionStatus.Disconnected)
             return;
@@ -174,33 +175,51 @@ public sealed partial class CustomMarkingSystem : EntitySystem
             await SendLibrary(session);
     }
 
-    private async Task<CustomMarkingSaveResult> Save(ICommonSession session, CustomMarkingSaveEvent msg)
+    /// <summary>How long an account must wait before it may save art again; zero when it may now.</summary>
+    public TimeSpan CooldownLeft(NetUserId user)
+    {
+        var left = _nextSave.GetValueOrDefault(user) - _timing.RealTime;
+        return left > TimeSpan.Zero ? left : TimeSpan.Zero;
+    }
+
+    /// <summary>
+    /// Saves a library entry for an account, from the game's editor or the web creator. Also says whether an erase
+    /// mask was dropped because erasing is off. <paramref name="session"/> only names the player in the admin log;
+    /// null for a save from the web.
+    /// </summary>
+    public async Task<(CustomMarkingSaveResult Result, bool EraseDropped)> Save(
+        NetUserId user,
+        string actor,
+        CustomMarkingSaveEvent msg,
+        ICommonSession? session = null)
     {
         if (!Enabled)
-            return CustomMarkingSaveResult.Fail("wf-custom-marking-error-disabled");
+            return (CustomMarkingSaveResult.Fail("wf-custom-marking-error-disabled"), false);
 
-        if (_featureBans.IsBanned(session.UserId, StudioSystem.Feature))
-            return CustomMarkingSaveResult.Fail("wf-feature-banned");
+        if (_featureBans.IsBanned(user, StudioSystem.Feature))
+            return (CustomMarkingSaveResult.Fail("wf-feature-banned"), false);
 
         var now = _timing.RealTime;
-        if (_nextSave.TryGetValue(session, out var next) && now < next)
-            return CustomMarkingSaveResult.Fail("wf-custom-marking-error-cooldown");
+        if (_nextSave.TryGetValue(user, out var next) && now < next)
+            return (CustomMarkingSaveResult.Fail("wf-custom-marking-error-cooldown"), false);
 
         if (!Enum.IsDefined(msg.Placement))
-            return CustomMarkingSaveResult.Fail("wf-custom-marking-error-invalid");
+            return (CustomMarkingSaveResult.Fail("wf-custom-marking-error-invalid"), false);
 
         string? hash = null;
         CustomMarkingStoredArt? stored = null;
+        var eraseDropped = false;
         if (msg.Pixels != null)
         {
             // With erasing turned off, a mask is dropped rather than refused: the drawing is still good.
             var erase = _cfg.GetCVar(CustomMarkingCVars.EraseBody) ? msg.Erase : null;
+            eraseDropped = erase == null && msg.Erase != null;
             var maxFrames = Math.Max(1, _cfg.GetCVar(CustomMarkingCVars.MaxFrames));
             if (CustomMarkingArt.FromPixels(msg.Pixels, msg.FrameTimes, erase, maxFrames, msg.PingPong) is not { } art)
-                return CustomMarkingSaveResult.Fail("wf-custom-marking-error-invalid");
+                return (CustomMarkingSaveResult.Fail("wf-custom-marking-error-invalid"), false);
 
             if (art.IsBlank() && !art.HasErase())
-                return CustomMarkingSaveResult.Fail("wf-custom-marking-error-blank");
+                return (CustomMarkingSaveResult.Fail("wf-custom-marking-error-blank"), false);
 
             hash = Hash(art);
             stored = new CustomMarkingStoredArt(
@@ -214,29 +233,37 @@ public sealed partial class CustomMarkingSystem : EntitySystem
             name = Loc.GetString("wf-custom-marking-default-name");
 
         // Only saves that reach the database are spaced out; the checks above cost nothing.
-        _nextSave[session] = now + SaveCooldown;
+        _nextSave[user] = now + SaveCooldown;
 
         CustomMarkingSaveResult result;
         try
         {
-            result = await _db.SaveCustomMarkingAsync(session.UserId, msg.Id, name, (int) msg.Placement, hash, stored,
+            result = await _db.SaveCustomMarkingAsync(user, msg.Id, name, (int) msg.Placement, hash, stored,
                 _cfg.GetCVar(CustomMarkingCVars.LibraryLimit), _cfg.GetCVar(CustomMarkingCVars.DailyArtLimit));
         }
         catch (Exception e)
         {
-            Log.Error($"Saving a custom marking for {session.Name} threw: {e}");
-            return CustomMarkingSaveResult.Fail("wf-custom-marking-error-failed");
+            Log.Error($"Saving a custom marking for {actor} threw: {e}");
+            return (CustomMarkingSaveResult.Fail("wf-custom-marking-error-failed"), false);
         }
 
         // Awaits resume on the game thread, so the cache is only touched there.
         if (result.Entry != null && hash != null)
         {
             _art[hash] = Task.FromResult(stored);
-            _adminLog.Add(LogType.Identity, LogImpact.Low,
-                $"{session:player} saved custom marking \"{name}\" with art {hash}");
+            if (session != null)
+            {
+                _adminLog.Add(LogType.Identity, LogImpact.Low,
+                    $"{session:player} saved custom marking \"{name}\" with art {hash}");
+            }
+            else
+            {
+                _adminLog.Add(LogType.Identity, LogImpact.Low,
+                    $"{actor} ({user}) saved custom marking \"{name}\" with art {hash} from the web creator");
+            }
         }
 
-        return result;
+        return (result, eraseDropped);
     }
 
     private async void OnDelete(CustomMarkingDeleteEvent msg, EntitySessionEventArgs args)
@@ -423,7 +450,7 @@ public sealed partial class CustomMarkingSystem : EntitySystem
         if (args.NewStatus != SessionStatus.Disconnected)
             return;
 
-        _nextSave.Remove(args.Session);
+        _nextSave.Remove(args.Session.UserId);
         _artBudgetFull.Remove(args.Session);
         _libraryBudgetFull.Remove(args.Session);
     }

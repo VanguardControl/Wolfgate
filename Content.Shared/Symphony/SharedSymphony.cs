@@ -26,9 +26,10 @@ public static class SharedSymphony
     /// off for every client, and the list of them in /symphony/lobby. Version 12 added {"clear": true} there, which takes
     /// them all away. Version 13 added stealth to each player in /symphony/players, so the panel can count the staff on
     /// for players without giving a stealthed admin away. Version 14 added the web character creator: /symphony/characters
-    /// (list, save, validate) and /symphony/creator/catalog, /rsi and /art.
+    /// (list, save, validate) and /symphony/creator/catalog, /rsi and /art. Version 15 added /symphony/custom-markings
+    /// (the custom marking library: list, save, delete) and /symphony/studio/warps.
     /// </summary>
-    public const int ModuleVersion = 14;
+    public const int ModuleVersion = 15;
 
     /// <summary>
     /// Key of the one-time Discord link URL in a whitelist refusal's structured properties.
