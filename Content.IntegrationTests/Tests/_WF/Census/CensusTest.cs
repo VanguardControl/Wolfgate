@@ -169,9 +169,12 @@ public sealed class CensusTest
         }
     }
 
-    private static List<CensusQuestion>? Parse(string json, out string? problem)
+    // No nullable annotations: CI builds the integration tests with nullable warnings as errors.
+    private static List<CensusQuestion> Parse(string json, out string problem)
     {
         using var doc = JsonDocument.Parse(json);
-        return CensusQuestions.Parse(doc.RootElement, out problem);
+        var parsed = CensusQuestions.Parse(doc.RootElement, out var found);
+        problem = found!;
+        return parsed!;
     }
 }
