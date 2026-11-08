@@ -115,6 +115,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Server/_Goobstation/Tools/WeldingSparksSystem.cs`](../../Content.Server/_Goobstation/Tools/WeldingSparksSystem.cs)
   - tells an instant do-after from a running one
   - an instant do-after has already ended, so nothing would ever delete the effect
+- [`Content.Server/_Mono/AmmoLoader/AmmoLoaderSystem.cs`](../../Content.Server/_Mono/AmmoLoader/AmmoLoaderSystem.cs): an infinite magazine reports no rounds, which hid it and blocked unloading
 - [`Content.Server/_Mono/Botany/PlantAnalyzer/PlantAnalyzerSystem.cs`](../../Content.Server/_Mono/Botany/PlantAnalyzer/PlantAnalyzerSystem.cs): was 0.01, so the slightest drift silently cancelled the scan
 - [`Content.Server/_Mono/FireControl/FireControlRotateComponent.cs`](../../Content.Server/_Mono/FireControl/FireControlRotateComponent.cs): restore the licence header removed by Kill Spdx
 - [`Content.Server/_Mono/FireControl/FireControlSystem.cs`](../../Content.Server/_Mono/FireControl/FireControlSystem.cs): restore the licence header removed by Kill Spdx
@@ -334,6 +335,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - restore the licence header removed by Kill Spdx
   - the company is passed through the constructor
   - copies keep the company
+  - Synths name themselves like IPCs
   - digits are allowed in names, as the validation regex above already allows them
   - count downsides first so a positive trait isn't dropped by set order
   - MemberwiseEquals - Equals(other) resolved to this override and recursed forever.

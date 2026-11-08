@@ -174,6 +174,9 @@ takes it from there. It flies in a cavern too, and up or down through a hole in 
 ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpackSystem` (shared) decides where it lights and refuels it,
 `WFAtmosphericJetpackFuelSystem` burns the fuel. John Wolfgate stocks it.
 
+Wings and other z-flight (Avali, moths) don't work in orbit either: `WFOrbitFlightSystem` refuses take-off on an orbit
+layer and stops a flyer that reaches one, since flying between orbit and the air layer below desynced the flyer.
+
 A world's standing water comes as lakes and ponds a few dozen tiles across at most, never seas (`PlanetLakeTest`).
 `BiomeSystem.WfIsWater` says whether the biome grows water on a tile from its recipe alone, before the ground exists, so
 the PlanetPois placement keeps sites, roads and camps out of it.
@@ -364,6 +367,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Shared/_WF/Planets/Flight/WFLandingThrusterComponent.cs`](../../../Content.Shared/_WF/Planets/Flight/WFLandingThrusterComponent.cs)
 - [`Content.Shared/_WF/Planets/Flight/WFLiftLostComponent.cs`](../../../Content.Shared/_WF/Planets/Flight/WFLiftLostComponent.cs)
 - [`Content.Shared/_WF/Planets/Flight/WFLiftoffAttemptEvent.cs`](../../../Content.Shared/_WF/Planets/Flight/WFLiftoffAttemptEvent.cs)
+- [`Content.Shared/_WF/Planets/Flight/WFOrbitFlightSystem.cs`](../../../Content.Shared/_WF/Planets/Flight/WFOrbitFlightSystem.cs)
 - [`Content.Shared/_WF/Planets/Forecast/WFWeatherForecast.cs`](../../../Content.Shared/_WF/Planets/Forecast/WFWeatherForecast.cs)
 - [`Content.Shared/_WF/Planets/Jetpack/WFAtmosphericJetpackComponent.cs`](../../../Content.Shared/_WF/Planets/Jetpack/WFAtmosphericJetpackComponent.cs)
 - [`Content.Shared/_WF/Planets/Jetpack/WFAtmosphericJetpackSystem.cs`](../../../Content.Shared/_WF/Planets/Jetpack/WFAtmosphericJetpackSystem.cs)

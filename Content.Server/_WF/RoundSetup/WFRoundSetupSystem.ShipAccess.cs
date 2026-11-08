@@ -46,8 +46,22 @@ public sealed partial class WFRoundSetupSystem
         }
     }
 
+    /// <summary>Picks up the card of a member who joined without one worn, as long as they are still in the body they joined with.</summary>
+    private void RetryCrewCards(Lobby lobby)
+    {
+        foreach (var (user, member) in lobby.Members)
+        {
+            if (!member.Spawned || member.AccessKey != null || member.Body == null ||
+                !_players.TryGetSessionById(user, out var session) || session.AttachedEntity != member.Body)
+                continue;
+            CaptureCrewCard(member, session);
+        }
+    }
+
     private void SyncCrewShip(Entity<WFShipAccessComponent> ship, Lobby? lobby)
     {
+        if (lobby != null)
+            RetryCrewCards(lobby);
         var keys = lobby?.Members.Values.Where(member => member.Spawned && member.AccessKey != null)
             .Select(member => member.AccessKey!.Value) ?? Enumerable.Empty<WFShipAccessKey>();
         var name = lobby == null ? null : string.IsNullOrWhiteSpace(lobby.Title) ? lobby.Members[lobby.Host].Name : lobby.Title;
