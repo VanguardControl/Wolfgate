@@ -169,7 +169,7 @@ public sealed class CensusTest
         }
     }
 
-    private static List<CensusQuestion>? Parse(string json, out string? problem)
+    private static List<CensusQuestion> Parse(string json, out string problem)
     {
         using var doc = JsonDocument.Parse(json);
         return CensusQuestions.Parse(doc.RootElement, out problem);
