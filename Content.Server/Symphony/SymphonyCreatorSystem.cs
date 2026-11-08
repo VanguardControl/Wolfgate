@@ -42,7 +42,20 @@ public sealed class SymphonyCreatorSystem : EntitySystem
     public const string ArtPath = "/symphony/creator/art";
 
     /// <summary>Components of a gear entity the web needs to draw it worn; the rest is left out of the catalog.</summary>
-    private static readonly HashSet<string> GearComponents = new() { "Sprite", "Clothing", "Item" };
+    private static readonly HashSet<string> GearComponents = new()
+    {
+        "Sprite", "Clothing", "Item",
+        // On dolls: slots and their displacement maps, hand displacement, voice and typing indicator.
+        "Inventory", "Hands", "Vocal", "TypingIndicator",
+    };
+
+    /// <summary>Further kinds the creator offers, by YAML name, each sent whole.</summary>
+    private static readonly string[] ExtraKinds =
+    {
+        "job", "department", "traitCategory", "customJobTitle",
+        "genitalShape", "genitalSettings", "genitalPreset", "genitalSheath",
+        "wfMessageSound", "emoteVoice", "speechSounds", "wfChatFont", "typingIndicator", "wfLegStyle",
+    };
 
     private static readonly ResPath TextureRoot = new("/Textures");
 
@@ -213,6 +226,29 @@ public sealed class SymphonyCreatorSystem : EntitySystem
         AddKind<RoleLoadoutPrototype>(prototypes);
         AddKind<StartingGearPrototype>(prototypes);
         AddKind<TraitPrototype>(prototypes);
+        foreach (var kind in ExtraKinds)
+        {
+            AddKind(kind, prototypes, null);
+        }
+
+        // Only the name lists species draw names from, for randomise; the full dataset kinds are large.
+        var nameLists = new HashSet<string>();
+        if (prototypes["species"] is JsonObject allSpecies)
+        {
+            foreach (var (_, species) in allSpecies)
+            {
+                foreach (var field in new[] { "maleFirstNames", "femaleFirstNames", "lastNames" })
+                {
+                    if (species?[field] is JsonValue value && value.TryGetValue<string>(out var id))
+                        nameLists.Add(id);
+                }
+            }
+        }
+
+        // The defaults when a species names none.
+        nameLists.UnionWith(new[] { "names_first_male", "names_first_female", "names_last" });
+        AddKind("dataset", prototypes, nameLists);
+        AddKind("localizedDataset", prototypes, nameLists);
 
         // Gear entities: every entity id a loadout or starting gear names, trimmed to what draws it.
         var entities = new JsonObject();
@@ -306,6 +342,26 @@ public sealed class SymphonyCreatorSystem : EntitySystem
         foreach (var proto in _proto.EnumeratePrototypes<T>().OrderBy(p => p.ID))
         {
             if (_proto.TryGetMapping(typeof(T), proto.ID, out var mapping))
+                entries[proto.ID] = SymphonyJson.ToJson(mapping);
+        }
+
+        prototypes[kind] = entries;
+    }
+
+    /// <summary>Adds a kind by its YAML name, all of it or only the given ids. A kind this build lacks is left out.</summary>
+    private void AddKind(string kind, JsonObject prototypes, HashSet<string>? only)
+    {
+        if (!_proto.HasKind(kind))
+            return;
+
+        var type = _proto.GetKindType(kind);
+        var entries = new JsonObject();
+        foreach (var proto in _proto.EnumeratePrototypes(type).OrderBy(p => p.ID))
+        {
+            if (only != null && !only.Contains(proto.ID))
+                continue;
+
+            if (_proto.TryGetMapping(type, proto.ID, out var mapping))
                 entries[proto.ID] = SymphonyJson.ToJson(mapping);
         }
 

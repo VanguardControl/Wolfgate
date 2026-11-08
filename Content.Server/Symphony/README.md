@@ -43,7 +43,8 @@ a bare 404 means an older build without the route.
 A profile is `HumanoidCharacterProfile` as the game's serializer writes it: the `profile:` mapping of the creator's
 Export YAML, as JSON. Keys are the DataField names, camelCase (`name`, `species`, `age`, `sex`, `gender`,
 `appearance {hair, hairColor, facialHair, facialHairColor, eyeColor, skinColor, height, width, markings}`,
-`jobPriorities`, `loadouts`, `traitPreferences`, `studioTweaks`, `customMarkings`, ...). Every scalar is a JSON string
+`_jobPriorities`, `_antagPreferences`, `_traitPreferences`, `_loadouts` (DataFields on private fields keep the
+underscore), `studioTweaks`, `customMarkings`, ...). A marking is `{markingId, markingColor: [...], visible}`. Every scalar is a JSON string
 with YAML's meaning (`"18"`, `"true"`, `"#FFE0D0FF"`); a node with a YAML type tag carries it as a `"!type"` key.
 Send profiles back in the same shape; a field left out takes its default. `sex` is `Male`, `Female` or `Unsexed`.
 
@@ -81,9 +82,13 @@ version; a matching `If-None-Match` or `?version=` gets `304`.
   clothing slots by bookmark keys such as `jumpsuit` and `head`.
 - `prototypes`: `{"<kind>": {"<id>": <raw YAML mapping as written>}}` for `species`, `speciesBaseSprites`,
   `humanoidBaseSprite` (`baseSprite: {sprite, state}`, `matchSkin`, `layerAlpha`), `marking`, `markingPoints`,
-  `loadout`, `loadoutGroup`, `roleLoadout`, `startingGear`, `trait`, and `entity`: the dolls and every entity a loadout
+  `loadout`, `loadoutGroup`, `roleLoadout`, `startingGear`, `trait`, `job`, `department`, `traitCategory`,
+  `customJobTitle`, `genitalShape`, `genitalSettings`, `genitalPreset`, `genitalSheath`, `wfMessageSound`, `emoteVoice`,
+  `speechSounds`, `wfChatFont`, `typingIndicator`, `wfLegStyle`, the `dataset`/`localizedDataset` name lists species draw
+  names from, and `entity`: the dolls and every entity a loadout
   or starting gear names, with their parents' components merged in (a component's fields override its parent's)
-  and cut to `id`, `parent`, `name` and their Sprite, Clothing and Item components.
+  and cut to `id`, `parent`, `name` and their Sprite, Clothing, Item, Inventory (slots and displacement maps),
+  Hands, Vocal and TypingIndicator components.
 - `names`: localised names by kind (`species`, `marking`, `trait`, `job`, `entity`).
 - `rsis`: every `.rsi` directory the catalog names, relative to `/Textures`.
 
@@ -91,7 +96,7 @@ Drawing a body as the game does (`Content.Client/Humanoid/HumanoidAppearanceSyst
 `speciesBaseSprites` uses its `humanoidBaseSprite`, except Chest and Head, which use `<id><Sex>` (`<id>` when
 Unsexed). With `matchSkin` the layer is `skinColor` at `layerAlpha`. Hair and facial hair are markings named by
 `appearance.hair`/`facialHair`, coloured by `hairColor`/`facialHairColor`. A marking goes just above the layer its
-`bodyPart` names, in profile order; sprite `i` takes `markingColors[i]`, or the colour of the sprite `colorLinks` ties
+`bodyPart` names, in profile order; sprite `i` takes `markingColor[i]`, or the colour of the sprite `colorLinks` ties
 it to, else white; a marking with `visible: false` isn't drawn. The doll is scaled by `height` and `width`. Studio
 tweaks: see `Content.Client/_WF/AppearanceStudio/StudioSpriteSystem.cs` and the AppearanceStudio module README.
 

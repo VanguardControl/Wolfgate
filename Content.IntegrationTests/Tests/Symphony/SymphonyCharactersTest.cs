@@ -94,7 +94,16 @@ public sealed class SymphonyCharactersTest
                 Assert.That(json["dolls"]!["Human"]!["layers"]!.AsArray().Count, Is.GreaterThan(5), json["prototypes"]!["entity"]![json["dolls"]!["Human"]!["prototype"]!.GetValue<string>()]?.ToJsonString());
                 Assert.That(json["names"]!["species"]!["Human"]!.GetValue<string>(), Is.Not.Empty);
                 Assert.That(catalog.Rsis, Is.Not.Empty);
+                Assert.That(json["prototypes"]!["job"]!.AsObject().Count, Is.GreaterThan(0));
+                Assert.That(json["prototypes"]!["department"]!.AsObject().Count, Is.GreaterThan(0));
+                Assert.That(json["prototypes"]!["traitCategory"]!.AsObject().Count, Is.GreaterThan(0));
+                Assert.That(json["prototypes"]!["dataset"]!.AsObject().Count + json["prototypes"]!["localizedDataset"]!.AsObject().Count,
+                    Is.GreaterThan(0), "the species name lists, for randomise");
             });
+
+            // The doll keeps its inventory, which carries the species' displacement maps.
+            var doll = json["prototypes"]!["entity"]![json["dolls"]!["Human"]!["prototype"]!.GetValue<string>()]!;
+            Assert.That(doll["components"]!.AsArray().Any(c => c!["type"]!.GetValue<string>() == "Inventory"), Is.True);
 
             // Every RSI it names is one the game has, so the web can fetch it.
             var resources = server.ResolveDependency<IResourceManager>();
