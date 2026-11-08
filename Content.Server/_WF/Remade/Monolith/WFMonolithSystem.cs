@@ -57,7 +57,8 @@ public sealed partial class WFMonolithSystem : EntitySystem
     /// <summary>Carried onto or off a station, its sale is decided again at once, so it can't be sold off Central meanwhile.</summary>
     private void OnParentChanged(Entity<WFMonolithComponent> ent, ref EntParentChangedMessage args)
     {
-        if (!TerminatingOrDeleted(ent))
+        // Not while it is still being spawned: map init decides its sale first.
+        if (!TerminatingOrDeleted(ent) && MetaData(ent).EntityLifeStage >= EntityLifeStage.MapInitialized)
             UpdateSale(ent);
     }
 
