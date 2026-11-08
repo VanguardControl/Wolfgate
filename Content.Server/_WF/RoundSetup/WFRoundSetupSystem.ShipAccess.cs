@@ -1,6 +1,8 @@
 using System.Linq;
 using Content.Server._WF.ShipAccess;
+using Content.Server.StationRecords.Systems;
 using Content.Shared._WF.ShipAccess;
+using Content.Shared.StationRecords;
 using Robust.Shared.Player;
 
 namespace Content.Server._WF.RoundSetup;
@@ -46,15 +48,21 @@ public sealed partial class WFRoundSetupSystem
         }
     }
 
-    /// <summary>Picks up the card of a member who joined without one worn, as long as they are still in the body they joined with.</summary>
+    /// <summary>
+    /// Picks up the card of a member who joined without one worn, while they are still in the body they joined with
+    /// and the card's crew record carries their name, so someone else's ID put on later isn't taken.
+    /// </summary>
     private void RetryCrewCards(Lobby lobby)
     {
         foreach (var (user, member) in lobby.Members)
         {
-            if (!member.Spawned || member.AccessKey != null || member.Body == null ||
-                !_players.TryGetSessionById(user, out var session) || session.AttachedEntity != member.Body)
+            if (!member.Spawned || member.AccessKey != null || member.Body is not { } body ||
+                !_players.TryGetSessionById(user, out var session) || session.AttachedEntity != body ||
+                !_shipCredentials.TryGetWornCard(body, out var card) || !_shipCredentials.TryGetKey(card, out var key) ||
+                !EntityManager.System<StationRecordsSystem>().TryGetRecord<GeneralStationRecord>(_shipCredentials.ToRecordKey(key), out var record) ||
+                record.Name != member.Name)
                 continue;
-            CaptureCrewCard(member, session);
+            member.AccessKey = key;
         }
     }
 

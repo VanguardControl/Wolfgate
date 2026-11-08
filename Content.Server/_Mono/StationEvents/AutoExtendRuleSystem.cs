@@ -89,6 +89,9 @@ public sealed partial class AutoExtendRuleSystem : EntitySystem
             {
                 stationEv.EndTime += extendRule.ExtendBy;
                 extendRule.Extensions++;
+                // The last extension sets the real end, so its warning goes out again.
+                if (extendRule.Extensions >= extendRule.MaxExtensions)
+                    stationEv.WarningAnnounced = false;
             }
             // WOLFGATE END
         }

@@ -48,9 +48,9 @@ public sealed partial class AutoExtendRuleComponent : Component
     public TimeSpan UpdateAccumulator = TimeSpan.FromSeconds(0);
 
     // WOLFGATE(LiveFixes) START: guards near a vault kept it from ever leaving after its departure warning
-    /// <summary>How many times the event may be extended; players always nearby otherwise kept it forever.</summary>
+    /// <summary>How many times the event may be extended. Unlimited unless the event caps it.</summary>
     [DataField]
-    public int MaxExtensions = 4;
+    public int MaxExtensions = int.MaxValue;
 
     [ViewVariables]
     public int Extensions;

@@ -2,24 +2,28 @@ using Content.Shared._CE.ZLevels.Flight;
 using Content.Shared._CE.ZLevels.Flight.Components;
 using Content.Shared.Popups;
 using Robust.Shared.Network;
+using Robust.Shared.Timing;
 
 namespace Content.Shared._WF.Planets.Flight;
 
 /// <summary>
 /// Wings and z-flight jets don't work in a planet's orbit layer: it is vacuum, and flying between it and the air layer
-/// below desynced the flyer. Flight can't start there and stops when a flyer reaches it.
+/// below desynced the flyer. Flight can't start there and stops once a flyer is in one, also when a ship carries it up.
 /// </summary>
 public sealed partial class WFOrbitFlightSystem : EntitySystem
 {
+    [Dependency] private IGameTiming _timing = default!;
     [Dependency] private INetManager _net = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
+
+    private static readonly TimeSpan CheckInterval = TimeSpan.FromSeconds(1);
+    private TimeSpan _nextCheck;
 
     public override void Initialize()
     {
         base.Initialize();
 
         SubscribeLocalEvent<CEZFlyerComponent, CEStartFlightAttemptEvent>(OnStartAttempt);
-        SubscribeLocalEvent<CEZFlyerComponent, EntParentChangedMessage>(OnParentChanged);
     }
 
     private void OnStartAttempt(EntityUid uid, CEZFlyerComponent comp, CEStartFlightAttemptEvent args)
@@ -31,15 +35,27 @@ public sealed partial class WFOrbitFlightSystem : EntitySystem
         _popup.PopupClient(Loc.GetString("wf-orbit-flight-refused"), uid, uid);
     }
 
-    /// <summary>Server only: stopping flight while the client applies a state would mispredict.</summary>
-    private void OnParentChanged(Entity<CEZFlyerComponent> ent, ref EntParentChangedMessage args)
+    /// <summary>Server only, and polled: a flyer on a ship that hops into orbit never changes parent itself.</summary>
+    public override void Update(float frameTime)
     {
-        if (_net.IsClient || !ent.Comp.Active || !InOrbit(ent))
+        base.Update(frameTime);
+
+        if (_net.IsClient || _timing.CurTime < _nextCheck)
             return;
 
+        _nextCheck = _timing.CurTime + CheckInterval;
+
         // The flight system is abstract here, so it can't be a dependency.
-        EntityManager.System<CESharedZFlightSystem>().DeactivateFlight((ent, ent.Comp));
-        _popup.PopupEntity(Loc.GetString("wf-orbit-flight-stopped"), ent, ent);
+        var flight = EntityManager.System<CESharedZFlightSystem>();
+        var query = EntityQueryEnumerator<CEZFlyerComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var flyer, out var xform))
+        {
+            if (!flyer.Active || !HasComp<WFOrbitLayerComponent>(xform.MapUid))
+                continue;
+
+            flight.DeactivateFlight((uid, flyer));
+            _popup.PopupEntity(Loc.GetString("wf-orbit-flight-stopped"), uid, uid);
+        }
     }
 
     private bool InOrbit(EntityUid uid)

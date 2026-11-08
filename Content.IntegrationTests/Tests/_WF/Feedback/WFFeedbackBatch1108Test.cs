@@ -1,6 +1,12 @@
 #nullable enable
 using System.Linq;
 using Content.Server._Mono.AmmoLoader;
+using Content.Server._Mono.StationEvents;
+using Content.Server.StationEvents.Components;
+using Content.Shared.CCVar;
+using Content.Shared.Preferences;
+using Content.Shared.Wires;
+using Robust.Shared.Configuration;
 using Content.Server._NF.Shipyard.Components;
 using Content.Shared._CE.ZLevels.Flight;
 using Content.Shared._CE.ZLevels.Flight.Components;
@@ -131,12 +137,14 @@ public sealed class WFFeedbackBatch1108Test
             em.EventBus.RaiseLocalEvent(reclaimer, new InteractUsingEvent(user, screwdriver, reclaimer, map.GridCoords));
         });
 
-        await pair.RunTicksSync(5);
+        // Long enough for the screwdriver's do-after to open the panel.
+        await pair.RunTicksSync(90);
 
         await server.WaitAssertion(() =>
         {
             Assert.That(em.Deleted(screwdriver) || em.IsQueuedForDeletion(screwdriver), Is.False, "The reclaimer ate the screwdriver.");
             Assert.That(em.HasComponent<ActiveMaterialReclaimerComponent>(reclaimer), Is.False);
+            Assert.That(em.GetComponent<WiresPanelComponent>(reclaimer).Open, Is.True, "The screwdriver didn't open the panel.");
         });
 
         await pair.CleanReturnAsync();
@@ -166,7 +174,7 @@ public sealed class WFFeedbackBatch1108Test
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Report 618: an Avali can't take off in a planet's orbit layer and stops flying on reaching it.</summary>
+    /// <summary>Report 618: an Avali can't take off in a planet's orbit layer, and stops flying on reaching one on foot or aboard a ship.</summary>
     [Test]
     public async Task NoFlightInOrbit()
     {
@@ -184,15 +192,105 @@ public sealed class WFFeedbackBatch1108Test
             em.EnsureComponent<WFOrbitLayerComponent>(orbit);
         });
 
+        var walker = EntityUid.Invalid;
+        var passenger = EntityUid.Invalid;
         await server.WaitAssertion(() =>
         {
             var grounded = em.SpawnEntity("MobAvali", new EntityCoordinates(orbit, 0, 0));
             Assert.That(flight.TryActivateFlight(grounded), Is.False, "The Avali took off in vacuum.");
 
-            var flyer = em.SpawnEntity("MobAvali", map.GridCoords);
-            Assert.That(flight.TryActivateFlight(flyer), Is.True);
-            transform.SetCoordinates(flyer, new EntityCoordinates(orbit, 2, 2));
-            Assert.That(em.GetComponent<CEZFlyerComponent>(flyer).Active, Is.False, "The Avali kept flying into orbit.");
+            walker = em.SpawnEntity("MobAvali", map.GridCoords);
+            passenger = em.SpawnEntity("MobAvali", map.GridCoords);
+            Assert.That(flight.TryActivateFlight(walker), Is.True);
+            Assert.That(flight.TryActivateFlight(passenger), Is.True);
+            transform.SetCoordinates(walker, new EntityCoordinates(orbit, 2, 2));
+            // The ship hops into orbit with the passenger still parented to it.
+            transform.SetMapCoordinates(map.Grid, new MapCoordinates(new System.Numerics.Vector2(40, 40), em.GetComponent<TransformComponent>(orbit).MapID));
+        });
+
+        await pair.RunTicksSync(90);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.GetComponent<TransformComponent>(passenger).ParentUid, Is.EqualTo(map.Grid.Owner));
+            Assert.That(em.GetComponent<CEZFlyerComponent>(walker).Active, Is.False, "The Avali kept flying into orbit.");
+            Assert.That(em.GetComponent<CEZFlyerComponent>(passenger).Active, Is.False, "The Avali aboard the ship kept flying in orbit.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Report 643: a capped event stops extending at its cap and warns again before the real end.</summary>
+    [Test]
+    public async Task ExtensionsStopAtTheCap()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+
+        var rule = EntityUid.Invalid;
+        var firstEnd = TimeSpan.Zero;
+        await server.WaitPost(() =>
+        {
+            server.PlayerMan.SetAttachedEntity(pair.Player!, em.SpawnEntity("MobHuman", map.GridCoords));
+            var watched = em.SpawnEntity(null, map.GridCoords);
+            rule = em.SpawnEntity(null, MapCoordinates.Nullspace);
+            var ev = em.AddComponent<StationEventComponent>(rule);
+            ev.Duration = TimeSpan.FromSeconds(16);
+            firstEnd = server.Timing.CurTime + TimeSpan.FromSeconds(1);
+            ev.EndTime = firstEnd;
+            ev.WarningAnnounced = true;
+            Assert.That(em.System<AutoExtendRuleSystem>().AutoExtend(rule, watched), Is.True);
+            em.GetComponent<AutoExtendRuleComponent>(rule).MaxExtensions = 2;
+        });
+
+        // Two seconds a step, a check every second: well past two extensions.
+        await pair.RunSeconds(12);
+
+        await server.WaitAssertion(() =>
+        {
+            var extend = em.GetComponent<AutoExtendRuleComponent>(rule);
+            var ev = em.GetComponent<StationEventComponent>(rule);
+            Assert.Multiple(() =>
+            {
+                Assert.That(extend.Extensions, Is.EqualTo(2));
+                Assert.That(ev.EndTime, Is.EqualTo(firstEnd + extend.ExtendBy * 2));
+                Assert.That(ev.WarningAnnounced, Is.False, "The final extension didn't re-arm the departure warning.");
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Report 630: Synth and IPC names keep punctuation under restricted names; other species lose it.</summary>
+    [Test]
+    public async Task SynthNamesKeepPunctuation()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        var server = pair.Server;
+        var cfg = server.ResolveDependency<IConfigurationManager>();
+        var restricted = cfg.GetCVar(CCVars.RestrictedNames);
+        const string name = "AM-B2 \"Nick\"";
+
+        await server.WaitAssertion(() =>
+        {
+            cfg.SetCVar(CCVars.RestrictedNames, true);
+            var session = server.PlayerMan.Sessions.First();
+            string Valid(string species)
+            {
+                var profile = HumanoidCharacterProfile.DefaultWithSpecies(species).WithName(name);
+                profile.EnsureValid(session, server.InstanceDependencyCollection);
+                return profile.Name;
+            }
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(Valid("Synth"), Is.EqualTo(name));
+                Assert.That(Valid("IPC"), Is.EqualTo(name));
+                Assert.That(Valid("Human"), Is.EqualTo("AM-B2 Nick"));
+            });
+            cfg.SetCVar(CCVars.RestrictedNames, restricted);
         });
 
         await pair.CleanReturnAsync();
