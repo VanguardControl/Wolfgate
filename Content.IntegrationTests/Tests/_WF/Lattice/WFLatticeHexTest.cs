@@ -54,6 +54,8 @@ public sealed class WFLatticeHexTest
             Assert.That(field.Hex, Has.Count.EqualTo(6), "the hex doesn't run through the six primary anchors.");
             Assert.That(field.HexUp.All(up => up), Is.True, "a beam of the intact hex is down.");
             Assert.That(lattice.IsSealed(map.MapUid), Is.True);
+            Assert.That(entities.EntityQuery<WFLatticeAnchorComponent>().Where(x => x.Primary)
+                .All(x => entities.HasComponent<Content.Server.Warps.WarpPointComponent>(x.Owner)), Is.True, "an anchor isn't a ghost warp point.");
             Assert.That(lattice.IsShielded(new MapCoordinates(Vector2.Zero, map.MapId)), Is.True, "the middle of a sealed hex isn't sheltered.");
             Assert.That(lattice.IsShielded(new MapCoordinates(new Vector2(20000f, 0f), map.MapId)), Is.False, "deep space is sheltered.");
             Assert.That(corruption.IsSanctuary(map.Grid), Is.True, "a grid inside the sealed hex isn't a sanctuary.");

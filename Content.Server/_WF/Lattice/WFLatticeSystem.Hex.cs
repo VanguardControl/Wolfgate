@@ -155,7 +155,21 @@ public sealed partial class WFLatticeSystem
         var centrals = EntityQueryEnumerator<WFLatticeCentralAnchorComponent, TransformComponent>();
         while (centrals.MoveNext(out var centralUid, out _, out var centralXform))
         {
-            central |= centralXform.MapUid == map.Owner && !TerminatingOrDeleted(centralUid);
+            if (centralXform.MapUid != map.Owner || TerminatingOrDeleted(centralUid))
+                continue;
+
+            central = true;
+            EnsureWarp(centralUid, Loc.GetString("wf-lattice-warp-central"));
+        }
+
+        // Every anchor is somewhere a ghost can jump to, named for its station.
+        if (_hex.TryGetValue(map.Owner, out var ring))
+        {
+            foreach (var (core, _, name) in ring)
+            {
+                if (!TerminatingOrDeleted(core))
+                    EnsureWarp(core, Loc.GetString("wf-lattice-warp-anchor", ("station", name)));
+            }
         }
 
         if (central != map.Comp.CentralStanding)
@@ -189,6 +203,17 @@ public sealed partial class WFLatticeSystem
 
         if (dirty)
             Dirty(map);
+    }
+
+    /// <summary>Makes something a ghost warp point under a name, once.</summary>
+    private void EnsureWarp(EntityUid uid, string location)
+    {
+        if (HasComp<Content.Server.Warps.WarpPointComponent>(uid))
+            return;
+
+        var warp = AddComp<Content.Server.Warps.WarpPointComponent>(uid);
+        warp.Location = location;
+        warp.Follow = true;
     }
 
     /// <summary>Whether a grid keeps itself off radars at range: its IFF hides it or its label.</summary>

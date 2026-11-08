@@ -333,3 +333,6 @@ wf-coda-rot-1 = Your skin prickles, even inside the suit. Something out here is 
 wf-coda-rot-2 = Something is moving under your skin. Get back aboard.
 wf-coda-rot-3 = Your flesh is coming apart. The suit isn't keeping it out.
 wf-coda-rot-reminder = You can feel yourself changing. Get off the open space, now.
+
+wf-lattice-warp-anchor = Reality anchor: {$station}
+wf-lattice-warp-central = Reality anchor: Caelestinus Central

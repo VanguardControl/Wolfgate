@@ -229,6 +229,8 @@ tile (1, 17) and a Lattice status console at (-19, -6) facing east, unless an an
 the attacker to the sector; destroying it is announced. Players aboard an anchor station are named as trespassers, all who came aboard in one announcement, at most every
 two minutes a station, and each again only after five minutes.
 
+**Ghosts** can warp to every anchor, Central's included, from the ghost menu.
+
 **Radar.** Every radar and mass scanner draws the hex (`ShuttleNavControl.Hex.cs`): violet beams, dashed red where
 broken, a faint tint inside while it is sealed, and a ring round each anchor's ward.
 
