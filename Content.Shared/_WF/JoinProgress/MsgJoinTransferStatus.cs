@@ -13,7 +13,9 @@ public sealed class MsgJoinTransferStatus : NetMessage
 
     public override void ReadFromBuffer(NetIncomingMessage buffer, IRobustSerializer serializer)
     {
-        Mode = (JoinTransferMode) buffer.ReadByte();
+        // A server newer than this client may send a mode it doesn't know; treat it as no fast channel.
+        var raw = buffer.ReadByte();
+        Mode = raw <= (byte) JoinTransferMode.WebSocketFailed ? (JoinTransferMode) raw : JoinTransferMode.GameConnection;
     }
 
     public override void WriteToBuffer(NetOutgoingMessage buffer, IRobustSerializer serializer)

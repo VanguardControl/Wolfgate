@@ -90,8 +90,22 @@ public sealed partial class WFGridDeleteSystem : EntitySystem
         if (_queue.Count == 0)
             return;
 
+        // Budget switched off with grids still queued: delete them now, as the engine would have.
+        if (_budgetMs <= 0f)
+        {
+            while (_queue.TryDequeue(out var queued))
+            {
+                _queued.Remove(queued);
+                if (!TerminatingOrDeleted(queued))
+                    Del(queued);
+            }
+
+            return;
+        }
+
+        // At least one batch a tick, so a tiny budget or a coarse timer still makes progress.
         _timer.Restart();
-        while (_queue.Count > 0 && _timer.Elapsed.TotalMilliseconds < _budgetMs)
+        do
         {
             var grid = _queue.Peek();
             if (TerminatingOrDeleted(grid) || !TryComp(grid, out TransformComponent? xform))
@@ -119,6 +133,7 @@ public sealed partial class WFGridDeleteSystem : EntitySystem
                 Del(child);
             }
         }
+        while (_queue.Count > 0 && _timer.Elapsed.TotalMilliseconds < _budgetMs);
     }
 
     private void Dequeue(EntityUid grid)
