@@ -154,6 +154,7 @@
       path: /Audio/_Mono/Weapons/Guns/SmallArms/Gunshots/viper_fire.ogg
     fireRate: 7
     damageModifier: 1.4
+<<<<<<< HEAD
   # WOLFGATE(SafetyDepositBox) START: the Godfather's exclusive sidearm can't be banked
   # Sidearm is BaseWeaponPistol's tag: a child's tag list replaces its parent's.
   - type: Tag
@@ -161,3 +162,8 @@
     - Sidearm
     - SafetyDepositBlacklist
   # WOLFGATE END
+=======
+  - type: Tag
+    tags: 
+    - Unstashable
+>>>>>>> 0a7171ff69 (Fix Yet Even More Issues With Safety Deposit Boxes (#4997))
