@@ -33,10 +33,6 @@ public sealed partial class WFOrdnanceSystem : EntitySystem
     private static readonly Color AnnounceColor = Color.FromHex("#e0a020");
     private static readonly SoundSpecifier PurchaseSound = new SoundPathSpecifier("/Audio/Misc/notice1.ogg");
 
-    /// <summary>DEFCON score for each armed warhead, and for each bought device not yet set off.</summary>
-    private const float ArmedScore = 100f;
-    private const float StockScore = 15f;
-
     private TimeSpan _nextPlace;
 
     public override void Initialize()
@@ -74,6 +70,9 @@ public sealed partial class WFOrdnanceSystem : EntitySystem
             true,
             PurchaseSound,
             AnnounceColor);
+
+        // Scored at once, so the rise starts with the purchase rather than at the next tick.
+        _defcon.Evaluate(_timing.CurTime);
     }
 
     /// <summary>A warhead armed sends DEFCON straight to 1, unless an admin holds it.</summary>
@@ -111,12 +110,15 @@ public sealed partial class WFOrdnanceSystem : EntitySystem
 
         if (armed > 0)
         {
-            ev.Add(armed * ArmedScore, Loc.GetString("wf-ordnance-defcon-armed", ("count", armed)));
+            ev.Add(armed * ev.Profile.NuclearArmed, Loc.GetString("wf-ordnance-defcon-armed", ("count", armed)));
             ev.Floor = 1;
         }
 
         if (stock > 0)
-            ev.Add(stock * StockScore, Loc.GetString("wf-ordnance-defcon-stock", ("count", stock)));
+        {
+            ev.Add(stock * ev.Profile.NuclearHeld, Loc.GetString("wf-ordnance-defcon-stock", ("count", stock)));
+            ev.Floor = Math.Min(ev.Floor, ev.Profile.NuclearHeldFloor);
+        }
     }
 
     /// <summary>Puts each faction station's terminal down once its grid has floor, unless one is there already.</summary>

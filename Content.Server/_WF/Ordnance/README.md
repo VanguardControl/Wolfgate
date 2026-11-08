@@ -17,8 +17,10 @@ switch linked to it. The key and switch go to whoever planted it if they are wit
 keys without its own key in its keyhole (an item slot). The key is cut for that one warhead.
 
 **DEFCON.** Arming any warhead (`WFWarheadArmedEvent`) sends DEFCON straight to 1 unless an admin has locked it, and
-while any warhead or station nuke is armed the level can't fall from 1. Bought devices not yet set off add to the
-score. After the blast or a disarm the level falls back as usual.
+while any warhead or station nuke is armed the level can't fall from 1. Each bought device not yet set off (a beacon or
+a safe keyed warhead) scores 40 and holds DEFCON at 3 or worse, so one purchase is DEFCON 3 and two are DEFCON 2; the
+score is taken the moment it is bought. The weights are the profile's `nuclearHeld`, `nuclearHeldFloor` and
+`nuclearArmed`. After the blast or a disarm the level falls back as usual.
 
 **Admins.** Spawn `WFOrdnanceBeaconTactical` or a terminal; `WFOrdnanceSystem.Land` brings a planted beacon's pod down
 at once.

@@ -45,6 +45,11 @@ public sealed class WFOrdnanceTest
             var comp = entities.GetComponent<WFOrdnanceBeaconComponent>(beacon);
             Assert.That(comp.Faction, Is.Not.Null.And.Not.Empty, "a purchase wasn't credited to the terminal's faction.");
 
+            // A device bought weighs heavily on DEFCON at once: its score, and a floor of 3.
+            defcon.Evaluate(TimeSpan.FromHours(1));
+            Assert.That(defcon.Floor, Is.LessThanOrEqualTo(3), "a bought nuclear device didn't hold DEFCON at 3 or worse.");
+            Assert.That(defcon.Score, Is.GreaterThanOrEqualTo(40f), "a bought nuclear device barely moved DEFCON.");
+
             comp.Fuze = WFOrdnanceFuze.Remote;
             comp.Timer = 60f;
             ordnance.Plant((beacon, comp), null);
