@@ -35,7 +35,7 @@ public sealed partial class WFLatticeSystem
     private static readonly TimeSpan TrespassRepeat = TimeSpan.FromMinutes(5);
 
     /// <summary>Least time between two trespass announcements for one station; everyone who came aboard meanwhile goes in the next.</summary>
-    private static readonly TimeSpan TrespassAlertGap = TimeSpan.FromMinutes(2);
+    private static readonly TimeSpan TrespassAlertGap = TimeSpan.FromMinutes(10);
 
     /// <summary>Seconds between the lances' aiming passes.</summary>
     private const float DefenceInterval = 0.25f;
@@ -178,7 +178,8 @@ public sealed partial class WFLatticeSystem
         var anchor = Exists(comp.Core) ? Name(comp.Core) : Name(station);
         var attacker = enemy is { } ship && Exists(ship) ? Name(ship) : Loc.GetString("wf-lattice-defence-unknown");
         var text = Loc.GetString(key, ("anchor", anchor), ("attacker", attacker));
-        _chat.DispatchGlobalAnnouncement(text, Loc.GetString("wf-lattice-chip-sender"), true, BreachSound, Color.FromHex("#d030a0"));
+        // Only a direct hit sounds the alarm; shield fire is a silent banner.
+        _chat.DispatchGlobalAnnouncement(text, Loc.GetString("wf-lattice-chip-sender"), flash, flash ? BreachSound : null, Color.FromHex("#d030a0"));
         RaiseNetworkEvent(new WFAnnouncementChipEvent
         {
             Level = flash ? WFAnnounceChipLevel.Warning : WFAnnounceChipLevel.Advisory,
@@ -349,7 +350,7 @@ public sealed partial class WFLatticeSystem
         comp.PendingTrespassers.Clear();
         var anchor = Exists(comp.Core) ? Name(comp.Core) : Name(station);
         var text = Loc.GetString("wf-lattice-trespass", ("anchor", anchor), ("attacker", names));
-        _chat.DispatchGlobalAnnouncement(text, Loc.GetString("wf-lattice-chip-sender"), true, BreachSound, Color.FromHex("#d030a0"));
+        _chat.DispatchGlobalAnnouncement(text, Loc.GetString("wf-lattice-chip-sender"), false, colorOverride: Color.FromHex("#d030a0"));
     }
 
     /// <summary>Fires every lance on a station at a grid, leading it by its speed.</summary>

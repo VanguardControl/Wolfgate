@@ -98,7 +98,7 @@ public sealed partial class WFLatticeProfilePrototype : IPrototype
 
     /// <summary>Seconds between the station's alerts.</summary>
     [DataField]
-    public float AlertCooldown = 120f;
+    public float AlertCooldown = 300f;
 
     /// <summary>DEFCON score for each primary anchor lost.</summary>
     [DataField]

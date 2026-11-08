@@ -226,8 +226,8 @@ circle is open too, so the Monolith reaches Caelestinus Central; with a Lattice 
 **Wards.** Each anchor keeps corruption off grids within its `ward` (primaries 600 m, relays and station anchors
 150 m). Caelestinus Central gets its own anchor (`WFLatticeCentralAnchor`, 20,000 damage, an 800 m ward) railed in at
 tile (1, 17) and a Lattice status console at (-19, -6) facing east, unless an anchor is mapped there. Damaging it names
-the attacker to the sector; destroying it is announced. Players aboard an anchor station are named as trespassers, all who came aboard in one announcement, at most every
-two minutes a station, and each again only after five minutes.
+the attacker to the sector; destroying it is announced. Players aboard an anchor station are named as trespassers, all who came aboard in one announcement, as a silent banner at most every
+ten minutes a station, and each again only after five minutes. A station alerts the sector at most every five minutes (`alertCooldown`); only a direct hit sounds the alarm.
 
 **Ghosts** can warp to every anchor, Central's included, from the ghost menu.
 
