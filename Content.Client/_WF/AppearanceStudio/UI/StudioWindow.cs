@@ -147,6 +147,7 @@ public sealed class StudioWindow : CustomMarkingWindow
             _heldSample = samples[args.Id];
             RebuildHeld();
             _outlinerStale = true;
+            RebuildInspector();
         };
 
         var toolbar = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 8, HorizontalAlignment = HAlignment.Center };
@@ -656,15 +657,19 @@ public sealed class StudioWindow : CustomMarkingWindow
             hideOthers.ToolTip = Loc.GetString("wf-studio-hide-other-clothing-tooltip");
             _inspector.AddChild(hideOthers);
             var warpsOn = limits.Warps;
+            // A hand holds nothing until a sample is picked, and a warp of nothing shows nothing.
+            var nothingHeld = selected.Target == StudioTarget.Held && _heldSample == null;
             var paint = new Button
             {
                 Text = Loc.GetString(tweak.Warp == null ? "wf-studio-warp-paint" : "wf-studio-warp-edit"),
-                Disabled = !warpsOn,
-                ToolTip = Loc.GetString(warpsOn ? "wf-studio-warp-tooltip" : "wf-studio-warp-disabled"),
+                Disabled = !warpsOn || nothingHeld,
+                ToolTip = Loc.GetString(!warpsOn ? "wf-studio-warp-disabled" : nothingHeld ? "wf-studio-warp-hold-first" : "wf-studio-warp-tooltip"),
                 HorizontalExpand = true,
             };
             paint.OnPressed += _ => OpenWarp();
             _inspector.AddChild(paint);
+            if (warpsOn && nothingHeld)
+                _inspector.AddChild(StudioText.Wrapped(Loc.GetString("wf-studio-warp-hold-first"), "LabelSubText", InspectorTextWidth));
         }
 
         // Playback of this part's layers

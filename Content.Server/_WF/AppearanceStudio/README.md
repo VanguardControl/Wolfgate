@@ -74,6 +74,7 @@ which removes it from every body.
 
 - [`Content.IntegrationTests/Tests/_WF/AppearanceStudio/StudioBanTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AppearanceStudio/StudioBanTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AppearanceStudio/StudioSpriteTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AppearanceStudio/StudioSpriteTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/AppearanceStudio/StudioWarpCanvasTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AppearanceStudio/StudioWarpCanvasTest.cs)
 
 ### Unit tests
 

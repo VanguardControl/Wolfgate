@@ -194,11 +194,7 @@ public sealed class StudioWarpCanvas : Control
         if (args.Function != EngineKeyFunctions.UIClick && !alternate)
             return;
 
-        StrokeStarted?.Invoke();
-        _stroking = true;
-        _alternate = alternate;
-        _lastPixel = PixelAt(args.RelativePixelPosition);
-        Paint(_lastPixel, Vector2.Zero);
+        BeginStroke(PixelAt(args.RelativePixelPosition), alternate);
         args.Handle();
     }
 
@@ -206,11 +202,10 @@ public sealed class StudioWarpCanvas : Control
     {
         base.KeyBindUp(args);
 
-        if (!_stroking || args.Function != EngineKeyFunctions.UIClick && args.Function != EngineKeyFunctions.UIRightClick)
+        if (args.Function != EngineKeyFunctions.UIClick && args.Function != EngineKeyFunctions.UIRightClick)
             return;
 
-        _stroking = false;
-        StrokeEnded?.Invoke();
+        EndStroke();
     }
 
     protected override void MouseMove(GUIMouseMoveEventArgs args)
@@ -219,6 +214,28 @@ public sealed class StudioWarpCanvas : Control
 
         var pixel = PixelAt(args.RelativePixelPosition);
         _hover = pixel;
+        MoveStroke(pixel);
+    }
+
+    protected override void MouseExited()
+    {
+        base.MouseExited();
+        _hover = null;
+    }
+
+    /// <summary>Starts a stroke at an art pixel position (fractional); <paramref name="alternate"/> is the right button.</summary>
+    public void BeginStroke(Vector2 pixel, bool alternate)
+    {
+        StrokeStarted?.Invoke();
+        _stroking = true;
+        _alternate = alternate;
+        _lastPixel = pixel;
+        Paint(pixel, Vector2.Zero);
+    }
+
+    /// <summary>Carries the stroke on to a new art pixel position. Nothing while no stroke is going.</summary>
+    public void MoveStroke(Vector2 pixel)
+    {
         if (!_stroking)
             return;
 
@@ -226,10 +243,13 @@ public sealed class StudioWarpCanvas : Control
         _lastPixel = pixel;
     }
 
-    protected override void MouseExited()
+    public void EndStroke()
     {
-        base.MouseExited();
-        _hover = null;
+        if (!_stroking)
+            return;
+
+        _stroking = false;
+        StrokeEnded?.Invoke();
     }
 
     private void Paint(Vector2 centre, Vector2 moved)
