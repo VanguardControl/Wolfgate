@@ -168,11 +168,11 @@ station can't be moved. Its eight hardpoints carry `WFLatticeWardenLance`s, whic
 `WFLatticeSystem.Defence.cs` is slow to anger. Shield and core hits are counted per ship (forgiven after 60 s); ten
 (`strikeLimit`) from one ship put out a global "under fire" alert, and nothing more while the shield holds. Once the
 station's shield is down it alerts again, calls its drones, and turns every lance on the nearest ship that has fired on
-it in the last 90 s and still has a living player or NPC aboard, within 3 km; it stops when the shield comes back or the
+it in the last 20 s and still has a living player or NPC aboard, within 3 km; it stops when the shield comes back or the
 ship is dead. Shield hits are slow to anger, but damage to anything on the station itself (`WFLatticeStationPartComponent`,
 marked every 30 s) or to the core is answered at once (`Provoke`): the alert goes out, the drones come, and the lances
-fire on the attacker for 90 s whether the shield holds or not. The attacker is the ship it was hit from, or the person
-if they are on foot. Other anchor stations never count as attackers. The station also hums: `WFLatticeHumSystem` plays the
+fire on the attacker for 20 s whether the shield holds or not. The attacker is the person who fired a hand weapon,
+wherever they stand, or the ship a mounted gun fired from, so nobody else aboard is caught up in it. Other anchor stations never count as attackers. The station also hums: `WFLatticeHumSystem` plays the
 Goonstation flock reactor loop to a player within 450 m of an anchor, louder the closer they are.
 
 **Relay anchors.** The autolathe makes a relay anchor flatpack (20 shards of exotic matter). Bolted down with 30 kW,
@@ -226,8 +226,8 @@ circle is open too, so the Monolith reaches Caelestinus Central; with a Lattice 
 **Wards.** Each anchor keeps corruption off grids within its `ward` (primaries 600 m, relays and station anchors
 150 m). Caelestinus Central gets its own anchor (`WFLatticeCentralAnchor`, 20,000 damage, an 800 m ward) railed in at
 tile (1, 17) and a Lattice status console at (-19, -6) facing east, unless an anchor is mapped there. Damaging it names
-the attacker to the sector; destroying it is announced. Anyone aboard an anchor station is named as a trespasser, again
-every five minutes.
+the attacker to the sector; destroying it is announced. Players aboard an anchor station are named as trespassers, all who came aboard in one announcement, at most every
+two minutes a station, and each again only after five minutes.
 
 **Radar.** Every radar and mass scanner draws the hex (`ShuttleNavControl.Hex.cs`): violet beams, dashed red where
 broken, a faint tint inside while it is sealed, and a ring round each anchor's ward.

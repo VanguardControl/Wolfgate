@@ -51,6 +51,14 @@ public sealed partial class WFMonolithSystem : EntitySystem
         SubscribeLocalEvent<WFMonolithComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<WFMonolithComponent, EntityTerminatingEvent>(OnTerminating);
         SubscribeLocalEvent<WFMonolithComponent, PriceCalculationEvent>(OnPrice);
+        SubscribeLocalEvent<WFMonolithComponent, EntParentChangedMessage>(OnParentChanged);
+    }
+
+    /// <summary>Carried onto or off a station, its sale is decided again at once, so it can't be sold off Central meanwhile.</summary>
+    private void OnParentChanged(Entity<WFMonolithComponent> ent, ref EntParentChangedMessage args)
+    {
+        if (!TerminatingOrDeleted(ent))
+            UpdateSale(ent);
     }
 
     /// <summary>A Scion fetches more the further it has climbed: up to double its base at the Crescendo.</summary>

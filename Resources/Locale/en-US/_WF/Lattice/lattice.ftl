@@ -161,7 +161,7 @@ wf-lattice-defence-under-fire = Reality anchor {$anchor} is under fire from {$at
 wf-lattice-defence = Reality anchor {$anchor}'s shield is down. Defensive protocols engaged against {$attacker}. Its drones and lances will answer.
 wf-lattice-defence-unknown = an unknown vessel
 wf-lattice-defence-struck = Reality anchor {$anchor} has been struck. Its defences are on alert.
-wf-lattice-trespass = Trespasser aboard reality anchor {$anchor}: {$attacker}.
+wf-lattice-trespass = Trespassers aboard reality anchor {$anchor}: {$attacker}.
 wf-lattice-central-struck = {$attacker} is attacking Caelestinus Central's anchor.
 wf-lattice-central-struck-title = Central anchor under attack
 wf-lattice-central-tamper = {$attacker} tried to unbolt Caelestinus Central's anchor.
@@ -324,6 +324,10 @@ wf-lattice-status-flesh-count = {$count}
 wf-lattice-status-band = HERE
 
 wf-coda-taboo-popup = The word catches in your throat.
+wf-coda-taboo-stumble-1 = {$first}-{$lower}-{$lower}o...
+wf-coda-taboo-stumble-2 = {$first}o... {$lower}od-
+wf-coda-taboo-stumble-3 = {$first}-{$lower}... the end
+wf-coda-taboo-stumble-4 = {$first}-{$lower}o-
 
 wf-coda-rot-1 = Your skin prickles, even inside the suit. Something out here is touching you.
 wf-coda-rot-2 = Something is moving under your skin. Get back aboard.

@@ -415,7 +415,7 @@ public sealed class WFSiegeSystem : EntitySystem
             return;
 
         var centre = _maps.TileIndicesFor(ship.Station, grid, Transform(ship.Core).Coordinates);
-        for (var i = 0; i < 2; i++)
+        for (var i = 0; i < 2 && ship.Boarders.Count < MaxBoarders; i++)
         {
             for (var attempt = 0; attempt < 12; attempt++)
             {

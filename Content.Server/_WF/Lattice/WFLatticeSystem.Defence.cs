@@ -34,6 +34,9 @@ public sealed partial class WFLatticeSystem
     /// <summary>How long before the same trespasser is named again.</summary>
     private static readonly TimeSpan TrespassRepeat = TimeSpan.FromMinutes(5);
 
+    /// <summary>Least time between two trespass announcements for one station; everyone who came aboard meanwhile goes in the next.</summary>
+    private static readonly TimeSpan TrespassAlertGap = TimeSpan.FromMinutes(2);
+
     /// <summary>Seconds between the lances' aiming passes.</summary>
     private const float DefenceInterval = 0.25f;
 
@@ -118,7 +121,10 @@ public sealed partial class WFLatticeSystem
         Defend(station, enemy);
     }
 
-    /// <summary>What a station shoots back at for a hit from this source: a person on foot, or the grid it came from.</summary>
+    /// <summary>
+    /// What a station shoots back at for a hit from this source: the person who fired a hand weapon, wherever they stand, so a
+    /// ship's other crew aren't caught up in it; or the ship a mounted gun fired from.
+    /// </summary>
     private EntityUid? Attacker(EntityUid station, EntityUid source)
     {
         if (!Exists(source))
@@ -129,10 +135,10 @@ public sealed partial class WFLatticeSystem
 
         var grid = Transform(source).GridUid;
         EntityUid enemy;
-        if (grid is { } from && from != station && !HasComp<MapComponent>(from))
-            enemy = from;
-        else if (HasComp<MobStateComponent>(source))
+        if (HasComp<MobStateComponent>(source))
             enemy = source;
+        else if (grid is { } from && from != station && !HasComp<MapComponent>(from))
+            enemy = from;
         else
             return null;
 
@@ -304,9 +310,25 @@ public sealed partial class WFLatticeSystem
         }
     }
 
-    /// <summary>Names every player aboard the station to the sector, once every few minutes each.</summary>
+    /// <summary>
+    /// Names the players aboard the station to the sector: everyone who came aboard since the last announcement in one line,
+    /// no more than every two minutes, and each person again only after a few minutes.
+    /// </summary>
     private void CheckTrespass(EntityUid station, WFLatticeAnchorStationComponent comp, TimeSpan now)
     {
+        // An expired entry already lets them be named again, so dropping it changes nothing but the memory.
+        _expired.Clear();
+        foreach (var (named, until) in comp.Trespassers)
+        {
+            if (now >= until || TerminatingOrDeleted(named))
+                _expired.Add(named);
+        }
+
+        foreach (var named in _expired)
+        {
+            comp.Trespassers.Remove(named);
+        }
+
         var players = EntityQueryEnumerator<ActorComponent, MobStateComponent, TransformComponent>();
         while (players.MoveNext(out var uid, out _, out var state, out var xform))
         {
@@ -315,8 +337,19 @@ public sealed partial class WFLatticeSystem
                 continue;
 
             comp.Trespassers[uid] = now + TrespassRepeat;
-            Alert(station, comp, "wf-lattice-trespass", uid, false);
+            comp.PendingTrespassers.Add(uid);
         }
+
+        comp.PendingTrespassers.RemoveAll(uid => TerminatingOrDeleted(uid));
+        if (comp.PendingTrespassers.Count == 0 || now < comp.NextTrespassAlert)
+            return;
+
+        comp.NextTrespassAlert = now + TrespassAlertGap;
+        var names = string.Join(", ", comp.PendingTrespassers.ConvertAll(uid => Name(uid)));
+        comp.PendingTrespassers.Clear();
+        var anchor = Exists(comp.Core) ? Name(comp.Core) : Name(station);
+        var text = Loc.GetString("wf-lattice-trespass", ("anchor", anchor), ("attacker", names));
+        _chat.DispatchGlobalAnnouncement(text, Loc.GetString("wf-lattice-chip-sender"), true, BreachSound, Color.FromHex("#d030a0"));
     }
 
     /// <summary>Fires every lance on a station at a grid, leading it by its speed.</summary>

@@ -50,13 +50,6 @@ public sealed class WFCodaTabooSystem : EntitySystem
     private string Stumble(string word)
     {
         var first = word[..1];
-        var lower = first.ToLowerInvariant();
-        return _random.Next(4) switch
-        {
-            0 => $"{first}-{lower}-{lower}o...",
-            1 => $"{first}o... {lower}od-",
-            2 => $"{first}-{lower}... the end",
-            _ => $"{first}-{lower}o-",
-        };
+        return Loc.GetString($"wf-coda-taboo-stumble-{_random.Next(1, 5)}", ("first", first), ("lower", first.ToLowerInvariant()));
     }
 }

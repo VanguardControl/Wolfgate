@@ -83,7 +83,8 @@ public sealed class WFPrimeSystem : EntitySystem
 
         foreach (var (uid, prime) in killed)
         {
-            if (args.Cause is { } cause && _crew.Wielder(cause) is var attacker && TryComp<ActorComponent>(attacker, out var actor))
+            if (args.Cause is { } cause && !TerminatingOrDeleted(cause) && _crew.Wielder(cause) is var attacker
+                && !TerminatingOrDeleted(attacker) && TryComp<ActorComponent>(attacker, out var actor))
                 prime.Hits[actor.PlayerSession.UserId] = prime.Hits.GetValueOrDefault(actor.PlayerSession.UserId) + 1f;
 
             _destructible.DestroyEntity(uid);

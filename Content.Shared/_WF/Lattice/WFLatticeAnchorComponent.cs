@@ -111,6 +111,13 @@ public sealed partial class WFLatticeAnchorStationComponent : Component
 
     [ViewVariables]
     public TimeSpan NextTrespassCheck;
+
+    /// <summary>Trespassers not yet named, waiting for the next announcement, and when it may go out.</summary>
+    [ViewVariables]
+    public List<EntityUid> PendingTrespassers = new();
+
+    [ViewVariables]
+    public TimeSpan NextTrespassAlert;
 }
 
 /// <summary>Something on an anchor station whose damage the station answers at once.</summary>
