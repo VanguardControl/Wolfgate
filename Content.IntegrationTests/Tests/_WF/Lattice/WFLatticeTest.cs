@@ -27,6 +27,8 @@ public sealed class WFLatticeTest
 
         await server.WaitAssertion(() =>
         {
+            // The shift is checked at once here; LostAnchorsFadeSlowly covers the fade.
+            server.CfgMan.SetCVar(WFLatticeEndgameCVars.AnchorFade, 0f);
             lattice.Setup(map.MapUid);
 
             var anchors = new List<EntityUid>();
@@ -73,6 +75,7 @@ public sealed class WFLatticeTest
             Assert.That(field.Strengths, Has.Count.EqualTo(5));
         });
 
+        await server.WaitPost(() => server.CfgMan.SetCVar(WFLatticeEndgameCVars.AnchorFade, WFLatticeEndgameCVars.AnchorFade.DefaultValue));
         await pair.CleanReturnAsync();
     }
 

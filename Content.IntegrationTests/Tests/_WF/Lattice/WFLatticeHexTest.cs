@@ -36,7 +36,13 @@ public sealed class WFLatticeHexTest
         var xforms = entities.System<SharedTransformSystem>();
         var protos = server.ResolveDependency<IPrototypeManager>();
 
-        await server.WaitPost(() => lattice.Setup(map.MapUid));
+        var config = server.ResolveDependency<Robust.Shared.Configuration.IConfigurationManager>();
+        await server.WaitPost(() =>
+        {
+            // Lost anchors let go at once here; the fade has its own test.
+            config.SetCVar(WFLatticeEndgameCVars.AnchorFade, 0f);
+            lattice.Setup(map.MapUid);
+        });
         await pair.RunSeconds(2f);
 
         Entity<MapGridComponent> carrier = default;
@@ -168,6 +174,47 @@ public sealed class WFLatticeHexTest
             Assert.That(lattice.BandAt(map.MapUid, Vector2.Zero), Is.EqualTo(profile.Bands.Count - 1), "the Coda isn't everywhere.");
             lattice.Tacet((map.MapUid, field));
             Assert.That(field.Tacet, Is.True);
+            config.SetCVar(WFLatticeEndgameCVars.AnchorFade, WFLatticeEndgameCVars.AnchorFade.DefaultValue);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A lost anchor's hold fades over time rather than going at once, so the bands creep inward.</summary>
+    [Test]
+    public async Task LostAnchorsFadeSlowly()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var entities = server.EntMan;
+        var lattice = entities.System<WFLatticeSystem>();
+        var xforms = entities.System<SharedTransformSystem>();
+        var config = server.ResolveDependency<Robust.Shared.Configuration.IConfigurationManager>();
+
+        await server.WaitPost(() =>
+        {
+            config.SetCVar(WFLatticeEndgameCVars.AnchorFade, 100f);
+            lattice.Setup(map.MapUid);
+        });
+        await pair.RunSeconds(2f);
+
+        var corner = Vector2.Zero;
+        var before = 0f;
+        await server.WaitPost(() =>
+        {
+            var core = entities.EntityQuery<WFLatticeAnchorComponent>().First(a => a.Primary).Owner;
+            corner = xforms.GetWorldPosition(core);
+            before = lattice.FieldAt(map.MapUid, corner);
+            entities.DeleteEntity(core);
+        });
+        await pair.RunSeconds(3f);
+        await server.WaitAssertion(() =>
+        {
+            var after = lattice.FieldAt(map.MapUid, corner);
+            Assert.That(after, Is.LessThan(before), "the lost anchor's hold didn't weaken at all.");
+            Assert.That(before - after, Is.LessThan(0.2f), "the lost anchor's hold went at once instead of fading.");
+            config.SetCVar(WFLatticeEndgameCVars.AnchorFade, WFLatticeEndgameCVars.AnchorFade.DefaultValue);
         });
 
         await pair.CleanReturnAsync();

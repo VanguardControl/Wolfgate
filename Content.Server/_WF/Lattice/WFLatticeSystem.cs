@@ -64,6 +64,7 @@ public sealed partial class WFLatticeSystem : EntitySystem
             _beamPopup.Clear();
             _central.Clear();
             _tacetAt.Clear();
+            _fading.Clear();
         });
         InitializeStations();
         InitializeDefence();
@@ -428,21 +429,23 @@ public sealed partial class WFLatticeSystem : EntitySystem
         _anchors.Clear();
         _primaries = 0;
 
-        // Unstrung, nothing holds: not a relay, not a station's own anchor.
-        if (TryComp<WFLatticeFieldComponent>(map, out var unstrung) && unstrung.Unstrung)
-            return;
-
-        var query = EntityQueryEnumerator<WFLatticeAnchorComponent, TransformComponent>();
-        while (query.MoveNext(out _, out var anchor, out var xform))
+        // Unstrung, nothing new holds: not a relay, not a station's own anchor. What held fades out below.
+        if (!(TryComp<WFLatticeFieldComponent>(map, out var unstrung) && unstrung.Unstrung))
         {
-            if (xform.MapUid != map || !anchor.Active)
-                continue;
+            var query = EntityQueryEnumerator<WFLatticeAnchorComponent, TransformComponent>();
+            while (query.MoveNext(out _, out var anchor, out var xform))
+            {
+                if (xform.MapUid != map || !anchor.Active)
+                    continue;
 
-            // Secondary anchors carry their strength negated: they hold a local well, not the bands.
-            _anchors.Add((_transform.GetWorldPosition(xform), anchor.Primary ? anchor.Strength : -anchor.Strength));
-            if (anchor.Primary)
-                _primaries++;
+                // Secondary anchors carry their strength negated: they hold a local well, not the bands.
+                _anchors.Add((_transform.GetWorldPosition(xform), anchor.Primary ? anchor.Strength : -anchor.Strength));
+                if (anchor.Primary)
+                    _primaries++;
+            }
         }
+
+        AddFading(map);
     }
 
     private void Notify(ICommonSession session, EntityUid mob, WFLatticeBand band, float depth)

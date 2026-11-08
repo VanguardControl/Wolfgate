@@ -6,11 +6,18 @@ namespace Content.Shared._WF.Lattice;
 [CVarDefs]
 public sealed class WFLatticeEndgameCVars
 {
+    /// <summary>
+    /// Seconds a lost anchor's hold takes to fade to nothing, so the bands creep inward rather than jump; at the Unstringing
+    /// every relay and station anchor fades the same way. 0 lets go at once.
+    /// </summary>
+    public static readonly CVarDef<float> AnchorFade =
+        CVarDef.Create("wf.lattice.anchor_fade", 1200f, CVar.SERVERONLY);
+
     /// <summary>Whether Kyphrus implodes some time after the Unstringing.</summary>
     public static readonly CVarDef<bool> Tacet =
         CVarDef.Create("wf.lattice.tacet", true, CVar.SERVERONLY);
 
-    /// <summary>Soonest and latest Tacet comes after the Unstringing, in seconds.</summary>
+    /// <summary>Soonest and latest Tacet comes after the Unstringing has fully set in, in seconds.</summary>
     public static readonly CVarDef<float> TacetMin =
         CVarDef.Create("wf.lattice.tacet_min", 900f, CVar.SERVERONLY);
 

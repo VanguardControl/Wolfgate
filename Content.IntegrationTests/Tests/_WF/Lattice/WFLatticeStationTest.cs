@@ -46,6 +46,8 @@ public sealed class WFLatticeStationTest
         await server.WaitAssertion(() =>
         {
             entities.System<WFLatticeBreachObserver>().Breaches = 0;
+            // Lost anchors let go at once here, so the counts below are exact.
+            server.CfgMan.SetCVar(WFLatticeEndgameCVars.AnchorFade, 0f);
             lattice.Setup(map.MapUid);
             var query = entities.EntityQueryEnumerator<WFLatticeAnchorStationComponent, TransformComponent>();
             while (query.MoveNext(out var uid, out _, out var xform))
@@ -111,6 +113,7 @@ public sealed class WFLatticeStationTest
             Assert.That(warded, Is.GreaterThanOrEqualTo(5), "the anchor shields aren't up as purple Ward fields.");
         });
 
+        await server.WaitPost(() => server.CfgMan.SetCVar(WFLatticeEndgameCVars.AnchorFade, WFLatticeEndgameCVars.AnchorFade.DefaultValue));
         await pair.CleanReturnAsync();
     }
 
@@ -282,6 +285,8 @@ public sealed class WFLatticeStationTest
         await server.WaitAssertion(() =>
         {
             entities.System<WFLatticeBreachObserver>().Breaches = 0;
+            // Lost anchors let go at once here, so the counts below are exact.
+            server.CfgMan.SetCVar(WFLatticeEndgameCVars.AnchorFade, 0f);
             lattice.Setup(map.MapUid);
             var query = entities.EntityQueryEnumerator<WFLatticeAnchorStationComponent, TransformComponent>();
             while (query.MoveNext(out var uid, out _, out var xform))

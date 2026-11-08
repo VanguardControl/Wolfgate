@@ -40,6 +40,40 @@ public sealed partial class WFLatticeSystem
     /// <summary>When each unstrung map goes to Tacet, and after it, when its bulbs are next rolled.</summary>
     private readonly Dictionary<EntityUid, TimeSpan> _tacetAt = new();
 
+    /// <summary>An anchor's hold letting go: where it was, its signed strength, and when it started fading.</summary>
+    private readonly record struct Fading(Vector2 Position, float Strength, TimeSpan Start);
+
+    /// <summary>Holds still fading on each map.</summary>
+    private readonly Dictionary<EntityUid, List<Fading>> _fading = new();
+
+    /// <summary>Starts an anchor's hold fading out where it stood, unless fading is off.</summary>
+    private void StartFade(EntityUid map, Vector2 position, float strength)
+    {
+        if (_config.GetCVar(WFLatticeEndgameCVars.AnchorFade) <= 0f)
+            return;
+
+        if (!_fading.TryGetValue(map, out var list))
+            _fading[map] = list = new List<Fading>();
+
+        list.Add(new Fading(position, strength, _timing.CurTime));
+    }
+
+    /// <summary>Adds what is still fading to the gathered anchors, weaker the longer it has faded, and forgets what is gone.</summary>
+    private void AddFading(EntityUid map)
+    {
+        if (!_fading.TryGetValue(map, out var list))
+            return;
+
+        var fade = _config.GetCVar(WFLatticeEndgameCVars.AnchorFade);
+        var now = _timing.CurTime;
+        list.RemoveAll(f => fade <= 0f || (now - f.Start).TotalSeconds >= fade);
+        foreach (var f in list)
+        {
+            var left = 1f - (float) (now - f.Start).TotalSeconds / fade;
+            _anchors.Add((f.Position, f.Strength * left));
+        }
+    }
+
     private void InitializeEndgame()
     {
         SubscribeLocalEvent<WFLatticeBreachEvent>(OnBreach);
@@ -115,7 +149,14 @@ public sealed partial class WFLatticeSystem
 
     private void OnBreach(ref WFLatticeBreachEvent args)
     {
-        if (Transform(args.Anchor).MapUid is not { } map || !TryComp<WFLatticeFieldComponent>(map, out var field) || field.Unstrung)
+        if (Transform(args.Anchor).MapUid is not { } map || !TryComp<WFLatticeFieldComponent>(map, out var field))
+            return;
+
+        // The bands don't snap in: the lost anchor's hold fades where it stood.
+        if (TryComp<WFLatticeAnchorComponent>(args.Anchor, out var lost))
+            StartFade(map, _transform.GetWorldPosition(args.Anchor), lost.Strength);
+
+        if (field.Unstrung)
             return;
 
         var query = EntityQueryEnumerator<WFLatticeAnchorComponent, TransformComponent>();
@@ -134,6 +175,14 @@ public sealed partial class WFLatticeSystem
         if (map.Comp.Unstrung)
             return;
 
+        // Everything else that still holds lets go too, slowly, so the Coda engulfs the sector rather than appearing.
+        var holding = EntityQueryEnumerator<WFLatticeAnchorComponent, TransformComponent>();
+        while (holding.MoveNext(out _, out var anchor, out var anchorXform))
+        {
+            if (anchorXform.MapUid == map.Owner && anchor.Active)
+                StartFade(map, _transform.GetWorldPosition(anchorXform), anchor.Primary ? anchor.Strength : -anchor.Strength);
+        }
+
         map.Comp.Unstrung = true;
         Dirty(map);
         GatherAnchors(map);
@@ -146,7 +195,9 @@ public sealed partial class WFLatticeSystem
         {
             var min = _config.GetCVar(WFLatticeEndgameCVars.TacetMin);
             var max = Math.Max(min, _config.GetCVar(WFLatticeEndgameCVars.TacetMax));
-            _tacetAt[map] = _timing.CurTime + TimeSpan.FromSeconds(_random.NextFloat(min, max));
+            // Once the Coda has had the whole sector, then some while after.
+            var fade = Math.Max(0f, _config.GetCVar(WFLatticeEndgameCVars.AnchorFade));
+            _tacetAt[map] = _timing.CurTime + TimeSpan.FromSeconds(fade + _random.NextFloat(min, max));
         }
     }
 

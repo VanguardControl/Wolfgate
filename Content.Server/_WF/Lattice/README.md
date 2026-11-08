@@ -238,9 +238,12 @@ where broken, Central's anchor at the heart, flesh ships circling as red motes, 
 hex, Central's anchor, flesh ships, the viewer's band (garbled where the band garbles) and each anchor by name. It reads
 only the networked field (`Hex`, `HexUp`, `HexAlive`, `HexNames`, `CentralStanding`, `FleshShips`, `Unstrung`, `Tacet`).
 
-**The end** (`WFLatticeSystem.Endgame.cs`). When the last primary anchor falls, the Unstringing: nothing holds anywhere
-(relays and station anchors let go too), so the Coda, its hazards and its dead FTL are everywhere. Some 15 to 30 minutes
-later comes Tacet: Kyphrus implodes, every bulb in the sector bursts and new ones keep failing (a quarter every 30 s),
+**Fading.** A lost anchor's hold doesn't vanish: it fades where it stood over `wf.lattice.anchor_fade` (20 minutes), so
+the bands creep inward instead of jumping.
+
+**The end** (`WFLatticeSystem.Endgame.cs`). When the last primary anchor falls, the Unstringing: every relay and station
+anchor lets go too, all fading the same way, so over 20 minutes the Coda, its hazards, its rot and its dead FTL engulf the
+whole sector. Some 15 to 30 minutes after it has fully set in comes Tacet: Kyphrus implodes, every bulb in the sector bursts and new ones keep failing (a quarter every 30 s),
 and clients stop drawing the black hole. `WFLatticeEndgameCVars` (`wf.lattice.tacet*`) tune it. Admins use
 `wflattice siege|unstring|tacet`.
 
