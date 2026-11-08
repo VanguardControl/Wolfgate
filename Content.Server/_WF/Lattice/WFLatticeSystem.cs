@@ -65,6 +65,8 @@ public sealed partial class WFLatticeSystem : EntitySystem
             _central.Clear();
             _tacetAt.Clear();
             _fading.Clear();
+            _implosions.Clear();
+            _unstrungAt.Clear();
         });
         InitializeStations();
         InitializeDefence();
@@ -79,6 +81,7 @@ public sealed partial class WFLatticeSystem : EntitySystem
         UpdateDefence(frameTime);
         HoldBarriers();
         HoldScions();
+        UpdateImplosions();
 
         _accumulator += frameTime;
         if (_accumulator < Interval)
@@ -429,20 +432,18 @@ public sealed partial class WFLatticeSystem : EntitySystem
         _anchors.Clear();
         _primaries = 0;
 
-        // Unstrung, nothing new holds: not a relay, not a station's own anchor. What held fades out below.
-        if (!(TryComp<WFLatticeFieldComponent>(map, out var unstrung) && unstrung.Unstrung))
+        // Unstrung, only a mobile relay still holds; a station's own anchor doesn't. What held fades out below.
+        var unstrung = TryComp<WFLatticeFieldComponent>(map, out var field) && field.Unstrung;
+        var query = EntityQueryEnumerator<WFLatticeAnchorComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var anchor, out var xform))
         {
-            var query = EntityQueryEnumerator<WFLatticeAnchorComponent, TransformComponent>();
-            while (query.MoveNext(out _, out var anchor, out var xform))
-            {
-                if (xform.MapUid != map || !anchor.Active)
-                    continue;
+            if (xform.MapUid != map || !anchor.Active || unstrung && !IsMobileRelay(uid))
+                continue;
 
-                // Secondary anchors carry their strength negated: they hold a local well, not the bands.
-                _anchors.Add((_transform.GetWorldPosition(xform), anchor.Primary ? anchor.Strength : -anchor.Strength));
-                if (anchor.Primary)
-                    _primaries++;
-            }
+            // Secondary anchors carry their strength negated: they hold a local well, not the bands.
+            _anchors.Add((_transform.GetWorldPosition(xform), anchor.Primary ? anchor.Strength : -anchor.Strength));
+            if (anchor.Primary)
+                _primaries++;
         }
 
         AddFading(map);
