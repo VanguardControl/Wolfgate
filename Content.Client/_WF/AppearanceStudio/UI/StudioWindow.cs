@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Numerics;
 using Content.Client._WF.CustomMarkings;
 using Content.Client._WF.CustomMarkings.UI;
@@ -77,6 +78,12 @@ public sealed class StudioWindow : CustomMarkingWindow
     private readonly Label _speedLabel;
     private readonly List<int> _indices = new();
     private readonly List<string> _names = new();
+
+    /// <summary>The keys each outliner group listed last, for its Show all / Hide all buttons.</summary>
+    private readonly Dictionary<StudioTarget, List<string>> _groupKeys = new();
+
+    /// <summary>Width the inspector's wrapped text keeps to.</summary>
+    private const float InspectorTextWidth = 290f;
 
     private StudioWarpWindow? _warpWindow;
 
@@ -182,7 +189,7 @@ public sealed class StudioWindow : CustomMarkingWindow
 
         // Inspector
         _inspector = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 6 };
-        var inspectorScroll = new ScrollContainer { HScrollEnabled = false, VerticalExpand = true, MinWidth = 270, Children = { _inspector } };
+        var inspectorScroll = new ScrollContainer { HScrollEnabled = false, VerticalExpand = true, MinWidth = 300, Children = { _inspector } };
 
         var columns = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 10, VerticalExpand = true };
         columns.AddChild(Card(outlinerScroll));
@@ -425,7 +432,25 @@ public sealed class StudioWindow : CustomMarkingWindow
 
     private void Group(string heading, StudioTarget target, List<string> keys)
     {
-        _outliner.AddChild(new Label { Text = Loc.GetString(heading), StyleClasses = { StyleWolfgate.StyleClassCreatorFieldLabel }, Margin = new Thickness(0, 6, 0, 2) });
+        var showAll = new Button { Text = Loc.GetString("wf-studio-show-all"), StyleClasses = { "OpenRight" }, Disabled = keys.Count == 0 };
+        var hideAll = new Button { Text = Loc.GetString("wf-studio-hide-all"), StyleClasses = { "OpenLeft" }, Disabled = keys.Count == 0 };
+        var groupKeys = keys.ToList();
+        showAll.OnPressed += _ => SetGroupVisible(target, groupKeys, true);
+        hideAll.OnPressed += _ => SetGroupVisible(target, groupKeys, false);
+        _groupKeys[target] = groupKeys;
+
+        _outliner.AddChild(new BoxContainer
+        {
+            Orientation = BoxContainer.LayoutOrientation.Horizontal,
+            Margin = new Thickness(0, 6, 0, 2),
+            Children =
+            {
+                new Label { Text = Loc.GetString(heading), StyleClasses = { StyleWolfgate.StyleClassCreatorFieldLabel }, HorizontalExpand = true },
+                showAll,
+                hideAll,
+            },
+        });
+
         if (keys.Count == 0)
         {
             _outliner.AddChild(new Label { Text = Loc.GetString("wf-studio-group-empty"), StyleClasses = { "LabelSubText" } });
@@ -475,6 +500,31 @@ public sealed class StudioWindow : CustomMarkingWindow
         return Loc.TryGetString(loc, out var name) ? name : key;
     }
 
+    /// <summary>Shows or hides a whole outliner group in the preview.</summary>
+    private void SetGroupVisible(StudioTarget target, List<string> keys, bool visible)
+    {
+        foreach (var key in keys)
+        {
+            SetPreviewVisible(target, key, visible);
+        }
+
+        _outlinerStale = true;
+    }
+
+    /// <summary>Hides every worn item but the selected one in the preview, to see it on the bare body.</summary>
+    private void HideOtherClothing()
+    {
+        if (_selected is not { } selected || !_groupKeys.TryGetValue(StudioTarget.Worn, out var worn))
+            return;
+
+        foreach (var key in worn)
+        {
+            SetPreviewVisible(StudioTarget.Worn, key, selected.Target == StudioTarget.Worn && key == selected.Key);
+        }
+
+        _outlinerStale = true;
+    }
+
     private void SetPreviewVisible(StudioTarget target, string key, bool visible)
     {
         if (visible)
@@ -508,24 +558,23 @@ public sealed class StudioWindow : CustomMarkingWindow
 
         if (_selected is not { } selected)
         {
-            _inspector.AddChild(StudioText.Wrapped(Loc.GetString("wf-studio-select-hint"), "LabelSubText", 260));
+            _inspector.AddChild(StudioText.Wrapped(Loc.GetString("wf-studio-select-hint"), "LabelSubText", InspectorTextWidth));
             return;
         }
 
         var tweak = Current();
         _inspector.AddChild(new Label { Text = PartName(selected.Target, selected.Key), StyleClasses = { StyleWolfgate.StyleClassCreatorHeading } });
-        _inspector.AddChild(new Label
-        {
-            Text = Loc.GetString("wf-studio-facing-now", ("facing", Loc.GetString($"wf-studio-facing-{_facing}"))),
-            StyleClasses = { "LabelSubText" },
-        });
+        _inspector.AddChild(StudioText.Wrapped(
+            Loc.GetString("wf-studio-facing-now", ("facing", Loc.GetString($"wf-studio-facing-{_facing}"))),
+            "LabelSubText",
+            InspectorTextWidth));
 
         // Offset
         var offset = tweak.GetOffset(_facing);
         _inspector.AddChild(Heading("wf-studio-offset"));
         _inspector.AddChild(OffsetRow("X", offset.X, new Vector2i(1, 0)));
         _inspector.AddChild(OffsetRow("Y", offset.Y, new Vector2i(0, 1)));
-        _inspector.AddChild(StudioText.Wrapped(Loc.GetString("wf-studio-offset-hint", ("max", limits.MaxOffset)), "LabelSubText", 260));
+        _inspector.AddChild(StudioText.Wrapped(Loc.GetString("wf-studio-offset-hint", ("max", limits.MaxOffset)), "LabelSubText", InspectorTextWidth));
 
         var copyAll = ActionButton("wf-studio-copy-all", () =>
         {
@@ -565,7 +614,10 @@ public sealed class StudioWindow : CustomMarkingWindow
             Commit(new StudioTweak(t.Target, t.Key) { Warp = t.Warp }, reload: t.Hidden || !MathHelper.CloseTo(t.Scale, 1f));
         });
 
-        _inspector.AddChild(new GridContainer { Columns = 2, Children = { copyAll, mirror, resetFacing, resetPart } });
+        foreach (var button in new[] { copyAll, mirror, resetFacing, resetPart })
+        {
+            _inspector.AddChild(button);
+        }
 
         // Scale
         var scaleLabel = new Label { Text = Loc.GetString("wf-studio-scale", ("scale", tweak.Scale.ToString("0.00"))) };
@@ -600,6 +652,9 @@ public sealed class StudioWindow : CustomMarkingWindow
         if (StudioRules.CanWarp(selected.Target))
         {
             _inspector.AddChild(Heading("wf-studio-warp-heading"));
+            var hideOthers = ActionButton("wf-studio-hide-other-clothing", HideOtherClothing);
+            hideOthers.ToolTip = Loc.GetString("wf-studio-hide-other-clothing-tooltip");
+            _inspector.AddChild(hideOthers);
             var warpsOn = limits.Warps;
             var paint = new Button
             {
@@ -654,7 +709,7 @@ public sealed class StudioWindow : CustomMarkingWindow
 
     private static Button ActionButton(string loc, Action act)
     {
-        var button = new Button { Text = Loc.GetString(loc), HorizontalExpand = true, ClipText = true };
+        var button = new Button { Text = Loc.GetString(loc), HorizontalExpand = true };
         button.OnPressed += _ => act();
         return button;
     }

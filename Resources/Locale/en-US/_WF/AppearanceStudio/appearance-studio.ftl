@@ -29,6 +29,10 @@ wf-studio-group-worn = Worn
 wf-studio-group-held = Held
 wf-studio-group-empty = Nothing here.
 wf-studio-preview-visible-tooltip = Show in this preview. Doesn't change the character.
+wf-studio-show-all = Show all
+wf-studio-hide-all = Hide all
+wf-studio-hide-other-clothing = Hide other clothing
+wf-studio-hide-other-clothing-tooltip = Hide every other worn item in this preview, to see this one on the body. The character is unchanged.
 
 wf-studio-select-hint = Pick a part on the left. Drag on the doll to move it, a pixel at a time.
 wf-studio-offset = Position
