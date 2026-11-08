@@ -95,6 +95,15 @@ minute; out of the Coda it withers within 5-10 minutes; Clean Drift at a drydock
 **Drones.** Only the low tiers spawn: T0 in the inner Wilds, T1 from Detune out, rarest in the Coda. The T2 spawners are
 gone from every biome.
 
+**The rot** (`WFCodaRotSystem`). A living player out in the Coda's open space, off any hull, is warned at once ("your skin
+prickles"), again at half the grace, and when the grace (20 s) runs out: then they take 2 Cellular a second that no suit
+stops (an anchor charm halves it), are reminded every 15 s, and at 45 s an arm twists into a blade. Death out there
+rises Remade as usual. Back aboard, it stops and fades three times as fast. The Choir are exempt. `WFCodaRotCVars`
+(`wf.lattice.coda_rot*`) tune it.
+
+**Speaking of it.** A living speaker who says "Coda" stumbles on the word and feels it catch (`WFCodaTabooSystem`);
+ghosts and the Choir say it plainly.
+
 **The dead rise.** In the Coda (`riseBand`) a body that lies dead for `riseDelay` seconds (60) starts to turn Remade
 (`WFDeepRisingSystem`, through `WFRemadeConversionSystem`), unless its ship or the body itself is sheltered. If it was
 a player's, they are asked whether to rise with it and play the Remade; a no leaves it to the NPC AI.
@@ -255,6 +264,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Content.Server/_WF/Lattice/WFCodaHazardSystem.cs`](WFCodaHazardSystem.cs)
 - [`Content.Server/_WF/Lattice/WFCodaHazardSystem.Leviathan.cs`](WFCodaHazardSystem.Leviathan.cs)
 - [`Content.Server/_WF/Lattice/WFCodaMutationSystem.cs`](WFCodaMutationSystem.cs)
+- [`Content.Server/_WF/Lattice/WFCodaRotSystem.cs`](WFCodaRotSystem.cs)
 - [`Content.Server/_WF/Lattice/WFCodaTabooSystem.cs`](WFCodaTabooSystem.cs)
 - [`Content.Server/_WF/Lattice/WFDeepRisingSystem.cs`](WFDeepRisingSystem.cs)
 - [`Content.Server/_WF/Lattice/WFDriftEffectsSystem.cs`](WFDriftEffectsSystem.cs)
@@ -319,6 +329,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFChoirTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFChoirTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFCodaHazardTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFCodaHazardTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Lattice/WFCodaRotTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFCodaRotTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFDeepRisingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFDeepRisingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFDriftDepthTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFDriftDepthTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFDriftEffectsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFDriftEffectsTest.cs)

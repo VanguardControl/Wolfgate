@@ -324,3 +324,8 @@ wf-lattice-status-flesh-count = {$count}
 wf-lattice-status-band = HERE
 
 wf-coda-taboo-popup = The word catches in your throat.
+
+wf-coda-rot-1 = Your skin prickles, even inside the suit. Something out here is touching you.
+wf-coda-rot-2 = Something is moving under your skin. Get back aboard.
+wf-coda-rot-3 = Your flesh is coming apart. The suit isn't keeping it out.
+wf-coda-rot-reminder = You can feel yourself changing. Get off the open space, now.
