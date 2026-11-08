@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Server._WF.Encounters;
 using Content.Server._WF.Encounters.Components;
 using Content.Server._WF.Encounters.Systems;
 using Content.Server._WF.Lattice;
@@ -80,6 +81,27 @@ public sealed class WFSiegeSystem : EntitySystem
     private const int BoardReach = 12;
 
     private TimeSpan _next;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<WFEncounterAdminAttackEvent>(OnAdminAttack);
+    }
+
+    /// <summary>A flesh ship an admin sets on an anchor station besieges it as a wave's would.</summary>
+    private void OnAdminAttack(ref WFEncounterAdminAttackEvent args)
+    {
+        if (!TryComp<WFEncounterComponent>(args.Encounter, out var encounter) || encounter.Prototype != FleetPrototype
+            || !TryComp<WFLatticeAnchorStationComponent>(args.Target, out var station) || !Standing(station.Core))
+            return;
+
+        var ship = EnsureComp<WFNecroticShipComponent>(args.Ship);
+        ship.Encounter = args.Encounter;
+        ship.Core = station.Core;
+        ship.Station = args.Target;
+        if (ship.Expires == TimeSpan.Zero)
+            ship.Expires = _timing.CurTime + TimeSpan.FromSeconds(Lifetime);
+    }
 
     public override void Update(float frameTime)
     {

@@ -58,6 +58,14 @@ public sealed class SiegeTest
             Assert.That(entities.EntityQuery<WFCorruptionComponent>().Any(c => entities.GetComponent<TransformComponent>(c.Owner).GridUid == ship),
                 Is.True, "a flesh ship came without its flesh.");
 
+            // The Choir crew count the Remade they carry as their own, not as boarders.
+            var crewman = entities.EntityQuery<Content.Server._WF.NpcCrew.Components.WFCrewComponent>()
+                .First(c => entities.GetComponent<TransformComponent>(c.Owner).GridUid == ship).Owner;
+            var passenger = entities.EntityQuery<Content.Server._WF.Encounters.Components.WFEncounterPassengerComponent>()
+                .First(p => entities.GetComponent<TransformComponent>(p.Owner).GridUid == ship).Owner;
+            Assert.That(entities.System<Content.Server._WF.NpcCrew.Systems.WFCrewSecuritySystem>().IsAuthorized(crewman, passenger), Is.True,
+                "a flesh ship's crew treat its own Remade as boarders.");
+
             // Bring it alongside its anchor.
             var core = xforms.GetWorldPosition(necrotic.Core);
             xforms.SetWorldPosition(ship, core + Vector2.Normalize(core) * 500f);
