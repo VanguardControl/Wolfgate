@@ -16,7 +16,6 @@ AI-assisted code is allowed. Things like autocomplete, chat assistance and codin
 AI-generated sprites, textures, sounds, music and voice lines are only accepted if they have been substantially reworked by hand.
 - Raw model output, or model output with only light touch-ups, is not accepted.
 - You can use AI for references, concepts or palette ideas.
-- Ordinary tools that aren't generative models are fine.
 
 ## Player-facing text
 
@@ -34,7 +33,8 @@ You are responsible for the licence and attribution of everything you submit.
 
 ## Disclosure
 
-The [PR template](../../../.github/PULL_REQUEST_TEMPLATE.md) has an **AI use** line. On PRs with a diff of more than 1,000 lines, you must disclose whether you used AI, which model and what for, in a few words. For example: "Claude Opus 5.5 used for systems and tests".
-
-Disclosure doesn't count against a PR. Hiding it does!
+The [PR template](../../../.github/PULL_REQUEST_TEMPLATE.md) has an **AI use** line. On PRs with a diff of more than 1,000 lines, you must disclose whether you used AI, which model and what for, in a few words.
+- For example: "Claude Opus 5.5 used for systems and tests"
+- Disclosure doesn't count against a PR. Hiding it does!
+- PRs with a diff less than 1,000 lines are exempt from this.
 
