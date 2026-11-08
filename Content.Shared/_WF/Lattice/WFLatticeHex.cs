@@ -23,6 +23,68 @@ public static class WFLatticeHex
         return true;
     }
 
+    /// <summary>The ring's centre: the average of its corners.</summary>
+    public static Vector2 Centre(IReadOnlyList<Vector2> corners)
+    {
+        var centre = Vector2.Zero;
+        foreach (var corner in corners)
+        {
+            centre += corner;
+        }
+
+        return corners.Count == 0 ? centre : centre / corners.Count;
+    }
+
+    /// <summary>The slice of the ring a point is in: the wedge from the centre out to beam i, or -1 outside the ring.</summary>
+    public static int Slice(IReadOnlyList<Vector2> corners, Vector2 point)
+    {
+        if (!Inside(corners, point))
+            return -1;
+
+        var centre = Centre(corners);
+        var angle = MathF.Atan2(point.Y - centre.Y, point.X - centre.X);
+        for (var i = 0; i < corners.Count; i++)
+        {
+            var a = MathF.Atan2(corners[i].Y - centre.Y, corners[i].X - centre.X);
+            var b = MathF.Atan2(corners[(i + 1) % corners.Count].Y - centre.Y, corners[(i + 1) % corners.Count].X - centre.X);
+            var span = Wrap(b - a);
+            var along = Wrap(angle - a);
+            if (along >= 0f && along <= span)
+                return i;
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Whether the ring shelters a point: inside a slice whose beam stands, outside Central's own circle, or anywhere in the
+    /// ring while it is sealed. A broken beam leaves its slice open from the beam in to Central's circle, and Central itself
+    /// open too.
+    /// </summary>
+    public static bool Sheltered(IReadOnlyList<Vector2> corners, IReadOnlyList<bool> up, Vector2 point, Vector2 central, float centralRadius)
+    {
+        if (!Inside(corners, point))
+            return false;
+
+        if (Sealed(corners, up))
+            return true;
+
+        if (Vector2.Distance(point, central) <= centralRadius)
+            return false;
+
+        var slice = Slice(corners, point);
+        return slice >= 0 && slice < up.Count && up[slice];
+    }
+
+    private static float Wrap(float angle)
+    {
+        while (angle < 0f)
+            angle += MathF.Tau;
+        while (angle >= MathF.Tau)
+            angle -= MathF.Tau;
+        return angle;
+    }
+
     /// <summary>Whether a point lies inside the ring, beams up or not.</summary>
     public static bool Inside(IReadOnlyList<Vector2> corners, Vector2 point)
     {

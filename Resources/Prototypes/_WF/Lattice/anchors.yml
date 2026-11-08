@@ -341,3 +341,6 @@
     strength: 0.3
     ward: 800
   - type: WFLatticeCentralAnchor
+  # Only so a wrench can try: the attempt is refused, and answered with lightning.
+  - type: Anchorable
+    delay: 4

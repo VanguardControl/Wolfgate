@@ -104,11 +104,6 @@ public sealed partial class WFLatticeSystem
             return;
         }
 
-        // Whoever struck it directly is never forgiven: the person, and the ship they did it from.
-        comp.Grudges.Add(enemy);
-        if (_crew.Wielder(source) is var person && person != enemy && HasComp<ActorComponent>(person))
-            comp.Grudges.Add(person);
-
         comp.Hostiles[enemy] = now + TimeSpan.FromSeconds(profile.HostileSeconds);
         comp.ProvokedUntil = now + TimeSpan.FromSeconds(profile.HostileSeconds);
         // Engaged either way, so the defence pass doesn't raise a second alarm while this one's cooldown runs.
@@ -249,8 +244,7 @@ public sealed partial class WFLatticeSystem
                 CheckTrespass(uid, comp, now);
             }
 
-            comp.Grudges.RemoveWhere(g => TerminatingOrDeleted(g));
-            if (comp.Hostiles.Count == 0 && comp.Grudges.Count == 0)
+            if (comp.Hostiles.Count == 0)
             {
                 comp.Engaged = false;
                 continue;
@@ -269,45 +263,32 @@ public sealed partial class WFLatticeSystem
                 comp.Strikes.Remove(enemy);
             }
 
-            if (!TryGetProfile(uid, out var profile))
+            if (comp.Hostiles.Count == 0 || !TryGetProfile(uid, out var profile))
                 continue;
+
+            // The shield holding means the station is not yet in danger, unless something struck it directly.
+            if (now >= comp.ProvokedUntil && !ShieldDown(uid))
+            {
+                comp.Engaged = false;
+                continue;
+            }
 
             var from = _transform.GetWorldPosition(xform);
             EntityUid? target = null;
             var best = profile.DefenceRange;
-
-            // A grudge is answered shield or no shield: the person on foot, or whatever they are aboard now.
-            foreach (var grudge in comp.Grudges)
-            {
-                if (GrudgeTarget(uid, grudge) is { } carrier)
-                    Consider(carrier);
-            }
-
-            // Otherwise the shield holding means the station is not yet in danger, unless something struck it directly.
-            if (now < comp.ProvokedUntil || ShieldDown(uid))
-            {
-                foreach (var enemy in comp.Hostiles.Keys)
-                {
-                    Consider(enemy);
-                }
-            }
-
-            void Consider(EntityUid enemy)
+            foreach (var enemy in comp.Hostiles.Keys)
             {
                 var enemyXform = Transform(enemy);
                 if (enemyXform.MapUid != xform.MapUid)
-                    return;
+                    continue;
 
                 var distance = Vector2.Distance(from, _transform.GetWorldPosition(enemyXform));
                 if (distance > best || !Crewed(enemy))
-                    return;
+                    continue;
 
                 best = distance;
                 target = enemy;
             }
-
-            if (target == null)
-                comp.Engaged = false;
 
             if (target is not { } aim)
                 continue;
@@ -315,29 +296,12 @@ public sealed partial class WFLatticeSystem
             if (!comp.Engaged)
             {
                 comp.Engaged = true;
-                Alert(uid, comp, ShieldDown(uid) ? "wf-lattice-defence" : "wf-lattice-defence-grudge", aim, true);
+                Alert(uid, comp, "wf-lattice-defence", aim, true);
                 Defend(uid, aim);
             }
 
             FireLances(uid, aim);
         }
-    }
-
-    /// <summary>What to shoot for a grudge: a ship as it is, a person on foot, or the ship a person is aboard.</summary>
-    private EntityUid? GrudgeTarget(EntityUid station, EntityUid grudge)
-    {
-        if (TerminatingOrDeleted(grudge))
-            return null;
-
-        if (!HasComp<MobStateComponent>(grudge))
-            return grudge;
-
-        var grid = Transform(grudge).GridUid;
-        if (grid is { } aboard && aboard != station && !HasComp<MapComponent>(aboard)
-            && !HasComp<WFLatticeAnchorStationComponent>(aboard))
-            return aboard;
-
-        return grudge;
     }
 
     /// <summary>Names every player aboard the station to the sector, once every few minutes each.</summary>

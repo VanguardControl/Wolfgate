@@ -20,6 +20,9 @@ public sealed partial class WFLatticeSystem
 {
     [Dependency] private SharedPhysicsSystem _physics = default!;
 
+    /// <summary>Metres past Central's grid that its circle reaches, for its shield.</summary>
+    private const float CentralMargin = 60f;
+
     /// <summary>How far outside a beam a turned-back Scion is set down.</summary>
     private const float BeamMargin = 4f;
 
@@ -90,12 +93,13 @@ public sealed partial class WFLatticeSystem
         return LoadHex(map) && WFLatticeHex.Sealed(_hexCorners, _hexUp);
     }
 
-    /// <summary>Whether a point is inside a sealed hex, where no Monolith reaches.</summary>
+    /// <summary>Whether the hex shelters a point from a Monolith: in a slice whose beam stands, or anywhere while sealed.</summary>
     public bool IsShielded(MapCoordinates point)
     {
         return _maps.TryGetMap(point.MapId, out var map)
-               && IsSealed(map.Value)
-               && WFLatticeHex.Inside(_hexCorners, point.Position);
+               && TryComp<WFLatticeFieldComponent>(map, out var field)
+               && LoadHex(map.Value)
+               && WFLatticeHex.Sheltered(_hexCorners, _hexUp, point.Position, field.CentralCentre, field.CentralRadius);
     }
 
     /// <summary>Whether a thing, on a grid or loose, is inside a sealed hex; a grid goes by its centre.</summary>
@@ -125,6 +129,26 @@ public sealed partial class WFLatticeSystem
             map.Comp.HexUp = new List<bool>(_hexUp);
             map.Comp.HexNames = new List<string>(_hexNames);
             map.Comp.HexAlive = new List<bool>(_hexAlive);
+        }
+
+        // Central's circle, where a broken slice ends: its grid's box, and a margin for its shield.
+        var stations = EntityQueryEnumerator<Content.Server.Station.Components.BecomesStationComponent, MapGridComponent, TransformComponent>();
+        while (stations.MoveNext(out var stationUid, out _, out var stationGrid, out var stationXform))
+        {
+            if (stationXform.MapUid != map.Owner || !_corruption.IsMainStation(stationUid))
+                continue;
+
+            var box = stationGrid.LocalAABB;
+            var centre = Vector2.Transform(box.Center, _transform.GetWorldMatrix(stationUid));
+            var radius = box.Size.Length() / 2f + CentralMargin;
+            if (Vector2.DistanceSquared(centre, map.Comp.CentralCentre) >= 1f || MathF.Abs(radius - map.Comp.CentralRadius) >= 1f)
+            {
+                map.Comp.CentralCentre = centre;
+                map.Comp.CentralRadius = radius;
+                dirty = true;
+            }
+
+            break;
         }
 
         var central = false;

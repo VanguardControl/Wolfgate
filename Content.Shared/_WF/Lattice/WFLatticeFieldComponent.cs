@@ -47,6 +47,13 @@ public sealed partial class WFLatticeFieldComponent : Component
     [DataField, AutoNetworkedField]
     public List<bool> HexAlive = new();
 
+    /// <summary>Caelestinus Central's middle and the radius round it where a broken slice ends.</summary>
+    [DataField, AutoNetworkedField]
+    public Vector2 CentralCentre;
+
+    [DataField, AutoNetworkedField]
+    public float CentralRadius;
+
     /// <summary>Whether Caelestinus Central's own anchor stands.</summary>
     [DataField, AutoNetworkedField]
     public bool CentralStanding;

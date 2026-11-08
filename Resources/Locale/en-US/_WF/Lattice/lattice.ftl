@@ -161,10 +161,11 @@ wf-lattice-defence-under-fire = Reality anchor {$anchor} is under fire from {$at
 wf-lattice-defence = Reality anchor {$anchor}'s shield is down. Defensive protocols engaged against {$attacker}. Its drones and lances will answer.
 wf-lattice-defence-unknown = an unknown vessel
 wf-lattice-defence-struck = Reality anchor {$anchor} has been struck. Its defences are on alert.
-wf-lattice-defence-grudge = Reality anchor {$anchor} is firing on {$attacker}, who attacked it. It does not forget.
 wf-lattice-trespass = Trespasser aboard reality anchor {$anchor}: {$attacker}.
 wf-lattice-central-struck = {$attacker} is attacking Caelestinus Central's anchor.
 wf-lattice-central-struck-title = Central anchor under attack
+wf-lattice-central-tamper = {$attacker} tried to unbolt Caelestinus Central's anchor.
+wf-lattice-central-tamper-popup = The anchor lashes out at you.
 
 wf-drift-alert-name = Drift
 wf-drift-alert-desc = How far reality has slipped from you. It fills out past anchored space and drains back inside it.
@@ -294,33 +295,32 @@ cmd-wflattice-no-scion = No Scion on this sector.
 cmd-wflattice-siege-sent = Sent {$count} flesh ships.
 
 ent-WFLatticeStatusCartridge = Lattice status cartridge
-    .desc = A PDA program that reads the Lattice: the anchors, the hex field, and the band you are in.
+    .desc = A cartridge that hums faintly against the teeth. Something on it is listening to the anchors.
 ent-WFLatticeStatusConsole = Lattice status console
-    .desc = Reads the Lattice: the anchors, the hex field, Central's anchor and anything coming for them.
+    .desc = Its screen shows a ring of symbols that are never quite where you left them.
 ent-WFFlatpackLatticeStatusConsole = Lattice status console flatpack
     .desc = A flatpack for a Lattice status console.
 
 wf-lattice-status-program-name = Lattice
-wf-lattice-status-window = Lattice status
-wf-lattice-status-title = LATTICE // STATUS
-wf-lattice-status-no-signal = NO SIGNAL. There is no Lattice here.
+wf-lattice-status-window = Lattice
+wf-lattice-status-title = L A T T I C E
+wf-lattice-status-no-signal = ...nothing answers...
 wf-lattice-status-unstrung = UNSTRUNG
 wf-lattice-status-tacet = TACET
 wf-lattice-status-state = STATE
-wf-lattice-status-state-holding = Holding
-wf-lattice-status-state-failing = Failing
-wf-lattice-status-state-unstrung = The Unstringing
-wf-lattice-status-integrity = INTEGRITY
-wf-lattice-status-hex = HEX FIELD
-wf-lattice-status-hex-sealed = Sealed. Nothing of a Monolith gets in.
-wf-lattice-status-hex-broken = Breached: {$count ->
-    [one] 1 beam down
-   *[other] {$count} beams down
-}
-wf-lattice-status-central = CENTRAL ANCHOR
-wf-lattice-status-central-holding = Holding. No growth on the station.
-wf-lattice-status-central-lost = Lost
-wf-lattice-status-flesh = FLESH SHIPS
-wf-lattice-status-flesh-none = None
-wf-lattice-status-flesh-count = {$count} closing on the anchors
-wf-lattice-status-band = YOUR BAND
+wf-lattice-status-state-holding = holds
+wf-lattice-status-state-failing = slipping
+wf-lattice-status-state-unstrung = gone
+wf-lattice-status-integrity = HOLD
+wf-lattice-status-hex = RING
+wf-lattice-status-hex-sealed = closed
+wf-lattice-status-hex-broken = open {$count}
+wf-lattice-status-central = HEART
+wf-lattice-status-central-holding = still
+wf-lattice-status-central-lost = silent
+wf-lattice-status-flesh = FLESH
+wf-lattice-status-flesh-none = -
+wf-lattice-status-flesh-count = {$count}
+wf-lattice-status-band = HERE
+
+wf-coda-taboo-popup = The word catches in your throat.

@@ -83,8 +83,12 @@ public sealed class WFLatticeHexTest
             var field = entities.GetComponent<WFLatticeFieldComponent>(map.MapUid);
             Assert.That(field.HexUp.Count(up => !up), Is.EqualTo(2), "a lost anchor didn't break its two beams.");
             Assert.That(lattice.IsSealed(map.MapUid), Is.False);
-            Assert.That(lattice.IsShielded(new MapCoordinates(Vector2.Zero, map.MapId)), Is.False, "a broken hex still shelters.");
-            Assert.That(corruption.IsSanctuary(map.Grid), Is.False, "the broken hex still makes a sanctuary.");
+            // Only the broken slices open up; the rest of the ring still shelters.
+            var down = field.HexUp.IndexOf(false);
+            var up = field.HexUp.IndexOf(true);
+            Vector2 InSlice(int i) => (field.Hex[i] + field.Hex[(i + 1) % field.Hex.Count]) / 2f * 0.6f;
+            Assert.That(lattice.IsShielded(new MapCoordinates(InSlice(down), map.MapId)), Is.False, "a broken slice still shelters.");
+            Assert.That(lattice.IsShielded(new MapCoordinates(InSlice(up), map.MapId)), Is.True, "a standing slice stopped sheltering.");
             Assert.That(lattice.ScionMayJumpTo(carrier.Owner, new MapCoordinates(Vector2.Zero, map.MapId)), Is.True);
 
             var broken = field.HexUp.IndexOf(false);

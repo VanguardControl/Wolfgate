@@ -161,7 +161,7 @@ public sealed class SectorTest
             Assert.That(entMan.EntityQuery<WFRemadeComponent>(), Is.Empty);
 
             var comp = entMan.GetComponent<WFEncounterComponent>(encounter);
-            Assert.That(comp.Hidden, Is.True, "the site is on the sector map.");
+            Assert.That(comp.Hidden, Is.False, "the site has no marker on the sector map.");
             Assert.That(Collect(entMan), Is.Empty, "a dormant Scion shows on the radar.");
             Assert.That(sites.WildCount(), Is.EqualTo(1));
             Assert.That(sites.CanStartWild(0f, 0f, out _), Is.False, "a second wild Scion is allowed.");
@@ -621,7 +621,7 @@ public sealed class SectorTest
             var ships = entMan.GetComponent<WFEncounterComponent>(encounter).Ships;
             ship = ships["choir"].Grid;
             Assert.That(ships["choir"].HasOrders, Is.True);
-            Assert.That(entMan.GetComponent<WFEncounterComponent>(encounter).Hidden, Is.True);
+            Assert.That(entMan.GetComponent<WFEncounterComponent>(encounter).Hidden, Is.False);
             transforms.Unanchor(scion);
             // A player's ship takes the Scion off the hulk.
             transforms.SetCoordinates(scion, WFRemadeDirectorTest.At(map, 6, 0));

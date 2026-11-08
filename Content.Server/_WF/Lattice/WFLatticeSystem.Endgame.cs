@@ -5,7 +5,9 @@ using Content.Server.Station.Components;
 using Content.Shared._WF.Announcements;
 using Content.Shared._WF.Lattice;
 using Content.Shared.Damage;
+using Content.Shared.Construction.Components;
 using Content.Shared.Destructible;
+using Content.Shared.Popups;
 using Content.Shared.Light.Components;
 using Robust.Shared.Audio;
 using Robust.Shared.Configuration;
@@ -24,6 +26,7 @@ public sealed partial class WFLatticeSystem
 {
     [Dependency] private IConfigurationManager _config = default!;
     [Dependency] private PoweredLightSystem _lights = default!;
+    [Dependency] private Content.Server.Lightning.LightningSystem _lightning = default!;
     [Dependency] private WFCorruptionSystem _corruption = default!;
 
     private const string CentralPrototype = "WFLatticeCentralAnchor";
@@ -42,6 +45,36 @@ public sealed partial class WFLatticeSystem
         SubscribeLocalEvent<WFLatticeBreachEvent>(OnBreach);
         SubscribeLocalEvent<WFLatticeCentralAnchorComponent, DestructionEventArgs>(OnCentralDestroyed);
         SubscribeLocalEvent<WFLatticeCentralAnchorComponent, DamageChangedEvent>(OnCentralDamaged);
+        SubscribeLocalEvent<WFLatticeCentralAnchorComponent, UnanchorAttemptEvent>(OnCentralTamper);
+    }
+
+    /// <summary>When Central's anchor may next name someone tampering with it.</summary>
+    private TimeSpan _nextTamperAlert;
+
+    /// <summary>Central's anchor won't come loose: whoever tries is struck by lightning and named to the sector.</summary>
+    private void OnCentralTamper(Entity<WFLatticeCentralAnchorComponent> ent, ref UnanchorAttemptEvent args)
+    {
+        args.Cancel();
+        _lightning.ShootLightning(ent, args.User);
+        _popup.PopupEntity(Loc.GetString("wf-lattice-central-tamper-popup"), args.User, args.User, PopupType.LargeCaution);
+
+        var now = _timing.CurTime;
+        if (now < _nextTamperAlert)
+            return;
+
+        _nextTamperAlert = now + CentralAlertGap;
+        var text = Loc.GetString("wf-lattice-central-tamper", ("attacker", Name(args.User)));
+        _chat.DispatchGlobalAnnouncement(text, Loc.GetString("wf-lattice-chip-sender"), true, BreachSound, EndColor);
+        RaiseNetworkEvent(new WFAnnouncementChipEvent
+        {
+            Level = WFAnnounceChipLevel.Warning,
+            Accent = EndColor,
+            Title = Loc.GetString("wf-lattice-central-struck-title"),
+            Text = text,
+            Sender = Loc.GetString("wf-lattice-chip-sender"),
+            Duration = 20f,
+            Flash = true,
+        });
     }
 
     /// <summary>When Central's anchor may next call out an attack on it.</summary>
@@ -175,7 +208,20 @@ public sealed partial class WFLatticeSystem
         });
     }
 
-    /// <summary>Puts Caelestinus Central's anchor on the station once it exists, unless one is there already.</summary>
+    /// <summary>Where Central's anchor and status console stand on the station, as tile indices, and which way the console faces.</summary>
+    private static readonly Vector2i CentralAnchorTile = new(1, 17);
+    private static readonly Vector2i CentralConsoleTile = new(-19, -6);
+    private static readonly Direction CentralConsoleFacing = Direction.East;
+    private const string CentralConsolePrototype = "WFLatticeStatusConsole";
+
+    /// <summary>The railing that boxes the anchor in: a round one on three sides and a straight one turned to close the fourth.</summary>
+    private const string RailingRound = "RailingRound";
+    private const string Railing = "Railing";
+
+    /// <summary>
+    /// Puts Caelestinus Central's anchor, railed in, and its Lattice status console on the station once it exists, unless an
+    /// anchor is there already.
+    /// </summary>
     private void PlaceCentral(EntityUid map)
     {
         if (_central.Contains(map))
@@ -195,38 +241,16 @@ public sealed partial class WFLatticeSystem
                     return;
             }
 
-            if (FreeTileNearCentre(grid, gridComp) is not { } tile)
-            {
-                Log.Warning($"No free tile for the central anchor on {ToPrettyString(grid)}.");
-                return;
-            }
+            var anchorAt = _maps.GridTileToLocal(grid, gridComp, CentralAnchorTile);
+            Spawn(CentralPrototype, anchorAt);
+            Spawn(RailingRound, anchorAt);
+            var closing = Spawn(Railing, anchorAt);
+            _transform.SetLocalRotation(closing, Direction.North.ToAngle());
 
-            Spawn(CentralPrototype, _maps.GridTileToLocal(grid, gridComp, tile));
+            var console = Spawn(CentralConsolePrototype, _maps.GridTileToLocal(grid, gridComp, CentralConsoleTile));
+            _transform.SetLocalRotation(console, CentralConsoleFacing.ToAngle());
             return;
         }
-    }
-
-    /// <summary>The free floor tile nearest the middle of a grid.</summary>
-    private Vector2i? FreeTileNearCentre(EntityUid grid, MapGridComponent gridComp)
-    {
-        var centre = gridComp.LocalAABB.Center;
-        Vector2i? best = null;
-        var bestDistance = float.MaxValue;
-        foreach (var tile in _maps.GetAllTiles(grid, gridComp))
-        {
-            var distance = (new Vector2(tile.GridIndices.X + 0.5f, tile.GridIndices.Y + 0.5f) - centre).LengthSquared();
-            if (distance >= bestDistance || _turf.IsSpace(tile.Tile))
-                continue;
-
-            var anchored = _maps.GetAnchoredEntitiesEnumerator(grid, gridComp, tile.GridIndices);
-            if (anchored.MoveNext(out _))
-                continue;
-
-            best = tile.GridIndices;
-            bestDistance = distance;
-        }
-
-        return best;
     }
 
     private void OnCentralDestroyed(Entity<WFLatticeCentralAnchorComponent> ent, ref DestructionEventArgs args)

@@ -82,7 +82,7 @@ its Scion is quiet, and roots into small patches of corruption once its Scion re
 Matter, Flesh and Reach at full, and a sanctuary grid bars every Gift.
 
 Sector (`Sector/`). `WFRemadeDiscoveryRule`, carried by the Contested Sector and Escalation presets and gated by
-`wf.encounters.enabled` and `wf.remade.sector.enabled`, now and then starts a `wfRemadeSite`: a hidden, unlabelled hulk with a dormant
+`wf.encounters.enabled` and `wf.remade.sector.enabled`, now and then starts a `wfRemadeSite`: an unlabelled hulk, marked on the sector map, with a dormant
 Scion wrenched to its deck, bare or guarded by the Choir (`WFChoir`, friendly to the Remade, with a ship that holds beside the hulk). A
 garbled radio line gives a rough position. One wild Scion at a time, and none soon after one is lost or sold. A Scion that is moved,
 unwrenched or drawn on shows on every radar and the sector map, wider with resonance (`WFRemadeSignalSystem`); the Choir hunt the ship

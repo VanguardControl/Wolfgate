@@ -209,13 +209,16 @@ and per-band edge, Drift rate, growth with depth, chip style and garbling.
 ring; a beam stands while both its anchors do, and the hex is sealed while every beam stands. No Monolith crosses a
 standing beam inwards: whatever carries it (its ship and everything docked to it, or whoever holds it in open space) is set
 back outside and its inward speed is thrown back. A broken beam lets it through. A ship carrying a Scion can't jump inside a
-sealed hex, and one that arrives inside it by any jump is put back out. While sealed, the hex is a sanctuary: a Monolith
-can't be drawn on, grow corruption or reach anyone inside from outside it. With a Lattice the main station has no
-sanctuary of its own; once the hex breaks, everything reaches Caelestinus Central.
+sealed hex, and one that arrives inside it by any jump is put back out. Each beam has a slice of the hex, from the beam
+in to Central's circle (its grid plus 60 m). A slice whose beam stands is a sanctuary: a Monolith can't be drawn on, grow
+corruption or reach anyone in it from outside. A broken beam opens its slice, and while any beam is broken Central's
+circle is open too, so the Monolith reaches Caelestinus Central; with a Lattice the main station has no sanctuary of its own.
 
 **Wards.** Each anchor keeps corruption off grids within its `ward` (primaries 600 m, relays and station anchors
-150 m). Caelestinus Central gets its own anchor (`WFLatticeCentralAnchor`, 5,000 damage, an 800 m ward), placed on
-the free floor tile nearest the middle of the station unless one is mapped there. Destroying it is announced.
+150 m). Caelestinus Central gets its own anchor (`WFLatticeCentralAnchor`, 20,000 damage, an 800 m ward) railed in at
+tile (1, 17) and a Lattice status console at (-19, -6) facing east, unless an anchor is mapped there. Damaging it names
+the attacker to the sector; destroying it is announced. Anyone aboard an anchor station is named as a trespasser, again
+every five minutes.
 
 **Radar.** Every radar and mass scanner draws the hex (`ShuttleNavControl.Hex.cs`): violet beams, dashed red where
 broken, a faint tint inside while it is sealed, and a ring round each anchor's ward.
@@ -252,6 +255,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Content.Server/_WF/Lattice/WFCodaHazardSystem.cs`](WFCodaHazardSystem.cs)
 - [`Content.Server/_WF/Lattice/WFCodaHazardSystem.Leviathan.cs`](WFCodaHazardSystem.Leviathan.cs)
 - [`Content.Server/_WF/Lattice/WFCodaMutationSystem.cs`](WFCodaMutationSystem.cs)
+- [`Content.Server/_WF/Lattice/WFCodaTabooSystem.cs`](WFCodaTabooSystem.cs)
 - [`Content.Server/_WF/Lattice/WFDeepRisingSystem.cs`](WFDeepRisingSystem.cs)
 - [`Content.Server/_WF/Lattice/WFDriftEffectsSystem.cs`](WFDriftEffectsSystem.cs)
 - [`Content.Server/_WF/Lattice/WFDriftEffectsSystem.Lies.cs`](WFDriftEffectsSystem.Lies.cs)
@@ -320,11 +324,11 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFDriftEffectsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFDriftEffectsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFDriftMindTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFDriftMindTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeFtlTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeFtlTest.cs)
-- [`Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeGrudgeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeGrudgeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeHexTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeHexTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeShelterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeShelterTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeStationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeStationTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeTrespassTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeTrespassTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFSongExcisionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFSongExcisionTest.cs)
 
 ### Unit tests
