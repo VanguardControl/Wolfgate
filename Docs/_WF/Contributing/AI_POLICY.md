@@ -31,10 +31,4 @@ You are responsible for the licence and attribution of everything you submit.
 - Don't use AI to copy or paraphrase code or assets you don't have the rights to. Porting from another fork still needs the original licence and credit.
 - Code is under the AGPL-3.0 (see the [README](../../../README.md#license)). Don't submit generated code that you know reproduces code under an incompatible licence.
 
-## Disclosure
-
-The [PR template](../../../.github/PULL_REQUEST_TEMPLATE.md) has an **AI use** line. On PRs with a diff of more than 1,000 lines, you must disclose whether you used AI, which model and what for, in a few words.
-- For example: "Claude Opus 5.5 used for systems and tests"
-- Disclosure doesn't count against a PR. Hiding it does!
-- PRs with a diff less than 1,000 lines are exempt from this.
 

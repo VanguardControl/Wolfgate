@@ -14,10 +14,8 @@ Small fixes/refactors are exempt. Media may be used in SS14 progress reports wit
 <!-- Confirm the following by placing an X in the brackets [X]: -->
 - [ ] I have read relevant guidelines/documentation to this PR found on [our devwiki](https://monolith-station.github.io/mono-docs/).
 - [ ] I have added media to this PR or it does not require an ingame showcase.
-<!-- WOLFGATE(Contributing) START: AI checkbox and disclosure follow the Wolfgate AI policy -->
+<!-- WOLFGATE(Contributing) START: AI checkbox links the Wolfgate AI policy -->
 - [ ] This PR follows the [AI-generated content policy](https://github.com/VanguardControl/Wolfgate/blob/main/Docs/_WF/Contributing/AI_POLICY.md).
-
-**AI use:** <!-- Required if the diff is over 1,000 lines, optional otherwise: "None", or the model and what for, e.g. "Claude Opus 5.5 used for systems and tests". -->
 <!-- WOLFGATE END -->
 <!-- You should understand that not following the above may get your PR closed at maintainer’s discretion -->
 
