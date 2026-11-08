@@ -847,7 +847,6 @@ entities:
       pos: 4.5,10.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
       - 547
   - uid: 859
     components:
@@ -4523,7 +4522,6 @@ entities:
       pos: 5.5,10.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
       - 547
     - type: AtmosPipeColor
       color: '#990000FF'
