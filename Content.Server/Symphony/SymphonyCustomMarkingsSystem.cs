@@ -145,17 +145,19 @@ public sealed class SymphonyCustomMarkingsSystem : EntitySystem
     /// <summary>POST /symphony/custom-markings. Main thread.</summary>
     public async Task<SymphonyCharactersSystem.Answer> Save(NetUserId user, JsonObject? body)
     {
+        const string shape = "expected {\"id\", \"name\", \"placement\", \"art\"}";
         if (body == null
-            || body["placement"]?.GetValue<string>() is not { } placementName
+            || !TryGet<string>(body["placement"], out var placementName)
+            || placementName == null
             || !Enum.TryParse<CustomMarkingPlacement>(placementName, out var placement)
             || !Enum.IsDefined(placement))
-            return Error(HttpStatusCode.BadRequest, "bad_request", "expected {\"id\", \"name\", \"placement\", \"art\"}");
+            return Error(HttpStatusCode.BadRequest, "bad_request", shape);
 
         if (await _db.GetServerBanAsync(null, user, null, null) != null)
             return Error(HttpStatusCode.Forbidden, "banned");
 
-        var id = body["id"]?.GetValue<int>() ?? 0;
-        var name = body["name"]?.GetValue<string>() ?? string.Empty;
+        if (!TryGet<int>(body["id"], out var id) || !TryGet<string>(body["name"], out var name))
+            return Error(HttpStatusCode.BadRequest, "bad_request", shape);
 
         byte[]? pixels = null;
         int[]? times = null;
@@ -167,15 +169,25 @@ public sealed class SymphonyCustomMarkingsSystem : EntitySystem
                 return Error(HttpStatusCode.BadRequest, "invalid", "art.pixels must be base64 RGBA");
 
             if (art["frameTimes"] is JsonArray frameTimes)
-                times = frameTimes.Select(t => t?.GetValue<int>() ?? CustomMarkingRules.DefaultFrameTime).ToArray();
+            {
+                times = new int[frameTimes.Count];
+                for (var i = 0; i < times.Length; i++)
+                {
+                    if (!TryGet<int>(frameTimes[i], out var time))
+                        return Error(HttpStatusCode.BadRequest, "invalid", "art.frameTimes must be whole milliseconds");
+
+                    times[i] = frameTimes[i] == null ? CustomMarkingRules.DefaultFrameTime : time;
+                }
+            }
 
             if (!TryBase64(art["erase"], out erase))
                 return Error(HttpStatusCode.BadRequest, "invalid", "art.erase must be base64 or null");
 
-            pingPong = art["pingPong"]?.GetValue<bool>() ?? false;
+            if (!TryGet(art["pingPong"], out pingPong))
+                return Error(HttpStatusCode.BadRequest, "invalid", "art.pingPong must be true or false");
         }
 
-        var msg = new CustomMarkingSaveEvent(0, id, name, placement, pixels, times, erase, pingPong);
+        var msg = new CustomMarkingSaveEvent(0, id, name ?? string.Empty, placement, pixels, times, erase, pingPong);
         var (result, eraseDropped) = await _customMarkings.Save(user, "SSymphony", msg);
         if (result.Error != null || result.Entry is not { } row)
         {
@@ -327,6 +339,13 @@ public sealed class SymphonyCustomMarkingsSystem : EntitySystem
     }
 
     /// <summary>Reads a base64 string; JSON null reads as null bytes and succeeds.</summary>
+    /// <summary>Reads an optional JSON value of one type: missing or null gives the default, another type fails.</summary>
+    private static bool TryGet<T>(JsonNode? node, out T? value)
+    {
+        value = default;
+        return node == null || node is JsonValue json && json.TryGetValue(out value);
+    }
+
     private static bool TryBase64(JsonNode? node, out byte[]? bytes)
     {
         bytes = null;

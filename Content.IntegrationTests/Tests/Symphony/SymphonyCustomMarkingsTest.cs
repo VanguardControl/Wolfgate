@@ -65,6 +65,19 @@ public sealed class SymphonyCustomMarkingsTest
         var refused = await Run(pair, () => system.Save(user, badPlacement));
         Assert.That(refused.Code, Is.EqualTo(HttpStatusCode.BadRequest));
 
+        // A field of the wrong JSON type is a bad request, not a server error.
+        foreach (var (field, value) in new (string, JsonNode)[] { ("placement", 3), ("id", "x"), ("name", 5) })
+        {
+            var wrong = (JsonObject) body.DeepClone();
+            wrong[field] = value;
+            var answer = await Run(pair, () => system.Save(user, wrong));
+            Assert.That(answer.Code, Is.EqualTo(HttpStatusCode.BadRequest), field);
+        }
+
+        var wrongArt = (JsonObject) body.DeepClone();
+        wrongArt["art"]!["pingPong"] = "yes";
+        Assert.That((await Run(pair, () => system.Save(user, wrongArt))).Code, Is.EqualTo(HttpStatusCode.BadRequest));
+
         var id = entry["id"]!.GetValue<int>();
         var deleted = await Run(pair, () => system.Delete(user, id));
         Assert.That(deleted.Code, Is.EqualTo(HttpStatusCode.NoContent));

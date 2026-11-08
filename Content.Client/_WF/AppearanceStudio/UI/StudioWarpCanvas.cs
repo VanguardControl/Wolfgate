@@ -122,32 +122,31 @@ public sealed class StudioWarpCanvas : Control
     {
         base.Draw(handle);
 
-        handle.DrawRect(PixelSizeBox, Backdrop);
-        var cell = PixelSize.X / Size;
+        var side = Side;
+        var cell = side / Size;
+        var shift = Shift * cell;
+        handle.DrawRect(UIBox2.FromDimensions(Vector2.Zero, new Vector2(side)), Backdrop);
 
         if (Body != null)
-            CustomMarkingCanvas.DrawBody(handle, Body, Facing, 0, int.MaxValue, PixelSize, leftOut: ItemLayers);
+            CustomMarkingCanvas.DrawBody(handle, Body, Facing, 0, int.MaxValue, new Vector2(side), leftOut: ItemLayers);
 
         if (_textureStale)
             RebuildTexture();
 
         if (_texture != null)
-        {
-            var shift = new Vector2(ItemOffset.X, -ItemOffset.Y) * cell;
-            handle.DrawTextureRect(_texture, UIBox2.FromDimensions(shift, PixelSize));
-        }
+            handle.DrawTextureRect(_texture, UIBox2.FromDimensions(shift, new Vector2(side)));
 
         for (var y = 0; y < Size; y++)
         {
             for (var x = 0; x < Size; x++)
             {
                 if (_warp.Cut[StudioWarp.Index(Facing, x, y)])
-                    handle.DrawRect(UIBox2.FromDimensions(new Vector2(x, y) * cell, new Vector2(cell)), CutTint);
+                    handle.DrawRect(UIBox2.FromDimensions(new Vector2(x, y) * cell + shift, new Vector2(cell)), CutTint);
             }
         }
 
         if (_hover is { } hover)
-            handle.DrawCircle(hover * cell, Radius * cell, BrushLine, false);
+            handle.DrawCircle(hover * cell + shift, Radius * cell, BrushLine, false);
     }
 
     private void RebuildTexture()
@@ -181,9 +180,16 @@ public sealed class StudioWarpCanvas : Control
         _texture = _clyde.LoadTextureFromImage(image, "wf-studio-warp");
     }
 
+    /// <summary>The square the art is drawn in: the smaller side of the control.</summary>
+    private float Side => Math.Max(1, Math.Min(PixelSize.X, PixelSize.Y));
+
+    /// <summary>The item's offset in art pixels, image y down.</summary>
+    private Vector2 Shift => new(ItemOffset.X, -ItemOffset.Y);
+
+    /// <summary>The art pixel under a control position, undoing the item's offset.</summary>
     private Vector2 PixelAt(Vector2 position)
     {
-        return position / (PixelSize.X / Size);
+        return position / (Side / Size) - Shift;
     }
 
     protected override void KeyBindDown(GUIBoundKeyEventArgs args)
