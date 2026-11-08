@@ -2,7 +2,7 @@ namespace Content.Shared.Symphony;
 
 /// <summary>
 /// The contract between this build and the SSymphony panel. Bump <see cref="ModuleVersion"/> whenever the status
-/// field, the refusal keys, the use of the link ticket table, the feedback table or the /symphony endpoints change;
+/// field, the refusal keys, the use of the link ticket table, the feedback table, the census tables or the /symphony endpoints change;
 /// the panel then says which half is behind.
 /// </summary>
 public static class SharedSymphony
@@ -25,11 +25,13 @@ public static class SharedSymphony
     /// needs, for the panel's staff handbook. Version 11 added /symphony/lobby/shenanigans, which sets a lobby shenanigan
     /// off for every client, and the list of them in /symphony/lobby. Version 12 added {"clear": true} there, which takes
     /// them all away. Version 13 added stealth to each player in /symphony/players, so the panel can count the staff on
-    /// for players without giving a stealthed admin away. Version 14 added the web character creator: /symphony/characters
-    /// (list, save, validate) and /symphony/creator/catalog, /rsi and /art. Version 15 added /symphony/custom-markings
-    /// (the custom marking library: list, save, delete) and /symphony/studio/warps.
+    /// for players without giving a stealthed admin away. Version 16 added the census: wolfgate_census and
+    /// wolfgate_census_response, which the panel reads, and /symphony/census, /symphony/census/delete. Version 17 added
+    /// the web character creator: /symphony/characters (list, save, validate) and /symphony/creator/catalog, /rsi and
+    /// /art. Version 18 added /symphony/custom-markings (the custom marking library: list, save, delete) and
+    /// /symphony/studio/warps.
     /// </summary>
-    public const int ModuleVersion = 15;
+    public const int ModuleVersion = 18;
 
     /// <summary>
     /// Key of the one-time Discord link URL in a whitelist refusal's structured properties.

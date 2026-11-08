@@ -174,6 +174,9 @@ takes it from there. It flies in a cavern too, and up or down through a hole in 
 ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpackSystem` (shared) decides where it lights and refuels it,
 `WFAtmosphericJetpackFuelSystem` burns the fuel. John Wolfgate stocks it.
 
+Wings and other z-flight (Avali, moths) don't work in orbit either: `WFOrbitFlightSystem` refuses take-off on an orbit
+layer and stops a flyer that reaches one, since flying between orbit and the air layer below desynced the flyer.
+
 A world's standing water comes as lakes and ponds a few dozen tiles across at most, never seas (`PlanetLakeTest`).
 `BiomeSystem.WfIsWater` says whether the biome grows water on a tile from its recipe alone, before the ground exists, so
 the PlanetPois placement keeps sites, roads and camps out of it.
@@ -364,6 +367,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Shared/_WF/Planets/Flight/WFLandingThrusterComponent.cs`](../../../Content.Shared/_WF/Planets/Flight/WFLandingThrusterComponent.cs)
 - [`Content.Shared/_WF/Planets/Flight/WFLiftLostComponent.cs`](../../../Content.Shared/_WF/Planets/Flight/WFLiftLostComponent.cs)
 - [`Content.Shared/_WF/Planets/Flight/WFLiftoffAttemptEvent.cs`](../../../Content.Shared/_WF/Planets/Flight/WFLiftoffAttemptEvent.cs)
+- [`Content.Shared/_WF/Planets/Flight/WFOrbitFlightSystem.cs`](../../../Content.Shared/_WF/Planets/Flight/WFOrbitFlightSystem.cs)
 - [`Content.Shared/_WF/Planets/Forecast/WFWeatherForecast.cs`](../../../Content.Shared/_WF/Planets/Forecast/WFWeatherForecast.cs)
 - [`Content.Shared/_WF/Planets/Jetpack/WFAtmosphericJetpackComponent.cs`](../../../Content.Shared/_WF/Planets/Jetpack/WFAtmosphericJetpackComponent.cs)
 - [`Content.Shared/_WF/Planets/Jetpack/WFAtmosphericJetpackSystem.cs`](../../../Content.Shared/_WF/Planets/Jetpack/WFAtmosphericJetpackSystem.cs)
@@ -816,6 +820,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Server/Pinpointer/PinpointerSystem.cs`](../../Pinpointer/PinpointerSystem.cs)
   - a hop moves the pinpointer's map like a jump
   - pinpointers find their target again after a hop
+- [`Content.Server/Salvage/RestrictedRangeSystem.cs`](../../Salvage/RestrictedRangeSystem.cs): one fixture per edge, not one chain fixture with many child edges
 - [`Content.Server/Shuttles/Systems/ShuttleSystem.FasterThanLight.cs`](../../Shuttles/Systems/ShuttleSystem.FasterThanLight.cs)
   - a hull mid-hop can't jump, nor can a ship docked to one
   - the docking branch never calls TrySetupFTL, so it asks the same gate.
@@ -836,6 +841,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
   - a ghost never sticks to stairs or stays between levels
   - a thrown body stays InAir until the throw lands, or friction eats a jump at once.
 - [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.WallCollision.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.WallCollision.cs): retain the contacted obstacle for crash ploughing.
+- [`Content.Shared/_CE/ZLevels/Flight/CESharedZFlightSystem.Controllable.cs`](../../../Content.Shared/_CE/ZLevels/Flight/CESharedZFlightSystem.Controllable.cs): a refused take-off (orbit) must not leave the preventive visuals running
 - [`Content.Shared/_CE/ZLevels/Throwing/CEZLevelThrowingSystem.cs`](../../../Content.Shared/_CE/ZLevels/Throwing/CEZLevelThrowingSystem.cs): a throw only has an arc where there are levels to arc through.
 - [`Content.Shared/_Mono/ForceParent/ForceParentSystem.cs`](../../../Content.Shared/_Mono/ForceParent/ForceParentSystem.cs): the pin isn't networked, so a client applying a body's state must not re-parent it to nothing.
 - [`Content.Shared/CCVar/CCVars.Game.cs`](../../../Content.Shared/CCVar/CCVars.Game.cs): defaults to MonoStandard (was nfpirate), whose round start spawns the star system.

@@ -17,6 +17,9 @@ The hooks for the SSymphony panel. It is the one module outside `_WF`: its files
   `/symphony/feedback/status` sets a report's status and message and tells its player in game;
   `/symphony/feedback/refresh` does the telling after the panel wrote the row itself. The table, the context JSON and
   both calls are laid out in the [Feedback module](../_WF/Feedback/README.md).
+- Censuses: the panel reads `wolfgate_census` and `wolfgate_census_response`, lists and saves censuses through
+  `/symphony/census` (GET and POST) and deletes one through `/symphony/census/delete`; opening one tells the players
+  online. Laid out in the [Census module](../_WF/Census/README.md).
 - `/status` reports the hook version, the round clock and the test merges the build carries (`SymphonyTestMerges`,
   read from `Resources/Symphony/testmerges.json`, which `Tools/_WF/Ci/test_merge.py` writes). On a test merge build,
   `SymphonyTestMergeSystem` also announces the merged pull requests at round start and to each player joining the
@@ -24,11 +27,11 @@ The hooks for the SSymphony panel. It is the one module outside `_WF`: its files
 - Whitelist by Discord: with `symphony.url` set, a player the whitelist turns away gets a one-time link ticket, and
   the launcher's connect-failed screen shows Link Discord and Copy link buttons. A revoke is re-checked on reconnect.
 
-- Web character creator (hook version 14): `/symphony/characters` and `/symphony/creator/*`, laid out below; version
-  15 added the custom marking library (`/symphony/custom-markings`) and studio warps (`/symphony/studio/warps`).
+- Web character creator (hook version 17): `/symphony/characters` and `/symphony/creator/*`, laid out below; version
+  18 added the custom marking library (`/symphony/custom-markings`) and studio warps (`/symphony/studio/warps`).
 
 `SharedSymphony.ModuleVersion` is the contract version; bump it when the status field, the refusal keys, the link
-ticket table, the feedback table or any of the endpoints change.
+ticket table, the feedback table, the census tables or any of the endpoints change.
 
 ## Web character creator
 
@@ -56,7 +59,7 @@ Send profiles back in the same shape; a field left out takes its default. `sex` 
 
 ### GET /symphony/characters?user=&lt;guid&gt;
 
-`200 {"symphony_module": 15, "user": "<guid>", "online": bool, "selected": int, "max_slots": int, "slots": [{"slot": int, "etag": "<16 hex>", "profile": {...}}]}`.
+`200 {"symphony_module": 18, "user": "<guid>", "online": bool, "selected": int, "max_slots": int, "slots": [{"slot": int, "etag": "<16 hex>", "profile": {...}}]}`.
 Empty slots are left out. `online` says the player is connected; their live preferences are read then, else the
 stored ones. `404 no_preferences`: the account never played on this server.
 
@@ -131,7 +134,7 @@ and `X-Ping-Pong: 1`. `&part=erase` returns the art's 512-byte erase mask (`appl
 the item's pixel at `(x + dx, y + dy)` inside the item's own 32x32 frame. `404 missing` when there is none or an admin
 blocked it.
 
-### Custom marking library and studio warps (hook 15)
+### Custom marking library and studio warps (hook 18)
 
 The game never reads an image a player made: the browser decodes the PNG or canvas and sends raw RGBA as base64, and
 the game checks the size, hashes the pixels and encodes the PNG itself, as its own editor's save does. Uploads are
@@ -175,6 +178,7 @@ changes nothing; to remove a warp, save the tweak with `warp` null), `403 banned
 - [`Content.Server/Connection/ConnectionManager.Symphony.cs`](../Connection/ConnectionManager.Symphony.cs)
 - [`Content.Server/GameTicking/GameTicker.Symphony.cs`](../GameTicking/GameTicker.Symphony.cs)
 - [`Content.Server/Symphony/SymphonyApi.cs`](SymphonyApi.cs)
+- [`Content.Server/Symphony/SymphonyCensusSystem.cs`](SymphonyCensusSystem.cs)
 - [`Content.Server/Symphony/SymphonyCharactersSystem.cs`](SymphonyCharactersSystem.cs)
 - [`Content.Server/Symphony/SymphonyCommandsSystem.cs`](SymphonyCommandsSystem.cs)
 - [`Content.Server/Symphony/SymphonyCreatorSystem.cs`](SymphonyCreatorSystem.cs)
