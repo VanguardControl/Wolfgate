@@ -119,7 +119,7 @@ public sealed class SymphonyCharactersTest
     /// <summary>Starts an endpoint's work on the main thread and ticks the server until it is answered.</summary>
     private static async Task<SymphonyCharactersSystem.Answer> Run(TestPair pair, Func<Task<SymphonyCharactersSystem.Answer>> work)
     {
-        Task<SymphonyCharactersSystem.Answer>? task = null;
+        Task<SymphonyCharactersSystem.Answer> task = null;
         await pair.Server.WaitPost(() => task = work());
         for (var i = 0; i < 600 && !task!.IsCompleted; i++)
         {
