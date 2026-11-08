@@ -38,6 +38,12 @@ about what a character may be is applied here, as in the game's creator. All rou
 `authorization: SS14Token <admin.api_token>` (401 otherwise). Errors are JSON `{"error": "<code>", "detail": "..."}`;
 a bare 404 means an older build without the route.
 
+### Limits on requests
+
+Save and validate bodies are at most 262144 bytes (256 KiB), art and warp bodies at most 1048576 (1 MiB); bigger
+answers `413 too_large`. JSON nesting is capped at 64. One save or validate per account runs at a time; another one
+while it runs answers `429 busy`. Reading the profile happens off the game thread; checking and saving it on it.
+
 ### Profiles as JSON
 
 A profile is `HumanoidCharacterProfile` as the game's serializer writes it: the `profile:` mapping of the creator's
@@ -60,14 +66,16 @@ Body `{"etag": "<from GET, null for an empty slot>", "profile": {...}}`. Answers
 `200 {"slot", "etag", "profile", "kept": [...]}` with the profile as the game cleaned and stored it. `kept` names the
 fields held at their stored values: always `bankBalance`, `persistentData` and `augments`, plus `studioTweaks` and
 `customMarkings` for a player with the `WFAppearanceStudio` feature ban. A connected player's creator is sent the
-change. Errors: `409 stale` with `"current"` (the slot as stored, or null) when the etag no longer matches;
+change. `dropped_art` lists custom marking and warp hashes taken off because the server doesn't hold the art or an
+admin blocked it. For an account that isn't connected, loadout job requirements are checked against its stored play
+times, and loadouts it hasn't earned are taken off (as the game does for a connected player). Errors: `409 stale` with `"current"` (the slot as stored, or null) when the etag no longer matches;
 `400 bad_slot`, `400 bad_request`, `400 bad_profile` (with the reader's message); `403 banned` (an active server ban);
 `404 no_preferences`.
 
 ### POST /symphony/characters/validate?user=&lt;guid&gt;[&slot=&lt;int&gt;]
 
-Body `{"profile": {...}}`; `200 {"profile": {...}}`, cleaned as a save would be and not stored. Pass `slot` to
-hold the same fields a save to that slot would hold (bank, persistent data, augments, and the studio fields under a
+Body `{"profile": {...}}`; `200 {"profile": {...}, "dropped_art": [...]}`, cleaned as a save would be and not stored. Pass `slot` to
+hold the same fields a save to that slot would hold (bank, persistent data, augments, and the studio fields under a
 feature ban); without it they take their defaults.
 
 ### GET /symphony/creator/catalog[?version=&lt;v&gt;]
@@ -79,7 +87,7 @@ version; a matching `If-None-Match` or `?version=` gets `304`.
 - `limits`: `studio {enabled, maxOffset, minScale, maxScale, warps}` and
   `customMarkings {enabled, maxWorn, maxFrames, eraseBody, bodyReach}`.
 - `layers`: the `HumanoidVisualLayers` names in enum order.
-- `dolls`: `{"<species>": {"prototype": "<entity>", "layers": [...]}}`, the doll entity's Sprite layers after
+- `dolls`: `{"<species>": {"prototype": "<doll entity>", "mob": "<species mob entity>", "layers": [...]}}`, the doll entity's Sprite layers after
   inheritance in draw order (first is the bottom), raw. Body layers are mapped by `HumanoidVisualLayers` names,
   clothing slots by bookmark keys such as `jumpsuit` and `head`.
 - `prototypes`: `{"<kind>": {"<id>": <raw YAML mapping as written>}}` for `species`, `speciesBaseSprites`,
@@ -90,8 +98,11 @@ version; a matching `If-None-Match` or `?version=` gets `304`.
   names from, and `entity`: the dolls and every entity a loadout
   or starting gear names, with their parents' components merged in (a component's fields override its parent's)
   and cut to `id`, `parent`, `name` and their Sprite, Clothing, Item, Inventory (slots and displacement maps),
-  Hands, Vocal and TypingIndicator components.
-- `names`: localised names by kind (`species`, `marking`, `trait`, `job`, `entity`).
+  Hands, Vocal, TypingIndicator and Speech components. Species mobs are included for their default voice, message
+  sound and typing bubble; `emoteSounds` is sent as a kind too.
+- `names`: localised names by kind: `species`, `marking`, `trait`, `job`, `entity`, and from each prototype's own name
+  field `department`, `traitCategory`, `wfChatFont`, `wfMessageSound`, `emoteVoice`, `speechSounds`, `genitalShape`,
+  `customJobTitle`, `wfLegStyle` and `typingIndicator`.
 - `rsis`: every `.rsi` directory the catalog names, relative to `/Textures`.
 
 Drawing a body as the game does (`Content.Client/Humanoid/HumanoidAppearanceSystem.cs`): each layer of
@@ -115,7 +126,8 @@ file from its own checkout of the fork, still limited to the catalog's `rsis`.
 Custom marking and studio warp art as `image/png`, 64 pixels wide and laid out like an RSI: 32x32 cells two to a row,
 cell `facing * frames + frame` with facings south, north, east, west. Still art is south and north on the top row,
 east and west below. Animated art adds `X-Frame-Times` (milliseconds, comma separated)
-and `X-Ping-Pong: 1`. A warp is linear data: red `128 + dx`, green `128 - dy` (image y down), alpha 0 cuts; it draws
+and `X-Ping-Pong: 1`. `&part=erase` returns the art's 512-byte erase mask (`application/octet-stream`) instead, or
+`404 no_erase` when it has none. A warp is linear data: red `128 + dx`, green `128 - dy` (image y down), alpha 0 cuts; it draws
 the item's pixel at `(x + dx, y + dy)` inside the item's own 32x32 frame. `404 missing` when there is none or an admin
 blocked it.
 

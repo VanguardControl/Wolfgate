@@ -73,8 +73,8 @@ public sealed class SymphonyCustomMarkingsSystem : EntitySystem
             }
             else if (path == LibraryPath && method == HttpMethod.Post)
             {
-                var body = await ReadBody(context);
-                answer = await await _tasks.OnMainThread(() => Save(user, body));
+                var (body, tooLarge) = await SymphonyApi.ReadJsonBodyAsync(context, MaxBodyBytes);
+                answer = tooLarge ? TooLarge() : await await _tasks.OnMainThread(() => Save(user, body));
             }
             else if (path == LibraryPath && method == HttpMethod.Delete)
             {
@@ -88,8 +88,8 @@ public sealed class SymphonyCustomMarkingsSystem : EntitySystem
             }
             else if (path == WarpsPath && method == HttpMethod.Post)
             {
-                var body = await ReadBody(context);
-                answer = await await _tasks.OnMainThread(() => SaveWarp(user, body));
+                var (body, tooLarge) = await SymphonyApi.ReadJsonBodyAsync(context, MaxBodyBytes);
+                answer = tooLarge ? TooLarge() : await await _tasks.OnMainThread(() => SaveWarp(user, body));
             }
             else
             {
@@ -111,16 +111,12 @@ public sealed class SymphonyCustomMarkingsSystem : EntitySystem
         return true;
     }
 
-    private static async Task<JsonObject?> ReadBody(IStatusHandlerContext context)
+    /// <summary>Largest art or warp body accepted, in bytes: 32 frames of art is 512 KB raw, about 700 KB in base64.</summary>
+    public const int MaxBodyBytes = 1024 * 1024;
+
+    private static SymphonyCharactersSystem.Answer TooLarge()
     {
-        try
-        {
-            return await JsonNode.ParseAsync(context.RequestBody) as JsonObject;
-        }
-        catch (Exception)
-        {
-            return null;
-        }
+        return Error(HttpStatusCode.RequestEntityTooLarge, "too_large", $"at most {MaxBodyBytes} bytes");
     }
 
     /// <summary>GET /symphony/custom-markings. Main thread.</summary>

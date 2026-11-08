@@ -42,6 +42,33 @@ public static class SymphonyApi
     }
 
     /// <summary>
+    /// Reads a JSON object body of at most <paramref name="limit"/> bytes. Too large stops reading at the limit and
+    /// says so; anything that isn't a JSON object reads as null. Depth is capped by the parser's default (64).
+    /// </summary>
+    public static async Task<(System.Text.Json.Nodes.JsonObject? Body, bool TooLarge)> ReadJsonBodyAsync(IStatusHandlerContext context, int limit)
+    {
+        using var buffer = new System.IO.MemoryStream();
+        var chunk = new byte[16 * 1024];
+        int read;
+        while ((read = await context.RequestBody.ReadAsync(chunk)) > 0)
+        {
+            if (buffer.Length + read > limit)
+                return (null, true);
+
+            buffer.Write(chunk, 0, read);
+        }
+
+        try
+        {
+            return (System.Text.Json.Nodes.JsonNode.Parse(buffer.ToArray()) as System.Text.Json.Nodes.JsonObject, false);
+        }
+        catch (Exception)
+        {
+            return (null, false);
+        }
+    }
+
+    /// <summary>
     /// Runs the work on the main thread and hands its result, or its exception, back to the calling thread. The
     /// continuation is queued rather than run inline, so the caller's response writing never rides the game loop.
     /// </summary>

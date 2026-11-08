@@ -71,6 +71,28 @@ public sealed class SymphonyCharactersTest
         var stranger = await Run(pair, () => system.List(new NetUserId(Guid.NewGuid())));
         Assert.That(stranger.Code, Is.EqualTo(HttpStatusCode.NotFound), "an account that never played has nothing to edit");
 
+        // Art the server doesn't hold is taken off on save.
+        var bogus = new string('e', 64);
+        var withArt = (JsonObject) save.Body["profile"]!.DeepClone();
+        withArt["customMarkings"] = new JsonArray(new JsonObject { ["hash"] = bogus, ["placement"] = "Skin" });
+        var artSave = await Run(pair, () => system.Save(user, slotIndex, new JsonObject { ["etag"] = save.Body["etag"]!.GetValue<string>(), ["profile"] = withArt }));
+        Assert.That(artSave.Code, Is.EqualTo(HttpStatusCode.OK), artSave.Body.ToJsonString());
+        Assert.That(artSave.Body["dropped_art"]!.AsArray().Select(h => h!.GetValue<string>()), Does.Contain(bogus));
+        Assert.That(artSave.Body["profile"]!["customMarkings"]!.AsArray(), Is.Empty);
+
+        // An offline account saves through the offline path: stored play times, straight to the database.
+        var offline = new NetUserId(Guid.NewGuid());
+        await pair.Server.ResolveDependency<Content.Server.Database.IServerDbManager>().InitPrefsAsync(offline, HumanoidCharacterProfile.DefaultWithSpecies(), default);
+        var offlineList = await Run(pair, () => system.List(offline));
+        Assert.That(offlineList.Body["online"]!.GetValue<bool>(), Is.False);
+        var offlineSlot = offlineList.Body["slots"]!.AsArray()[0]!;
+        var offlineProfile = (JsonObject) offlineSlot["profile"]!.DeepClone();
+        offlineProfile["name"] = "Offline Edit";
+        var offlineSave = await Run(pair, () => system.Save(offline, offlineSlot["slot"]!.GetValue<int>(),
+            new JsonObject { ["etag"] = offlineSlot["etag"]!.GetValue<string>(), ["profile"] = offlineProfile }));
+        Assert.That(offlineSave.Code, Is.EqualTo(HttpStatusCode.OK), offlineSave.Body.ToJsonString());
+        Assert.That(offlineSave.Body["profile"]!["name"]!.GetValue<string>(), Is.EqualTo("Offline Edit"));
+
         await pair.CleanReturnAsync();
     }
 
@@ -104,6 +126,11 @@ public sealed class SymphonyCharactersTest
             // The doll keeps its inventory, which carries the species' displacement maps.
             var doll = json["prototypes"]!["entity"]![json["dolls"]!["Human"]!["prototype"]!.GetValue<string>()]!;
             Assert.That(doll["components"]!.AsArray().Any(c => c!["type"]!.GetValue<string>() == "Inventory"), Is.True);
+
+            // The species mob carries the default voice and typing bubble.
+            var mob = json["prototypes"]!["entity"]![json["dolls"]!["Human"]!["mob"]!.GetValue<string>()]!;
+            Assert.That(mob["components"]!.AsArray().Any(c => c!["type"]!.GetValue<string>() == "Vocal"), Is.True);
+            Assert.That(json["names"]!["department"]!.AsObject().Count, Is.GreaterThan(0));
 
             // Every RSI it names is one the game has, so the web can fetch it.
             var resources = server.ResolveDependency<IResourceManager>();

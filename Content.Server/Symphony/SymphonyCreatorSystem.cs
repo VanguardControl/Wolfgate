@@ -47,6 +47,8 @@ public sealed class SymphonyCreatorSystem : EntitySystem
         "Sprite", "Clothing", "Item",
         // On dolls: slots and their displacement maps, hand displacement, voice and typing indicator.
         "Inventory", "Hands", "Vocal", "TypingIndicator",
+        // On species mobs: the default voice, message sound and typing bubble.
+        "Speech",
     };
 
     /// <summary>Further kinds the creator offers, by YAML name, each sent whole.</summary>
@@ -54,7 +56,7 @@ public sealed class SymphonyCreatorSystem : EntitySystem
     {
         "job", "department", "traitCategory", "customJobTitle",
         "genitalShape", "genitalSettings", "genitalPreset", "genitalSheath",
-        "wfMessageSound", "emoteVoice", "speechSounds", "wfChatFont", "typingIndicator", "wfLegStyle",
+        "wfMessageSound", "emoteVoice", "emoteSounds", "speechSounds", "wfChatFont", "typingIndicator", "wfLegStyle",
     };
 
     private static readonly ResPath TextureRoot = new("/Textures");
@@ -118,7 +120,7 @@ public sealed class SymphonyCreatorSystem : EntitySystem
                     await RespondRsi(context, catalog, query["path"]);
                     break;
                 default:
-                    await RespondArt(context, query["hash"]);
+                    await RespondArt(context, query["hash"], query["part"] == "erase");
                     break;
             }
         }
@@ -195,11 +197,25 @@ public sealed class SymphonyCreatorSystem : EntitySystem
         await context.RespondAsync(bytes, HttpStatusCode.OK, file == "meta.json" ? "application/json" : "image/png");
     }
 
-    private async Task RespondArt(IStatusHandlerContext context, string? hash)
+    private async Task RespondArt(IStatusHandlerContext context, string? hash, bool erase)
     {
         if (!CustomMarkingRules.IsValidHash(hash) || await _db.GetCustomMarkingArtAsync(hash!) is not { } art)
         {
             await context.RespondJsonAsync(SymphonyJson.Error("missing"), HttpStatusCode.NotFound);
+            return;
+        }
+
+        // ?part=erase: the art's erase mask, 512 bytes, so the web editor can open art without losing it.
+        if (erase)
+        {
+            if (art.Erase is not { Length: CustomMarkingRules.EraseBytes } mask)
+            {
+                await context.RespondJsonAsync(SymphonyJson.Error("no_erase"), HttpStatusCode.NotFound);
+                return;
+            }
+
+            context.ResponseHeaders["ETag"] = $"\"{hash}-erase\"";
+            await context.RespondAsync(mask, HttpStatusCode.OK, "application/octet-stream");
             return;
         }
 
@@ -284,9 +300,12 @@ public sealed class SymphonyCreatorSystem : EntitySystem
                 continue;
 
             entities[species.DollPrototype.Id] = TrimEntity(doll);
+            if (ResolveEntity(species.Prototype.Id, resolved) is { } mob)
+                entities[species.Prototype.Id] = TrimEntity(mob);
             dolls[species.ID] = new JsonObject
             {
                 ["prototype"] = species.DollPrototype.Id,
+                ["mob"] = species.Prototype.Id,
                 ["layers"] = SpriteLayers(doll),
             };
         }
@@ -297,6 +316,11 @@ public sealed class SymphonyCreatorSystem : EntitySystem
         names["marking"] = NamesOf<MarkingPrototype>(p => Loc.TryGetString($"marking-{p.ID}", out var n) ? n : p.ID);
         names["trait"] = NamesOf<TraitPrototype>(p => Loc.GetString(p.Name));
         names["job"] = NamesOf<JobPrototype>(p => p.LocalizedName);
+        foreach (var kind in new[] { "department", "traitCategory", "wfChatFont", "wfMessageSound", "emoteVoice", "speechSounds", "genitalShape", "customJobTitle", "wfLegStyle", "typingIndicator" })
+        {
+            if (prototypes[kind] is JsonObject entries)
+                names[kind] = NamesFromMappings(entries);
+        }
         names["entity"] = new JsonObject(entities.Select(e =>
             new KeyValuePair<string, JsonNode?>(e.Key, _proto.TryIndex<EntityPrototype>(e.Key, out var ent) ? ent.Name : e.Key)));
 
@@ -476,6 +500,19 @@ public sealed class SymphonyCreatorSystem : EntitySystem
             else
                 target[key] = value?.DeepClone();
         }
+    }
+
+    /// <summary>Localised names from each prototype's own name field (a locale id or plain text); the id where it has none.</summary>
+    private JsonObject NamesFromMappings(JsonObject entries)
+    {
+        var names = new JsonObject();
+        foreach (var (id, mapping) in entries)
+        {
+            var name = mapping?["name"] is JsonValue value && value.TryGetValue<string>(out var text) ? text : null;
+            names[id] = name != null && Loc.TryGetString(name, out var localised) ? localised : name ?? id;
+        }
+
+        return names;
     }
 
     /// <summary>An entity's mapping with only its id, parent, name and the components that draw it.</summary>
