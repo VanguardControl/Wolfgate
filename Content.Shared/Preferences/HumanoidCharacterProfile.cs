@@ -305,7 +305,7 @@ namespace Content.Shared.Preferences
             HeadshotUrl = other.HeadshotUrl; // WOLFGATE(Headshot)
             MismatchedParts = other.MismatchedParts; // WOLFGATE(Species)
             CustomMarkings = new(other.CustomMarkings); // WOLFGATE(CustomMarkings)
-            StudioTweaks = other.StudioTweaks.Select(t => t.Clone()).ToList(); // WOLFGATE(AppearanceStudio)
+            StudioTweaks = _WF.AppearanceStudio.StudioRules.Copy(other.StudioTweaks); // WOLFGATE(AppearanceStudio): null-tolerant, EnsureValid cleans it
             LegStance = other.LegStance; // WOLFGATE(LegStyle)
             Biotype = other.Biotype; // WOLFGATE(Biotype)
             Augments = new(other.Augments); // WOLFGATE(Augments)
@@ -348,7 +348,7 @@ namespace Content.Shared.Preferences
             HeadshotUrl = other.HeadshotUrl; // WOLFGATE(Headshot)
             MismatchedParts = other.MismatchedParts; // WOLFGATE(Species)
             CustomMarkings = new(other.CustomMarkings); // WOLFGATE(CustomMarkings)
-            StudioTweaks = other.StudioTweaks.Select(t => t.Clone()).ToList(); // WOLFGATE(AppearanceStudio)
+            StudioTweaks = _WF.AppearanceStudio.StudioRules.Copy(other.StudioTweaks); // WOLFGATE(AppearanceStudio): null-tolerant, EnsureValid cleans it
             LegStance = other.LegStance; // WOLFGATE(LegStyle)
             Biotype = other.Biotype; // WOLFGATE(Biotype)
             Augments = new(other.Augments); // WOLFGATE(Augments)

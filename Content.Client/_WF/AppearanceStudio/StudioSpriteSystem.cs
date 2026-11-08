@@ -62,6 +62,8 @@ public sealed class StudioSpriteSystem : EntitySystem
 
     private int _previewCount;
 
+    private readonly List<(EntityUid, StudioTarget, string)> _staleWarps = new();
+
     /// <summary>What the studio applied to one entity's layers.</summary>
     private sealed class Placed
     {
@@ -190,6 +192,32 @@ public sealed class StudioSpriteSystem : EntitySystem
             if (!Exists(uid))
                 _gone.Add(uid);
         }
+
+        // Preview dolls are respawned often and may never be placed; drop what they left behind.
+        foreach (var uid in _previewFacing.Keys)
+        {
+            if (!Exists(uid))
+                _gone.Add(uid);
+        }
+
+        foreach (var uid in _previewHeld.Keys)
+        {
+            if (!Exists(uid))
+                _gone.Add(uid);
+        }
+
+        foreach (var key in _previewWarps.Keys)
+        {
+            if (!Exists(key.Item1))
+                _staleWarps.Add(key);
+        }
+
+        foreach (var key in _staleWarps)
+        {
+            SetPreviewWarp(key.Item1, key.Item2, key.Item3, null);
+        }
+
+        _staleWarps.Clear();
 
         foreach (var uid in _gone)
         {

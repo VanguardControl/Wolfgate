@@ -50,7 +50,7 @@ Send profiles back in the same shape; a field left out takes its default. `sex` 
 
 ### GET /symphony/characters?user=&lt;guid&gt;
 
-`200 {"symphony_module": 14, "user": "<guid>", "online": bool, "selected": int, "max_slots": int, "slots": [{"slot": int, "etag": "<16 hex>", "profile": {...}}]}`.
+`200 {"symphony_module": 15, "user": "<guid>", "online": bool, "selected": int, "max_slots": int, "slots": [{"slot": int, "etag": "<16 hex>", "profile": {...}}]}`.
 Empty slots are left out. `online` says the player is connected; their live preferences are read then, else the
 stored ones. `404 no_preferences`: the account never played on this server.
 
@@ -190,6 +190,11 @@ changes nothing; to remove a warp, save the tweak with `warp` null), `403 banned
 - [`Content.Client/Lobby/SymphonyWait.Symphony.cs`](../../Content.Client/Lobby/SymphonyWait.Symphony.cs)
 - [`Content.Client/Lobby/UI/AnimatedBackground.Symphony.cs`](../../Content.Client/Lobby/UI/AnimatedBackground.Symphony.cs)
 - [`Content.Client/Lobby/UI/LobbyNotice.Symphony.cs`](../../Content.Client/Lobby/UI/LobbyNotice.Symphony.cs)
+
+### Integration tests
+
+- [`Content.IntegrationTests/Tests/Symphony/SymphonyCharactersTest.cs`](../../Content.IntegrationTests/Tests/Symphony/SymphonyCharactersTest.cs)
+- [`Content.IntegrationTests/Tests/Symphony/SymphonyCustomMarkingsTest.cs`](../../Content.IntegrationTests/Tests/Symphony/SymphonyCustomMarkingsTest.cs)
 
 ### Localization
 

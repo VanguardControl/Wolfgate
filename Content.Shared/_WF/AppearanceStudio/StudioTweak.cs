@@ -59,7 +59,7 @@ public sealed partial class StudioTweak : IEquatable<StudioTweak>
     {
         return new StudioTweak(Target, Key)
         {
-            Offsets = (Vector2i[]) Offsets.Clone(),
+            Offsets = Offsets == null ? new Vector2i[StudioRules.Facings] : (Vector2i[]) Offsets.Clone(),
             Scale = Scale,
             Hidden = Hidden,
             Warp = Warp,
@@ -68,13 +68,13 @@ public sealed partial class StudioTweak : IEquatable<StudioTweak>
 
     public Vector2i GetOffset(int facing)
     {
-        return facing >= 0 && facing < Offsets.Length ? Offsets[facing] : Vector2i.Zero;
+        return Offsets != null && facing >= 0 && facing < Offsets.Length ? Offsets[facing] : Vector2i.Zero;
     }
 
     /// <summary>Whether this tweak changes nothing.</summary>
     public bool IsEmpty()
     {
-        foreach (var offset in Offsets)
+        foreach (var offset in Offsets ?? Array.Empty<Vector2i>())
         {
             if (offset != Vector2i.Zero)
                 return false;

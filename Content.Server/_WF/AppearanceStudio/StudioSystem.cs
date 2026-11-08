@@ -104,7 +104,7 @@ public sealed class StudioSystem : EntitySystem
         if (!_cfg.GetCVar(StudioCVars.Enabled) || !_cfg.GetCVar(StudioCVars.Warps))
             return (null, "wf-studio-error-disabled");
 
-        if (_featureBans.IsBanned(user, Feature))
+        if (await _featureBans.IsBannedAsync(user, Feature))
             return (null, "wf-feature-banned");
 
         var now = _timing.RealTime;

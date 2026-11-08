@@ -2064,6 +2064,7 @@ namespace Content.Client.Lobby.UI
             // WOLFGATE END
             CloseHeadshotWindow(); // WOLFGATE(Headshot)
             CloseCustomMarkings(); // WOLFGATE(CustomMarkings)
+            CloseAppearanceStudio(); // WOLFGATE(AppearanceStudio): the studio closes with the editor
 
             // Mono start
             foreach (var entity in _savedItemEntities)

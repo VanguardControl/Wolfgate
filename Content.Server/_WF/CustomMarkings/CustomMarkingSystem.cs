@@ -196,7 +196,7 @@ public sealed partial class CustomMarkingSystem : EntitySystem
         if (!Enabled)
             return (CustomMarkingSaveResult.Fail("wf-custom-marking-error-disabled"), false);
 
-        if (_featureBans.IsBanned(user, StudioSystem.Feature))
+        if (await _featureBans.IsBannedAsync(user, StudioSystem.Feature))
             return (CustomMarkingSaveResult.Fail("wf-feature-banned"), false);
 
         var now = _timing.RealTime;

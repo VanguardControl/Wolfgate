@@ -187,7 +187,7 @@ public sealed class SymphonyCharactersSystem : EntitySystem
             return new Answer(HttpStatusCode.Conflict, new JsonObject { ["error"] = "stale", ["current"] = current });
 
         var kept = new JsonArray();
-        profile = Keep(user, profile, old, kept);
+        profile = Keep(await _featureBans.IsBannedAsync(user, StudioRules.Feature), profile, old, kept);
 
         HumanoidCharacterProfile saved;
         if (session != null)
@@ -221,7 +221,7 @@ public sealed class SymphonyCharactersSystem : EntitySystem
             return new Answer(HttpStatusCode.BadRequest, SymphonyJson.Error("bad_profile", error));
 
         var (_, session) = await Load(user);
-        profile = Keep(user, profile, null, new JsonArray());
+        profile = Keep(await _featureBans.IsBannedAsync(user, StudioRules.Feature), profile, null, new JsonArray());
         profile.EnsureValid(session!, _dependencies);
         return new Answer(HttpStatusCode.OK, new JsonObject { ["profile"] = ToJson(profile) });
     }
@@ -231,7 +231,7 @@ public sealed class SymphonyCharactersSystem : EntitySystem
     /// path does the same for a client), augments (bought in game), and, for a player banned from the Appearance
     /// Studio, its tweaks and custom markings. Each field held is named in <paramref name="kept"/>.
     /// </summary>
-    private HumanoidCharacterProfile Keep(NetUserId user, HumanoidCharacterProfile profile, HumanoidCharacterProfile? old, JsonArray kept)
+    private static HumanoidCharacterProfile Keep(bool studioBanned, HumanoidCharacterProfile profile, HumanoidCharacterProfile? old, JsonArray kept)
     {
         var bank = old?.BankBalance ?? HumanoidCharacterProfile.DefaultBalance;
         profile = profile.WithBankBalance(bank);
@@ -248,7 +248,7 @@ public sealed class SymphonyCharactersSystem : EntitySystem
             .WithAugmentUnlocks(old?.AugmentUnlocks ?? Enumerable.Empty<Robust.Shared.Prototypes.ProtoId<Content.Shared._WF.Augments.WFAugmentPrototype>>());
         kept.Add("augments");
 
-        if (_featureBans.IsBanned(user, StudioRules.Feature))
+        if (studioBanned)
         {
             profile = profile
                 .WithStudioTweaks(old?.StudioTweaks ?? new List<StudioTweak>())

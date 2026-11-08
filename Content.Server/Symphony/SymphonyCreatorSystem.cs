@@ -79,6 +79,14 @@ public sealed class SymphonyCreatorSystem : EntitySystem
         SubscribeLocalEvent<PrototypesReloadedEventArgs>(_ => _catalog = null);
         Subs.CVar(_cfg, StudioCVars.MaxOffset, _ => _catalog = null);
         Subs.CVar(_cfg, StudioCVars.Warps, _ => _catalog = null);
+        Subs.CVar(_cfg, StudioCVars.Enabled, _ => _catalog = null);
+        Subs.CVar(_cfg, StudioCVars.MinScale, _ => _catalog = null);
+        Subs.CVar(_cfg, StudioCVars.MaxScale, _ => _catalog = null);
+        Subs.CVar(_cfg, CustomMarkingCVars.Enabled, _ => _catalog = null);
+        Subs.CVar(_cfg, CustomMarkingCVars.MaxWorn, _ => _catalog = null);
+        Subs.CVar(_cfg, CustomMarkingCVars.MaxFrames, _ => _catalog = null);
+        Subs.CVar(_cfg, CustomMarkingCVars.EraseBody, _ => _catalog = null);
+        Subs.CVar(_cfg, CustomMarkingCVars.BodyReach, _ => _catalog = null);
     }
 
     // Runs on the status host's thread; only building the catalog hops to the main thread.

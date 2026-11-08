@@ -122,6 +122,22 @@ public static class StudioRules
         return result;
     }
 
+    /// <summary>A copy of a list of tweaks, skipping nulls, which crafted network data can deliver.</summary>
+    public static List<StudioTweak> Copy(IEnumerable<StudioTweak?>? tweaks)
+    {
+        var copy = new List<StudioTweak>();
+        if (tweaks == null)
+            return copy;
+
+        foreach (var tweak in tweaks)
+        {
+            if (tweak != null)
+                copy.Add(tweak.Clone());
+        }
+
+        return copy;
+    }
+
     public static StudioTweak? Find(IReadOnlyList<StudioTweak> tweaks, StudioTarget target, string key)
     {
         foreach (var tweak in tweaks)

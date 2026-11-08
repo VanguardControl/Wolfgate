@@ -15,7 +15,7 @@ public sealed class StudioRulesTest
     [Test]
     public void CleanHoldsToLimitsTest()
     {
-        var tweaks = new List<StudioTweak?>
+        var tweaks = new List<StudioTweak>
         {
             null,
             new(StudioTarget.Worn, "head")

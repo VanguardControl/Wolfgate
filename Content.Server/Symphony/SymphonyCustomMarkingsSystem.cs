@@ -139,7 +139,7 @@ public sealed class SymphonyCustomMarkingsSystem : EntitySystem
             ["entries"] = entries,
             ["library_limit"] = _cfg.GetCVar(CustomMarkingCVars.LibraryLimit),
             ["daily_art_limit"] = _cfg.GetCVar(CustomMarkingCVars.DailyArtLimit),
-            ["banned"] = _featureBans.IsBanned(user, StudioRules.Feature),
+            ["banned"] = await _featureBans.IsBannedAsync(user, StudioRules.Feature),
         };
 
         await AddDailyLeft(user, body);

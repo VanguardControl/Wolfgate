@@ -27,8 +27,7 @@ public sealed partial class HumanoidProfileEditor
     /// <summary>Syncs the button with the server setting and closes a studio opened for the previous profile.</summary>
     private void UpdateAppearanceStudio()
     {
-        _studioWindow?.Close();
-        _studioWindow = null;
+        CloseAppearanceStudio();
         if (_studioButton != null)
             _studioButton.Visible = _cfgManager.GetCVar(StudioCVars.Enabled);
     }
@@ -40,15 +39,35 @@ public sealed partial class HumanoidProfileEditor
             _entManager.System<StudioSpriteSystem>().SetPreviewFacing(PreviewDummy, dir);
     }
 
+    /// <summary>
+    /// Closes the studio without letting its last pending edit land: it belongs to the profile it was opened for,
+    /// which may already have been replaced, reset or the editor torn down.
+    /// </summary>
+    private void CloseAppearanceStudio()
+    {
+        if (_studioWindow == null)
+            return;
+
+        var window = _studioWindow;
+        _studioWindow = null;
+        window.Changed -= SetStudioTweaks;
+        window.Close();
+    }
+
     private void OpenAppearanceStudio()
     {
-        _studioWindow?.Close();
+        CloseAppearanceStudio();
         if (Profile == null)
             return;
 
         _studioWindow = new StudioWindow(() => Profile);
         _studioWindow.Changed += SetStudioTweaks;
-        _studioWindow.OnClose += () => _studioWindow = null;
+        var window = _studioWindow;
+        window.OnClose += () =>
+        {
+            if (_studioWindow == window)
+                _studioWindow = null;
+        };
         _studioWindow.OpenCentered();
     }
 

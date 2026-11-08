@@ -57,7 +57,6 @@ wf-studio-hand-Left = Left hand
 wf-studio-hand-Right = Right hand
 
 wf-studio-part-Chest = Chest
-wf-studio-part-Groin = Groin
 wf-studio-part-Head = Head
 wf-studio-part-Snout = Snout
 wf-studio-part-HeadSide = Head (sides)
@@ -75,6 +74,21 @@ wf-studio-part-RLeg = Right leg
 wf-studio-part-LLeg = Left leg
 wf-studio-part-RFoot = Right foot
 wf-studio-part-LFoot = Left foot
+wf-studio-part-TailBehind = Tail (behind)
+wf-studio-part-TailOversuit = Tail (over suit)
+wf-studio-part-TailExtras = Tail extras
+wf-studio-part-Genital = Groin
+wf-studio-part-Penis = Anatomy (lower)
+wf-studio-part-Breasts = Anatomy (upper)
+wf-studio-part-UndergarmentTop = Undergarment (top)
+wf-studio-part-UndergarmentBottom = Undergarment (bottom)
+wf-studio-part-LArmExtension = Left arm extension
+wf-studio-part-RArmExtension = Right arm extension
+wf-studio-part-Special = Special
+wf-studio-part-Handcuffs = Handcuffs
+wf-studio-part-Ensnare = Snare
+wf-studio-part-Fire = Fire
+wf-studio-part-StencilMask = Mask stencil
 
 wf-studio-slot-head = Head
 wf-studio-slot-eyes = Eyes
@@ -89,6 +103,16 @@ wf-studio-slot-belt = Belt
 wf-studio-slot-back = Back
 wf-studio-slot-suitstorage = Suit storage
 wf-studio-slot-id = ID
+wf-studio-slot-neck2 = Neck (second)
+wf-studio-slot-neck3 = Neck (third)
+wf-studio-slot-pocket1 = Left pocket
+wf-studio-slot-pocket2 = Right pocket
+wf-studio-slot-pocket3 = Pocket 3
+wf-studio-slot-pocket4 = Pocket 4
+wf-studio-slot-wallet = Wallet
+wf-studio-slot-leftarmband = Left armband
+wf-studio-slot-rightarmband = Right armband
+wf-studio-slot-balaclava = Balaclava
 
 ## Warp editor
 

@@ -91,12 +91,13 @@ which removes it from every body.
 - [`Content.Client/Humanoid/HumanoidAppearanceSystem.cs`](../../../Content.Client/Humanoid/HumanoidAppearanceSystem.cs): the doll is placed like the character
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs)
   - the new doll is placed for the preview facing
+  - the studio closes with the editor
   - the doll is placed for that facing
 - [`Content.Server.Database/Model.cs`](../../../Content.Server.Database/Model.cs): parts placed in the Appearance Studio, as StudioRules.ToStored text; empty for none.
 - [`Content.Server/Database/ServerDbBase.cs`](../../Database/ServerDbBase.cs)
 - [`Content.Shared/Humanoid/SharedHumanoidAppearanceSystem.cs`](../../../Content.Shared/Humanoid/SharedHumanoidAppearanceSystem.cs)
   - copies are placed the same way
   - the profile's studio tweaks
-- [`Content.Shared/Preferences/HumanoidCharacterProfile.cs`](../../../Content.Shared/Preferences/HumanoidCharacterProfile.cs)
+- [`Content.Shared/Preferences/HumanoidCharacterProfile.cs`](../../../Content.Shared/Preferences/HumanoidCharacterProfile.cs): null-tolerant, EnsureValid cleans it
 
 <!-- WOLFGATE-GENERATED END -->

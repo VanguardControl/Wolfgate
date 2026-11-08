@@ -210,6 +210,8 @@ public sealed class StudioWindow : CustomMarkingWindow
 
     private void LoadDoll()
     {
+        // The warp editor draws the old doll's sprite; it can't outlive it.
+        _warpWindow?.Close();
         ClearHeld();
         if (_doll.IsValid())
             _ent.DeleteEntity(_doll);

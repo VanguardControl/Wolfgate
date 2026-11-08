@@ -16,12 +16,6 @@ public abstract partial class SharedHumanoidAppearanceSystem
     /// <summary>A copy of another body's tweaks, so the two never share a list.</summary>
     protected static List<StudioTweak> CopyStudioTweaks(List<StudioTweak> tweaks)
     {
-        var copy = new List<StudioTweak>(tweaks.Count);
-        foreach (var tweak in tweaks)
-        {
-            copy.Add(tweak.Clone());
-        }
-
-        return copy;
+        return StudioRules.Copy(tweaks);
     }
 }

@@ -12,7 +12,7 @@ public sealed partial class HumanoidCharacterProfile
 
     public HumanoidCharacterProfile WithStudioTweaks(IEnumerable<StudioTweak> tweaks)
     {
-        return new(this) { StudioTweaks = tweaks.Select(t => t.Clone()).ToList() };
+        return new(this) { StudioTweaks = StudioRules.Copy(tweaks) };
     }
 
     private bool StudioTweaksEqual(HumanoidCharacterProfile other)
