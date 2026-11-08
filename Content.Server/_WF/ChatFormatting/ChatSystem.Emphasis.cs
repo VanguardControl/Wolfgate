@@ -14,7 +14,7 @@ public partial class ChatSystem
     {
         return Pattern.Replace(input, m =>
         {
-            // Escaped delimiter like \+ → output bare character
+            // Escaped delimiter like ~+ → output bare character
             if (m.Groups[1].Success)
                 return m.Groups[1].Value;
 
