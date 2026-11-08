@@ -841,6 +841,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
   - a ghost never sticks to stairs or stays between levels
   - a thrown body stays InAir until the throw lands, or friction eats a jump at once.
 - [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.WallCollision.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.WallCollision.cs): retain the contacted obstacle for crash ploughing.
+- [`Content.Shared/_CE/ZLevels/Flight/CESharedZFlightSystem.Controllable.cs`](../../../Content.Shared/_CE/ZLevels/Flight/CESharedZFlightSystem.Controllable.cs): a refused take-off (orbit) must not leave the preventive visuals running
 - [`Content.Shared/_CE/ZLevels/Throwing/CEZLevelThrowingSystem.cs`](../../../Content.Shared/_CE/ZLevels/Throwing/CEZLevelThrowingSystem.cs): a throw only has an arc where there are levels to arc through.
 - [`Content.Shared/_Mono/ForceParent/ForceParentSystem.cs`](../../../Content.Shared/_Mono/ForceParent/ForceParentSystem.cs): the pin isn't networked, so a client applying a body's state must not re-parent it to nothing.
 - [`Content.Shared/CCVar/CCVars.Game.cs`](../../../Content.Shared/CCVar/CCVars.Game.cs): defaults to MonoStandard (was nfpirate), whose round start spawns the star system.

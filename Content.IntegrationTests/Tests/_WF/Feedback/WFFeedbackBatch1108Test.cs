@@ -241,6 +241,7 @@ public sealed class WFFeedbackBatch1108Test
             firstEnd = server.Timing.CurTime + TimeSpan.FromSeconds(1);
             ev.EndTime = firstEnd;
             ev.WarningAnnounced = true;
+            ev.WarningDurationLeft = 30;
             Assert.That(em.System<AutoExtendRuleSystem>().AutoExtend(rule, watched), Is.True);
             em.GetComponent<AutoExtendRuleComponent>(rule).MaxExtensions = 2;
         });
@@ -255,7 +256,9 @@ public sealed class WFFeedbackBatch1108Test
             Assert.Multiple(() =>
             {
                 Assert.That(extend.Extensions, Is.EqualTo(2));
-                Assert.That(ev.EndTime, Is.EqualTo(firstEnd + extend.ExtendBy * 2));
+                Assert.That(ev.EndTime, Is.GreaterThanOrEqualTo(firstEnd + extend.ExtendBy * 2));
+                // The final extension left the whole 30 s warning window; at most 12 s of it have passed.
+                Assert.That(ev.EndTime - server.Timing.CurTime, Is.GreaterThan(TimeSpan.FromSeconds(17)));
                 Assert.That(ev.WarningAnnounced, Is.False, "The final extension didn't re-arm the departure warning.");
             });
         });
