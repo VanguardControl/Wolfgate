@@ -89,8 +89,7 @@ public sealed class WFFeedbackBatch1109Test : WolfmedGameTest
                     Assert.That(surgery.WolfmedSurgeryValid(body, part, hidden), Is.False, $"{hidden} lists on {mob}.");
             });
 
-            var step = listed == "WFSurgeryHealEyes" ? "WFSurgeryStepHealEyes"
-                : listed.Replace("WFSurgery", "WFSurgeryStep");
+            var step = listed.Replace("WFSurgery", "WFSurgeryStep");
             var singleton = surgery.GetSingleton(step);
             Assert.That(singleton, Is.Not.Null, $"{step} has no singleton.");
             var user = SEntMan.SpawnEntity("MobHuman", map.GridCoords);

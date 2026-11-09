@@ -35,6 +35,7 @@ public sealed class WFGasTankLeakTest
             await LoadChunks(pair, world.Ground, Site - new Vector2i(8, 8), Site + new Vector2i(8, 8));
 
             var tank = EntityUid.Invalid;
+            var startMoles = 0f;
             await server.WaitPost(() =>
             {
                 var grid = entMan.GetComponent<MapGridComponent>(world.Ground);
@@ -55,7 +56,9 @@ public sealed class WFGasTankLeakTest
             {
                 Assert.That(entMan.GetComponent<TransformComponent>(tank).MapUid, Is.EqualTo(world.Ground),
                     "Precondition: the closed tank did not settle on the ground level.");
-                entMan.GetComponent<GasTankComponent>(tank).IsValveOpen = true;
+                var gas = entMan.GetComponent<GasTankComponent>(tank);
+                startMoles = gas.Air.TotalMoles;
+                gas.IsValveOpen = true;
             });
 
             var left = false;
@@ -67,6 +70,9 @@ public sealed class WFGasTankLeakTest
             }
 
             Assert.That(left, Is.False, "the leaking tank climbed off the ground level.");
+            await server.WaitAssertion(() =>
+                Assert.That(entMan.GetComponent<GasTankComponent>(tank).Air.TotalMoles, Is.LessThan(startMoles),
+                    "Precondition: the open valve released no gas, so the tank never moved."));
         }
         finally
         {
