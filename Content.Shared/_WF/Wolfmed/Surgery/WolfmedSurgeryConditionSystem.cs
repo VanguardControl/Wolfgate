@@ -215,6 +215,12 @@ public sealed partial class WolfmedSurgeryConditionSystem : EntitySystem
 
     private void OnOrganValid(Entity<WolfmedSurgeryOrganDamagedConditionComponent> ent, ref SurgeryValidEvent args)
     {
+        if (ent.Comp.Mechanical is { } mechanical && _traits.IsMechanical(args.Part) != mechanical)
+        {
+            args.Cancelled = true;
+            return;
+        }
+
         if (InProgress(args.Part, ent.Owner))
             return;
 
