@@ -194,6 +194,7 @@
   - type: WeldingHealable
   - type: WFChassisFilter # WOLFGATE(Synthetics): only contaminants stay in the chemical stream
   - type: RetroMonitorView # Mono
+  - type: DamagedSiliconAccent
 
 - type: entity
   save: false
