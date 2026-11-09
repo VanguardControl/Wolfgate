@@ -267,6 +267,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFAdoptStanders.cs`](Flight/CEZLevelsSystem.WFAdoptStanders.cs)
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFFlight.cs`](Flight/CEZLevelsSystem.WFFlight.cs)
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFGravityCache.cs`](Flight/CEZLevelsSystem.WFGravityCache.cs)
+- [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFGroundGrid.cs`](Flight/CEZLevelsSystem.WFGroundGrid.cs)
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFLandingClearance.cs`](Flight/CEZLevelsSystem.WFLandingClearance.cs)
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFLandingRefusal.cs`](Flight/CEZLevelsSystem.WFLandingRefusal.cs)
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFLiftAdvice.cs`](Flight/CEZLevelsSystem.WFLiftAdvice.cs)
@@ -482,6 +483,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetExplosionGroundTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetExplosionGroundTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetFirstMinuteTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetFirstMinuteTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetFixture.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetFixture.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetGroundTakeoffTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetGroundTakeoffTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetLakeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetLakeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetLayerNamesTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetLayerNamesTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetNetworkTest.cs)
@@ -748,7 +750,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.GroundFriction.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.GroundFriction.cs): a crash skid scales down the landed body's tile friction instead of adding drag.
 - [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.PilotControl.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.PilotControl.cs)
   - the liftoff latch needs the pilot.
-  - grounded ascend engages liftoff; airborne input keeps CE's normal control.
+  - a console on planet ground has no ship to lift.
   - descend from orbit enters the atmosphere only when no confirm is needed.
   - a console latch feeds the same CE takeoff spool and flight integrator.
   - the climb is scaled by the maneuvering factor below.
@@ -760,6 +762,8 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
   - hulls leave orbit through transit and never hop below ground.
   - crates and players the ground layer still owns ride the hull off the planet.
   - riders' contacts with the old map must not survive the move.
+  - planet ground is the map's own grid; moving it stops physics server-wide.
+  - nothing in the convoy may be a map's own grid either.
   - hulls never descend below a planet's ground.
   - a held climb pops out into a planet's orbit layer instead of pinning under it.
   - a descending convoy lands on the ground instead of hopping below it.
