@@ -36,12 +36,15 @@
     Zvezda:
       stationProto: RecordsFrontierOutpostCargo
       gridComponents:
+<<<<<<< HEAD
       - type: StationCargoOrderDatabase
         capacity: 240
       # WOLFGATE START: trade crate destinations must be on the station entity, not the grid
       # - type: TradeCrateDestination
       #   destinationProto: Trade
       # WOLFGATE END
+=======
+>>>>>>> b1f748014f (Underground Black Market Smuggling Expansion (#4916))
       - type: VesselInfo
         description: "A half-abandoned decaying station. Sometimes you can hear the hull bend."
       - type: VesselMusic
@@ -52,10 +55,17 @@
           mapNameTemplate: 'Zvezda Orbital Habitation'
         - type: StationDeadDrop
           maxDeadDrops: 12
+<<<<<<< HEAD
         # WOLFGATE START: moved from gridComponents so crates sold here count as delivered
         - type: TradeCrateDestination
           destinationProto: Trade
         # WOLFGATE END
+=======
+        - type: StationCargoOrderDatabase
+          capacity: 240
+        - type: TradeCrateDestination
+          destinationProto: Trade
+>>>>>>> b1f748014f (Underground Black Market Smuggling Expansion (#4916))
         - type: ExtraStationInformation
           icon:
             sprite: _NF/Structures/Storage/Crates/secure_ammo.rsi

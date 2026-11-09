@@ -10609,8 +10609,12 @@ entities:
     components:
     - type: Transform
       parent: 1
+<<<<<<< HEAD
       pos: -1.5,10.5
 - proto: ComputerTabletopCargoOrders
+=======
+- proto: ComputerTabletopCargoOrdersUnderground
+>>>>>>> b1f748014f (Underground Black Market Smuggling Expansion (#4916))
   entities:
   - uid: 1640
     components:
