@@ -846,8 +846,6 @@ entities:
       parent: 1
       pos: 4.5,10.5
     - type: DeviceNetwork
-      deviceLists:
-      - 547
   - uid: 859
     components:
     - type: Transform
@@ -4521,8 +4519,6 @@ entities:
       parent: 1
       pos: 5.5,10.5
     - type: DeviceNetwork
-      deviceLists:
-      - 547
     - type: AtmosPipeColor
       color: '#990000FF'
   - uid: 463
