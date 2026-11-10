@@ -16,6 +16,12 @@ external:
 # Edits outside _WF that can't hold a WOLFGATE marker: JSON, images, audio, rich-text .txt and map files.
 # Each entry has a path (a file, a folder or a glob), the module it serves (null for a standalone edit) and a reason.
 unmarked:
+  - path: Resources/Textures/_NF/Clothing/Head/Hats/stc_cap.rsi/equipped-HELMET-vulpkanin.png
+    module: null
+    reason: The vulpkanin state was a winter coat hood; it now draws the cap itself.
+  - path: Resources/SharedMaps/_Mono/Shuttles/Civilian/autumn.yml
+    module: null
+    reason: Mapped directional fans on the two outer side airlocks, which vented the bridge to space.
   - path: Resources/Textures/_Floof/Mobs/Customization/skyrattails.rsi/
     module: null
     reason: The leopard wag's front layers hold the fourth frame as long as the back layers, so the halves stay in step.
