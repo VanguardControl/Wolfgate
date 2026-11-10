@@ -198,6 +198,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Server/Polymorph/Systems/PolymorphSystem.cs`](../../Content.Server/Polymorph/Systems/PolymorphSystem.cs): skip the copy when either body isn't humanoid, as when an artifact turns a monkey into a lizard
 - [`Content.Server/Power/EntitySystems/PowerMonitoringConsoleSystem.cs`](../../Content.Server/Power/EntitySystems/PowerMonitoringConsoleSystem.cs)
   - drop children deleted while still in this collection, they have no metadata to update
+  - a device being deleted hands its collection on instead of mastering it
   - a deleted device has no net entity
 - [`Content.Server/Preferences/Managers/ServerPreferencesManager.cs`](../../Content.Server/Preferences/Managers/ServerPreferencesManager.cs)
   - a failed save is logged with its slot

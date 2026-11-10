@@ -757,7 +757,8 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
         // If the device is not attached to a network, exit
         var nodeName = device.SourceNode == string.Empty ? device.LoadNode : device.SourceNode;
 
-        if (!nodeContainer.Nodes.TryGetValue(nodeName, out var node) ||
+        if (TerminatingOrDeleted(uid) || // WOLFGATE: a device being deleted hands its collection on instead of mastering it
+            !nodeContainer.Nodes.TryGetValue(nodeName, out var node) ||
             node.ReachableNodes.Count == 0)
         {
             // Make a child the new master of the collection if necessary
