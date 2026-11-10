@@ -159,6 +159,7 @@ Audio.
 - [`Content.Client/Shuttles/BUI/RadarConsoleBoundUserInterface.cs`](../../../Content.Client/Shuttles/BUI/RadarConsoleBoundUserInterface.cs)
   - the scanner window an admin in a ghost gets instead
   - an admin in a ghost gets the resizable, far-zooming scanner
+- [`Content.Client/UserInterface/Controls/MapGridControl.xaml.cs`](../../../Content.Client/UserInterface/Controls/MapGridControl.xaml.cs): protected so the admin scanner can look up grids further out
 - [`Content.Server/Administration/Commands/FollowCommand.cs`](../../Administration/Commands/FollowCommand.cs): aghost before orbiting
 - [`Content.Server/Administration/Managers/AdminManager.cs`](../../Administration/Managers/AdminManager.cs): the client refuses a command missing from this list
 - [`Content.Server/Administration/UI/AdminCameraEui.cs`](../../Administration/UI/AdminCameraEui.cs): aghost before orbiting
