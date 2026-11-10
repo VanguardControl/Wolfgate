@@ -64,6 +64,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Client/UserInterface/Systems/Admin/AdminUIController.cs`](../../Content.Client/UserInterface/Systems/Admin/AdminUIController.cs): a HUD layout swap rebuilds the button visible
 - [`Content.Client/UserInterface/Systems/Chat/ChatUIController.cs`](../../Content.Client/UserInterface/Systems/Chat/ChatUIController.cs): an unlimited check warns when the eye lags a long teleport
 - [`Content.Client/UserInterface/Systems/Chat/Widgets/ChatBox.xaml.cs`](../../Content.Client/UserInterface/Systems/Chat/Widgets/ChatBox.xaml.cs): Replay seeks and filter changes rebuild the output from scratch.
+- [`Content.Client/UserInterface/Systems/Info/InfoUIController.cs`](../../Content.Client/UserInterface/Systems/Info/InfoUIController.cs): upstream DefaultRuleset is commented out
 - [`Content.Client/UserInterface/Systems/Sandbox/SandboxUIController.cs`](../../Content.Client/UserInterface/Systems/Sandbox/SandboxUIController.cs): a HUD layout swap rebuilds the button visible
 - [`Content.Client/VendingMachines/VendingMachineBoundUserInterface.cs`](../../Content.Client/VendingMachines/VendingMachineBoundUserInterface.cs): skip updates queued before Open(), _uiSystem is still null and the NRE crashes state handling
 - [`Content.Client/Weapons/Ranged/Systems/GunSystem.cs`](../../Content.Client/Weapons/Ranged/Systems/GunSystem.cs): restore the licence header removed by Kill Spdx
@@ -467,6 +468,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/Prototypes/_Mono/Entities/Structures/Shuttles/thrusters_nfsd.yml`](../../Resources/Prototypes/_Mono/Entities/Structures/Shuttles/thrusters_nfsd.yml): PDV pack, 0.33x of the 150 default; cant be upgraded with parts
 - [`Resources/Prototypes/_Mono/Entities/Structures/Shuttles/thrusters_rogue.yml`](../../Resources/Prototypes/_Mono/Entities/Structures/Shuttles/thrusters_rogue.yml): PDV pack, 0.33x of the 150 default; cant be upgraded with parts
 - [`Resources/Prototypes/_Mono/Guidebook/rules.yml`](../../Resources/Prototypes/_Mono/Guidebook/rules.yml)
+  - rule 0 is listed in the ruleset, nest it so Symphony doesn't show it as its own ruleset
   - erotic roleplay rule removed, PR #27
   - erotic roleplay rule entry removed, PR #27
 - [`Resources/Prototypes/_Mono/Language/underground.yml`](../../Resources/Prototypes/_Mono/Language/underground.yml): codespeak gets its own chat colour so speakers can tell it from Common
@@ -506,6 +508,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/Prototypes/_NF/Events/events.yml`](../../Resources/Prototypes/_NF/Events/events.yml)
   - gas leak event disabled
   - vent clog event disabled
+- [`Resources/Prototypes/_NF/Guidebook/rules.yml`](../../Resources/Prototypes/_NF/Guidebook/rules.yml): Frontier ruleset is unused, only MonolithRuleset is shown in-game and on Symphony
 - [`Resources/Prototypes/_NF/Roles/Jobs/Medical/doc.yml`](../../Resources/Prototypes/_NF/Roles/Jobs/Medical/doc.yml): the Medical department has no roles since Monolith#4807, so count medic time instead
 - [`Resources/Prototypes/_NF/Smuggling/report_message_sets.yml`](../../Resources/Prototypes/_NF/Smuggling/report_message_sets.yml)
   - PDV pack, TSF pod report 2 min later
@@ -539,6 +542,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/Prototypes/GameRules/pests.yml`](../../Resources/Prototypes/GameRules/pests.yml)
   - pest events were crowding out the rest of the table (was 6)
   - each pest event at most once per 90 minutes
+- [`Resources/Prototypes/Guidebook/rules.yml`](../../Resources/Prototypes/Guidebook/rules.yml): upstream rulesets are unused, only MonolithRuleset is shown in-game and on Symphony
 - [`Resources/Prototypes/Nyanotrasen/Species/felinid.yml`](../../Resources/Prototypes/Nyanotrasen/Species/felinid.yml): mrrow
 - [`Resources/Prototypes/Recipes/Construction/Graphs/tools/logic_gate.yml`](../../Resources/Prototypes/Recipes/Construction/Graphs/tools/logic_gate.yml): restore the licence header removed by Kill Spdx
 - [`Resources/Prototypes/Recipes/Construction/Graphs/utilities/atmos_binary.yml`](../../Resources/Prototypes/Recipes/Construction/Graphs/utilities/atmos_binary.yml): restore the licence header removed by Kill Spdx
