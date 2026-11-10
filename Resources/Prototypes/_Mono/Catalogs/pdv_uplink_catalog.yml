@@ -1382,8 +1382,13 @@
 
 - type: listing
   id: UplinkPirateCv32
+<<<<<<< HEAD
   name: uplink-pirate-cv32-hardsuit-name # WOLFGATE(ArmorBalance): reverts Monolith#4845.
   description: uplink-pirate-cv32-hardsuit-desc
+=======
+  name: uplink-pirate-cv32-hardsuit-name
+  description: uplink-pirate-cv32-hardsuit-desc # DO NOT REMOVE THESE, YOU WILL BREAK THE SEARCH FEATURE
+>>>>>>> 0610388b53 (Uplink Fixes (#4962))
   productEntity: ClothingOuterHardsuitAshen
   cost:
     Doubloon: 45 # WOLFGATE(ArmorBalance): Monolith's price; PDV suits are printable again.
@@ -1397,8 +1402,13 @@
 
 - type: listing
   id: UplinkPirateCv53
+<<<<<<< HEAD
   name: uplink-pirate-cv53-tacsuit-name # WOLFGATE(ArmorBalance): reverts Monolith#4845.
   description: uplink-pirate-cv53-tacsuit-desc
+=======
+  name: uplink-pirate-cv53-tacsuit-name
+  description: uplink-pirate-cv53-tacsuit-desc # DO NOT REMOVE THESE, YOU WILL BREAK THE SEARCH FEATURE
+>>>>>>> 0610388b53 (Uplink Fixes (#4962))
   productEntity: ClothingOuterHardsuitAshenElite
   cost:
     Doubloon: 45 # WOLFGATE(ArmorBalance): Monolith's price; PDV suits are printable again.
@@ -1444,8 +1454,13 @@
 
 - type: listing
   id: UplinkPirateStealthSuit
+<<<<<<< HEAD
   name: uplink-pirate-stealth-hardsuit-name # WOLFGATE(ArmorBalance): reverts Monolith#4845.
   description: uplink-pirate-stealth-hardsuit-desc
+=======
+  name: uplink-pirate-stealth-hardsuit-name
+  description: uplink-pirate-stealth-hardsuit-desc # DO NOT REMOVE THESE, YOU WILL BREAK THE SEARCH FEATURE
+>>>>>>> 0610388b53 (Uplink Fixes (#4962))
   productEntity: ClothingOuterHardsuitCybersunStealth
   cost:
     Doubloon: 90
