@@ -199,6 +199,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Server/Power/EntitySystems/PowerMonitoringConsoleSystem.cs`](../../Content.Server/Power/EntitySystems/PowerMonitoringConsoleSystem.cs)
   - drop children deleted while still in this collection, they have no metadata to update
   - a device being deleted hands its collection on instead of mastering it
+  - the promoted master isn't its own child
   - a deleted device has no net entity
 - [`Content.Server/Preferences/Managers/ServerPreferencesManager.cs`](../../Content.Server/Preferences/Managers/ServerPreferencesManager.cs)
   - a failed save is logged with its slot

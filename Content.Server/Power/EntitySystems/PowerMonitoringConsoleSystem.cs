@@ -772,6 +772,9 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
 
                 foreach ((var child, var childDevice) in device.ChildDevices)
                 {
+                    if (child == newMaster) // WOLFGATE: the promoted master isn't its own child
+                        continue;
+
                     newMasterDevice.ChildDevices.Add(child, childDevice);
 
                     childDevice.CollectionMaster = newMaster;
