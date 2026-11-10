@@ -1,7 +1,10 @@
 - type: guideEntry
   id: Science
   name: guide-entry-science
-  text: "/ServerInfo/Guidebook/Science/Science.xml"
+  # WOLFGATE(Blueprints) START: science is pattern hunting now
+  # text: "/ServerInfo/Guidebook/Science/Science.xml"
+  text: "/ServerInfo/_WF/Blueprints/Science.xml"
+  # WOLFGATE END
   children:
   - Technologies
   - AnomalousResearch
@@ -13,7 +16,10 @@
 - type: guideEntry
   id: Technologies
   name: guide-entry-technologies
-  text: "/ServerInfo/Guidebook/Science/Technologies.xml"
+  # WOLFGATE(Blueprints) START: technology is hunted, not bought
+  # text: "/ServerInfo/Guidebook/Science/Technologies.xml"
+  text: "/ServerInfo/_WF/Blueprints/Technologies.xml"
+  # WOLFGATE END
   filterEnabled: True
 
 - type: guideEntry

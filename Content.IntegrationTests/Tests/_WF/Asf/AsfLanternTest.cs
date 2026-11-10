@@ -3,7 +3,6 @@ using System.Linq;
 using Content.Server._Mono.FireControl;
 using Content.Server._NF.Shipyard.Components;
 using Content.Server.Power.Components;
-using Content.Server.Research.Systems;
 using Content.Server.Shuttles.Components;
 using Content.Server.Spawners.Components;
 using Content.Shared._NF.Shipyard.Components;
@@ -258,17 +257,16 @@ public sealed class AsfLanternTest
 
             Assert.That(unpowered, Is.Empty, "Unpowered on Lantern Post: " + string.Join(", ", unpowered));
 
-            // A server earns points only from its clients, so without a data farm the post can't research at all.
-            var research = entities.System<ResearchSystem>();
-            var points = 0;
+            // The post needs a research server for its free tier-1 technology and its R&D console's pattern hunts.
+            var servers = 0;
             var serverQuery = entities.EntityQueryEnumerator<ResearchServerComponent, TransformComponent>();
-            while (serverQuery.MoveNext(out var uid, out var researchServer, out var xform))
+            while (serverQuery.MoveNext(out _, out _, out var xform))
             {
                 if (xform.GridUid == gridUid)
-                    points += research.GetPointsPerSecond(uid, researchServer);
+                    servers++;
             }
 
-            Assert.That(points, Is.Positive, "Lantern Post's research server earns no points.");
+            Assert.That(servers, Is.Positive, "Lantern Post has no research server.");
 
             var silos = entities.System<SharedOreSiloSystem>();
             var unlinked = new List<string>();

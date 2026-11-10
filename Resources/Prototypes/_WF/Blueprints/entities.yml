@@ -1,0 +1,36 @@
+# A sliver of glyph-etched crystal holding part of a lost pattern.
+- type: entity
+  parent: BaseItem
+  id: WFBlueprintShard
+  name: pattern shard
+  description: A sliver of glyph-etched crystal holding part of a lost design. Any R&D console can decode it.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Xenoarchaeology/artifact_fragments.rsi
+    state: precursorball1
+  - type: Item
+    size: Small
+  - type: PointLight
+    radius: 1
+    energy: 0.6
+    color: "#b040e0"
+  - type: StaticPrice
+    price: 500
+  - type: WFBlueprintShard
+
+# A decoded pattern, ready for a research console.
+- type: entity
+  parent: BaseItem
+  id: WFBlueprintConstruct
+  name: blueprint construct
+  description: A sealed pattern case. Use it on an R&D console to teach its research server the pattern.
+  components:
+  - type: Sprite
+    sprite: Objects/Misc/diskcases.rsi
+    state: icon_base
+    color: "#d8b0ff"
+  - type: Item
+    size: Small
+  - type: StaticPrice
+    price: 1500
+  - type: WFBlueprintConstruct

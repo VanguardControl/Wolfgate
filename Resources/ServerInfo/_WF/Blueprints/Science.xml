@@ -1,0 +1,56 @@
+<Document>
+# Science
+[color=#c96dbf]Science[/color] recovers lost technology. The sector's lathes still remember the basics, the [color=#a4885c]Inherited Codex[/color]. Everything past that was lost in the Corporate War, and its pieces lie scattered across the worlds as [color=#d070ff]pattern shards[/color].
+
+## The R&D console
+  <Box>
+    <GuideEntityEmbed Entity="ComputerResearchAndDevelopment"/>
+    <GuideEntityEmbed Entity="ResearchAndDevelopmentServer"/>
+  </Box>
+The R&D server stores what your ship knows. The R&D console is where you plan hunts, decode shards and unlock what you bring home.
+
+- The [color=#a4885c]Codex[/color] tab shows your server's technology tree. Green nodes are known. Amber nodes can be hunted now. Red nodes need their prerequisites first.
+- The [color=#a4885c]Relics[/color] tab lists lost items that sit outside the tree.
+
+Every server starts with all of its tier-1 technology. Everything else has to be found.
+
+## Hunting a pattern
+1. Pick up to four patterns of the same tier and add them to the request.
+2. Press [color=#a4885c]Locate[/color] and pay the fee. The console marks a planet site that suits the tier and reveals its signal.
+3. Fly there and search its crates and lockers for the shards. Higher tiers send you to more dangerous worlds.
+4. Use each shard on any powered R&D console to decode it into a [color=#d070ff]Blueprint Construct[/color].
+5. Use the Construct on the console. Its technology or relic unlocks on that server until the round ends.
+
+Shards and Constructs are ordinary items. Anyone can carry, steal or trade them, and a Construct works on any server that can use it.
+
+- [color=#6fbf73]Tier I, Recovered[/color]: Moderate worlds, 5,000 fee.
+- [color=#e0b040]Tier II, Lost[/color]: Hazardous worlds, 15,000 fee.
+- [color=#d070ff]Tier III, Forgotten[/color]: Extreme worlds, 40,000 fee.
+
+## Paying for hunts
+The fee comes out of your server's [color=#a4885c]research points[/color] first and your bank account after. Nothing makes points on its own. You earn them by doing science:
+- analysing artifacts
+- containing anomalies with a vessel
+- xenobiology bounties
+- research disks found in the field
+
+## Decoding arrays
+<Box>
+  <GuideEntityEmbed Entity="DatafarmResearch"/>
+</Box>
+Each powered decoding array linked to your server makes its consoles decode shards faster, down to under half the time.
+
+## Lathes
+  <Box>
+    <GuideEntityEmbed Entity="Protolathe"/>
+    <GuideEntityEmbed Entity="CircuitImprinter"/>
+  </Box>
+  <Box>
+    <GuideEntityEmbed Entity="ExosuitFabricator"/>
+    <GuideEntityEmbed Entity="MedicalTechFab"/>
+    <GuideEntityEmbed Entity="SecurityTechFab"/>
+  </Box>
+Link a lathe to your server to print what it knows. Recipes need materials, which come from miners and salvagers.
+
+[textlink="Click here to see every technology." link="Technologies"]
+</Document>
