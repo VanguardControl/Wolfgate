@@ -1,6 +1,10 @@
 using System.Linq;
+<<<<<<< HEAD
 using Content.Shared._Mono.Weapons.Hitscan.Components; // WOLFGATE(Weapons)
 using Content.Shared._WF.ShipShields; // WOLFGATE(ShipShields)
+=======
+using Content.Shared._Crescent.ShipShields;
+>>>>>>> 6e40c983db ([BUGFIX] Lasers (I.E. Phalanx, Prometheus) No Longer Ignore Ship Shields And Appear Correctly On Radar [ATTEMPT TWO] (#4977))
 using Content.Shared.Administration.Logs;
 using Content.Shared.Damage.Components;
 using Content.Shared.Database;
@@ -48,10 +52,12 @@ public sealed partial class HitscanBasicRaycastSystem : EntitySystem
         // Otherwise:
         //  1.) Hit the first entity that you targeted.
         //  2.) Hit the first entity that doesn't require you to aim at it specifically to be hit.
+        // Mono: 3.) The entity must not be a ship shield unless the hitscan specifically doesn't ignore them AND the shield isn't on the same grid as the laser gun
         var result = _container.IsEntityOrParentInContainer(shooter)
             ? rayCastResults.FirstOrNull()
-            : rayCastResults.FirstOrNull(hit => hit.HitEntity == target
-                                                || CompOrNull<RequireProjectileTargetComponent>(hit.HitEntity)?.Active != true);
+            : rayCastResults.FirstOrNull(hit => (hit.HitEntity == target
+                                                || CompOrNull<RequireProjectileTargetComponent>(hit.HitEntity)?.Active != true) // Mono: added parentheses
+                                                && (!HasComp<ShipShieldComponent>(hit.HitEntity) || !ent.Comp.IgnoreShields && Transform(shooter).GridUid != Transform(hit.HitEntity).GridUid)); // Mono
 
         var trace = new HitscanRaycastFiredEvent
         {

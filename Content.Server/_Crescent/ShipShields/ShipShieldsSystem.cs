@@ -255,6 +255,7 @@ public sealed partial class ShipShieldsSystem : EntitySystem
         // var internalPoly = new PolygonShape();
         // internalPoly.Set(roughPoly);
 
+<<<<<<< HEAD
         // _fixtureSystem.TryCreateFixture(shield, internalPoly, "internalShield",
         //     hard: true,
         //     collisionLayer: (int)CollisionGroup.BulletImpassable, // Mono - Only try to block bullets
@@ -264,6 +265,12 @@ public sealed partial class ShipShieldsSystem : EntitySystem
         CreateWolfgateShieldHull(shield, entity, mapGrid, shieldPhysics);
         BeginWolfgateShieldFormation(shield, entity);
         // WOLFGATE END
+=======
+        _fixtureSystem.TryCreateFixture(shield, internalPoly, "internalShield",
+            hard: true,
+            collisionLayer: (int)CollisionGroup.BulletImpassable + (int)CollisionGroup.LaserImpassable, // Mono - Only try to block bullets AND LASERS
+            body: shieldPhysics);
+>>>>>>> 6e40c983db ([BUGFIX] Lasers (I.E. Phalanx, Prometheus) No Longer Ignore Ship Shields And Appear Correctly On Radar [ATTEMPT TWO] (#4977))
 
         _physicsSystem.WakeBody(shield, body: shieldPhysics);
         _physicsSystem.SetSleepingAllowed(shield, shieldPhysics, false);
