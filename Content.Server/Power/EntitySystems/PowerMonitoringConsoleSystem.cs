@@ -747,6 +747,13 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
         if (!Resolve(uid, ref device, ref nodeContainer, ref xform, false))
             return;
 
+        // WOLFGATE START: drop children deleted while still in this collection, they have no metadata to update
+        foreach (var stale in device.ChildDevices.Keys.Where(child => TerminatingOrDeleted(child)).ToList())
+        {
+            device.ChildDevices.Remove(stale);
+        }
+        // WOLFGATE END
+
         // If the device is not attached to a network, exit
         var nodeName = device.SourceNode == string.Empty ? device.LoadNode : device.SourceNode;
 
@@ -832,6 +839,9 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
 
     private void UpdateCollectionChildMetaData(EntityUid child, EntityUid master)
     {
+        if (TerminatingOrDeleted(child) || TerminatingOrDeleted(master)) // WOLFGATE: a deleted device has no net entity
+            return;
+
         var netEntity = EntityManager.GetNetEntity(child);
         var xform = Transform(child);
 
@@ -853,6 +863,9 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
 
     private void UpdateCollectionMasterMetaData(EntityUid master, int childCount)
     {
+        if (TerminatingOrDeleted(master)) // WOLFGATE: a deleted device has no net entity
+            return;
+
         var netEntity = EntityManager.GetNetEntity(master);
         var xform = Transform(master);
 
