@@ -1,3 +1,4 @@
+using System.Numerics;
 using Robust.Shared.Enums;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
@@ -40,6 +41,24 @@ public sealed class WFViewPointSystem : EntitySystem
         foreach (var (session, at) in points)
         {
             if (at.MapId == spot.MapId && (at.Position - spot.Position).LengthSquared() <= rangeSq)
+                found.Add(session);
+        }
+    }
+
+    /// <summary>The players with a view point within <paramref name="range"/> of the segment from a to b.</summary>
+    public void NearSegment(List<(ICommonSession Session, MapCoordinates At)> points, MapId map, Vector2 a, Vector2 b,
+        float range, HashSet<ICommonSession> found)
+    {
+        var rangeSq = range * range;
+        var ab = b - a;
+        var lengthSq = ab.LengthSquared();
+        foreach (var (session, at) in points)
+        {
+            if (at.MapId != map)
+                continue;
+
+            var t = lengthSq > 0f ? Math.Clamp(Vector2.Dot(at.Position - a, ab) / lengthSq, 0f, 1f) : 0f;
+            if ((a + ab * t - at.Position).LengthSquared() <= rangeSq)
                 found.Add(session);
         }
     }

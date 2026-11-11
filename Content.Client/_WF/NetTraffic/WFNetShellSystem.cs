@@ -59,7 +59,7 @@ public sealed class WFNetShellSystem : EntitySystem
             _transform.SetWorldRotation(entity, new Angle(fired.Rotation));
             var from = Since(fired.Tick);
             if (_shells.Remove(fired.Id, out var old))
-                QueueDel(old.Entity);
+                Discard(old.Entity);
             _shells[fired.Id] = new Shell
             {
                 Entity = entity,
@@ -78,13 +78,14 @@ public sealed class WFNetShellSystem : EntitySystem
             shell.Position = moved.Position;
             shell.Velocity = moved.Velocity;
             shell.From = Since(moved.Tick);
-            _transform.SetWorldRotation(shell.Entity, new Angle(moved.Rotation));
+            if (!TerminatingOrDeleted(shell.Entity))
+                _transform.SetWorldRotation(shell.Entity, new Angle(moved.Rotation));
         }
 
         foreach (var ended in ev.Ended)
         {
             if (_shells.Remove(ended.Id, out var shell))
-                QueueDel(shell.Entity);
+                Discard(shell.Entity);
         }
     }
 
@@ -107,7 +108,7 @@ public sealed class WFNetShellSystem : EntitySystem
         foreach (var id in _expired)
         {
             if (_shells.Remove(id, out var shell))
-                QueueDel(shell.Entity);
+                Discard(shell.Entity);
         }
 
         _expired.Clear();
@@ -139,11 +140,18 @@ public sealed class WFNetShellSystem : EntitySystem
         return registry;
     }
 
+    /// <summary>Deletes a copy unless it already went, such as with its map.</summary>
+    private void Discard(EntityUid entity)
+    {
+        if (!TerminatingOrDeleted(entity))
+            QueueDel(entity);
+    }
+
     private void Clear()
     {
         foreach (var shell in _shells.Values)
         {
-            QueueDel(shell.Entity);
+            Discard(shell.Entity);
         }
 
         _shells.Clear();

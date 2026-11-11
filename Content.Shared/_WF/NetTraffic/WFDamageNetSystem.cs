@@ -8,8 +8,9 @@ using Robust.Shared.Timing;
 namespace Content.Shared._WF.NetTraffic;
 
 /// <summary>
-/// On the server, sends a structure's damage at most once an interval: a wall under autocannon fire changes every hit,
-/// and each change went to every player in view. Mobs, and anything on the client, are sent as before.
+/// On the server, sends an anchored structure's damage at most once an interval: a wall under autocannon fire changes
+/// every hit, and each change went to every player in view. Mobs, body parts, items and anything else not anchored, and
+/// anything on the client, are sent as before.
 /// </summary>
 public sealed class WFDamageNetSystem : EntitySystem
 {
@@ -43,7 +44,8 @@ public sealed class WFDamageNetSystem : EntitySystem
     /// </summary>
     public bool Defer(EntityUid uid)
     {
-        if (_net.IsClient || _interval <= TimeSpan.Zero || HasComp<MobStateComponent>(uid))
+        if (_net.IsClient || _interval <= TimeSpan.Zero || HasComp<MobStateComponent>(uid)
+            || !TryComp(uid, out TransformComponent? xform) || !xform.Anchored)
             return false;
 
         var now = _timing.CurTime;

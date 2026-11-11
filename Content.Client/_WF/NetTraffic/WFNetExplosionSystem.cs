@@ -29,8 +29,8 @@ public sealed class WFNetExplosionSystem : EntitySystem
         public EntityUid Entity;
         public int Iterations;
         public int Progress = 1;
-        public TimeSpan NextStep;
-        public TimeSpan? Until;
+        public TimeSpan Start;
+        public bool Finished;
         public float Persistence;
     }
 
@@ -45,7 +45,8 @@ public sealed class WFNetExplosionSystem : EntitySystem
         base.Shutdown();
         foreach (var blast in _blasts)
         {
-            QueueDel(blast.Entity);
+            if (!TerminatingOrDeleted(blast.Entity))
+                QueueDel(blast.Entity);
         }
 
         _blasts.Clear();
@@ -77,7 +78,7 @@ public sealed class WFNetExplosionSystem : EntitySystem
         {
             Entity = entity,
             Iterations = ev.Intensity.Count,
-            NextStep = _timing.RealTime + _timing.TickPeriod,
+            Start = _timing.RealTime,
             Persistence = ev.Persistence,
         });
     }
@@ -106,30 +107,38 @@ public sealed class WFNetExplosionSystem : EntitySystem
     {
         base.FrameUpdate(frameTime);
         var now = _timing.RealTime;
+        var tick = _timing.TickPeriod.TotalSeconds;
         for (var i = _blasts.Count - 1; i >= 0; i--)
         {
             var blast = _blasts[i];
-            if (TerminatingOrDeleted(blast.Entity) || blast.Until is { } until && now >= until)
+            // One iteration a server tick from when it arrived, whatever the frame rate; then the whole area shows
+            // for the server's persistence.
+            var elapsed = (now - blast.Start).TotalSeconds;
+            var finishedAt = blast.Iterations * tick;
+            if (TerminatingOrDeleted(blast.Entity) || elapsed >= finishedAt + blast.Persistence)
             {
-                QueueDel(blast.Entity);
+                if (!TerminatingOrDeleted(blast.Entity))
+                    QueueDel(blast.Entity);
                 _blasts.RemoveAt(i);
                 continue;
             }
 
-            if (blast.Until != null || now < blast.NextStep)
+            if (blast.Finished)
                 continue;
 
-            blast.NextStep = now + _timing.TickPeriod;
-            blast.Progress++;
-            if (blast.Progress > blast.Iterations)
+            if (elapsed >= finishedAt)
             {
-                // Finished: the whole area shows, then fades after the server's persistence.
+                blast.Finished = true;
                 _appearance.SetData(blast.Entity, ExplosionAppearanceData.Progress, int.MaxValue);
-                blast.Until = now + TimeSpan.FromSeconds(blast.Persistence);
                 continue;
             }
 
-            _appearance.SetData(blast.Entity, ExplosionAppearanceData.Progress, blast.Progress);
+            var progress = 1 + (int) (elapsed / tick);
+            if (progress == blast.Progress)
+                continue;
+
+            blast.Progress = progress;
+            _appearance.SetData(blast.Entity, ExplosionAppearanceData.Progress, progress);
         }
     }
 }

@@ -10,7 +10,7 @@ public sealed class NetTrafficCVars
     public static readonly CVarDef<bool> Shells =
         CVarDef.Create("wf.net.shells", true, CVar.SERVERONLY);
 
-    /// <summary>Metres beyond a shell's whole flight within which players are told it was fired.</summary>
+    /// <summary>Metres from a shell's flight path within which players are told of it.</summary>
     public static readonly CVarDef<float> ShellMargin =
         CVarDef.Create("wf.net.shell_margin", 200f, CVar.SERVERONLY);
 

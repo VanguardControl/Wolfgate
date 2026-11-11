@@ -31,8 +31,11 @@ public sealed class WFNetShellSystem : EntitySystem
     /// <summary>A course change smaller than this, in metres a second, isn't sent.</summary>
     private const float VelocityTolerance = 0.5f;
 
-    /// <summary>The furthest a shell's flight reaches when deciding who is told about it.</summary>
-    private const float MaxReach = 3000f;
+    /// <summary>The longest flight considered when deciding who is told about a shell.</summary>
+    private const float MaxFlight = 20000f;
+
+    /// <summary>How often, in ticks, shells in flight look for players who have come into view of them.</summary>
+    private const int RecheckTicks = 10;
 
     private bool _enabled;
     private float _margin;
@@ -80,6 +83,7 @@ public sealed class WFNetShellSystem : EntitySystem
     {
         base.Update(frameTime);
         _viewPoints.Collect(_viewers);
+        var recheck = _timing.CurTick.Value % RecheckTicks == 0;
 
         var query = EntityQueryEnumerator<WFNetShellComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var shell, out var xform))
@@ -92,6 +96,10 @@ public sealed class WFNetShellSystem : EntitySystem
                     Announce((uid, shell, xform), velocity);
                 continue;
             }
+
+            // Players who came into view of the rest of its flight since, such as through a camera, are told now.
+            if (recheck)
+                Tell((uid, shell, xform), velocity);
 
             if ((velocity - shell.Velocity).LengthSquared() < VelocityTolerance * VelocityTolerance)
                 continue;
@@ -116,23 +124,40 @@ public sealed class WFNetShellSystem : EntitySystem
 
     private void Announce(Entity<WFNetShellComponent, TransformComponent> ent, Vector2 velocity)
     {
+        ent.Comp1.Announced = true;
+        ent.Comp1.Velocity = velocity;
+        Tell(ent, velocity);
+    }
+
+    /// <summary>
+    /// Sends the shell as fired, from where it is now, to every player within the margin of the rest of its flight who
+    /// hasn't been told yet.
+    /// </summary>
+    private void Tell(Entity<WFNetShellComponent, TransformComponent> ent, Vector2 velocity)
+    {
         var (uid, shell, xform) = ent;
-        shell.Announced = true;
-        shell.Velocity = velocity;
         if (xform.MapUid is not { } map || MetaData(uid).EntityPrototype is not { } proto)
             return;
 
         var lifetime = TryComp<TimedDespawnComponent>(uid, out var despawn) ? despawn.Lifetime : 5f;
         var position = _transform.GetWorldPosition(xform);
-        var reach = MathF.Min(MaxReach, velocity.Length() * lifetime) + _margin;
-        var fired = new WFShellFired(shell.Id, proto.ID, GetNetEntity(map), position, velocity,
-            (float) _transform.GetWorldRotation(xform).Theta, _timing.CurTick.Value, lifetime);
+        var speed = velocity.Length();
+        var flight = speed > 0f ? velocity / speed * MathF.Min(MaxFlight, speed * lifetime) : Vector2.Zero;
         _told.Clear();
-        _viewPoints.InRange(_viewers, new MapCoordinates(position, xform.MapID), reach, _told);
+        _viewPoints.NearSegment(_viewers, xform.MapID, position, position + flight, _margin, _told);
+        if (_told.Count == 0)
+            return;
+
+        WFShellFired? fired = null;
         foreach (var session in _told)
         {
+            if (shell.Viewers.Contains(session))
+                continue;
+
+            fired ??= new WFShellFired(shell.Id, proto.ID, GetNetEntity(map), position, velocity,
+                (float) _transform.GetWorldRotation(xform).Theta, _timing.CurTick.Value, lifetime);
             shell.Viewers.Add(session);
-            Batch(session).Fired.Add(fired);
+            Batch(session).Fired.Add(fired.Value);
         }
     }
 

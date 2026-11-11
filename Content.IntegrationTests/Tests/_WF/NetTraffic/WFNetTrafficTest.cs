@@ -143,14 +143,21 @@ public sealed class WFNetTrafficTest
         EntityUid wall = default;
         GameTickHolder first = new();
 
+        DamageSpecifier blunt = default!;
         await server.WaitAssertion(() =>
         {
             wall = em.SpawnEntity("WallSolid", map.GridCoords);
-            var damage = server.System<DamageableSystem>();
-            var blunt = new DamageSpecifier(server.ProtoMan.Index<DamageTypePrototype>("Blunt"), 1);
-            damage.TryChangeDamage(wall, blunt, true);
+            Assert.That(em.GetComponent<TransformComponent>(wall).Anchored, "Only anchored structures are held back.");
+            blunt = new DamageSpecifier(server.ProtoMan.Index<DamageTypePrototype>("Blunt"), 1);
+            server.System<DamageableSystem>().TryChangeDamage(wall, blunt, true);
             first.Tick = em.GetComponent<DamageableComponent>(wall).LastModifiedTick;
-            damage.TryChangeDamage(wall, blunt, true);
+        });
+
+        // The second hit lands on a later tick, still inside the interval.
+        await pair.RunTicksSync(3);
+        await server.WaitAssertion(() =>
+        {
+            server.System<DamageableSystem>().TryChangeDamage(wall, blunt, true);
             Assert.That(em.GetComponent<DamageableComponent>(wall).LastModifiedTick, Is.EqualTo(first.Tick),
                 "A second hit inside the interval isn't sent at once.");
         });
