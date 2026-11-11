@@ -796,6 +796,7 @@
   - WFMeridianLoadoutClothingHeadPeaceflower
   - WFMeridianLoadoutClothingHeadPillowHood
   - WFMeridianLoadoutClothingHeadPizza
+  - WFMeridianLoadoutClothingHeadPlaybunnyears
   - WFMeridianLoadoutClothingHeadPlaybunnyearsCmo
   - WFMeridianLoadoutClothingHeadPlaybunnyearsCoroner
   - WFMeridianLoadoutClothingHeadPlaybunnyearsDoctor
@@ -1146,6 +1147,7 @@
   - WFMeridianLoadoutClothingNeckScarf
   - WFMeridianLoadoutClothingNeckTesharianMantle
   - WFMeridianLoadoutClothingNeckTie
+  - WFMeridianLoadoutClothingNeckTieBunnytie
   - WFMeridianLoadoutClothingNeckTieBunnytieBitrunner
   - WFMeridianLoadoutClothingNeckTieBunnytieCargo
   - WFMeridianLoadoutClothingNeckTieBunnytieCmo
@@ -1290,6 +1292,7 @@
   - ContractorHarmonicaInstrument
   - ContractorSaxophoneInstrument
   - ContractorAcousticGuitarInstrument
+  - WFBoombox # WOLFGATE(Boombox): portable internet speaker.
   - ContractorCane
   - ContractorLGBTQHandyFlag
   #- ContractorNTHandyFlag

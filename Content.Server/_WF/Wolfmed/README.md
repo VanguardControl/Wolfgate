@@ -556,6 +556,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_WF/Wolfmed/Surgery/slime_core.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Surgery/slime_core.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Surgery/surgeries.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Surgery/surgeries.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Surgery/surgery_steps.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Surgery/surgery_steps.yml)
+- [`Resources/Prototypes/_WF/Wolfmed/Surgery/synth_components.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Surgery/synth_components.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Surgery/synth_core.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Surgery/synth_core.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Surgery/synth_power_cell.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Surgery/synth_power_cell.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Voice/bobmed_emote_sounds.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Voice/bobmed_emote_sounds.yml)
@@ -1265,6 +1266,7 @@ Skipped ("dirty-disposed").
   - HOOK 7 / D14, Wolfmed wound treatment data.
 - [`Content.Server/Medical/DefibrillatorSystem.cs`](../../Medical/DefibrillatorSystem.cs)
   - BRAIN
+  - a living Wolfmed patient in arrest can be shocked; Unrevivable only stops the dead
   - BRAIN, the Wolfmed rule replaces the threshold gate for a wound host.
   - M1a: the refusal carries the patient's numbers (blood %, units to transfuse).
   - M1a

@@ -344,6 +344,8 @@ public sealed partial class CEZLevelsSystem
     /// </summary>
     private void MoveGridSetToMap(HashSet<EntityUid> movedGrids, EntityUid targetMap, int offset, int depth)
     {
+        WfAdoptStanders(movedGrids); // WOLFGATE(Planets): crates and players the ground layer still owns ride the hull off the planet.
+
         foreach (var gridUid in movedGrids)
         {
             var beforeEv = new CEZLevelBeforeMapMoveEvent(offset, depth);
@@ -416,6 +418,9 @@ public sealed partial class CEZLevelsSystem
         if (xform.MapUid is not { } currentMap)
             return false;
 
+        if (!WfIsFlyableGrid(grid)) // WOLFGATE(Planets): planet ground is the map's own grid; moving it stops physics server-wide.
+            return false;
+
         if (HasComp<CEZTransitMapComponent>(currentMap))
             return false; // Already in transit.
 
@@ -425,6 +430,17 @@ public sealed partial class CEZLevelsSystem
         var layers = CollectConvoyLayers(grid);
         if (layers.Count == 0)
             return false;
+
+        // WOLFGATE(Planets) START: nothing in the convoy may be a map's own grid either.
+        foreach (var layer in layers)
+        {
+            foreach (var member in layer.Grids)
+            {
+                if (!WfIsFlyableGrid(member))
+                    return false;
+            }
+        }
+        // WOLFGATE END
 
         // Direction is decided for the whole convoy: descending needs a level below
         // the BOTTOM layer, climbing needs one above the TOP layer. Every interior

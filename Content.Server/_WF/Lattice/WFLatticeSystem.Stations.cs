@@ -63,6 +63,7 @@ public sealed partial class WFLatticeSystem
         SubscribeLocalEvent<WFLatticeAnchorComponent, ComponentShutdown>(OnAnchorShutdown);
         SubscribeLocalEvent<WFLatticeAnchorComponent, AnchorStateChangedEvent>(OnAnchorUnbolted);
         SubscribeLocalEvent<WFLatticeAnchorComponent, DamageChangedEvent>(OnAnchorDamaged);
+        SubscribeLocalEvent<WFLatticeStationPartComponent, DamageChangedEvent>(OnPartDamaged);
         SubscribeLocalEvent<WFLatticeAnchorShieldComponent, MapInitEvent>(OnShieldMapInit);
         SubscribeLocalEvent<WFShipShieldAttackedEvent>(OnShieldAttacked);
         SubscribeLocalEvent<WFDefconGatherEvent>(OnDefconGather);
@@ -276,7 +277,16 @@ public sealed partial class WFLatticeSystem
             return;
 
         var attacker = args.Origin is { } origin && TryComp<TransformComponent>(origin, out var from) ? from.GridUid : null;
+        // The direct-hit alarm goes first, so the weaker under-fire advisory can't take its cooldown.
+        Provoke(grid, args.Origin);
         Strike(grid, attacker, 1f);
+    }
+
+    /// <summary>A hit on anything else on the station is answered at once too.</summary>
+    private void OnPartDamaged(Entity<WFLatticeStationPartComponent> ent, ref DamageChangedEvent args)
+    {
+        if (args.DamageIncreased && Transform(ent.Owner).GridUid is { } grid)
+            Provoke(grid, args.Origin);
     }
 
     /// <summary>A hit on the shield counts towards the limit.</summary>
@@ -340,6 +350,15 @@ public sealed partial class WFLatticeSystem
                         && (!TryComp<PhysicsComponent>(grid, out var body) || body.LinearVelocity.Length() <= relay.MaxSpeed);
             var powered = !TryComp<ApcPowerReceiverComponent>(uid, out var power) || power.Powered;
             relay.Settled = still ? relay.Settled + seconds : 0f;
+            // Past the Unstringing a mobile relay is a haven, and what it draws keeps climbing.
+            if (power != null && relay.NeedsFuel)
+            {
+                if (relay.BaseLoad < 0f)
+                    relay.BaseLoad = power.Load;
+
+                power.Load = relay.BaseLoad * HavenLoadFactor(xform.MapUid);
+            }
+
             anchor.Strength = relay.Strength;
             var was = anchor.Active;
             anchor.Active = powered && relay.Settled >= relay.SettleSeconds && (!relay.NeedsFuel || relay.Fuel > 0f);

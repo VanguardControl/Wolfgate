@@ -36,6 +36,8 @@
   - type: Tag
     tags:
     - RawMaterial
+    # Too valuable to bank between rounds.
+    - SafetyDepositBlacklist
   - type: Stack
     stackType: WFExoticMatter
     baseLayer: base
@@ -173,6 +175,9 @@
   - WFFlatpackLatticeStabiliser
   - WFLatticeCharm
   - WFFlatpackLatticeRelay
+  - WFDriftLogger
+  - WFLatticeStatusCartridge
+  - WFFlatpackLatticeStatusConsole
 
 - type: latheRecipe
   id: WFFlatpackLatticeStabiliser
