@@ -5,8 +5,8 @@ using Content.Shared._Goobstation.Wizard.Projectiles;
 using Content.Shared._Mono.SpaceArtillery;
 using Content.Shared._WF.NetTraffic;
 using Robust.Server.GameObjects;
-using Robust.Server.Player;
 using Robust.Shared.Configuration;
+using Robust.Shared.Map;
 using Robust.Shared.Enums;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Player;
@@ -23,7 +23,7 @@ public sealed class WFNetShellSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _config = default!;
     [Dependency] private IGameTiming _timing = default!;
-    [Dependency] private IPlayerManager _players = default!;
+    [Dependency] private WFViewPointSystem _viewPoints = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private VisibilitySystem _visibility = default!;
@@ -38,7 +38,8 @@ public sealed class WFNetShellSystem : EntitySystem
     private float _margin;
     private int _nextId;
     private readonly Dictionary<ICommonSession, WFShellBatchEvent> _batches = new();
-    private readonly List<(ICommonSession Session, Vector2 Position)> _viewers = new();
+    private readonly List<(ICommonSession Session, MapCoordinates At)> _viewers = new();
+    private readonly HashSet<ICommonSession> _told = new();
 
     public override void Initialize()
     {
@@ -78,12 +79,7 @@ public sealed class WFNetShellSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
-        _viewers.Clear();
-        foreach (var session in _players.Sessions)
-        {
-            if (session.AttachedEntity is { } attached && !TerminatingOrDeleted(attached))
-                _viewers.Add((session, _transform.GetWorldPosition(attached)));
-        }
+        _viewPoints.Collect(_viewers);
 
         var query = EntityQueryEnumerator<WFNetShellComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var shell, out var xform))
@@ -129,15 +125,12 @@ public sealed class WFNetShellSystem : EntitySystem
         var lifetime = TryComp<TimedDespawnComponent>(uid, out var despawn) ? despawn.Lifetime : 5f;
         var position = _transform.GetWorldPosition(xform);
         var reach = MathF.Min(MaxReach, velocity.Length() * lifetime) + _margin;
-        var mapId = xform.MapID;
         var fired = new WFShellFired(shell.Id, proto.ID, GetNetEntity(map), position, velocity,
             (float) _transform.GetWorldRotation(xform).Theta, _timing.CurTick.Value, lifetime);
-        foreach (var (session, at) in _viewers)
+        _told.Clear();
+        _viewPoints.InRange(_viewers, new MapCoordinates(position, xform.MapID), reach, _told);
+        foreach (var session in _told)
         {
-            if (session.AttachedEntity is not { } attached || Transform(attached).MapID != mapId
-                || (at - position).LengthSquared() > reach * reach)
-                continue;
-
             shell.Viewers.Add(session);
             Batch(session).Fired.Add(fired);
         }

@@ -1,7 +1,9 @@
 using Content.Shared._WF.NetTraffic;
 using Content.Shared.CCVar;
 using Content.Shared.Explosion.Components;
+using Robust.Server.Replays;
 using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
@@ -15,13 +17,16 @@ namespace Content.Server._WF.NetTraffic;
 public sealed class WFNetExplosionSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _config = default!;
-    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private IServerReplayRecordingManager _replay = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private WFViewPointSystem _viewPoints = default!;
 
     /// <summary>Whether explosions go out as messages; read by the explosion system.</summary>
     public bool Enabled { get; private set; }
 
     private float _range;
     private float _persistence;
+    private readonly List<(ICommonSession Session, MapCoordinates At)> _points = new();
 
     public override void Initialize()
     {
@@ -68,10 +73,21 @@ public sealed class WFNetExplosionSystem : EntitySystem
         if (farSound != null && far != null)
             Raise(Make(farSound, true), far.Recipients, told);
 
-        // Bigger blasts are seen further off; each iteration is roughly a tile further out.
-        var reach = _range + comp.Intensity.Count;
-        var seeing = Filter.Empty().AddInRange(epicenter, reach).RemovePlayers(told);
-        Raise(Make(null, false), seeing.Recipients, told);
+        // Bigger blasts are seen further off; each iteration is roughly a tile further out. Players watching through
+        // a camera or from a vehicle see from there.
+        var seeing = new HashSet<ICommonSession>();
+        _viewPoints.Collect(_points);
+        _viewPoints.InRange(_points, epicenter, _range + comp.Intensity.Count, seeing);
+        Raise(Make(null, false), seeing, told);
+
+        // Replays record the unsent visuals entity already; they only need the sounds.
+        if (_replay.IsRecording)
+        {
+            if (nearSound != null)
+                _audio.PlayStatic(nearSound, Filter.Empty(), soundAt, true, nearSound.Params);
+            if (farSound != null)
+                _audio.PlayGlobal(farSound, Filter.Empty(), true, farSound.Params);
+        }
     }
 
     private void Raise(WFExplosionEvent ev, IEnumerable<ICommonSession> recipients, HashSet<ICommonSession> told)
@@ -84,6 +100,6 @@ public sealed class WFNetExplosionSystem : EntitySystem
         }
 
         if (filter.Count > 0)
-            RaiseNetworkEvent(ev, filter);
+            RaiseNetworkEvent(ev, filter, recordReplay: false);
     }
 }

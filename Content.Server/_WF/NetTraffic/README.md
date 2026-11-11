@@ -29,6 +29,7 @@ for clients on a lossy link (`net.adaptive_state_max_interval`).
 - [`Content.Server/_WF/NetTraffic/WFNetExplosionSystem.cs`](WFNetExplosionSystem.cs)
 - [`Content.Server/_WF/NetTraffic/WFNetShellComponent.cs`](WFNetShellComponent.cs)
 - [`Content.Server/_WF/NetTraffic/WFNetShellSystem.cs`](WFNetShellSystem.cs)
+- [`Content.Server/_WF/NetTraffic/WFViewPointSystem.cs`](WFViewPointSystem.cs)
 
 ### Shared
 

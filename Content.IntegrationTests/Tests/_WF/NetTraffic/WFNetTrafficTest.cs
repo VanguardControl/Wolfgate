@@ -61,6 +61,37 @@ public sealed class WFNetTrafficTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>A player watching through a far camera is told of shells by the camera, not by where they stand.</summary>
+    [Test]
+    public async Task ShellReachesAPlayerWatchingThroughACamera()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var em = server.EntMan;
+        await server.WaitPost(() => server.CfgMan.SetCVar(CVars.NetPVS, true));
+        await pair.RunTicksSync(5);
+
+        await server.WaitAssertion(() =>
+        {
+            var viewer = em.SpawnEntity(null, map.MapCoords);
+            server.PlayerMan.SetAttachedEntity(pair.Player!, viewer);
+            var far = new MapCoordinates(new Vector2(20000, 0), map.MapId);
+            var camera = em.SpawnEntity(null, far);
+            server.System<Robust.Server.GameObjects.ViewSubscriberSystem>().AddViewSubscriber(camera, pair.Player!);
+            var shell = em.SpawnEntity("57mmBulletHE", far);
+            server.System<SharedPhysicsSystem>().SetLinearVelocity(shell, new Vector2(1, 0),
+                body: em.GetComponent<PhysicsComponent>(shell));
+        });
+
+        await pair.RunTicksSync(10);
+        await pair.Client.WaitAssertion(() =>
+            Assert.That(pair.Client.System<ClientShells>().Count, Is.EqualTo(1), "The camera's view counts."));
+
+        await server.WaitPost(() => server.CfgMan.SetCVar(CVars.NetPVS, false));
+        await pair.CleanReturnAsync();
+    }
+
     [Test]
     public async Task ExplosionArrivesAsOneMessage()
     {
