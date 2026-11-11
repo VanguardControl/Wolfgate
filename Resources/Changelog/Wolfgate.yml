@@ -6750,3 +6750,160 @@ Entries:
   id: 100418
   time: '2026-11-10T07:10:18.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/582
+- author: Balls2zawall
+  changes:
+    - type: Tweak
+      message: >-
+        Moved the contract console out of the way of the cargo airlock on the
+        ASF Lantern
+  id: 100419
+  time: '2026-11-10T08:11:06.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/585
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Drydock berths are named North and South again.
+  id: 100420
+  time: '2026-11-10T12:13:21.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/583
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Losing both legs no longer stops you using consoles, seats, lockers and
+        fabricators. [708]
+    - type: Fix
+      message: >-
+        The Scallywag's small light hangs on the wall instead of in the hatch.
+        [712]
+    - type: Fix
+      message: Harpies can spawn without a head-top marking. [716]
+    - type: Fix
+      message: The AME is called the IRE everywhere now. [722]
+    - type: Fix
+      message: Doctors can take the jaws of life in their gear. [727]
+    - type: Fix
+      message: The Autumn's side airlocks no longer vent the ship. [731]
+    - type: Fix
+      message: >-
+        Unrevivable patients can be shocked out of cardiac arrest while they're
+        still alive. [733]
+    - type: Fix
+      message: Nanite applicators can repair vehicle hardpoints. [735]
+    - type: Fix
+      message: Medical bounty bodies can't be sold through cargo. [737]
+    - type: Fix
+      message: The STC cap looks right on vulpkanin. [739]
+    - type: Fix
+      message: The Juggernaut suit counts as faction gear. [740]
+  id: 100421
+  time: '2026-11-10T15:32:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/587
+- author: Balls2zawall
+  changes:
+    - type: Add
+      message: >-
+        The Judges at CC have a shiny new brig to work from! it should feel more
+        like a work space than a banquet hall now.
+  id: 100422
+  time: '2026-11-10T15:36:52.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/588
+- author: antanananat
+  changes:
+    - type: Remove
+      message: >-
+        UBM Excelsior now has a normal and boring IFF console instead of a red
+        and evil one. 
+  id: 100423
+  time: '2026-11-10T21:39:40.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/593
+- author: Balls2zawall
+  changes:
+    - type: Remove
+      message: Removed the DYRV Crucible, pending re-design.
+  id: 100424
+  time: '2026-11-11T05:34:27.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/594
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Added the MD-10 "Parasol" deflector generator, sold as a flatpack by the
+        systems broker and flatpack vendor. It runs on little power and covers a
+        180° arc at most. Shells pass through it at half damage; missiles and
+        energy weapons are stopped.
+  id: 100425
+  time: '2026-11-11T06:26:16.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/591
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: >-
+        Contract bounty targets no longer spawn right next to other players'
+        ships.
+  id: 100426
+  time: '2026-11-11T08:20:43.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/592
+- author: ImogenOC
+  changes:
+    - type: Fix
+      message: >-
+        Fixed a server freeze caused by whispers and radio messages containing
+        emphasis marks.
+    - type: Fix
+      message: Fixed the cargo telepad crashing the client.
+  id: 100427
+  time: '2026-11-11T08:20:58.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/597
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Cyborgs can drain APCs and power cells to recharge, and have a bank
+        account for ATMs and pay.
+    - type: Add
+      message: Zoomba/Doomba cyborg chassis added.
+    - type: Add
+      message: >-
+        Cyborgs carry an ID card in their tool module and can buy and fly their
+        own ship.
+    - type: Fix
+      message: >-
+        Cyborgs in a crew can open their crew ship's doors, and a ship's owner
+        can add a cyborg to the access list at the console.
+    - type: Add
+      message: >-
+        Every cyborg's tool module has gripper hands for cells, tanks, jerry
+        cans, flatpacks and stacks.
+    - type: Add
+      message: >-
+        Cyborg construction and treatment stacks start stocked and refill in a
+        charger.
+    - type: Add
+      message: >-
+        Cyborg headlights are back as a toggle, and cyborgs can buckle into
+        seats and climb tables.
+    - type: Add
+      message: >-
+        Borg skins show wrecked, tipped and seated poses, with rest, sit and
+        belly-up actions where the skin has them.
+    - type: Tweak
+      message: >-
+        The RCD module carries a gas analyzer, geiger counter and t-ray scanner,
+        and its ship repair device starts full.
+    - type: Tweak
+      message: >-
+        The treatment module includes the defibrillator; the chem module has
+        four beakers and a hand labeler.
+    - type: Tweak
+      message: >-
+        TSF and PDV engineer and medical cyborgs have four spare module slots.
+        They also get recolored versions of the skins added in another PR
+    - type: Tweak
+      message: >-
+        Cyborgs in a crew can open their crew ship's doors, and a ship's owner
+        can add a cyborg to the access list at the console. Cyborgs can also be
+        chosen in a crew start
+  id: 100428
+  time: '2026-11-11T08:22:55.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/589

@@ -6351,16 +6351,6 @@ entities:
       powerLoad: 5
     - type: Battery
       startingCharge: 0
-  - uid: 563
-    components:
-    - type: Transform
-      parent: 2
-      rot: -1.5707963267948966 rad
-      pos: 8.5,10.5
-    - type: ApcPowerReceiver
-      powerLoad: 5
-    - type: Battery
-      startingCharge: 0
 - proto: ConveyorBelt
   entities:
   - uid: 959
@@ -16784,6 +16774,8 @@ entities:
       parent: 2
       rot: -1.5707963267948966 rad
       pos: 3.5,1.5
+    - type: WFDrydockConsole
+      berth: South
     - type: DeviceLinkSource
       linkedPorts:
         111:
@@ -16808,6 +16800,8 @@ entities:
       parent: 2
       rot: -4.71238898038469 rad
       pos: -2.5,30.5
+    - type: WFDrydockConsole
+      berth: North
     - type: DeviceLinkSource
       linkedPorts:
         812:
@@ -16822,6 +16816,18 @@ entities:
         798:
         - - WFDrydockCraneSender
           - WFDrydockCraneReceiver
+    - type: ApcPowerReceiver
+      powerLoad: 5
+    - type: Battery
+      startingCharge: 0
+- proto: WFComputerDrydockTraffic
+  entities:
+  - uid: 563
+    components:
+    - type: Transform
+      parent: 2
+      rot: -1.5707963267948966 rad
+      pos: 8.5,10.5
     - type: ApcPowerReceiver
       powerLoad: 5
     - type: Battery
