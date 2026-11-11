@@ -20,6 +20,7 @@
   id: WFExecutive
   mapName: 'DME Executive'
   mapPath: /SharedMaps/_WF/Community/executive.yml
+  isGrid: true
   minPlayers: 0
   stations:
     WFExecutive:
