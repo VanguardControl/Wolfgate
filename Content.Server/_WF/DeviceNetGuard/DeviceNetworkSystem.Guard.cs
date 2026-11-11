@@ -1,14 +1,27 @@
-using System.Diagnostics;
+using Stopwatch = System.Diagnostics.Stopwatch;
+using System.Linq;
 using Content.Shared._WF.DeviceNetGuard;
+using Content.Shared.DeviceNetwork.Events;
 using Robust.Shared.Configuration;
+using Robust.Shared.Timing;
 
 namespace Content.Server.DeviceNetwork.Systems;
 
 public sealed partial class DeviceNetworkSystem
 {
     [Dependency] private IConfigurationManager _guardCfg = default!;
+    [Dependency] private IGameTiming _guardTiming = default!;
+
+    /// <summary>Senders named in a storm report.</summary>
+    private const int StormTopSenders = 5;
+
+    /// <summary>A storm that keeps coming back is reported in full at most this often.</summary>
+    private static readonly TimeSpan StormReportInterval = TimeSpan.FromMinutes(1);
 
     private readonly Stopwatch _guardWatch = new();
+    private TimeSpan _nextStormReport;
+    private int _quietStorms;
+    private long _quietShed;
 
     /// <summary>Packets waiting to be sent, in this tick's queue and the next.</summary>
     public int Backlog => _queueA.Count + _queueB.Count;
@@ -30,9 +43,9 @@ public sealed partial class DeviceNetworkSystem
         {
             // Devices feeding each other more packets than they consume never settle; start them from nothing.
             ShedPackets += backlog;
+            ReportStorm(backlog);
             _queueA.Clear();
             _queueB.Clear();
-            Log.Error($"Device network packet storm: dropped {backlog} queued packets.");
             return true;
         }
 
@@ -53,5 +66,60 @@ public sealed partial class DeviceNetworkSystem
 
         SwapQueues();
         return true;
+    }
+
+    /// <summary>
+    ///     Logs a dropped backlog with the devices sending most of it and their grids. Storms within
+    ///     <see cref="StormReportInterval"/> of a report are only counted, and summed into the next one.
+    /// </summary>
+    private void ReportStorm(int backlog)
+    {
+        var now = _guardTiming.RealTime;
+        if (now < _nextStormReport)
+        {
+            _quietStorms++;
+            _quietShed += backlog;
+            return;
+        }
+
+        _nextStormReport = now + StormReportInterval;
+
+        var counts = new Dictionary<EntityUid, int>();
+        CountSenders(_queueA, counts);
+        CountSenders(_queueB, counts);
+
+        var top = counts
+            .OrderByDescending(pair => pair.Value)
+            .Take(StormTopSenders)
+            .Select(pair => $"{pair.Value}x {DescribeSender(pair.Key)}");
+
+        var since = _quietStorms > 0
+            ? $" {_quietStorms} more storms dropped {_quietShed} packets since the last report."
+            : string.Empty;
+        _quietStorms = 0;
+        _quietShed = 0;
+
+        Log.Error($"Device network packet storm: dropped {backlog} queued packets from {counts.Count} devices.{since} " +
+                  $"Top senders: {string.Join("; ", top)}");
+    }
+
+    private static void CountSenders(Queue<DeviceNetworkPacketEvent> queue, Dictionary<EntityUid, int> counts)
+    {
+        foreach (var packet in queue)
+        {
+            counts[packet.Sender] = counts.GetValueOrDefault(packet.Sender) + 1;
+        }
+    }
+
+    /// <summary>A sender with its prototype and the grid it is on, for the storm report.</summary>
+    private string DescribeSender(EntityUid sender)
+    {
+        if (TerminatingOrDeleted(sender))
+            return $"{sender} (deleted)";
+
+        var grid = Transform(sender).GridUid;
+        return grid is { } gridUid
+            ? $"{ToPrettyString(sender)} on {ToPrettyString(gridUid)}"
+            : $"{ToPrettyString(sender)} off-grid";
     }
 }
