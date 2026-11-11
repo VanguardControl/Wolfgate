@@ -78,8 +78,10 @@ public sealed class AirAlarmModeEchoTest
         await pair.CleanReturnAsync();
     }
 
-    [Test]
-    public async Task ModePassesAlongAChain()
+    /// <param name="middleHasIt">The middle alarm is already in the mode being set.</param>
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task ModePassesAlongAChain(bool middleHasIt)
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
@@ -105,6 +107,9 @@ public sealed class AirAlarmModeEchoTest
             lists.UpdateDeviceList(a, new[] { b });
             lists.UpdateDeviceList(b, new[] { a, c });
             lists.UpdateDeviceList(c, new[] { b });
+
+            if (middleHasIt)
+                entities.GetComponent<AirAlarmComponent>(b).CurrentMode = AirAlarmMode.Panic;
         });
         await pair.RunTicksSync(10);
 

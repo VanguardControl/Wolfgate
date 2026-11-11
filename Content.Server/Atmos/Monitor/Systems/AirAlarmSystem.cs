@@ -571,6 +571,13 @@ public sealed partial class AirAlarmSystem : EntitySystem
                 // WOLFGATE(DeviceNetGuard) START: a mode no newer than the last one applied is ignored, not echoed back
                 if (!TryAcceptModeStamp(uid, args.Data))
                     return;
+
+                // SetMode does nothing for a mode this alarm already has, but alarms past it may not have it.
+                if (controller.CurrentMode == alarmMode)
+                {
+                    SyncMode(uid, alarmMode);
+                    return;
+                }
                 // WOLFGATE END
 
                 SetMode(uid, args.SenderAddress, alarmMode, uiOnly: false);
