@@ -14,7 +14,7 @@
   - Cargo
   - Civilian
   engine:
-  - Uranium
+  - Plasma
 
 - type: gameMap
   id: WFExecutive
