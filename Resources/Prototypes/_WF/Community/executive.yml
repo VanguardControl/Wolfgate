@@ -22,7 +22,7 @@
   mapPath: /SharedMaps/_WF/Community/executive.yml
   minPlayers: 0
   stations:
-    WFDMEExecutive:
+    WFExecutive:
       stationProto: StandardFrontierVessel
       components:
       - type: StationNameSetup

@@ -9,7 +9,7 @@ Module containing ships made by the Wolfgate community
 
 ### Prototypes
 
-- [`Resources/Prototypes/_WF/Community/dme_executive.yml`](../../../Resources/Prototypes/_WF/Community/dme_executive.yml)
+- [`Resources/Prototypes/_WF/Community/executive.yml`](../../../Resources/Prototypes/_WF/Community/executive.yml)
 
 ### Shared maps
 

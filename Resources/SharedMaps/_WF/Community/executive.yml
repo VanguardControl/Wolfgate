@@ -2061,7 +2061,6 @@ entities:
       pos: 0.5,17.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
       - 284
 - proto: Firelock
   entities:
