@@ -118,7 +118,7 @@ public sealed class DeviceNetGuardTest
 
         for (var i = 0; i < Packets; i++)
         {
-            deviceNet.QueuePacket(sender, address, new NetworkPayload { [Counter] = i });
+            Assert.That(deviceNet.QueuePacket(sender, address, new NetworkPayload { [Counter] = i }), Is.True);
         }
     }
 }

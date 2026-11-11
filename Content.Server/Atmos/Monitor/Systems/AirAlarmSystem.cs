@@ -159,6 +159,7 @@ public sealed partial class AirAlarmSystem : EntitySystem
             [DeviceNetworkConstants.Command] = AirAlarmSetMode,
             [AirAlarmSetMode] = mode
         };
+        WriteModeStamp(uid, payload); // WOLFGATE(DeviceNetGuard): a relayed mode keeps the stamp of the alarm that set it
 
         _deviceNet.QueuePacket(uid, null, payload);
     }
@@ -504,13 +505,7 @@ public sealed partial class AirAlarmSystem : EntitySystem
 
         UpdateUI(uid, controller);
 
-        // WOLFGATE(DeviceNetGuard) START: only a mode set at this alarm is broadcast; echoing received modes ping-pongs forever
-        // Two alarms that broadcast different modes in one tick swapped them and re-broadcast every tick, flipping
-        // every vent and scrubber on the network until the device network choked. A broadcast already reaches every
-        // alarm, so a received mode needs no echo.
-        if (!TryComp<DeviceNetworkComponent>(uid, out var ownNet) || ownNet.Address != origin)
-            return;
-        // WOLFGATE END
+        StampLocalMode(uid, origin); // WOLFGATE(DeviceNetGuard): a mode set at this alarm gets a new stamp
 
         // setting sync deals with the issue of air alarms
         // in the same network needing to have the same mode
@@ -572,6 +567,11 @@ public sealed partial class AirAlarmSystem : EntitySystem
             case AirAlarmSetMode:
                 if (!args.Data.TryGetValue(AirAlarmSetMode, out AirAlarmMode alarmMode))
                     break;
+
+                // WOLFGATE(DeviceNetGuard) START: a mode no newer than the last one applied is ignored, not echoed back
+                if (!TryAcceptModeStamp(uid, args.Data))
+                    return;
+                // WOLFGATE END
 
                 SetMode(uid, args.SenderAddress, alarmMode, uiOnly: false);
 

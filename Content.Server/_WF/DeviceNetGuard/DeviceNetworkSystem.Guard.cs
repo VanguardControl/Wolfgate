@@ -20,6 +20,7 @@ public sealed partial class DeviceNetworkSystem
 
     private readonly Stopwatch _guardWatch = new();
     private TimeSpan _nextStormReport;
+    private int _lastBacklog;
     private int _quietStorms;
     private long _quietShed;
 
@@ -39,9 +40,14 @@ public sealed partial class DeviceNetworkSystem
             return false;
 
         var backlog = Backlog;
-        if (backlog > _guardCfg.GetCVar(DeviceNetGuardCVars.MaxBacklog))
+        var growing = backlog > _lastBacklog;
+        _lastBacklog = backlog;
+
+        // A large backlog that is shrinking is a burst the budget is already working through.
+        if (growing && backlog > _guardCfg.GetCVar(DeviceNetGuardCVars.MaxBacklog))
         {
             // Devices feeding each other more packets than they consume never settle; start them from nothing.
+            _lastBacklog = 0;
             ShedPackets += backlog;
             ReportStorm(backlog);
             _queueA.Clear();
@@ -50,7 +56,8 @@ public sealed partial class DeviceNetworkSystem
         }
 
         var budget = TimeSpan.FromMilliseconds(_guardCfg.GetCVar(DeviceNetGuardCVars.TickBudgetMs));
-        var minPackets = _guardCfg.GetCVar(DeviceNetGuardCVars.MinPacketsPerTick);
+        // At least one, or a zero budget would never send anything.
+        var minPackets = Math.Max(1, _guardCfg.GetCVar(DeviceNetGuardCVars.MinPacketsPerTick));
         var sent = 0;
         _guardWatch.Restart();
 
