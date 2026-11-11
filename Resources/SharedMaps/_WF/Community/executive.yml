@@ -4,8 +4,8 @@ meta:
   engineVersion: 291.0.0
   forkId: wolfgate-mapping
   forkVersion: 20261106-021336-f99d2cb-tm508-6eaf4386
-  time: 11/10/2026 11:51:20
-  entityCount: 748
+  time: 11/11/2026 00:22:21
+  entityCount: 753
 maps: []
 grids:
 - 1
@@ -1540,7 +1540,7 @@ entities:
     - type: Transform
       parent: 1
       pos: 4.5,9.5
-  - uid: 732
+  - uid: 733
     components:
     - type: Transform
       parent: 1
@@ -1729,43 +1729,43 @@ entities:
       parent: 1
       rot: -1.5707963267948966 rad
       pos: 3.5,8.5
-  - uid: 734
-    components:
-    - type: Transform
-      parent: 1
-      rot: -1.5707963267948966 rad
-      pos: 2.5,7.5
   - uid: 735
     components:
     - type: Transform
       parent: 1
       rot: -1.5707963267948966 rad
-      pos: 3.5,9.5
+      pos: 2.5,7.5
   - uid: 736
     components:
     - type: Transform
       parent: 1
       rot: -1.5707963267948966 rad
-      pos: 4.5,9.5
+      pos: 3.5,9.5
   - uid: 737
     components:
     - type: Transform
       parent: 1
       rot: -1.5707963267948966 rad
-      pos: 5.5,9.5
+      pos: 4.5,9.5
   - uid: 738
     components:
     - type: Transform
       parent: 1
       rot: -1.5707963267948966 rad
-      pos: 5.5,10.5
+      pos: 5.5,9.5
   - uid: 739
     components:
     - type: Transform
       parent: 1
       rot: -1.5707963267948966 rad
+      pos: 5.5,10.5
+  - uid: 740
+    components:
+    - type: Transform
+      parent: 1
+      rot: -1.5707963267948966 rad
       pos: 1.5,10.5
-  - uid: 742
+  - uid: 743
     components:
     - type: Transform
       parent: 1
@@ -1835,7 +1835,7 @@ entities:
       pos: -8.5,-2.5
 - proto: ClosetRadiationSuitFilled
   entities:
-  - uid: 741
+  - uid: 742
     components:
     - type: Transform
       parent: 1
@@ -1871,7 +1871,7 @@ entities:
       pos: -3.5,7.5
 - proto: CoyoteSignRadiation
   entities:
-  - uid: 740
+  - uid: 741
     components:
     - type: Transform
       parent: 1
@@ -2045,6 +2045,13 @@ entities:
     - type: Transform
       parent: 1
       pos: -0.5060003,9.765057
+- proto: DrinkWineBottleFull
+  entities:
+  - uid: 750
+    components:
+    - type: Transform
+      parent: 1
+      pos: 7.708247,0.11954975
 - proto: FaxMachineShip
   entities:
   - uid: 192
@@ -2082,7 +2089,6 @@ entities:
       pos: 1.5,6.5
       anchored: False
     - type: Physics
-      canCollide: True
       bodyType: Dynamic
   - uid: 471
     components:
@@ -2116,6 +2122,13 @@ entities:
     - type: Transform
       parent: 1
       pos: 5.6253414,1.736927
+- proto: FoodCakeChocolate
+  entities:
+  - uid: 490
+    components:
+    - type: Transform
+      parent: 1
+      pos: 7.48944,0.62736225
 - proto: FoodCondimentPacketBbq
   entities:
   - uid: 560
@@ -2123,6 +2136,25 @@ entities:
     - type: Transform
       parent: 1
       pos: 5.3597164,1.565052
+- proto: FoodGrape
+  entities:
+  - uid: 752
+    components:
+    - type: Transform
+      parent: 1
+      pos: 7.512883,-0.31013775
+- proto: FoodMothCheesecakeBalls
+  entities:
+  - uid: 751
+    components:
+    - type: Transform
+      parent: 1
+      pos: 7.395807,-0.25352192
+  - uid: 753
+    components:
+    - type: Transform
+      parent: 1
+      pos: 7.4114356,-0.10508442
 - proto: GasMixerOnFlipped
   entities:
   - uid: 344
@@ -2957,6 +2989,13 @@ entities:
     - type: Transform
       parent: 1
       pos: -0.5,-3.5
+- proto: GoonDecorationRegallamp
+  entities:
+  - uid: 732
+    components:
+    - type: Transform
+      parent: 1
+      pos: 7.473811,0.48673725
 - proto: GoonDeviceLightLavaLamp
   entities:
   - uid: 61
@@ -2981,14 +3020,14 @@ entities:
       pos: 3.5,7.5
 - proto: GreebleAntenna1
   entities:
-  - uid: 747
+  - uid: 748
     components:
     - type: Transform
       parent: 1
       pos: 1.5,18.5
 - proto: GreebleAntenna3
   entities:
-  - uid: 746
+  - uid: 747
     components:
     - type: Transform
       parent: 1
@@ -2996,7 +3035,7 @@ entities:
       pos: -0.5,18.5
 - proto: GreebleElint1
   entities:
-  - uid: 745
+  - uid: 746
     components:
     - type: Transform
       parent: 1
@@ -3004,14 +3043,14 @@ entities:
       pos: -4.5,12.5
 - proto: GreebleRadarpanel1
   entities:
-  - uid: 744
+  - uid: 745
     components:
     - type: Transform
       parent: 1
       pos: -4.5,11.5
 - proto: GreebleRadarpanel2
   entities:
-  - uid: 748
+  - uid: 749
     components:
     - type: Transform
       parent: 1
@@ -3260,7 +3299,7 @@ entities:
       pos: -1.5,11.5
 - proto: LockerWallMaterialsFuelPlasmaFilled2
   entities:
-  - uid: 743
+  - uid: 744
     components:
     - type: Transform
       parent: 1
@@ -3383,7 +3422,7 @@ entities:
       pos: -3.5,2.5
 - proto: PlasturaniumWindowRadProof
   entities:
-  - uid: 733
+  - uid: 734
     components:
     - type: Transform
       parent: 1
@@ -3924,11 +3963,10 @@ entities:
       pos: -0.5565449,9.964255
 - proto: ShelfWallFreezerWhite
   entities:
-  - uid: 491
+  - uid: 488
     components:
     - type: Transform
       parent: 1
-      rot: 3.141592653589793 rad
       pos: 6.5,1.5
 - proto: ShiptestBlueCorpoCorner
   entities:
@@ -4317,13 +4355,6 @@ entities:
       parent: 1
       rot: -1.5707963267948966 rad
       pos: 3.5,12.5
-- proto: SyndicateMicrowave
-  entities:
-  - uid: 488
-    components:
-    - type: Transform
-      parent: 1
-      pos: 7.5,0.5
 - proto: TableGlass
   entities:
   - uid: 221
@@ -4345,7 +4376,7 @@ entities:
       pos: 2.5,11.5
 - proto: TableReinforced
   entities:
-  - uid: 490
+  - uid: 491
     components:
     - type: Transform
       parent: 1
