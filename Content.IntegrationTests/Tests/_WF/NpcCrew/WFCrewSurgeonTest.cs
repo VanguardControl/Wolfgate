@@ -166,7 +166,7 @@ public sealed class WFCrewSurgeonTest
         var medics = entMan.System<WFCrewMedicSystem>();
         var body = entMan.System<SharedBodySystem>();
         EntityUid patient = default, bed = default;
-        Entity<AutodocComponent> pod = default;
+        Entity<AutodocComponent> pod = new(EntityUid.Invalid, null!);
         await scene.Pair.Server.WaitPost(() =>
         {
             bed = entMan.SpawnEntity("MedicalBed", scene.Tiles[1]);

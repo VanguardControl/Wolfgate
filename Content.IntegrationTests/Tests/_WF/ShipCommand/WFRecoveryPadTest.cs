@@ -100,7 +100,7 @@ public sealed class WFRecoveryPadTest
         var session = pair.Player!;
         var map = await pair.CreateTestMap();
 
-        Entity<WFRecoveryPadComponent> pad = default;
+        Entity<WFRecoveryPadComponent> pad = new(EntityUid.Invalid, null!);
         EntityUid op = default, dead = default, living = default;
         await server.WaitPost(() =>
         {
@@ -200,7 +200,7 @@ public sealed class WFRecoveryPadTest
         var session = pair.Player!;
         var map = await pair.CreateTestMap();
 
-        Entity<WFRecoveryPadComponent> pad = default;
+        Entity<WFRecoveryPadComponent> pad = new(EntityUid.Invalid, null!);
         EntityUid op = default, dead = default, bag = default, morgue = default;
         await server.WaitPost(() =>
         {

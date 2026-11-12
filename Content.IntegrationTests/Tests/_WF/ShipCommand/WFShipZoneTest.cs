@@ -129,7 +129,7 @@ public sealed class WFShipZoneTest
         var grid = map.Grid.Owner;
 
         EntityUid door = default, person = default, card = default;
-        Entity<WFShipCommandComponent> cmd = default;
+        Entity<WFShipCommandComponent> cmd = new(EntityUid.Invalid, null!);
         await server.WaitPost(() =>
         {
             door = SpawnZoneDoor(entMan, map, Zone);
@@ -234,7 +234,7 @@ public sealed class WFShipZoneTest
         var grid = map.Grid.Owner;
 
         EntityUid door = default, body = default;
-        Entity<WFShipCommandComponent> cmd = default;
+        Entity<WFShipCommandComponent> cmd = new(EntityUid.Invalid, null!);
         await server.WaitPost(() =>
         {
             door = SpawnZoneDoor(entMan, map, Zone);

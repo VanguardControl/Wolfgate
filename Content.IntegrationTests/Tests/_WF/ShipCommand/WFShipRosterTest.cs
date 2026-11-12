@@ -30,7 +30,7 @@ public sealed class WFShipRosterTest
         var map = await pair.CreateTestMap();
         var grid = map.Grid.Owner;
 
-        Entity<WFShipRosterComponent> ship = default;
+        Entity<WFShipRosterComponent> ship = new(EntityUid.Invalid, null!);
         await server.WaitPost(() =>
         {
             var a = entMan.SpawnEntity("WFShipCrewPostDeckhand", map.GridCoords);
@@ -96,7 +96,7 @@ public sealed class WFShipRosterTest
         var map = await pair.CreateTestMap();
         var grid = map.Grid.Owner;
 
-        Entity<WFShipRosterComponent> ship = default;
+        Entity<WFShipRosterComponent> ship = new(EntityUid.Invalid, null!);
         WFShipRosterSlot counter = default!, gunner = default!;
         EntityUid trader = default, crewman = default, player = default;
         await server.WaitPost(() =>

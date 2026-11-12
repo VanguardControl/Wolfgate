@@ -10,6 +10,7 @@
   purchasable: false
   category: Large
   group: Custom
+  mapchecker_group_override: PointOfInterest # allows its indestructible plastitanium walls
   shuttlePath: /SharedMaps/_WF/AdminVessels/lupercal.yml
   guidebookPage: null
   class:
