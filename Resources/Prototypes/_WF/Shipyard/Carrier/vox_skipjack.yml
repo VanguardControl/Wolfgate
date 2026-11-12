@@ -7,9 +7,9 @@
 - type: vessel
   id: WFVoxSkipjack
   parent: BaseVessel
-  name: 'Vox-Skipjack'
+  name: 'Vox_Skipjack'
   description: 'Describe the ship here.'
-  price: 10000 # appraised at 7758
+  price: 10000 # appraised at 7958
   category: Micro # 58 tiles
   group: Scrap
   shuttlePath: /SharedMaps/_WF/Community/vox_skipjack.yml
@@ -22,7 +22,7 @@
 
 - type: gameMap
   id: WFVoxSkipjack
-  mapName: 'Vox-Skipjack'
+  mapName: 'Vox_Skipjack'
   mapPath: /SharedMaps/_WF/Community/vox_skipjack.yml
   minPlayers: 0
   stations:
@@ -30,7 +30,7 @@
       stationProto: StandardFrontierVessel
       components:
       - type: StationNameSetup
-        mapNameTemplate: 'Vox-Skipjack {1}'
+        mapNameTemplate: 'Vox_Skipjack {1}'
         nameGenerator:
           !type:NanotrasenNameGenerator
           prefixCreator: '14'
