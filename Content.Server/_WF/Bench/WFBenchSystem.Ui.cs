@@ -80,9 +80,14 @@ public sealed partial class WFBenchSystem
         }
     }
 
+    /// <summary>
+    /// The nearby list counts anyone whose body touches the range, so the issue check allows a step's slack past it.
+    /// </summary>
+    private const float IssueSlack = 1.5f;
+
     private bool InRange(EntityUid judge, EntityUid offender)
     {
-        var range = _cfg.GetCVar(BenchCVars.Range);
+        var range = _cfg.GetCVar(BenchCVars.Range) + IssueSlack;
         return Transform(judge).Coordinates.TryDistance(EntityManager, Transform(offender).Coordinates, out var distance)
             && distance <= range;
     }

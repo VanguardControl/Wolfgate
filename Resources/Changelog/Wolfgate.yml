@@ -6446,7 +6446,7 @@ Entries:
         Judge ships now fly under Caelestinus instead of showing as
         unaffiliated. [639]
     - type: Fix
-      message: Joining a crew mid-round now gives you access to the crew's ship. [637]
+      message: Joining a crew mid-round now gives you access to the crew's ship.
     - type: Tweak
       message: >-
         The drydock crane now lists the capacitor power saving on its own line,
@@ -6460,7 +6460,7 @@ Entries:
         The pneumatic loader now sees the AC-35's ammo and can unload and swap
         it. [627]
     - type: Fix
-      message: The material reclaimer no longer eats your screwdriver or crowbar. [625]
+      message: The material reclaimer no longer eats your screwdriver or crowbar.
     - type: Fix
       message: >-
         A dead chimera drops what it was carrying instead of locking it on the
@@ -6580,17 +6580,17 @@ Entries:
         [696] Opening a gas tank's valve on a planet no longer sends it flying
         up out of sight.
     - type: Fix
-      message: '[691] The Lee-Enfield accepts low-capacity 7.62x51 magazines.'
+      message: The Lee-Enfield accepts low-capacity 7.62x51 magazines.
     - type: Fix
-      message: '[689] Burst fire stops when you let go of the trigger.'
+      message: Burst fire stops when you let go of the trigger.
     - type: Fix
-      message: '[688] The leopard tail wag animation no longer flips back and forth.'
+      message: The leopard tail wag animation no longer flips back and forth.
     - type: Fix
       message: >-
         [685] [686] TSF, PDV and MMC bodycams can only be viewed from consoles
         on their own ship or base.
     - type: Fix
-      message: '[668] You can no longer toggle hardsuit seals while crit or dead.'
+      message: You can no longer toggle hardsuit seals while crit or dead.
   id: 100405
   time: '2026-11-09T20:55:58.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/573
@@ -6777,25 +6777,25 @@ Entries:
         The Scallywag's small light hangs on the wall instead of in the hatch.
         [712]
     - type: Fix
-      message: Harpies can spawn without a head-top marking. [716]
+      message: Harpies can spawn without a head-top marking.
     - type: Fix
-      message: The AME is called the IRE everywhere now. [722]
+      message: The AME is called the IRE everywhere now.
     - type: Fix
-      message: Doctors can take the jaws of life in their gear. [727]
+      message: Doctors can take the jaws of life in their gear.
     - type: Fix
-      message: The Autumn's side airlocks no longer vent the ship. [731]
+      message: The Autumn's side airlocks no longer vent the ship.
     - type: Fix
       message: >-
         Unrevivable patients can be shocked out of cardiac arrest while they're
         still alive. [733]
     - type: Fix
-      message: Nanite applicators can repair vehicle hardpoints. [735]
+      message: Nanite applicators can repair vehicle hardpoints.
     - type: Fix
-      message: Medical bounty bodies can't be sold through cargo. [737]
+      message: Medical bounty bodies can't be sold through cargo.
     - type: Fix
-      message: The STC cap looks right on vulpkanin. [739]
+      message: The STC cap looks right on vulpkanin.
     - type: Fix
-      message: The Juggernaut suit counts as faction gear. [740]
+      message: The Juggernaut suit counts as faction gear.
   id: 100421
   time: '2026-11-10T15:32:04.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/587

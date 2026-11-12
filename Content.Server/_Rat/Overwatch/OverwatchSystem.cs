@@ -729,6 +729,8 @@ public sealed class OverwatchSystem : EntitySystem
         {
             if (Transform(uid).GridUid != null && TryComp<JamOverwatchComponent>(Transform(uid).GridUid, out var jamComp) && !jamComp.ExcludedFactions.Contains(faction)) // Mono: grids can jam the overwatch console to prevent coordinates leaks.
                 continue;
+            if (HasComp<Content.Server.NPC.HTN.HTNComponent>(uid) && !HasComp<ActorComponent>(uid)) // WOLFGATE: NPC crew that no player controls don't crowd the console
+                continue; // WOLFGATE: NPC crew that no player controls don't crowd the console
             if (factionComp.CompanyName == faction && HasComp<MobStateComponent>(uid) && !jammedPlayers.Contains(uid))
                 members.Add(uid);
         }
