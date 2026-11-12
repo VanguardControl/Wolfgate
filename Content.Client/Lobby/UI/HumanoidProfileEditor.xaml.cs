@@ -699,6 +699,7 @@ namespace Content.Client.Lobby.UI
             RefreshFlavorText();
             InitializeHeadshot(); // WOLFGATE(Headshot)
             InitializeCustomMarkings(); // WOLFGATE(CustomMarkings)
+            InitializeAppearanceStudio(); // WOLFGATE(AppearanceStudio)
             InitializeCompanyCard(); // WOLFGATE(Companies)
             InitializeMismatchedParts(); // WOLFGATE(Species)
             InitializeBiotype(); // WOLFGATE(Biotype)
@@ -1384,6 +1385,7 @@ namespace Content.Client.Lobby.UI
             PreviewDummy = _controller.LoadProfileEntity(Profile, JobOverride, jobClothes);
             // WOLFGATE END
             SpriteView.SetEntity(PreviewDummy);
+            SetAppearanceStudioFacing(); // WOLFGATE(AppearanceStudio): the new doll is placed for the preview facing
             _entManager.System<MetaDataSystem>().SetEntityName(PreviewDummy, Profile.Name);
 
             // Check and set the dirty flag to enable the save/reset buttons as appropriate.
@@ -1430,6 +1432,7 @@ namespace Content.Client.Lobby.UI
             UpdateFlavorTextEdit();
             UpdateHeadshot(); // WOLFGATE(Headshot)
             UpdateCustomMarkings(); // WOLFGATE(CustomMarkings)
+            UpdateAppearanceStudio(); // WOLFGATE(AppearanceStudio)
             UpdateCompanyCard(); // WOLFGATE(Companies)
             UpdateMismatchedParts(); // WOLFGATE(Species)
             UpdateBiotype(); // WOLFGATE(Biotype)
@@ -2061,6 +2064,7 @@ namespace Content.Client.Lobby.UI
             // WOLFGATE END
             CloseHeadshotWindow(); // WOLFGATE(Headshot)
             CloseCustomMarkings(); // WOLFGATE(CustomMarkings)
+            CloseAppearanceStudio(); // WOLFGATE(AppearanceStudio): the studio closes with the editor
 
             // Mono start
             foreach (var entity in _savedItemEntities)
@@ -2694,6 +2698,7 @@ namespace Content.Client.Lobby.UI
             GenitalEditor.PreviewDirection = SpriteView.OverrideDirection.Value;
             // WOLFGATE END
             SetCustomMarkingsDirection(SpriteView.OverrideDirection.Value); // WOLFGATE(CustomMarkings): its tiles face that way too
+            SetAppearanceStudioFacing(); // WOLFGATE(AppearanceStudio): the doll is placed for that facing
         }
 
         private void RandomizeEverything()

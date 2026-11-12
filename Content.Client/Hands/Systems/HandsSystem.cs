@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared._Shitmed.Body.Events; // Shitmed Change
 using Content.Client.DisplacementMap;
+using Content.Client._WF.AppearanceStudio; // WOLFGATE(AppearanceStudio)
 using Content.Client.Examine;
 using Content.Client.Strip;
 using Content.Client.Verbs.UI;
@@ -34,6 +35,7 @@ namespace Content.Client.Hands.Systems
         [Dependency] private SpriteSystem _sprite = default!;
         [Dependency] private ExamineSystem _examine = default!;
         [Dependency] private DisplacementMapSystem _displacement = default!;
+        [Dependency] private StudioSpriteSystem _studioSprite = default!; // WOLFGATE(AppearanceStudio)
 
         public event Action<string, HandLocation>? OnPlayerAddHand;
         public event Action<string>? OnPlayerRemoveHand;
@@ -384,6 +386,11 @@ namespace Content.Client.Hands.Systems
                 _sprite.LayerSetData((uid, sprite), index, layerData);
 
                 //Add displacement maps
+                // WOLFGATE(AppearanceStudio) START: a warp the player painted for this hand comes first
+                if (_studioSprite.TryGetHeldWarp(uid, hand.Location, out var studioWarp))
+                    _displacement.TryAddDisplacement(studioWarp, sprite, index, key, revealedLayers);
+                else
+                // WOLFGATE END
                 if (hand.Location == HandLocation.Left && handComp.LeftHandDisplacement is not null)
                     _displacement.TryAddDisplacement(handComp.LeftHandDisplacement, sprite, index, key, revealedLayers);
                 else if (hand.Location == HandLocation.Right && handComp.RightHandDisplacement is not null)
