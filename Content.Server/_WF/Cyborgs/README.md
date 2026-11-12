@@ -73,6 +73,10 @@ on board.
 
 ## Non-modular edits
 
+- [`Content.Server/Silicons/Borgs/BorgSystem.cs`](../../Silicons/Borgs/BorgSystem.cs)
+  - the charge changes every tick with the headlight on, and only an open window shows it
+  - an empty cell raises this on every failed draw, and only an open window shows it
+- [`Content.Server/Silicons/Borgs/BorgSystem.Ui.cs`](../../Silicons/Borgs/BorgSystem.Ui.cs): a state that reads the same is not sent again
 - [`Resources/Prototypes/_Mono/borg_types.yml`](../../../Resources/Prototypes/_Mono/borg_types.yml)
   - was 2, too few to fit a printed kit
   - the treatment module carries the defibrillator

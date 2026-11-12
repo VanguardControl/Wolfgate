@@ -136,6 +136,10 @@ public sealed partial class AmeControllerSystem : EntitySystem
         if (!_userInterfaceSystem.HasUi(uid, AmeControllerUiKey.Key))
             return;
 
+        // WOLFGATE(NetTraffic): a new state goes to everyone who sees the controller; WFUiStateTrimSystem sets it on open
+        if (!_userInterfaceSystem.IsUiOpen(uid, AmeControllerUiKey.Key))
+            return;
+
         var state = GetUiState(uid, controller);
         _userInterfaceSystem.SetUiState(uid, AmeControllerUiKey.Key, state);
 

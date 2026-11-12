@@ -106,6 +106,15 @@ public sealed partial class BorgSystem
             chargePercent = battery.CurrentCharge / battery.MaxCharge;
         }
 
+        // WOLFGATE(Cyborgs) START: a state that reads the same is not sent again
+        // Any new state sends every UI state on the borg to everyone who can see it.
+        chargePercent = MathF.Round(chargePercent, 2);
+        if (_ui.TryGetUiState<BorgBuiState>(uid, BorgUiKey.Key, out var wfShown)
+            && wfShown.HasBattery == hasBattery
+            && wfShown.ChargePercent.Equals(chargePercent))
+            return;
+        // WOLFGATE END
+
         var state = new BorgBuiState(chargePercent, hasBattery);
         _ui.SetUiState(uid, BorgUiKey.Key, state);
     }
