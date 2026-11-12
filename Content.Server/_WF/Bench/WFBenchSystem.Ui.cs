@@ -108,9 +108,10 @@ public sealed partial class WFBenchSystem
         if (!judge)
             return state;
 
-        foreach (var person in _lookup.GetEntitiesInRange<ActorComponent>(Transform(viewer).Coordinates, _cfg.GetCVar(BenchCVars.Range)))
+        // The same reach Issue allows, so whoever is listed can be ticketed and someone stepping back stays listed.
+        foreach (var person in _lookup.GetEntitiesInRange<ActorComponent>(Transform(viewer).Coordinates, _cfg.GetCVar(BenchCVars.Range) + IssueSlack))
         {
-            if (person.Owner == viewer || _mobState.IsDead(person))
+            if (person.Owner == viewer || _mobState.IsDead(person) || !InRange(viewer, person))
                 continue;
             state.Nearby.Add(new WFBenchPersonView { Entity = GetNetEntity(person), Name = Name(person) });
         }

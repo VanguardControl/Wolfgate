@@ -822,7 +822,9 @@ public sealed partial class WFContractSystem
     /// <summary>Examining the cargo up close inspects it too, as the briefing asks.</summary>
     private void OnInspectExamined(Entity<WFContractInspectableComponent> ent, ref ExaminedEvent args)
     {
-        if (args.IsInDetailsRange && InspectingContract(ent, args.Examiner) is { } contract)
+        // A ghost's examine counts as in range anywhere, so only the living inspect this way.
+        if (args.IsInDetailsRange && !HasComp<Content.Shared.Ghost.GhostComponent>(args.Examiner)
+            && InspectingContract(ent, args.Examiner) is { } contract)
             FinishInspection(ent, contract, args.Examiner);
     }
 

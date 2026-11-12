@@ -155,7 +155,9 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - the assembler's microwave recipes became lathe recipes, which left the guidebook page empty
 - [`Content.Server/_NF/Medical/MedicalBountySystem.cs`](../../Content.Server/_NF/Medical/MedicalBountySystem.cs): a bounty patient is redeemed at the medical bounty machine, not sold at a pallet for more than the bounty
 - [`Content.Server/_NF/PublicTransit/PublicTransitSystem.cs`](../../Content.Server/_NF/PublicTransit/PublicTransitSystem.cs): announce the departure, as FTLToDock now flies and OnShuttleArrival announces the stop
-- [`Content.Server/_Rat/Overwatch/OverwatchSystem.cs`](../../Content.Server/_Rat/Overwatch/OverwatchSystem.cs): NPC crew that no player controls don't crowd the console
+- [`Content.Server/_Rat/Overwatch/OverwatchSystem.cs`](../../Content.Server/_Rat/Overwatch/OverwatchSystem.cs)
+  - nothing advanced the timer, so the member cache never expired
+  - NPC crew that no player controls don't crowd the console
 - [`Content.Server/_RMC14/Weapons/Ranged/Prediction/GunPredictionSystem.cs`](../../Content.Server/_RMC14/Weapons/Ranged/Prediction/GunPredictionSystem.cs): restore the licence header removed by Kill Spdx
 - [`Content.Server/Administration/Systems/AdminVerbSystem.Smites.cs`](../../Content.Server/Administration/Systems/AdminVerbSystem.Smites.cs): OwO accent removed
 - [`Content.Server/Administration/Systems/BwoinkSystem.cs`](../../Content.Server/Administration/Systems/BwoinkSystem.cs)
