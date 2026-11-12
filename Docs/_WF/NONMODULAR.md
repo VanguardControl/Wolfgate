@@ -39,6 +39,10 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - replays skip the guidebook data request
   - partial for the network dependency
   - replay playback starts these systems without a server connection
+- [`Content.Client/Guidebook/Richtext/TextLinkTag.cs`](../../Content.Client/Guidebook/Richtext/TextLinkTag.cs)
+  - the tag is shared, so walk up from the clicked label, not the last one built
+  - takes the clicked label
+  - start from the clicked label; Control is the last label any document built
 - [`Content.Client/Holopad/HolopadSystem.cs`](../../Content.Client/Holopad/HolopadSystem.cs)
   - post-shader flags are set through SpriteSystem since engine 291
   - wizden#38042
