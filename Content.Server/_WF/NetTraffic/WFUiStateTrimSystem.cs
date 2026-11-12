@@ -2,6 +2,8 @@ using Content.Server.Ame.Components;
 using Content.Server.Ame.EntitySystems;
 using Content.Server.Atmos.Piping.Unary.EntitySystems;
 using Content.Server.Holopad;
+using Content.Server.Shuttles.Components;
+using Content.Server.Shuttles.Systems;
 using Content.Shared.Ame.Components;
 using Content.Shared.Atmos.Piping.Binary.Components;
 using Content.Shared.Atmos.Piping.Unary.Components;
@@ -23,6 +25,7 @@ public sealed partial class WFUiStateTrimSystem : EntitySystem
     [Dependency] private GasCanisterSystem _canister = default!;
     [Dependency] private HolopadSystem _holopad = default!;
     [Dependency] private AmeControllerSystem _ame = default!;
+    [Dependency] private ShuttleConsoleSystem _helm = default!;
 
     public override void Initialize()
     {
@@ -32,6 +35,13 @@ public sealed partial class WFUiStateTrimSystem : EntitySystem
         SubscribeLocalEvent<GasCanisterComponent, BoundUIOpenedEvent>(OnCanisterOpened);
         SubscribeLocalEvent<HolopadComponent, BoundUIOpenedEvent>(OnHolopadOpened);
         SubscribeLocalEvent<AmeControllerComponent, BoundUIOpenedEvent>(OnAmeOpened);
+        SubscribeLocalEvent<ShuttleConsoleComponent, BoundUIOpenedEvent>(OnHelmOpened);
+    }
+
+    private void OnHelmOpened(EntityUid uid, ShuttleConsoleComponent component, BoundUIOpenedEvent args)
+    {
+        if (args.UiKey is ShuttleConsoleUiKey.Key)
+            _helm.WfRefreshConsole(uid);
     }
 
     /// <summary>Drops the radar's nav state, which lists every dock, once the last viewer closes it.</summary>

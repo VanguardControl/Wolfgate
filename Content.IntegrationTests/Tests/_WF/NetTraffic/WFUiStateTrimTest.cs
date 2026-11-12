@@ -4,6 +4,7 @@ using Content.Server.Power.EntitySystems;
 using Content.Shared.Atmos.Piping.Binary.Components;
 using Content.Shared.Power.Components;
 using Content.Shared.Shuttles.BUIStates;
+using Content.Shared.Shuttles.Components;
 using Content.Shared.Silicons.Borgs;
 using Robust.Server.GameObjects;
 using Robust.Shared.Containers;
@@ -20,6 +21,7 @@ public sealed class WFUiStateTrimTest
     private const string Cell = "PowerCellHigh";
     private const string Canister = "AirCanister";
     private const string Viewer = "MobHuman";
+    private const string Helm = "ComputerShuttle";
 
     [Test]
     public async Task BorgUiFollowsChargeOnlyWhileOpen()
@@ -106,6 +108,26 @@ public sealed class WFUiStateTrimTest
         await server.WaitAssertion(() =>
             Assert.That(ui.TryGetUiState<GasCanisterBoundUserInterfaceState>(canister, GasCanisterUiKey.Key, out _), Is.False,
                 "A canister nobody has open holds a UI state."));
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task ClosedHelmHoldsNoUiState()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var map = await pair.CreateTestMap();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var ui = server.System<UserInterfaceSystem>();
+        EntityUid helm = default;
+
+        await server.WaitPost(() => helm = entMan.SpawnEntity(Helm, map.GridCoords));
+        await pair.RunTicksSync(10);
+
+        await server.WaitAssertion(() =>
+            Assert.That(ui.TryGetUiState<ShuttleBoundUserInterfaceState>(helm, ShuttleConsoleUiKey.Key, out _), Is.False,
+                "A shuttle console nobody has open holds a helm state."));
 
         await pair.CleanReturnAsync();
     }
