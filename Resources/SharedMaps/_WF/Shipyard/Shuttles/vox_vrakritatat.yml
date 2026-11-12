@@ -1,16 +1,16 @@
 meta:
   format: 7
-  category: Map
+  category: Grid
   engineVersion: 291.0.4
   forkId: ""
   forkVersion: ""
-  time: 11/12/2026 08:49:42
-  entityCount: 2858
-maps:
-- 20
+  time: 11/12/2026 18:07:16
+  entityCount: 2857
+maps: []
 grids:
 - 1
-orphans: []
+orphans:
+- 1
 nullspace: []
 tilemap:
   1: Space
@@ -86,7 +86,7 @@ entities:
     - type: MetaData
       name: grid
     - type: Transform
-      parent: 20
+      parent: invalid
       pos: -9,-3
     - type: MapGrid
       chunks:
@@ -788,18 +788,6 @@ entities:
     - type: ExplosionAirtightGrid
     - type: ChunkContainer
       chunkEntities: []
-  - uid: 20
-    components:
-    - type: MetaData
-      name: Map Entity
-    - type: Transform
-    - type: Map
-      mapPaused: True
-    - type: GridTree
-    - type: Broadphase
-    - type: ChunkContainer
-      chunkEntities: []
-    - type: OccluderTree
 - proto: AirAlarmVox
   entities:
   - uid: 50
@@ -14641,7 +14629,7 @@ entities:
       gridUid: 1
 - proto: VoxVrakritatatCarrierComputer
   entities:
-  - uid: 830
+  - uid: 20
     components:
     - type: Transform
       parent: 1
@@ -14650,9 +14638,7 @@ entities:
     - type: ApcPowerReceiver
       powerLoad: 5
     - type: Battery
-      startingCharge: 32.5
-    - type: ApcPowerReceiverBattery
-      enabled: True
+      startingCharge: 0
 - proto: WallPlastitanium
   entities:
   - uid: 286
