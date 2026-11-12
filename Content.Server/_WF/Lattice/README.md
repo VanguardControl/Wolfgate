@@ -23,7 +23,7 @@ stops holding, the delta alarm sounds, and a global announcement and chip say re
 (`WFLatticeAnchorComponent`) adds a hold that halves at the profile's `reach`; the bands' thresholds are the summed hold
 at each band edge for the intact hexagon, so a lost anchor pulls the edges in, most on its side. Every second each
 player's carrier gets a band and builds Drift (`WFDriftComponent`): the grid they are on, themselves in open space, or
-on a planet, their ground or grid at the world's place in the sector. Each band has a ceiling (`maxDrift`: 20, 40, 65, then 100 only in the Coda) that Drift climbs to over about ten minutes and eases back down to from above. Ghosts are skipped, and Drift only changes while
+on a planet, their ground or grid at the world's place in the sector. A vehicle's crew count as wherever the vehicle is. Each band has a ceiling (`maxDrift`: 20, 40, 65, then 100 only in the Coda) that Drift climbs to over about ten minutes and eases back down to from above. Ghosts are skipped, and Drift only changes while
 someone is aboard. The field component carries the anchors and thresholds to clients. `WFLatticeMath` holds the field,
 band, depth and garble sums.
 
@@ -356,6 +356,7 @@ open a breach. A carrier's band and Drift are on its `WFDriftComponent` in VV.
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFDriftDepthTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFDriftDepthTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFDriftEffectsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFDriftEffectsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFDriftMindTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFDriftMindTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Lattice/WFDriftRidersTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFDriftRidersTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeFtlTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeFtlTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeHexTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeHexTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeShelterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Lattice/WFLatticeShelterTest.cs)
