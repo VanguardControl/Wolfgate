@@ -176,6 +176,7 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
         }
 
         RemovePilot(args.Actor);
+        WfDropClosedHelmState(uid); // WOLFGATE(NetTraffic): the last pilot left, so nobody needs the helm state
     }
 
     private void OnConsoleUIOpenAttempt(
@@ -435,7 +436,8 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
                 WFFtlDriveStatus.Missing); // WOLFGATE(Shuttles): a console off any grid has no drive
         }
 
-        if (_ui.HasUi(consoleUid, ShuttleConsoleUiKey.Key))
+        if (_ui.HasUi(consoleUid, ShuttleConsoleUiKey.Key)
+            && _ui.IsUiOpen(consoleUid, ShuttleConsoleUiKey.Key)) // WOLFGATE(NetTraffic): a stored helm state is sent to everyone who sees the console, open or not
         {
             // WOLFGATE(ShipShields) START: include directional shield settings in the helm state
             // _ui.SetUiState(consoleUid, ShuttleConsoleUiKey.Key, new ShuttleBoundUserInterfaceState(navState, mapState, dockState,

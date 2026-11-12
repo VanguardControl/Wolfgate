@@ -22,11 +22,15 @@ public sealed class NetTrafficCVars
     public static readonly CVarDef<float> ExplosionRange =
         CVarDef.Create("wf.net.explosion_range", 300f, CVar.SERVERONLY);
 
-    /// <summary>Whether players are sent only the grids and maps of the systems they look at, not every one.</summary>
+    /// <summary>Whether players are sent only the grids of the systems they look at, not every one.</summary>
     public static readonly CVarDef<bool> MapScopedGrids =
         CVarDef.Create("wf.net.map_scoped_grids", true, CVar.SERVERONLY);
 
     /// <summary>Seconds between sends of a structure's damage while it keeps being hit; 0 sends every change.</summary>
     public static readonly CVarDef<float> StructureDamageInterval =
         CVarDef.Create("wf.net.structure_damage_interval", 1f, CVar.SERVERONLY);
+
+    /// <summary>Whether a ship's repair snapshot is only sent to players who hold or wear a repair tool.</summary>
+    public static readonly CVarDef<bool> RepairDataToolOnly =
+        CVarDef.Create("wf.net.repair_data_tool_only", true, CVar.SERVERONLY);
 }
