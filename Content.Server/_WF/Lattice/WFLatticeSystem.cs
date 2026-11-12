@@ -64,6 +64,7 @@ public sealed partial class WFLatticeSystem : EntitySystem
             _beamPopup.Clear();
             _central.Clear();
             _tacetAt.Clear();
+            _codaAtCentre.Clear();
             _fading.Clear();
             _implosions.Clear();
             _unstrungAt.Clear();
@@ -399,6 +400,11 @@ public sealed partial class WFLatticeSystem : EntitySystem
     private bool TryGetCarrier(EntityUid mob, EntityUid sector, out EntityUid carrier, out Vector2 position)
     {
         var xform = Transform(mob);
+        // A vehicle's crew sit on its interior map and go wherever the vehicle is.
+        if (TryComp<Content.Shared._WF.Vehicles.Core.VehicleInteriorLinkComponent>(xform.MapUid, out var link)
+            && link.Vehicle != mob && Exists(link.Vehicle) && !TerminatingOrDeleted(link.Vehicle))
+            return TryGetCarrier(link.Vehicle, sector, out carrier, out position);
+
         carrier = xform.GridUid ?? mob;
         position = default;
         if (xform.MapUid is not { } map)
