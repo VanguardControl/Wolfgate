@@ -55,3 +55,12 @@
     shuttles:
     - Rac-Man
     - Bow-Man
+
+- type: entity
+  id: VoxVrakritatatCarrierComputer
+  parent: BaseCarrierComputer
+  name: Vrakritatat shipyard console
+  components:
+  - type: ShipyardListing
+    shuttles:
+    - vox_skipjack

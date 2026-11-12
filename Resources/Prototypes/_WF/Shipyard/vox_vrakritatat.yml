@@ -1,0 +1,41 @@
+# Vessel prototype made in mapping mode from "Vrakritatat". Check every field before it goes in the game.
+# Grid: put Vrakritatat.yml at Resources/SharedMaps/_WF/Community/vox_vrakritatat.yml
+# Prototype: put this file, Vrakritatat.vessel.yml, at Resources/Prototypes/_WF/Community/vox_vrakritatat.yml
+# Guessed from the grid (1302 tiles), not set by the mapper: description, price, engine. Check them.
+# Set by the mapper in the export wizard: name, category, class, group, access, requireCrew.
+
+- type: vessel
+  id: WFVOXVrakritatat
+  parent: BaseVessel
+  name: 'VOX-Vrakritatat'
+  description: 'Describe the ship here.'
+  price: 230000 # appraised at 181807
+  category: Large # 1302 tiles
+  group: Scrap
+  shuttlePath: /SharedMaps/_WF/Community/vox_vrakritatat.yml
+  guidebookPage: null
+  class:
+  - Capital
+  - Scrapyard
+  - Salvage
+  - Carrier
+  engine:
+  - AME
+
+- type: gameMap
+  id: WFVOXVrakritatat
+  mapName: 'VOX-Vrakritatat'
+  mapPath: /SharedMaps/_WF/Community/vox_vrakritatat.yml
+  minPlayers: 0
+  stations:
+    WFVOXVrakritatat:
+      stationProto: StandardFrontierVessel
+      components:
+      - type: StationNameSetup
+        mapNameTemplate: 'VOX-Vrakritatat {1}'
+        nameGenerator:
+          !type:NanotrasenNameGenerator
+          prefixCreator: '14'
+      - type: StationJobs
+        availableJobs:
+          Contractor: [ 0, 0 ]

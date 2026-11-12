@@ -1,0 +1,39 @@
+# Vessel prototype made in mapping mode from "Skipjack". Check every field before it goes in the game.
+# Grid: put Skipjack.yml at Resources/SharedMaps/_WF/Community/vox_skipjack.yml
+# Prototype: put this file, Skipjack.vessel.yml, at Resources/Prototypes/_WF/Community/vox_skipjack.yml
+# Guessed from the grid (58 tiles), not set by the mapper: description, price, engine. Check them.
+# Set by the mapper in the export wizard: name, category, class, group, access, requireCrew.
+
+- type: vessel
+  id: WFVoxSkipjack
+  parent: BaseVessel
+  name: 'Vox-Skipjack'
+  description: 'Describe the ship here.'
+  price: 10000 # appraised at 7758
+  category: Micro # 58 tiles
+  group: Scrap
+  shuttlePath: /SharedMaps/_WF/Community/vox_skipjack.yml
+  guidebookPage: null
+  class:
+  - Scrapyard
+  - Escort
+  engine:
+  - Plasma
+
+- type: gameMap
+  id: WFVoxSkipjack
+  mapName: 'Vox-Skipjack'
+  mapPath: /SharedMaps/_WF/Community/vox_skipjack.yml
+  minPlayers: 0
+  stations:
+    WFVoxSkipjack:
+      stationProto: StandardFrontierVessel
+      components:
+      - type: StationNameSetup
+        mapNameTemplate: 'Vox-Skipjack {1}'
+        nameGenerator:
+          !type:NanotrasenNameGenerator
+          prefixCreator: '14'
+      - type: StationJobs
+        availableJobs:
+          Contractor: [ 0, 0 ]
