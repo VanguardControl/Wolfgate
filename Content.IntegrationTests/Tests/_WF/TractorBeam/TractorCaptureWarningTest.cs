@@ -30,6 +30,9 @@ public sealed class TractorCaptureWarningTest
             var (source, target, _, _) = TractorBeamTest.CreateLock(entities, maps, map.MapId);
             entities.System<MetaDataSystem>().SetEntityName(source, "SECRET ARRESTOR NAME");
             var helm = entities.SpawnEntity("ComputerShuttle", new EntityCoordinates(target, new Vector2(0.5f, 0.5f)));
+            // A helm only holds a state while someone has it open.
+            var pilot = entities.SpawnEntity("MobHuman", new EntityCoordinates(target, new Vector2(0.5f, 0.5f)));
+            entities.System<SharedUserInterfaceSystem>().OpenUi(helm, ShuttleConsoleUiKey.Key, pilot);
             var helms = entities.System<ShuttleConsoleSystem>();
             var shuttles = entities.System<SharedShuttleSystem>();
             entities.System<TractorBeamSystem>().UpdateBeforeSolve(false, 1f / 60f);
@@ -42,6 +45,8 @@ public sealed class TractorCaptureWarningTest
             shuttles.RemoveIFFFlag(source, hiddenFlag);
             helms.Update(0.25f);
             Assert.That(Sources(), Is.EqualTo(new[] { "SECRET ARRESTOR NAME" }), "IFF changes refresh an existing warning.");
+            entities.System<SharedUserInterfaceSystem>().CloseUi(helm, ShuttleConsoleUiKey.Key, pilot);
+            entities.DeleteEntity(pilot);
             entities.DeleteEntity(source);
             entities.DeleteEntity(target);
             helms.Update(0.25f);
