@@ -12,7 +12,7 @@
   price: 10000 # appraised at 7958
   category: Micro # 58 tiles
   group: Scrap
-  shuttlePath: /SharedMaps/_WF/Community/vox_skipjack.yml
+  shuttlePath: /SharedMaps/_WF/Shipyard/Shuttles/Carrier/vox_skipjack.yml
   guidebookPage: null
   class:
   - Scrapyard
@@ -23,7 +23,7 @@
 - type: gameMap
   id: WFVoxSkipjack
   mapName: 'Vox_Skipjack'
-  mapPath: /SharedMaps/_WF/Community/vox_skipjack.yml
+  mapPath: /SharedMaps/_WF/Shipyard/Shuttles/Carrier/vox_skipjack.yml
   minPlayers: 0
   stations:
     WFVoxSkipjack:
