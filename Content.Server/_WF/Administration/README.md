@@ -67,6 +67,7 @@ Audio.
 - [`Content.Server/_WF/Administration/Systems/GridPowerSystem.cs`](Systems/GridPowerSystem.cs)
 - [`Content.Server/_WF/Administration/Systems/RadarTeleportSystem.cs`](Systems/RadarTeleportSystem.cs)
 - [`Content.Server/_WF/Administration/Systems/SecondChanceSystem.cs`](Systems/SecondChanceSystem.cs)
+- [`Content.Server/_WF/Administration/Systems/WFAdminVesselSpawnedEvent.cs`](Systems/WFAdminVesselSpawnedEvent.cs)
 - [`Content.Server/_WF/Administration/Systems/WolfgateAdminVerbSystem.cs`](Systems/WolfgateAdminVerbSystem.cs)
 
 ### Shared

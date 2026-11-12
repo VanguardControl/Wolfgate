@@ -65,6 +65,7 @@ public sealed partial class WFDrydockSystem
         UpdateBerthLights(curTime);
         UpdateBlockers(curTime);
         RefreshOpenConsoles(curTime);
+        RefreshOpenTerminals(curTime);
 
         _ends.Clear();
         var query = EntityQueryEnumerator<WFDrydockJobComponent, WFDrydockConsoleComponent>();
@@ -393,7 +394,7 @@ public sealed partial class WFDrydockSystem
         }
         else
         {
-            var refund = job.Voucher != null ? 0 : returned.Sum(i => i.Cost);
+            var refund = job.Voucher != null ? 0 : (int) MathF.Floor(returned.Sum(i => i.Cost) * job.RefundScale);
             job.SkippedRefund += refund;
             Refund(job, refund);
         }
@@ -773,7 +774,7 @@ public sealed partial class WFDrydockSystem
             }
             else
             {
-                var refund = job.Voucher != null ? 0 : unfinished.Sum(i => i.Cost);
+                var refund = job.Voucher != null ? 0 : (int) MathF.Floor(unfinished.Sum(i => i.Cost) * job.RefundScale);
                 Refund(job, refund);
                 ReturnVoucher(job);
                 Notify(console, comp, job, Loc.GetString(powerLost ? "drydock-console-aborted-power" : "drydock-console-aborted", ("refund", refund)));

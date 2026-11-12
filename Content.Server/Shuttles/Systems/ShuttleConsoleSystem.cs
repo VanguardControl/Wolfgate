@@ -221,6 +221,10 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
         if (!WfCrashAllowsPilot(uid))
             return false;
 
+        // WOLFGATE(ShipCommand): a helm kept for officers refuses anyone else.
+        if (!WfOfficersAllowPilot(user, uid))
+            return false;
+
         if (!_tags.HasTag(user, CanPilotTag) ||
             !TryComp<ShuttleConsoleComponent>(uid, out var component) ||
             !this.IsPowered(uid, EntityManager) ||
