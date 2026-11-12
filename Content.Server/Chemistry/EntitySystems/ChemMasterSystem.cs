@@ -73,6 +73,9 @@ namespace Content.Server.Chemistry.EntitySystems
                 return;
             var inputContainer = _itemSlotsSystem.GetItemOrNull(owner, SharedChemMaster.InputSlotName);
             _appearanceSystem.SetData(owner, ChemMasterVisualState.BeakerInserted, inputContainer.HasValue); // Frontier
+            // WOLFGATE(NetTraffic): closed windows get no state; the BoundUIOpenedEvent subscription sets it on opening
+            if (!_userInterfaceSystem.IsUiOpen(owner, ChemMasterUiKey.Key))
+                return;
             var outputContainer = _itemSlotsSystem.GetItemOrNull(owner, SharedChemMaster.OutputSlotName);
 
             var bufferReagents = bufferSolution.Contents;
