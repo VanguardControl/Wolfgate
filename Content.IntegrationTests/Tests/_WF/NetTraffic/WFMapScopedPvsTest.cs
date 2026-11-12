@@ -3,12 +3,11 @@ using Content.Server._WF.NetTraffic;
 using Content.Shared._WF.NetTraffic;
 using Robust.Shared;
 using Robust.Shared.GameObjects;
-using Robust.Shared.Log;
 using Robust.Shared.Map;
 
 namespace Content.IntegrationTests.Tests._WF.NetTraffic;
 
-/// <summary>A player gets the grids and maps of the system they look at, and those of another only once they go there.</summary>
+/// <summary>A player gets the grids of the system they look at, and those of another only once they go there.</summary>
 [TestFixture]
 [TestOf(typeof(WFMapScopedPvsSystem))]
 public sealed partial class WFMapScopedPvsTest
@@ -20,11 +19,6 @@ public sealed partial class WFMapScopedPvsTest
         var server = pair.Server;
         var em = server.EntMan;
         var cEm = pair.Client.EntMan;
-
-        // A map that comes back is a new entity with its old map id; the stock client warns and carries on.
-        var clientMapLog = pair.Client.ResolveDependency<ILogManager>().GetSawmill("system.map");
-        var clientMapLogLevel = clientMapLog.Level;
-        clientMapLog.Level = LogLevel.Error;
 
         // The pool runs with PVS and scoping off. PVS goes on first so the server tracks what the client holds, then
         // scoping once the maps have reached the client.
@@ -57,7 +51,7 @@ public sealed partial class WFMapScopedPvsTest
                 Assert.That(cEm.TryGetEntity(gridA, out _), "the viewed system's grid is sent");
                 Assert.That(cEm.TryGetEntity(mapA, out _), "the viewed map is sent");
                 Assert.That(cEm.TryGetEntity(gridB, out _), Is.False, "another system's grid is not sent");
-                Assert.That(cEm.TryGetEntity(mapB, out _), Is.False, "another map is not sent");
+                Assert.That(cEm.TryGetEntity(mapB, out _), "every map is still sent, for the FTL map");
             });
 
             // Going to the other system swaps what the client holds.
@@ -104,7 +98,6 @@ public sealed partial class WFMapScopedPvsTest
                 server.CfgMan.SetCVar(CVars.NetPVS, false);
             });
             await pair.RunTicksSync(10);
-            clientMapLog.Level = clientMapLogLevel;
         }
 
         await pair.CleanReturnAsync();

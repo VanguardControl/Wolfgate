@@ -15,11 +15,11 @@ is no longer sent; the client engine stays stock.
   `wf.net.structure_damage_interval` seconds while it keeps being hit. The server's damage is never held back, only
   the network update.
 
-- **Grids and maps by system** (`WFMapScopedPvsSystem`): instead of every grid and map going to every player, a player
-  gets those of the systems they look at (a map, or every map of one z-level stack) through their body, the entity
-  their eye follows and any camera they watch. Leaving a system deletes its grids on the client; entering one sends
-  them as a join does. Planet worlds and z-transit maps keep their own sending. `wf.net.map_scoped_grids`; the test
-  pool runs with it off.
+- **Grids by system** (`WFMapScopedPvsSystem`): instead of every grid going to every player, a player gets those of
+  the systems they look at (a map, or every map of one z-level stack) through their body, the entity their eye follows
+  and any camera they watch. Leaving a system deletes its grids on the client; entering one sends them as a join does.
+  Maps still go to everyone, since the FTL map lists the maps the client has. Planet worlds, z-transit maps and culled
+  asteroid rocks keep their own sending. `wf.net.map_scoped_grids`; the test pool runs with it off.
 
 Ops can measure the effect with the Lupine `netstats` command (`netstats start 60`, report in the log), which breaks
 sent bytes down by message, network event, component and prototype.

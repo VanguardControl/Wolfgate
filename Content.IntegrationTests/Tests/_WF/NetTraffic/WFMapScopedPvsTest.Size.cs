@@ -26,10 +26,6 @@ public sealed partial class WFMapScopedPvsTest
         var sizes = new FullStateSizes();
         pair.Client.ResolveDependency<ILogManager>().RootSawmill.AddHandler(sizes);
         var stateMan = pair.Client.ResolveDependency<IClientGameStateManager>();
-        // The maps come back when scoping goes off; the stock client warns about their re-used ids.
-        var clientMapLog = pair.Client.ResolveDependency<ILogManager>().GetSawmill("system.map");
-        var clientMapLogLevel = clientMapLog.Level;
-        clientMapLog.Level = LogLevel.Error;
 
         await server.WaitPost(() => server.CfgMan.SetCVar(CVars.NetPVS, true));
         await pair.RunTicksSync(5);
@@ -82,7 +78,6 @@ public sealed partial class WFMapScopedPvsTest
                 server.CfgMan.SetCVar(CVars.NetPVS, false);
             });
             await pair.RunTicksSync(10);
-            clientMapLog.Level = clientMapLogLevel;
         }
 
         await pair.CleanReturnAsync();

@@ -1,3 +1,4 @@
+using Content.Server._WF.Performance;
 using Content.Server._WF.Planets;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WF.NetTraffic;
@@ -11,16 +12,17 @@ using Robust.Shared.Utility;
 namespace Content.Server._WF.NetTraffic;
 
 /// <summary>
-/// Sends each player the grids and maps of the systems they are looking at, instead of every grid and map to everyone.
-/// A system is one map, or every map of one z-level stack. Leaving a system deletes its grids on the client; entering
-/// one sends them whole, as a join does.
+/// Sends each player the grids of the systems they are looking at, instead of every grid to everyone. A system is one
+/// map, or every map of one z-level stack. Leaving a system deletes its grids on the client; entering one sends them
+/// whole, as a join does.
 /// </summary>
 /// <remarks>
-/// Planet worlds and z-transit maps are left as they were: <see cref="WFPlanetPvsSystem"/> range-limits planet layers
-/// and the orbit layer is sent to everyone on purpose.
+/// Maps still go to everyone: the FTL map lists the maps the client has. Grids on planet worlds and z-transit maps are
+/// left as they were, as are rocks <see cref="WFAsteroidCullSystem"/> sends only to players near them.
 /// </remarks>
 public sealed class WFMapScopedPvsSystem : EntitySystem
 {
+    [Dependency] private WFAsteroidCullSystem _asteroids = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private PvsOverrideSystem _pvs = default!;
     [Dependency] private SharedMapSystem _maps = default!;
@@ -28,7 +30,7 @@ public sealed class WFMapScopedPvsSystem : EntitySystem
 
     private bool _enabled;
 
-    // Each scoped grid or map and the system it belongs to.
+    // Each scoped grid and the system it belongs to.
     private readonly Dictionary<EntityUid, EntityUid> _scoped = new();
     private readonly Dictionary<EntityUid, HashSet<EntityUid>> _members = new();
     private readonly Dictionary<EntityUid, HashSet<ICommonSession>> _watchers = new();
@@ -59,7 +61,7 @@ public sealed class WFMapScopedPvsSystem : EntitySystem
         UnscopeAll();
     }
 
-    /// <summary>Whether a grid or map is sent only to players looking at its system.</summary>
+    /// <summary>Whether a grid is sent only to players looking at its system.</summary>
     public bool IsScoped(EntityUid uid) => _scoped.ContainsKey(uid);
 
     public override void Update(float frameTime)
@@ -71,21 +73,11 @@ public sealed class WFMapScopedPvsSystem : EntitySystem
         CollectExcluded();
         _seen.Clear();
 
-        var maps = EntityQueryEnumerator<MapComponent>();
-        while (maps.MoveNext(out var map, out _))
-        {
-            if (_excluded.Contains(map))
-                continue;
-
-            _seen.Add(map);
-            Scope(map, SystemOf(map));
-        }
-
         var grids = EntityQueryEnumerator<MapGridComponent, TransformComponent>();
         while (grids.MoveNext(out var grid, out _, out var xform))
         {
-            // A map's own grid is scoped as the map.
-            if (xform.MapUid is not { } map || map == grid || _excluded.Contains(map))
+            // A map's own grid goes with the map, to everyone.
+            if (xform.MapUid is not { } map || map == grid || _excluded.Contains(map) || _asteroids.IsCulled(grid))
                 continue;
 
             _seen.Add(grid);
@@ -101,16 +93,15 @@ public sealed class WFMapScopedPvsSystem : EntitySystem
 
         foreach (var uid in _gone)
         {
-            // A grid that moved somewhere left unscoped goes back to everyone. Gone entities leave the engine's sets
-            // themselves, and a map that turned out to be a planet layer is the planet system's to send.
-            Unscope(uid, restore: !TerminatingOrDeleted(uid)
-                && !(_excluded.Contains(uid) && _cfg.GetCVar(Content.Shared._WF.CCVar.PlanetCVars.PvsRangeLimited)));
+            // A grid that moved somewhere left unscoped goes back to everyone; deleted ones leave the engine's sets
+            // themselves.
+            Unscope(uid, restore: !TerminatingOrDeleted(uid));
         }
 
         UpdateSessions();
     }
 
-    // Planet worlds and transit maps keep the sending they have.
+    // Grids on planet worlds and transit maps keep the sending they have.
     private void CollectExcluded()
     {
         _excluded.Clear();
@@ -232,7 +223,7 @@ public sealed class WFMapScopedPvsSystem : EntitySystem
                 continue;
 
             var map = _maps.GetMapOrInvalid(at.MapId);
-            if (_scoped.ContainsKey(map))
+            if (map.IsValid() && !_excluded.Contains(map))
                 set.Add(SystemOf(map));
         }
 
