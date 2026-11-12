@@ -6984,3 +6984,18 @@ Entries:
   id: 100437
   time: '2026-11-12T00:35:23.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/606
+- author: ImogenOC
+  changes:
+    - type: Fix
+      message: >-
+        Running ship generators, hotplates and drydock cranes no longer send
+        their state to nearby players every tick.
+    - type: Tweak
+      message: Radar consoles ask the server for blips 8 times a second instead of 15.
+    - type: Tweak
+      message: >-
+        Instrument notes and beam effects are only sent to players close enough
+        to see them.
+  id: 100438
+  time: '2026-11-12T06:57:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/610
