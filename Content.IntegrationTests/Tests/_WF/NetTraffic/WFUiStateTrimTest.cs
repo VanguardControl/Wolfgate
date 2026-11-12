@@ -2,6 +2,7 @@
 using Content.Server._WF.NetTraffic;
 using Content.Server.Power.EntitySystems;
 using Content.Shared.Atmos.Piping.Binary.Components;
+using Content.Shared.Power.Components;
 using Content.Shared.Shuttles.BUIStates;
 using Content.Shared.Silicons.Borgs;
 using Robust.Server.GameObjects;
@@ -10,7 +11,7 @@ using Robust.Shared.GameObjects;
 
 namespace Content.IntegrationTests.Tests._WF.NetTraffic;
 
-/// <summary>An entity nobody has open holds no UI state, and a draining cell doesn't make a cyborg send its states again.</summary>
+/// <summary>An entity nobody has open holds no UI state, and a cyborg only sends its window a charge change it would show.</summary>
 [TestFixture]
 [TestOf(typeof(WFUiStateTrimSystem))]
 public sealed class WFUiStateTrimTest
@@ -18,9 +19,10 @@ public sealed class WFUiStateTrimTest
     private const string Borg = "BorgChassisMedical";
     private const string Cell = "PowerCellHigh";
     private const string Canister = "AirCanister";
+    private const string Viewer = "MobHuman";
 
     [Test]
-    public async Task DrainingCellDoesNotResendBorgUi()
+    public async Task BorgUiFollowsChargeOnlyWhileOpen()
     {
         await using var pair = await PoolManager.GetServerClient();
         var map = await pair.CreateTestMap();
@@ -31,33 +33,62 @@ public sealed class WFUiStateTrimTest
         var ui = server.System<UserInterfaceSystem>();
         EntityUid borg = default;
         EntityUid cell = default;
+        EntityUid viewer = default;
+        var step = 0f;
 
         await server.WaitAssertion(() =>
         {
             borg = entMan.SpawnEntity(Borg, map.GridCoords);
             cell = entMan.SpawnEntity(Cell, map.GridCoords);
+            viewer = entMan.SpawnEntity(Viewer, map.GridCoords);
             // Straight into the container: the chassis is locked, so the slot refuses an insert.
             Assert.That(containers.Insert(cell, containers.GetContainer(borg, "cell_slot"), force: true));
+            step = entMan.GetComponent<BatteryComponent>(cell).MaxCharge * 0.05f;
         });
 
         await pair.RunTicksSync(5);
-        var before = entMan.GetComponent<UserInterfaceComponent>(borg).LastModifiedTick;
-
-        for (var i = 0; i < 10; i++)
-        {
-            await server.WaitAssertion(() => Assert.That(battery.TryUseCharge(cell, 0.5f), "The cell has charge to drain."));
-            await pair.RunTicksSync(1);
-        }
-
         await server.WaitAssertion(() =>
         {
-            Assert.That(entMan.GetComponent<UserInterfaceComponent>(borg).LastModifiedTick, Is.EqualTo(before),
-                "A charge change with the cyborg's window closed sent its UI states again.");
             Assert.That(ui.TryGetUiState<NavBoundUserInterfaceState>(borg, RadarConsoleUiKey.Key, out _), Is.False,
                 "A cyborg nobody is using as a radar holds a nav state.");
             Assert.That(ui.TryGetUiState<BorgBuiState>(borg, BorgUiKey.Key, out _), Is.False,
                 "A cyborg whose window was never opened holds a state for it.");
+
+            ui.OpenUi(borg, BorgUiKey.Key, viewer);
+            Assert.That(ui.IsUiOpen(borg, BorgUiKey.Key), "The viewer could not open the cyborg's window.");
         });
+
+        // Open: a charge change that moves the shown percent reaches the window.
+        await pair.RunTicksSync(2);
+        await server.WaitAssertion(() => Assert.That(battery.TryUseCharge(cell, step), "The cell has charge to drain."));
+        await pair.RunTicksSync(2);
+        var opened = entMan.GetComponent<UserInterfaceComponent>(borg).LastModifiedTick;
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(ui.TryGetUiState<BorgBuiState>(borg, BorgUiKey.Key, out var state), "An open window got no state.");
+            var cellBattery = entMan.GetComponent<BatteryComponent>(cell);
+            Assert.That(state!.ChargePercent, Is.EqualTo(cellBattery.CurrentCharge / cellBattery.MaxCharge).Within(0.005f),
+                "The open window does not show the drained charge.");
+        });
+
+        // Open: a change too small to move the shown percent is not sent.
+        await server.WaitAssertion(() => Assert.That(battery.TryUseCharge(cell, step * 0.01f)));
+        await pair.RunTicksSync(2);
+        Assert.That(entMan.GetComponent<UserInterfaceComponent>(borg).LastModifiedTick, Is.EqualTo(opened),
+            "A charge change that shows as the same percent sent the cyborg's UI states again.");
+
+        // Closed: no charge change is sent, however large.
+        await server.WaitPost(() => ui.CloseUi(borg, BorgUiKey.Key, viewer));
+        await pair.RunTicksSync(2);
+        var closed = entMan.GetComponent<UserInterfaceComponent>(borg).LastModifiedTick;
+        for (var i = 0; i < 5; i++)
+        {
+            await server.WaitAssertion(() => Assert.That(battery.TryUseCharge(cell, step)));
+            await pair.RunTicksSync(1);
+        }
+
+        Assert.That(entMan.GetComponent<UserInterfaceComponent>(borg).LastModifiedTick, Is.EqualTo(closed),
+            "A charge change with the cyborg's window closed sent its UI states again.");
 
         await pair.CleanReturnAsync();
     }
