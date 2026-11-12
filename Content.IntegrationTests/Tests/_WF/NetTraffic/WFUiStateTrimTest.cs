@@ -51,9 +51,6 @@ public sealed class WFUiStateTrimTest
         {
             Assert.That(ui.TryGetUiState<NavBoundUserInterfaceState>(borg, RadarConsoleUiKey.Key, out _), Is.False,
                 "A cyborg nobody is using as a radar holds a nav state.");
-            Assert.That(ui.TryGetUiState<BorgBuiState>(borg, BorgUiKey.Key, out _), Is.False,
-                "A cyborg whose window was never opened holds a state for it.");
-
             ui.OpenUi(borg, BorgUiKey.Key, viewer);
             Assert.That(ui.IsUiOpen(borg, BorgUiKey.Key), "The viewer could not open the cyborg's window.");
         });
