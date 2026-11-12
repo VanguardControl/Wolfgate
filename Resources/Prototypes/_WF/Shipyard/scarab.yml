@@ -6,7 +6,7 @@
   parent: BaseVessel
   name: 'Scarab'
   description: 'A large drydock ship for a crew of engineer and salvager. it is designed to assist ships around the sector, fixing, towing, powering and assisting in upgrade.'
-  price: 225000 # appraised at 144681
+  price: 333238 # appraised at 289773, holy moly
   category: Large # 1041 tiles
   group: Shipyard
   requireCrew: true
