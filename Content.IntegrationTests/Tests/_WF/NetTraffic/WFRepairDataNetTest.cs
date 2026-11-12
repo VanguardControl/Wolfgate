@@ -51,6 +51,16 @@ public sealed class WFRepairDataNetTest
                 "A player who picked up a repair tool was not sent the repair snapshot.");
         });
 
+        // Moving the tool to the other hand takes the eye off and puts it back; that must not resend every ship.
+        await server.WaitAssertion(() =>
+        {
+            var data = entMan.GetComponent<ShipRepairDataComponent>(map.Grid);
+            var before = data.LastModifiedTick;
+            entMan.RemoveComponent<RepairDataEyeComponent>(mob);
+            entMan.EnsureComponent<RepairDataEyeComponent>(mob);
+            Assert.That(data.LastModifiedTick, Is.EqualTo(before), "Swapping hands resent the repair snapshots.");
+        });
+
         await pair.CleanReturnAsync();
     }
 }

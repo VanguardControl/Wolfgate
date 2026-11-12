@@ -2,6 +2,8 @@ using Content.Shared._Mono.ShipRepair.Components;
 using Content.Shared._WF.NetTraffic;
 using Robust.Shared.Configuration;
 using Robust.Shared.GameStates;
+using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Server._WF.NetTraffic;
 
@@ -12,8 +14,16 @@ namespace Content.Server._WF.NetTraffic;
 public sealed partial class WFRepairDataNetSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IGameTiming _timing = default!;
+
+    /// <summary>How long a player keeps getting snapshots after putting a tool away, so moving it between hands or
+    /// slots doesn't resend every ship.</summary>
+    private static readonly TimeSpan Grace = TimeSpan.FromSeconds(2);
 
     private bool _toolOnly;
+
+    /// <summary>Players who put their last tool away, and when.</summary>
+    private readonly Dictionary<ICommonSession, TimeSpan> _putAway = new();
 
     public override void Initialize()
     {
@@ -21,6 +31,7 @@ public sealed partial class WFRepairDataNetSystem : EntitySystem
 
         SubscribeLocalEvent<ShipRepairDataComponent, ComponentGetStateAttemptEvent>(OnGetStateAttempt);
         SubscribeLocalEvent<RepairDataEyeComponent, ComponentStartup>(OnToolUserStartup);
+        SubscribeLocalEvent<RepairDataEyeComponent, ComponentShutdown>(OnToolUserShutdown);
         Subs.CVar(_cfg, NetTrafficCVars.RepairDataToolOnly, OnToolOnlyChanged, true);
     }
 
@@ -30,20 +41,48 @@ public sealed partial class WFRepairDataNetSystem : EntitySystem
         if (!_toolOnly || args.Cancelled || args.Player is not { } player)
             return;
 
-        if (!HasComp<RepairDataEyeComponent>(player.AttachedEntity))
+        if (!HasComp<RepairDataEyeComponent>(player.AttachedEntity) && !InGrace(player))
             args.Cancelled = true;
     }
 
     /// <summary>A player has just picked a tool up, and has none of the snapshots they were not sent before.</summary>
     private void OnToolUserStartup(Entity<RepairDataEyeComponent> ent, ref ComponentStartup args)
     {
-        if (_toolOnly)
+        if (!_toolOnly || !TryComp<ActorComponent>(ent, out var actor))
+            return;
+
+        // Still within the grace period, the player never stopped getting snapshots.
+        var inGrace = InGrace(actor.PlayerSession);
+        _putAway.Remove(actor.PlayerSession);
+        if (!inGrace)
             ResendAll();
+    }
+
+    private void OnToolUserShutdown(Entity<RepairDataEyeComponent> ent, ref ComponentShutdown args)
+    {
+        if (!_toolOnly || !TryComp<ActorComponent>(ent, out var actor))
+            return;
+
+        var now = _timing.CurTime;
+        foreach (var (session, at) in _putAway)
+        {
+            if (now - at >= Grace)
+                _putAway.Remove(session);
+        }
+
+        _putAway[actor.PlayerSession] = now;
+    }
+
+    // Read only: state attempts can run on the PVS worker threads.
+    private bool InGrace(ICommonSession session)
+    {
+        return _putAway.TryGetValue(session, out var at) && _timing.CurTime - at < Grace;
     }
 
     private void OnToolOnlyChanged(bool value)
     {
         _toolOnly = value;
+        _putAway.Clear();
         if (!value)
             ResendAll();
     }
