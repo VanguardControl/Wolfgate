@@ -1,3 +1,4 @@
+using Content.Shared._WF.Performance;
 using System.Numerics;
 using Content.Shared._Mono.Radar;
 using Content.Server.GameTicking;
@@ -84,11 +85,31 @@ public sealed partial class RadarBlipSystem
         _wfLastRequest[session] = _wfTiming.CurTime;
     }
 
-    /// <summary>Tells recent radar users a blip is gone; nobody else is drawing it.</summary>
+    private readonly List<NetEntity> _wfRemoved = new();
+
+    /// <summary>Notes a blip that went away; recent radar users are told of the tick's removals together.</summary>
     private void WFSendRemoval(NetEntity blip)
     {
         if (_wfTicker.RunLevel == GameRunLevel.PreRoundLobby || _wfLastRequest.Count == 0)
             return;
+
+        _wfRemoved.Add(blip);
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        if (_wfRemoved.Count == 0)
+            return;
+
+        WFFlushRemovals();
+        _wfRemoved.Clear();
+    }
+
+    /// <summary>Tells recent radar users which blips are gone; nobody else is drawing them.</summary>
+    private void WFFlushRemovals()
+    {
 
         var now = _wfTiming.CurTime;
         var filter = Filter.Empty();
@@ -112,6 +133,6 @@ public sealed partial class RadarBlipSystem
         }
 
         if (any)
-            RaiseNetworkEvent(new BlipRemovalEvent(blip), filter);
+            RaiseNetworkEvent(new WFBlipRemovalBatchEvent(new List<NetEntity>(_wfRemoved)), filter);
     }
 }

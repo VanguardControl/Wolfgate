@@ -107,6 +107,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Shared/_WF/Performance/SharedMoverController.WFAroundCollider.cs`](../../../Content.Shared/_WF/Performance/SharedMoverController.WFAroundCollider.cs)
 - [`Content.Shared/_WF/Performance/SharedRoofSystem.WFDelta.cs`](../../../Content.Shared/_WF/Performance/SharedRoofSystem.WFDelta.cs)
 - [`Content.Shared/_WF/Performance/WFAsteroidFieldComponent.cs`](../../../Content.Shared/_WF/Performance/WFAsteroidFieldComponent.cs)
+- [`Content.Shared/_WF/Performance/WFBlipRemovalBatchEvent.cs`](../../../Content.Shared/_WF/Performance/WFBlipRemovalBatchEvent.cs)
 - [`Content.Shared/_WF/Performance/WFCollectionExtensions.cs`](../../../Content.Shared/_WF/Performance/WFCollectionExtensions.cs)
 - [`Content.Shared/_WF/Performance/WFDeletedRefStateSystem.cs`](../../../Content.Shared/_WF/Performance/WFDeletedRefStateSystem.cs)
 - [`Content.Shared/_WF/Performance/WFPerformanceCVars.cs`](../../../Content.Shared/_WF/Performance/WFPerformanceCVars.cs)
@@ -116,6 +117,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 
 ### Client
 
+- [`Content.Client/_WF/Performance/RadarBlipsSystem.WFRemovalBatch.cs`](../../../Content.Client/_WF/Performance/RadarBlipsSystem.WFRemovalBatch.cs)
 - [`Content.Client/_WF/Performance/ShuttleNavControl.WFAsteroidFields.cs`](../../../Content.Client/_WF/Performance/ShuttleNavControl.WFAsteroidFields.cs)
 - [`Content.Client/_WF/Performance/WFAsteroidFieldSystem.cs`](../../../Content.Client/_WF/Performance/WFAsteroidFieldSystem.cs)
 - [`Content.Client/_WF/Performance/WFNetBufferSystem.cs`](../../../Content.Client/_WF/Performance/WFNetBufferSystem.cs)
@@ -169,6 +171,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Client/_Mono/Radar/RadarBlipsSystem.cs`](../../../Content.Client/_Mono/Radar/RadarBlipsSystem.cs)
   - blips arrived at 2 Hz, so a curving missile lurched between straight-line guesses.
   - lookups and colours for the missile lines, which are rebuilt on every draw frame
+  - removals arrive one batch a tick
   - the sent coord already names its grid, so only an off-grid blip needs the query
   - one dictionary lookup per missile, not a scan of every blip per missile.
 - [`Content.Client/Atmos/Consoles/AtmosMonitoringConsoleNavMapControl.cs`](../../../Content.Client/Atmos/Consoles/AtmosMonitoringConsoleNavMapControl.cs): wizden#38974, subnets carry a Color instead of a hex string

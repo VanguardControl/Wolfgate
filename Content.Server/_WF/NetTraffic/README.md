@@ -28,6 +28,14 @@ is no longer sent; the client engine stays stock.
 - **Repair snapshots** (`WFRepairDataNetSystem`): a ship's `ShipRepairData` (every tile and fixture, several times the
   size of the grid) is only sent to players who hold or wear a repair tool. Picking one up sends the snapshots the
   player was not given before. `wf.net.repair_data_tool_only`.
+- **More closed windows**: lathes, signal timers, camera monitors and ChemMasters only set a UI state while their
+  window is open; each already set one as it opens.
+- **Per-tick resends**: a solid-fuel generator only touches its fuel storage when a whole unit burns; solution heaters
+  heat in half-second steps (`SolutionHeaterSystem.NetTraffic`); decal chunk updates gather for 3 ticks before going
+  out (`DecalSystem.NetTraffic`).
+- **Broadcasts**: encounter markers, world-forming progress and faction counts go out on change, with the current
+  state for players who join later; instrument notes and beam visuals only go to players near enough to have the
+  entity.
 
 Ops can measure the effect with the Lupine `netstats` command (`netstats start 60`, report in the log), which breaks
 sent bytes down by message, network event, component and prototype.
@@ -39,8 +47,12 @@ sent bytes down by message, network event, component and prototype.
 
 ### Server
 
+- [`Content.Server/_WF/NetTraffic/DecalSystem.NetTraffic.cs`](DecalSystem.NetTraffic.cs)
+- [`Content.Server/_WF/NetTraffic/FactionTrackingSystem.NetTraffic.cs`](FactionTrackingSystem.NetTraffic.cs)
 - [`Content.Server/_WF/NetTraffic/GasCanisterSystem.NetTraffic.cs`](GasCanisterSystem.NetTraffic.cs)
 - [`Content.Server/_WF/NetTraffic/ShuttleConsoleSystem.NetTraffic.cs`](ShuttleConsoleSystem.NetTraffic.cs)
+- [`Content.Server/_WF/NetTraffic/SolutionHeaterSystem.NetTraffic.cs`](SolutionHeaterSystem.NetTraffic.cs)
+- [`Content.Server/_WF/NetTraffic/WFEncounterMarkerSystem.NetTraffic.cs`](WFEncounterMarkerSystem.NetTraffic.cs)
 - [`Content.Server/_WF/NetTraffic/WFMapScopedPvsSystem.cs`](WFMapScopedPvsSystem.cs)
 - [`Content.Server/_WF/NetTraffic/WFNetExplosionSystem.cs`](WFNetExplosionSystem.cs)
 - [`Content.Server/_WF/NetTraffic/WFNetShellComponent.cs`](WFNetShellComponent.cs)
@@ -48,6 +60,7 @@ sent bytes down by message, network event, component and prototype.
 - [`Content.Server/_WF/NetTraffic/WFRepairDataNetSystem.cs`](WFRepairDataNetSystem.cs)
 - [`Content.Server/_WF/NetTraffic/WFUiStateTrimSystem.cs`](WFUiStateTrimSystem.cs)
 - [`Content.Server/_WF/NetTraffic/WFViewPointSystem.cs`](WFViewPointSystem.cs)
+- [`Content.Server/_WF/NetTraffic/WFWorldFormingSystem.NetTraffic.cs`](WFWorldFormingSystem.NetTraffic.cs)
 
 ### Shared
 
@@ -63,27 +76,44 @@ sent bytes down by message, network event, component and prototype.
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/NetTraffic/WFGeneratorFuelNetTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NetTraffic/WFGeneratorFuelNetTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/NetTraffic/WFMapScopedPvsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NetTraffic/WFMapScopedPvsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/NetTraffic/WFMapScopedPvsTest.Size.cs`](../../../Content.IntegrationTests/Tests/_WF/NetTraffic/WFMapScopedPvsTest.Size.cs)
+- [`Content.IntegrationTests/Tests/_WF/NetTraffic/WFNetBroadcastTrimTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NetTraffic/WFNetBroadcastTrimTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/NetTraffic/WFNetTrafficTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NetTraffic/WFNetTrafficTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/NetTraffic/WFRepairDataNetTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NetTraffic/WFRepairDataNetTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/NetTraffic/WFUiStateTrimMoreTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NetTraffic/WFUiStateTrimMoreTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/NetTraffic/WFUiStateTrimTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NetTraffic/WFUiStateTrimTest.cs)
 
 ## Non-modular edits
 
 - [`Content.IntegrationTests/PoolManager.Cvars.cs`](../../../Content.IntegrationTests/PoolManager.Cvars.cs): test maps have no viewer, and the pair waits for the client to get them
+- [`Content.Server/_Battlefield14/FactionTracking/FactionTrackingSystem.cs`](../../_Battlefield14/FactionTracking/FactionTrackingSystem.cs)
+  - partial for send-on-change
+  - only changed counts go to everyone; players who joined since get the last ones
 - [`Content.Server/Ame/EntitySystems/AmeControllerSystem.cs`](../../Ame/EntitySystems/AmeControllerSystem.cs): a new state goes to everyone who sees the controller; WFUiStateTrimSystem sets it on open
 - [`Content.Server/Atmos/Piping/Unary/EntitySystems/GasCanisterSystem.cs`](../../Atmos/Piping/Unary/EntitySystems/GasCanisterSystem.cs): a new state goes to everyone who sees the canister; WFUiStateTrimSystem sets it on open
+- [`Content.Server/Beam/BeamSystem.cs`](../../Beam/BeamSystem.cs)
+  - only players near either end of the beam get its segment visuals
+  - same nearby players as the first segment
+- [`Content.Server/Chemistry/EntitySystems/ChemMasterSystem.cs`](../../Chemistry/EntitySystems/ChemMasterSystem.cs): closed windows get no state; the BoundUIOpenedEvent subscription sets it on opening
+- [`Content.Server/Chemistry/EntitySystems/SolutionHeaterSystem.cs`](../../Chemistry/EntitySystems/SolutionHeaterSystem.cs): heat in steps, as each one re-sends every heated solution to everyone in view
+- [`Content.Server/Decals/DecalSystem.cs`](../../Decals/DecalSystem.cs): with PVS, dirty chunks gather over a few ticks so a chunk changed every tick goes once per flush
+- [`Content.Server/DeviceLinking/Systems/SignalTimerSystem.cs`](../../DeviceLinking/Systems/SignalTimerSystem.cs): closed windows get no state; AfterActivatableUIOpenEvent sets it on opening
 - [`Content.Server/Explosion/EntitySystems/ExplosionSystem.cs`](../../Explosion/EntitySystems/ExplosionSystem.cs)
   - the sounds go out in the explosion's message instead of as audio entities.
   - sent with the explosion's message when that is on.
   - one message per player carries the overlay and the sound they hear.
 - [`Content.Server/Explosion/EntitySystems/ExplosionSystem.Visuals.cs`](../../Explosion/EntitySystems/ExplosionSystem.Visuals.cs): with explosion messages on, the entity stays in nullspace unsent.
 - [`Content.Server/Holopad/HolopadSystem.cs`](../../Holopad/HolopadSystem.cs): a new state goes to everyone who sees the holopad; WFUiStateTrimSystem sets it on open
+- [`Content.Server/Instruments/InstrumentSystem.cs`](../../Instruments/InstrumentSystem.cs): only players near enough to have the instrument get its notes; the performer's client ignores its own
+- [`Content.Server/Lathe/LatheSystem.cs`](../../Lathe/LatheSystem.cs): closed windows get no state; LatheSupplySystem sets it on BoundUIOpenedEvent
+- [`Content.Server/Power/Generator/GeneratorSystem.cs`](../../Power/Generator/GeneratorSystem.cs): most ticks burn less than a whole unit, and a change of 0 still re-sent the storage
 - [`Content.Server/Shuttles/Systems/RadarConsoleSystem.cs`](../../Shuttles/Systems/RadarConsoleSystem.cs): a stored state is sent to everyone who sees the console, open or not
 - [`Content.Server/Shuttles/Systems/ShuttleConsoleSystem.cs`](../../Shuttles/Systems/ShuttleConsoleSystem.cs)
   - the last pilot left, so nobody needs the helm state
   - a stored helm state is sent to everyone who sees the console, open or not
+- [`Content.Server/SurveillanceCamera/Systems/SurveillanceCameraMonitorSystem.cs`](../../SurveillanceCamera/Systems/SurveillanceCameraMonitorSystem.cs): closed windows get no state; AfterActivatableUIOpenEvent sets it via AddViewer
 - [`Content.Shared/_Mono/ShipRepair/Components/ShipRepairDataComponent.cs`](../../../Content.Shared/_Mono/ShipRepair/Components/ShipRepairDataComponent.cs): WFRepairDataNetSystem sends the snapshot only to repair tool users
 - [`Content.Shared/Damage/Systems/DamageableSystem.cs`](../../../Content.Shared/Damage/Systems/DamageableSystem.cs)
   - a structure's damage is sent at most once an interval.
