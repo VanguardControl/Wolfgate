@@ -1,18 +1,16 @@
-# Vessel prototype made in mapping mode from "Drydock ship". Check every field before it goes in the game.
-# Grid: put Drydock ship.yml at Resources/SharedMaps/_WF/Community/the_scarab.yml
-# Prototype: put this file, Drydock ship.vessel.yml, at Resources/Prototypes/_WF/Community/the_scarab.yml
-# Set by the mapper in the export wizard: name, description, price, category, class, group, engine, access, requireCrew.
-
+#Author Info
+# nagoll1 (Discord) nagoll12 (Github)
+# __Sui__ (Discord) NEWSUI (Github)
 - type: vessel
-  id: WFTheScarab
+  id: WFScarab
   parent: BaseVessel
-  name: 'The Scarab'
+  name: 'Scarab'
   description: 'A large drydock ship for a crew of engineer and salvager. it is designed to assist ships around the sector, fixing, towing, powering and assisting in upgrade.'
   price: 225000 # appraised at 144681
   category: Large # 1041 tiles
   group: Shipyard
   requireCrew: true
-  shuttlePath: /SharedMaps/_WF/Community/the_scarab.yml
+  shuttlePath: /SharedMaps/_WF/Shipyard/Shuttles/scarab.yml
   guidebookPage: null
   class:
   - Scrapyard
@@ -22,16 +20,16 @@
   - AME
 
 - type: gameMap
-  id: WFTheScarab
-  mapName: 'The Scarab'
-  mapPath: /SharedMaps/_WF/Community/the_scarab.yml
+  id: WFScarab
+  mapName: 'Scarab'
+  mapPath: /SharedMaps/_WF/Shipyard/Shuttles/scarab.yml
   minPlayers: 0
   stations:
-    WFTheScarab:
+    WFScarab:
       stationProto: StandardFrontierVessel
       components:
       - type: StationNameSetup
-        mapNameTemplate: 'The Scarab {1}'
+        mapNameTemplate: 'Scarab CIV{1}'
         nameGenerator:
           !type:NanotrasenNameGenerator
           prefixCreator: '14'
