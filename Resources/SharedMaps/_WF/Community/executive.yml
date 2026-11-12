@@ -4,8 +4,8 @@ meta:
   engineVersion: 291.0.0
   forkId: wolfgate-mapping
   forkVersion: 20261106-021336-f99d2cb-tm508-6eaf4386
-  time: 11/12/2026 16:13:42
-  entityCount: 757
+  time: 11/12/2026 16:58:23
+  entityCount: 761
 maps: []
 grids:
 - 1
@@ -1461,17 +1461,37 @@ entities:
     components:
     - type: Transform
       parent: 1
-      pos: -8.5,-2.5
+      pos: -7.5,-0.5
   - uid: 755
     components:
     - type: Transform
       parent: 1
-      pos: -8.5,-3.5
+      pos: -8.5,-2.5
   - uid: 756
     components:
     - type: Transform
       parent: 1
+      pos: -8.5,-3.5
+  - uid: 757
+    components:
+    - type: Transform
+      parent: 1
       pos: -7.5,-3.5
+  - uid: 759
+    components:
+    - type: Transform
+      parent: 1
+      pos: -8.5,-0.5
+  - uid: 760
+    components:
+    - type: Transform
+      parent: 1
+      pos: -9.5,-0.5
+  - uid: 761
+    components:
+    - type: Transform
+      parent: 1
+      pos: -9.5,0.5
 - proto: CableHV
   entities:
   - uid: 21
@@ -5143,7 +5163,7 @@ entities:
     - type: Transform
       parent: 1
       pos: -1.5,13.5
-  - uid: 757
+  - uid: 758
     components:
     - type: Transform
       parent: 1
