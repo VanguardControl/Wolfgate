@@ -1,3 +1,4 @@
+#nullable enable
 using Content.IntegrationTests.Tests.Interaction;
 using Content.Shared._WF.Xenobiology.Components;
 using Content.Shared._WF.Xenobiology.Systems;
