@@ -73,7 +73,7 @@ public sealed class WFMapScopedPvsSystem : EntitySystem
         CollectExcluded();
         _seen.Clear();
 
-        var grids = EntityQueryEnumerator<MapGridComponent, TransformComponent>();
+        var grids = AllEntityQuery<MapGridComponent, TransformComponent>();
         while (grids.MoveNext(out var grid, out _, out var xform))
         {
             // A map's own grid goes with the map, to everyone.
@@ -105,7 +105,7 @@ public sealed class WFMapScopedPvsSystem : EntitySystem
     private void CollectExcluded()
     {
         _excluded.Clear();
-        var networks = EntityQueryEnumerator<WFPlanetNetworkComponent>();
+        var networks = AllEntityQuery<WFPlanetNetworkComponent>();
         while (networks.MoveNext(out var network))
         {
             _excluded.Add(network.GroundMap);
@@ -114,7 +114,7 @@ public sealed class WFMapScopedPvsSystem : EntitySystem
             _excluded.UnionWith(network.LowerLayers);
         }
 
-        var transits = EntityQueryEnumerator<CEZTransitMapComponent>();
+        var transits = AllEntityQuery<CEZTransitMapComponent>();
         while (transits.MoveNext(out var uid, out _))
         {
             _excluded.Add(uid);

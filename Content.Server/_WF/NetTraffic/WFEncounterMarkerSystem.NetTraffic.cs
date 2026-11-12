@@ -112,6 +112,10 @@ public sealed partial class WFEncounterMarkerSystem
             if (Vector2.Distance(a.Velocity, b.Velocity) > WfVelocityTolerance)
                 return true;
 
+            // The client stops extrapolating here, so a moving marker would freeze until it drifts out of tolerance.
+            if (elapsed >= WfMaxExtrapolation && b.Velocity != Vector2.Zero)
+                return true;
+
             var predicted = b.Position + b.Velocity * elapsed;
             if (Vector2.Distance(a.Position, predicted) > WfPositionTolerance)
                 return true;

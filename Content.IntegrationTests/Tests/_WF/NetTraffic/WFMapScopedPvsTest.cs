@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Server._WF.NetTraffic;
 using Content.Shared._WF.NetTraffic;
+using Robust.Server.GameObjects;
 using Robust.Shared;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
@@ -84,6 +85,32 @@ public sealed partial class WFMapScopedPvsTest
                 Assert.That(cEm.TryGetEntity(gridA, out _), "the first system's grid comes back");
                 Assert.That(cEm.TryGetEntity(late, out _), Is.False, "the second system's new grid is dropped");
             });
+
+            // A paused system stays scoped rather than going to everyone.
+            await server.WaitPost(() => server.System<SharedMapSystem>().SetPaused(b.MapUid, true));
+            await pair.RunTicksSync(30);
+            await server.WaitAssertion(() =>
+                Assert.That(server.System<WFMapScopedPvsSystem>().IsScoped(b.Grid.Owner), "a paused system's grid stays scoped"));
+            Assert.That(cEm.TryGetEntity(gridB, out _), Is.False, "a paused system's grid is not sent");
+            await server.WaitPost(() => server.System<SharedMapSystem>().SetPaused(b.MapUid, false));
+
+            // A camera on the other system brings its grids too, and only while it is watched.
+            EntityUid camera = default;
+            await server.WaitPost(() =>
+            {
+                camera = em.SpawnEntity(null, new MapCoordinates(Vector2.Zero, b.MapId));
+                server.System<ViewSubscriberSystem>().AddViewSubscriber(camera, pair.Player!);
+            });
+            await pair.RunTicksSync(30);
+            Assert.Multiple(() =>
+            {
+                Assert.That(cEm.TryGetEntity(gridB, out _), "a watched camera's system is sent");
+                Assert.That(cEm.TryGetEntity(gridA, out _), "the body's system is kept alongside it");
+            });
+
+            await server.WaitPost(() => server.System<ViewSubscriberSystem>().RemoveViewSubscriber(camera, pair.Player!));
+            await pair.RunTicksSync(30);
+            Assert.That(cEm.TryGetEntity(gridB, out _), Is.False, "the camera's system goes when it stops being watched");
 
             // Off, every grid goes to everyone again.
             await server.WaitPost(() => server.CfgMan.SetCVar(NetTrafficCVars.MapScopedGrids, false));

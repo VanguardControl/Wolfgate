@@ -4,9 +4,13 @@ namespace Content.Client._Mono.Radar;
 
 public sealed partial class RadarBlipsSystem
 {
+    private readonly HashSet<NetEntity> _wfRemoved = new();
+
     /// <summary>Drops every blip the server removed this tick.</summary>
     private void WFRemoveBlips(WFBlipRemovalBatchEvent args)
     {
-        _blips.RemoveAll(blip => args.Blips.Contains(blip.Uid));
+        _wfRemoved.Clear();
+        _wfRemoved.UnionWith(args.Blips);
+        _blips.RemoveAll(blip => _wfRemoved.Contains(blip.Uid));
     }
 }
