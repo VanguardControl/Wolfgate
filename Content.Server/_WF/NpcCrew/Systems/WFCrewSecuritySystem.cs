@@ -56,6 +56,11 @@ public sealed partial class WFCrewSecuritySystem : EntitySystem
     /// <summary>Whether the current security rule explicitly targets this visitor.</summary>
     public bool IsHostileVisitor(EntityUid crew, EntityUid visitor) => _ownedHostiles.Contains((crew, visitor));
 
+    /// <summary>Whether any crewman standing on this grid holds a visitor hostile under its boarding rule.</summary>
+    public bool OwnsHostile(EntityUid grid, EntityUid visitor) =>
+        _ownedHostiles.Any(pair => pair.Visitor == visitor && !TerminatingOrDeleted(pair.Crew)
+            && Transform(pair.Crew).GridUid == grid);
+
     /// <summary>Explicit docking hostility overrides faction friendship for the current ship threat.</summary>
     public bool IsHostileDockingTarget(EntityUid grid, string group, EntityUid visitor) =>
         _hostileDocks.TryGetValue((grid, group, visitor), out var until) && _timing.CurTime < until;
@@ -102,7 +107,7 @@ public sealed partial class WFCrewSecuritySystem : EntitySystem
             if (!TryComp<FactionExceptionComponent>(uid, out var exceptions) || !exceptions.Hostiles.Any(target => target == visitor))
                 _ownedHostiles.Add((uid, visitor));
             _factions.AggroEntity(uid, visitor);
-            var answered = new WFCrewAttackAnsweredEvent(crew.Group, visitor);
+            var answered = new WFCrewAttackAnsweredEvent(crew.Group, visitor, Sighting: true);
             RaiseLocalEvent(grid, ref answered);
         }
         // A person told to leave has a while to go before the crew's fighters turn on him; animals are let be.

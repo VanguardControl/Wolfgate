@@ -239,8 +239,8 @@ carrying one of the crew's downed or dead is told to put him down and has ten se
 Crew out of a fight patch their own wounds, one item every eight seconds, and anyone hurt past 40 damage counts as
 calling for a medic (`WFCrewMedicSystem.SelfCare.cs`). Crew out of a fight stop short of a burning tile rather than walk
 through it (`NPCSteeringSystem.Fire.cs`). A downed crewman stops bumping doors open, a dead one's card comes off his ship's allow list and out of
-its zone keys, and both come back on revival. Janitors (`WFCrewJanitor`, duty Janitor) mop puddles and wash dirt off
-the floor across the ship with their own hands, as a cleanbot does, and wait at their post when it's clean.
+its zone keys, and both come back on revival. Janitors (`WFCrewJanitor`, duty Janitor) mop puddles on their own ship
+(`WFCrewShipPuddles`, scored by `WFTargetOnHomeGridCon`) and wash dirt off the floor across it with their own hands, as a cleanbot does, and wait at their post when it's clean.
 Hull impacts from another ship's artillery raise crew alerts and a radio mayday through the existing projectile
 handler. Gunners walk to an available powered console and use Mono's ship targeting and fire-control path only
 against explicitly reported hostile vessels, excluding friendly factions. Console loss, incapacitation, player
@@ -375,6 +375,7 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 - [`Content.Server/_WF/NpcCrew/HTN/WFReloadOperator.cs`](HTN/WFReloadOperator.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFTakeGunneryOperator.cs`](HTN/WFTakeGunneryOperator.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFTakeHelmOperator.cs`](HTN/WFTakeHelmOperator.cs)
+- [`Content.Server/_WF/NpcCrew/HTN/WFTargetOnHomeGridCon.cs`](HTN/WFTargetOnHomeGridCon.cs)
 - [`Content.Server/_WF/NpcCrew/NPCSystem.Sleep.cs`](NPCSystem.Sleep.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/FireControlSystem.Crew.cs`](Systems/FireControlSystem.Crew.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/NPCCombatSystem.Crew.cs`](Systems/NPCCombatSystem.Crew.cs)
@@ -611,6 +612,7 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 - [`Content.Server/NPC/Systems/NPCSystem.cs`](../../NPC/Systems/NPCSystem.cs)
   - a mob someone plays, such as a possessing admin, has no AI to wake
   - ship crews with something to do must work even without nearby player bodies.
+- [`Content.Server/NPC/Systems/NPCUtilitySystem.cs`](../../NPC/Systems/NPCUtilitySystem.cs): crew keep their chores on the ship they serve
 - [`Content.Server/Shuttles/Systems/ShuttleSystem.Impact.cs`](../../Shuttles/Systems/ShuttleSystem.Impact.cs): crews take a ramming for an attack
 - [`Content.Server/Verbs/VerbSystem.cs`](../../Verbs/VerbSystem.cs): opt-in tracing for missing menu replies after ghosting.
 - [`Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs`](../../../Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs): Lets crew damage scaling skip the routed inner passes.

@@ -149,12 +149,7 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
     /// </summary>
     public bool IsOwner(EntityUid user, EntityUid grid)
     {
-        if (_access.IsOwner(user, grid))
-            return true;
-
-        var ev = new WFShipManagerEvent(user);
-        RaiseLocalEvent(grid, ref ev);
-        return ev.Allowed;
+        return _access.CanManage(user, grid);
     }
 
     /// <summary>Sets the lock and rewrites every door and locker reader on the grid to match.</summary>

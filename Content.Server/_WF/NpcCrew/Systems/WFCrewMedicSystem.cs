@@ -932,7 +932,7 @@ public sealed partial class WFCrewMedicSystem : EntitySystem
         var beds = EntityQueryEnumerator<WFMedicalBedComponent, TransformComponent>();
         while (beds.MoveNext(out _, out _, out var xform))
         {
-            if (xform.GridUid == grid)
+            if (xform.GridUid == grid && xform.Anchored)
                 return true;
         }
 

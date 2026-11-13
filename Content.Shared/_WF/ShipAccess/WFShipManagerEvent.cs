@@ -1,4 +1,4 @@
-namespace Content.Server._WF.ShipAccess;
+namespace Content.Shared._WF.ShipAccess;
 
 /// <summary>
 /// Raised on a ship's grid when someone who isn't its owner tries to manage its access (the access tab, the lock

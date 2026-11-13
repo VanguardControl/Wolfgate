@@ -111,6 +111,9 @@ public readonly record struct WFShipCollisionEvent(EntityUid Grid, EntityUid Oth
 [ByRefEvent]
 public readonly record struct WFCrewHullHitEvent(EntityUid Grid, EntityUid AttackerGrid);
 
-/// <summary>Raised on a crew's home grid when the crew turn on someone: an attacker, a thief, a trespasser past his warning.</summary>
+/// <summary>
+/// Raised on a crew's home grid when the crew turn on someone: an attacker, a thief, a trespasser past his warning.
+/// <see cref="Sighting"/> marks hostility from the boarding rule alone, which a policy change can withdraw.
+/// </summary>
 [ByRefEvent]
-public readonly record struct WFCrewAttackAnsweredEvent(string Group, EntityUid Attacker);
+public readonly record struct WFCrewAttackAnsweredEvent(string Group, EntityUid Attacker, bool Sighting = false);

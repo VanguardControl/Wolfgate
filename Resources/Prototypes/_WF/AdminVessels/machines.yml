@@ -85,8 +85,6 @@
 - type: entity
   parent: BallisticTurretHeavyBase
   id: WFLupercalSentry
-  name: Lupercal sentry
-  description: A heavy turret that holds its fire until the crew have marked a target.
   suffix: Admin, Lupercal
   components:
   - type: NpcFactionMember

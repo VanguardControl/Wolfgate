@@ -165,7 +165,6 @@ shut out of a helm that ended up on a broken-off section.
 - [`Content.Server/_WF/ShipAccess/WFShipAccessServerSystem.Readers.cs`](WFShipAccessServerSystem.Readers.cs)
 - [`Content.Server/_WF/ShipAccess/WFShipAccessServerSystem.Stations.cs`](WFShipAccessServerSystem.Stations.cs)
 - [`Content.Server/_WF/ShipAccess/WFShipGridLockSplitSystem.cs`](WFShipGridLockSplitSystem.cs)
-- [`Content.Server/_WF/ShipAccess/WFShipManagerEvent.cs`](WFShipManagerEvent.cs)
 - [`Content.Server/_WF/ShipAccess/WFShipReaderBackupComponent.cs`](WFShipReaderBackupComponent.cs)
 
 ### Shared
@@ -175,6 +174,7 @@ shut out of a helm that ended up on a broken-off section.
 - [`Content.Shared/_WF/ShipAccess/WFShipAccessEvents.cs`](../../../Content.Shared/_WF/ShipAccess/WFShipAccessEvents.cs)
 - [`Content.Shared/_WF/ShipAccess/WFShipAccessSystem.cs`](../../../Content.Shared/_WF/ShipAccess/WFShipAccessSystem.cs)
 - [`Content.Shared/_WF/ShipAccess/WFShipAiAccessSystem.cs`](../../../Content.Shared/_WF/ShipAccess/WFShipAiAccessSystem.cs)
+- [`Content.Shared/_WF/ShipAccess/WFShipManagerEvent.cs`](../../../Content.Shared/_WF/ShipAccess/WFShipManagerEvent.cs)
 
 ### Client
 

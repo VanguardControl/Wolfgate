@@ -403,10 +403,11 @@ public sealed partial class WFCrewWeaponSystem
         return ev.Count;
     }
 
+    /// <summary>Whether the crewman wearing this gun can reload it: a spare magazine, or never-dry ammo it can refill.</summary>
     private bool FindMagazineForOwner(EntityUid gun)
     {
-        return Transform(gun).ParentUid is var owner && HasComp<WFCrewComponent>(owner)
-            && FindMagazine(owner, gun, out _, out _);
+        return Transform(gun).ParentUid is var owner && TryComp<WFCrewComponent>(owner, out var crew)
+            && (crew.InfiniteAmmo && RefillHolder(gun) != null || FindMagazine(owner, gun, out _, out _));
     }
 
     private bool FindMagazine(EntityUid owner, EntityUid gun, out EntityUid magazine, out string equipmentSlot)
@@ -480,12 +481,7 @@ public sealed partial class WFCrewWeaponSystem
     /// <summary>Fills the gun's own box or its loaded magazine back to capacity, for crew who never run dry.</summary>
     private bool Refill(EntityUid gun)
     {
-        var holder = gun;
-        if (!HasComp<BallisticAmmoProviderComponent>(gun)
-            && _slots.TryGetSlot(gun, MagazineSlot, out var slot) && slot.Item is { } magazine)
-            holder = magazine;
-
-        if (!TryComp<BallisticAmmoProviderComponent>(holder, out var ammo))
+        if (RefillHolder(gun) is not { } holder || !TryComp<BallisticAmmoProviderComponent>(holder, out var ammo))
             return false;
 
         var missing = ammo.Capacity - ammo.Container.ContainedEntities.Count;
@@ -494,6 +490,15 @@ public sealed partial class WFCrewWeaponSystem
 
         _guns.SetBallisticUnspawned((holder, ammo), missing);
         return true;
+    }
+
+    /// <summary>What <see cref="Refill"/> tops up: the gun's own ballistic store, else the magazine in it.</summary>
+    private EntityUid? RefillHolder(EntityUid gun)
+    {
+        if (HasComp<BallisticAmmoProviderComponent>(gun))
+            return gun;
+        return _slots.TryGetSlot(gun, MagazineSlot, out var slot) && slot.Item is { } magazine
+            && HasComp<BallisticAmmoProviderComponent>(magazine) ? magazine : null;
     }
 
     private bool TakeMagazine(EntityUid uid, EntityUid magazine, string slot)

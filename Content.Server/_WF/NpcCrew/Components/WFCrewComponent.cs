@@ -1,4 +1,5 @@
 using Content.Shared._WF.NpcCrew;
+using Content.Shared._WF.ShipAccess;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 
@@ -91,6 +92,10 @@ public sealed partial class WFCrewComponent : Component
     /// <summary>The ship whose allow list holds this crewman's card, so deleting him revokes it.</summary>
     [ViewVariables]
     public EntityUid? AccessShip;
+
+    /// <summary>The card key enrolled on <see cref="AccessShip"/>, kept so it is revoked even once the card is taken.</summary>
+    [ViewVariables]
+    public WFShipAccessKey? AccessKey;
 
     /// <summary>Whether the role title has been put in front of the name.</summary>
     [ViewVariables]

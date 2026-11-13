@@ -7,6 +7,7 @@ using Content.Server.Storage.Components;
 using Content.Shared._WF.ShipAccess;
 using Content.Shared._WF.ShipCommand;
 using Content.Shared.Database;
+using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.StationRecords;
 using Robust.Shared.Map.Components;
@@ -38,6 +39,14 @@ public sealed partial class WFShipCommandSystem
         SubscribeLocalEvent<WFShipZonesComponent, ComponentShutdown>(OnZonesShutdown);
         SubscribeLocalEvent<WFShipZonesComponent, WFDoorZoneKeysEvent>(OnZoneDoorKeys);
         SubscribeLocalEvent<WFShipZonesComponent, WFCrewPlaceNameEvent>(OnPlaceName);
+        SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
+    }
+
+    /// <summary>A crewman's death or revival changes who his ship's zones admit at once, not at the next sweep.</summary>
+    private void OnMobStateChanged(MobStateChangedEvent args)
+    {
+        if (TryComp<WFCrewComponent>(args.Target, out var crew) && _crew.HomeGrid(args.Target, crew) is { } home)
+            RefreshZoneKeys(home);
     }
 
     /// <summary>The crew name the zone a trespasser stands in when they challenge him.</summary>

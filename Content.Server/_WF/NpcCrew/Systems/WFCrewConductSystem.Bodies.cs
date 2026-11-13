@@ -23,13 +23,13 @@ public sealed partial class WFCrewConductSystem
     /// <summary>The downed crewman a player is pulling or carrying, if any.</summary>
     private EntityUid? Hauled(EntityUid player)
     {
-        EntityUid? body = null;
-        if (TryComp<PullerComponent>(player, out var puller) && puller.Pulling is { } pulled)
-            body = pulled;
-        else if (TryComp<CarryingComponent>(player, out var carrying))
-            body = carrying.Carried;
+        if (TryComp<PullerComponent>(player, out var puller) && puller.Pulling is { } pulled && DownedCrew(pulled))
+            return pulled;
+        if (TryComp<CarryingComponent>(player, out var carrying) && DownedCrew(carrying.Carried))
+            return carrying.Carried;
+        return null;
 
-        return body is { } b && HasComp<WFCrewComponent>(b) && !_mobs.IsAlive(b) ? b : null;
+        bool DownedCrew(EntityUid body) => HasComp<WFCrewComponent>(body) && !_mobs.IsAlive(body);
     }
 
     /// <summary>The half-second pass over players hauling the crew's downed.</summary>
@@ -48,7 +48,7 @@ public sealed partial class WFCrewConductSystem
             var crew = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
             while (crew.MoveNext(out var uid, out var member, out var crewXform))
             {
-                if (member.Group != bodyCrew.Group || crewXform.GridUid != grid || !_mobs.IsAlive(uid)
+                if (crewXform.GridUid != grid || !_crew.SameCrew(uid, body) || !_mobs.IsAlive(uid)
                     || HasComp<ActorComponent>(uid) || _crew.SameCrew(uid, player) || Commanded(uid, player))
                     continue;
 

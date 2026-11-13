@@ -3,8 +3,6 @@
 - type: entity
   id: WFHoloDoor
   parent: BaseStructureIndestructible
-  name: hard-light barrier
-  description: A field that parts for those cleared to pass and stops everyone else.
   placement:
     mode: SnapgridCenter
   components:

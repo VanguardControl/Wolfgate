@@ -11,6 +11,11 @@ wf-lupercal-zone-engineering-staff = Power and atmos (staff)
 wf-lupercal-zone-cargo-public = Cargo, salvage and vehicles (public)
 wf-lupercal-zone-cargo-staff = Cargo, salvage and vehicles (staff)
 
+ent-WFHoloDoor = hard-light barrier
+    .desc = A field that parts for those cleared to pass and stops everyone else.
+ent-WFLupercalSentry = Lupercal sentry
+    .desc = A heavy turret that holds its fire until the crew have marked a target.
+
 wf-lupercal-job-supervisors = the Lupercal's owner and command
 wf-lupercal-job-pilot = Lupercal Pilot
 wf-lupercal-job-pilot-desc = Fly the Lupercal from its bridge on its owner's orders.

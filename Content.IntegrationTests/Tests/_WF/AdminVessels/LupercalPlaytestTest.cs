@@ -21,6 +21,7 @@ using Content.Shared.Doors.Systems;
 using Content.Shared.Fax.Components;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Power;
 using Content.Shared.Power.Components;
 using Content.Shared.Tag;
 using Robust.Shared.GameObjects;
@@ -104,17 +105,28 @@ public sealed class LupercalPlaytestTest
             Assert.That(roster.Slots.Values.Count(s => s.Role.Id == "WFCrewJanitor"), Is.EqualTo(2), "Two janitor posts.");
         });
 
-        // A core gate's doors: with one open, the other won't open.
+        // A core gate's doors: with one open, the other won't open. A fresh ship's grid power hasn't come up yet, and an
+        // unpowered airlock never opens, so both doors are powered here; only the interlock is left to stop them.
         await server.WaitAssertion(() =>
         {
             var doorSystem = server.System<SharedDoorSystem>();
             var gate = OfProto(em, grid, "AirlockCommandGlass").First(em.HasComponent<WFDoorInterlockComponent>);
             var partner = em.GetComponent<WFDoorInterlockComponent>(gate).Partner!.Value;
+            foreach (var uid in new[] { gate, partner })
+            {
+                var powered = new PowerChangedEvent(true, 0f);
+                em.EventBus.RaiseLocalEvent(uid, ref powered);
+            }
+
             var door = em.GetComponent<DoorComponent>(gate);
+            var partnerDoor = em.GetComponent<DoorComponent>(partner);
+            Assert.That(em.GetComponent<AirlockComponent>(partner).Powered, Is.True, "Precondition: the partner has power.");
+            Assert.That(doorSystem.CanOpen(partner, partnerDoor), Is.True, "Precondition: with both shut, the partner opens.");
             doorSystem.StartOpening(gate, door);
             Assert.That(door.State, Is.Not.EqualTo(DoorState.Closed), "Precondition: the first gate door is opening.");
-            Assert.That(doorSystem.CanOpen(partner, em.GetComponent<DoorComponent>(partner)), Is.False,
-                "Its partner stays shut while it is open.");
+            Assert.That(doorSystem.CanOpen(partner, partnerDoor), Is.False, "Its partner stays shut while it is open.");
+            doorSystem.SetState(gate, DoorState.Closed, door);
+            Assert.That(doorSystem.CanOpen(partner, partnerDoor), Is.True, "Once it closes, the partner opens again.");
         });
 
         // A dead crewman no longer bumps doors open.

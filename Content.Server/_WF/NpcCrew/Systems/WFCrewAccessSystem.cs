@@ -82,8 +82,12 @@ public sealed partial class WFCrewAccessSystem : EntitySystem
             _keys.AssignKey(card, key, storage);
         }
 
-        if (_ships.TryAddCard(ship, card, Name(uid)) && TryComp<WFCrewComponent>(uid, out var crew))
+        if (_ships.TryAddCard(ship, card, Name(uid)) && TryComp<WFCrewComponent>(uid, out var crew)
+            && _access.TryGetKey(card, out var enrolled))
+        {
             crew.AccessShip = grid;
+            crew.AccessKey = enrolled;
+        }
     }
 
     /// <summary>Writes a crewman's name and post on the card he wears.</summary>
@@ -112,22 +116,24 @@ public sealed partial class WFCrewAccessSystem : EntitySystem
             _tags.RemoveTag(uid, DoorBumpTag);
 
         if (crew.AccessShip is not { } grid || TerminatingOrDeleted(grid)
-            || !TryComp<WFShipAccessComponent>(grid, out var ship)
-            || !_access.TryGetWornCard(uid, out var card) || !_access.TryGetKey(card, out var key))
+            || !TryComp<WFShipAccessComponent>(grid, out var ship))
             return;
 
-        if (state == MobState.Dead)
-            _ships.RemoveEntry((grid, ship), key);
-        else if (state == MobState.Alive)
+        // The stored key is revoked even if the card was taken off him while he was down.
+        if (state == MobState.Dead && crew.AccessKey is { } enrolled)
+            _ships.RemoveEntry((grid, ship), enrolled);
+        else if (state == MobState.Alive && _access.TryGetWornCard(uid, out var card) && _access.TryGetKey(card, out var key))
+        {
             _ships.TryAddCard((grid, ship), card, Name(uid));
+            crew.AccessKey = key;
+        }
     }
 
     /// <summary>A deleted crewman's card key comes off the ship's allow list.</summary>
     private void OnCrewTerminating(Entity<WFCrewComponent> ent, ref EntityTerminatingEvent args)
     {
         if (ent.Comp.AccessShip is not { } grid || TerminatingOrDeleted(grid)
-            || !TryComp<WFShipAccessComponent>(grid, out var ship)
-            || !_access.TryGetWornCard(ent, out var card) || !_access.TryGetKey(card, out var key))
+            || !TryComp<WFShipAccessComponent>(grid, out var ship) || ent.Comp.AccessKey is not { } key)
             return;
 
         _ships.RemoveEntry((grid, ship), key);

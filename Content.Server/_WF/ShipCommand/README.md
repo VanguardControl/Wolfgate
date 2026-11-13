@@ -13,7 +13,9 @@ by their ID card's record key, their player or both, and either matches. Each pe
 them to a list takes them off the other two; the barred list wins over the staff and officer lists, never over an
 admin or the owner. `CanConfigure` is the owner, and admins while `AdminsAtConsole`; `CanOperate` adds officers.
 ShipAccess asks this module through `WFShipManagerEvent` before refusing a non-owner its access tab, lock verbs or
-console locks, and whoever may configure the ship, admins included, is let through. Admins share the owner's powers
+console locks, and whoever may configure the ship, admins included, is let through; the client's
+`WFShipCommandClientSystem` answers the same event from its own admin flags, so the access tab shows admins its
+controls. Admins share the owner's powers
 by default, each a switch on the component: zones, the console, never targeted
 by the crew, served free. Where the owner turns one off, an admin stands where the lists put them
 (`GetAuthority(user, grid, out listed)`): an admin on the officers list still operates the ship and is still the
@@ -114,7 +116,9 @@ queued a Repair objective every `RepairInterval`, which its deckhands and engine
 
 Sentries (`WFShipSentryComponent`, `WFShipSentrySystem`) are turrets on a faction hostile to nobody: when the crew turn
 on someone (NpcCrew's `WFCrewAttackAnsweredEvent` on the grid) every sentry aboard aggroes on him, and each lets go of
-targets that are down or off the ship.
+targets that are down or off the ship. A target raised only by a boarding sighting is also let go once no crewman
+aboard holds him hostile any more (`WFCrewSecuritySystem.OwnsHostile`), as after a policy edit clears him; an attacker
+is kept.
 
 ## Player jobs
 
@@ -280,6 +284,7 @@ sector, no mass penalty and short timings.
 
 - [`Content.Client/_WF/ShipCommand/WFRecoveryPadBoundUserInterface.cs`](../../../Content.Client/_WF/ShipCommand/WFRecoveryPadBoundUserInterface.cs)
 - [`Content.Client/_WF/ShipCommand/WFRecoveryPadWindow.cs`](../../../Content.Client/_WF/ShipCommand/WFRecoveryPadWindow.cs)
+- [`Content.Client/_WF/ShipCommand/WFShipCommandClientSystem.cs`](../../../Content.Client/_WF/ShipCommand/WFShipCommandClientSystem.cs)
 - [`Content.Client/_WF/ShipCommand/WFShipConsoleBoundUserInterface.cs`](../../../Content.Client/_WF/ShipCommand/WFShipConsoleBoundUserInterface.cs)
 - [`Content.Client/_WF/ShipCommand/WFShipConsoleWindow.cs`](../../../Content.Client/_WF/ShipCommand/WFShipConsoleWindow.cs)
 
