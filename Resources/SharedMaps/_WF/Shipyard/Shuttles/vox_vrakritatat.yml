@@ -8585,7 +8585,7 @@ entities:
       powerLoad: 5
     - type: Battery
       startingCharge: 0
-- proto: ComputerBroken
+- proto: WFVrakritatatCarrierComputer
   entities:
   - uid: 1324
     components:
@@ -11685,9 +11685,6 @@ entities:
       parent: 1
       rot: 4.71238898038469 rad
       pos: 21.5,-8.5
-    - type: DeviceNetwork
-      deviceLists:
-      - invalid
     - type: AtmosPipeLayers
       pipeLayer: Secondary
     - type: AtmosPipeColor

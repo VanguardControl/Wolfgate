@@ -57,10 +57,10 @@
     - Bow-Man
 
 - type: entity
-  id: VoxVrakritatatCarrierComputer
+  id: WFVrakritatatCarrierComputer
   parent: BaseCarrierComputer
   name: Vrakritatat shipyard console
   components:
   - type: ShipyardListing
     shuttles:
-    - vox_skipjack
+    - WFVoxSkipjack
