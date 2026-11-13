@@ -337,6 +337,7 @@ public sealed partial class CargoSystem
 
         var ev = new EntitySoldEvent(toSell, gridUid); // Mono: moved here so refused sales dont count as sold
         RaiseLocalEvent(ref ev);
+        WfRaisePalletSale(allEntsToDelete, gridUid); // WOLFGATE(CargoSales): a pallet sale event that leaves out contraband turn-ins
 
         foreach (var ent in allEntsToDelete)
         {
@@ -543,6 +544,10 @@ public sealed partial class CargoSystem
                         }
                     }
                 }
+                // WOLFGATE(CargoSales): taxed goods inside an untaxed crate or bag pay their tax too
+                else
+                    WfContentsTax(ent, gridUid, ref blackMarketTaxAmount, ref frontierTaxAmount, ref nfsdTaxAmount, ref medicalTaxAmount);
+
                 // Mono: Calculate if any factions need to receive currency
                 if (TryComp<CurrencyInjectionOnSellComponent>(ent, out var injection))
                 {
