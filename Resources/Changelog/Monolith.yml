@@ -26491,3 +26491,56 @@ Entries:
   id: 2874
   time: '2026-11-02T22:46:22.0000000+00:00'
   url: https://github.com/Monolith-Station/Monolith/pull/4950
+- author: Mrrpip
+  changes:
+    - type: Fix
+      message: Fixes the defib cabinet on the QJ-271
+  id: 2883
+  time: '2026-11-08T10:18:07.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4986
+- author: DoubleHypercube
+  changes:
+    - type: Tweak
+      message: The TSF comms console is now usable by Marines.
+  id: 2884
+  time: '2026-11-08T10:23:11.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4981
+- author: SuperGDPWYL
+  changes:
+    - type: Fix
+      message: >-
+        Vouchers that are not holding deeds now show their remaining redemptions
+        and cooldown when examined.
+  id: 2888
+  time: '2026-11-08T22:41:57.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4996
+- author: DoubleHypercube
+  changes:
+    - type: Fix
+      message: Zephyr LPCs are now printable.
+  id: 2891
+  time: '2026-11-09T03:55:18.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/5000
+- author: Z3risk
+  changes:
+    - type: Tweak
+      message: The VT-7 High Frequency Blade now shows while wielded.
+  id: 2893
+  time: '2026-11-09T22:27:22.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/5003
+- author: mikusssssss
+  changes:
+    - type: Add
+      message: >-
+        Ported IPC's and Borgs having a distorted accent when low on charge or
+        heavily damaged.
+  id: 2895
+  time: '2026-11-09T23:12:20.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/5002
+- author: DoubleHypercube
+  changes:
+    - type: Tweak
+      message: The Overseer no longer needs TSF or PDV hours.
+  id: 2897
+  time: '2026-11-10T00:12:59.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4978
