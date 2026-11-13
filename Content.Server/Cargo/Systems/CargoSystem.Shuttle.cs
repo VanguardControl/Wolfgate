@@ -606,6 +606,9 @@ public sealed partial class CargoSystem
             return;
         }
 
+        if (WfShipRefuses(uid, args.Actor)) // WOLFGATE(ShipCommand): a commanded ship's sale pallets don't buy from the barred
+            return; // WOLFGATE(ShipCommand)
+
         if (!SellPallets((uid, component), gridUid, out var price, out var noMultiplierPrice, out var blackMarketTaxAmount, out var frontierTaxAmount, out var nfsdTaxAmount, out var medicalTaxAmount, out var currencyInjections, out var injectionCompany)) // Frontier: convert first arg to Entity, add noMultiplierPrice
             return;
 
