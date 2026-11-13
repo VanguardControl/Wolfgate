@@ -30,7 +30,7 @@ public sealed partial class WFEncounterTest
             var first = Encounter(map, new Vector2(1000, 0), engaged: true);
             Assert.That(scheduler.Crowded(spot), Is.False, "One encounter nearby leaves room.");
 
-            Encounter(map, new Vector2(9000, 0), engaged: false);
+            var far = Encounter(map, new Vector2(9000, 0), engaged: false);
             Assert.That(scheduler.Crowded(spot), Is.False, "An encounter past the radius doesn't count.");
 
             var freight = Encounter(map, new Vector2(0, 1500), engaged: false);
@@ -52,6 +52,7 @@ public sealed partial class WFEncounterTest
 
             SEntMan.DeleteEntity(first);
             SEntMan.DeleteEntity(second);
+            SEntMan.DeleteEntity(far);
             SEntMan.DeleteEntity(freight);
             maps.DeleteMap(map);
         });
