@@ -419,7 +419,7 @@
   description: uplink-faction-materials-exotic-desc
   productEntity: CrateMaterialsExoticFilledTsf
   cost:
-    FederationMilitaryCredit: 175 # WOLFGATE: PDV pack, price 125->175
+    FederationMilitaryCredit: 130 #//WOLFGATE: TSF Balance Pass; from 175 -> 130
   categories:
   - UplinkSecurityMaterials
   conditions:

@@ -105,7 +105,7 @@
       color: "#05ffff"
       shader: unshaded
   - type: ShipyardVoucher
-    destroyOnEmpty: true # WOLFGATE(Drydock): single use, so a drydock repair undercuts printing another card
+    destroyOnEmpty: false # WOLFGATE: TSF Balance Pack, giving the TSF its renewable vouchers back
     cooldown: 1800 # 30 minutes
     consoleType: Security
     companyName: TSF
@@ -132,7 +132,7 @@
       color: "#05ffff"
       shader: unshaded
   - type: ShipyardVoucher
-    destroyOnEmpty: true # WOLFGATE(Drydock): single use, so a drydock repair undercuts printing another card
+    destroyOnEmpty: false # WOLFGATE: TSF Balance Pack, giving the TSF its renewable vouchers back
     cooldown: 3600 # one hour
     consoleType: Security
     companyName: TSF
@@ -166,8 +166,7 @@
   - type: Item
     heldPrefix: tsf
   - type: ShipyardVoucher
-    destroyOnEmpty: true # WOLFGATE(Drydock): single use, so a drydock repair undercuts printing another card
-    redemptionsLeft: 1 # WOLFGATE(Drydock)
+    destroyOnEmpty: false # WOLFGATE: TSF Balance Pack, giving the TSF its renewable vouchers back
     cooldown: 5100 # hour and 25 minutes
     consoleType: Security
     companyName: TSF
@@ -192,8 +191,7 @@
   - type: Item
     heldPrefix: tsf
   - type: ShipyardVoucher
-    destroyOnEmpty: true # WOLFGATE(Drydock): single use, so a drydock repair undercuts printing another card
-    redemptionsLeft: 1 # WOLFGATE(Drydock)
+    destroyOnEmpty: false # WOLFGATE: TSF Balance Pack, giving the TSF its renewable vouchers back
     consoleType: Security
     companyName: TSF
     cooldown: 14400 # two hour
