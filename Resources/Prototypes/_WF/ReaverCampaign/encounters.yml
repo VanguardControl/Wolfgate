@@ -194,7 +194,7 @@
     distress: false
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
-    vessels: [ Saintie, Vulture, Ganymede, Buran ]
+    vessels: [ Saintie, Vulture, Ganymede, Buran, Minerva ]
     deckhands: 3
     guards: 2
     fuelStores: 12
