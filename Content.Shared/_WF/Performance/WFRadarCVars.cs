@@ -12,4 +12,11 @@ public sealed class WFRadarCVars
     /// </summary>
     public static readonly CVarDef<float> RequestHz =
         CVarDef.Create("wf.radar.request_hz", 8f, CVar.CLIENTONLY);
+
+    /// <summary>
+    /// Blip requests per second the server answers for one player, clamped to 0.5-30; faster requests are dropped.
+    /// Lower it under load: consoles then update at this rate whatever their own setting.
+    /// </summary>
+    public static readonly CVarDef<float> MaxRequestHz =
+        CVarDef.Create("wf.radar.max_request_hz", 10f, CVar.SERVERONLY);
 }
