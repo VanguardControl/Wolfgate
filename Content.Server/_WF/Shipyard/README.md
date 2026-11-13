@@ -54,6 +54,7 @@ share from its slot, or from the counter of a trader hosting it (`ShipyardHostCa
 ### Prototypes
 
 - [`Resources/Prototypes/_WF/Shipyard/brute.yml`](../../../Resources/Prototypes/_WF/Shipyard/brute.yml)
+- [`Resources/Prototypes/_WF/Shipyard/bucket.yml`](../../../Resources/Prototypes/_WF/Shipyard/bucket.yml)
 - [`Resources/Prototypes/_WF/Shipyard/carabela.yml`](../../../Resources/Prototypes/_WF/Shipyard/carabela.yml)
 - [`Resources/Prototypes/_WF/Shipyard/Carrier/vox_skipjack.yml`](../../../Resources/Prototypes/_WF/Shipyard/Carrier/vox_skipjack.yml)
 - [`Resources/Prototypes/_WF/Shipyard/dredger.yml`](../../../Resources/Prototypes/_WF/Shipyard/dredger.yml)
@@ -63,6 +64,7 @@ share from its slot, or from the counter of a trader hosting it (`ShipyardHostCa
 - [`Resources/Prototypes/_WF/Shipyard/lathe_recipes.yml`](../../../Resources/Prototypes/_WF/Shipyard/lathe_recipes.yml)
 - [`Resources/Prototypes/_WF/Shipyard/reach.yml`](../../../Resources/Prototypes/_WF/Shipyard/reach.yml)
 - [`Resources/Prototypes/_WF/Shipyard/srashakri.yml`](../../../Resources/Prototypes/_WF/Shipyard/srashakri.yml)
+- [`Resources/Prototypes/_WF/Shipyard/sunrise.yml`](../../../Resources/Prototypes/_WF/Shipyard/sunrise.yml)
 - [`Resources/Prototypes/_WF/Shipyard/TSF/welder.yml`](../../../Resources/Prototypes/_WF/Shipyard/TSF/welder.yml)
 - [`Resources/Prototypes/_WF/Shipyard/ubm_excelsior.yml`](../../../Resources/Prototypes/_WF/Shipyard/ubm_excelsior.yml)
 - [`Resources/Prototypes/_WF/Shipyard/ubm_lurker.yml`](../../../Resources/Prototypes/_WF/Shipyard/ubm_lurker.yml)
@@ -79,6 +81,7 @@ share from its slot, or from the counter of a trader hosting it (`ShipyardHostCa
 ### Shared maps
 
 - [`Resources/SharedMaps/_WF/Shipyard/Shuttles/brute.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/brute.yml)
+- [`Resources/SharedMaps/_WF/Shipyard/Shuttles/bucket.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/bucket.yml)
 - [`Resources/SharedMaps/_WF/Shipyard/Shuttles/carabela.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/carabela.yml)
 - [`Resources/SharedMaps/_WF/Shipyard/Shuttles/Carrier/vox_skipjack.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/Carrier/vox_skipjack.yml)
 - [`Resources/SharedMaps/_WF/Shipyard/Shuttles/dredger.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/dredger.yml)
@@ -86,6 +89,7 @@ share from its slot, or from the counter of a trader hosting it (`ShipyardHostCa
 - [`Resources/SharedMaps/_WF/Shipyard/Shuttles/hammerhead.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/hammerhead.yml)
 - [`Resources/SharedMaps/_WF/Shipyard/Shuttles/reach.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/reach.yml)
 - [`Resources/SharedMaps/_WF/Shipyard/Shuttles/srashakri.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/srashakri.yml)
+- [`Resources/SharedMaps/_WF/Shipyard/Shuttles/sunrise.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/sunrise.yml)
 - [`Resources/SharedMaps/_WF/Shipyard/Shuttles/TSF/welder.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/TSF/welder.yml)
 - [`Resources/SharedMaps/_WF/Shipyard/Shuttles/ubm_excelsior.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/ubm_excelsior.yml)
 - [`Resources/SharedMaps/_WF/Shipyard/Shuttles/ubm_lurker.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/ubm_lurker.yml)
@@ -106,7 +110,7 @@ share from its slot, or from the counter of a trader hosting it (`ShipyardHostCa
   - zero entries do not count
 - [`Content.Shared/Damage/DamageSpecifierDictionarySerializer.cs`](../../../Content.Shared/Damage/DamageSpecifierDictionarySerializer.cs): adds writing support so DamageSpecifier can round-trip through DamageDict
 - [`Content.Shared/VendingMachines/VendingMachineComponent.cs`](../../../Content.Shared/VendingMachines/VendingMachineComponent.cs): a data definition, so a live machine's stock can be written out with its grid
-- [`Resources/Prototypes/_Mono/Entities/Objects/Devices/ship_vouchers.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Devices/ship_vouchers.yml): New WF T1 Ships
+- [`Resources/Prototypes/_Mono/Entities/Objects/Devices/ship_vouchers.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Devices/ship_vouchers.yml): New WF T0 Ships
 - [`Resources/Prototypes/_Mono/Outpost/caelestinus.yml`](../../../Resources/Prototypes/_Mono/Outpost/caelestinus.yml): ships sold anywhere on this station end up on the used ship lot
 - [`Resources/Prototypes/_Mono/Recipes/Lathes/Packs/Factions/phaethon_dynasty.yml`](../../../Resources/Prototypes/_Mono/Recipes/Lathes/Packs/Factions/phaethon_dynasty.yml): Foxtrot-II voucher
 - [`Resources/Prototypes/_Mono/Roles/Jobs/Medical/medic.yml`](../../../Resources/Prototypes/_Mono/Roles/Jobs/Medical/medic.yml): free Triage or Stubby

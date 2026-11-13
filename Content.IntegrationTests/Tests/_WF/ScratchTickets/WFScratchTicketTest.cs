@@ -5,6 +5,7 @@ using Content.Server._NF.Bank;
 using Content.Server._WF.ScratchTickets;
 using Content.Server._WF.Traders;
 using Content.Shared.Cargo.Components;
+using Content.Server.Power.Components;
 using Content.Server.Preferences.Managers;
 using Content.Shared._NF.Bank.Components;
 using Content.Shared._WF.ScratchTickets;
@@ -209,6 +210,8 @@ public sealed class WFScratchTicketTest
         });
         await setBank;
         await pair.RunTicksSync(5);
+        // The power net only updates every half second, so the ATM may not count as powered yet.
+        await PoolManager.WaitUntil(server, () => entMan.GetComponent<ApcPowerReceiverComponent>(atm).Powered);
 
         void Use(EntityUid ticket)
         {
