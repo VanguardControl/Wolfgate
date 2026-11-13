@@ -2104,7 +2104,6 @@ entities:
       parent: 1
       pos: 0.5,17.5
     - type: DeviceNetwork
-      deviceLists:
 - proto: Firelock
   entities:
   - uid: 89
