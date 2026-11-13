@@ -161,7 +161,7 @@ public sealed partial class RadarBlipSystem
     [Dependency] private IConfigurationManager _wfCfg = default!;
 
     private readonly Dictionary<ICommonSession, TimeSpan> _wfLastRequest = new();
-    private readonly Dictionary<ICommonSession, TimeSpan> _wfLastAnswer = new();
+    private readonly Dictionary<ICommonSession, TimeSpan> _wfNextAnswer = new();
     private readonly List<ICommonSession> _wfStale = new();
 
     /// <summary>Records that a session is looking at a radar.</summary>
@@ -176,13 +176,19 @@ public sealed partial class RadarBlipSystem
     /// </summary>
     public bool WFTakeRequest(ICommonSession session)
     {
-        var now = _wfTiming.RealTime;
-        // Requests are handled on tick boundaries, so one that lands a tick early is still on time.
-        var gap = TimeSpan.FromSeconds(1.0 / Math.Clamp(_wfCfg.GetCVar(WFRadarCVars.MaxRequestHz), 0.5f, 30f)) - _wfTiming.TickPeriod;
-        if (_wfLastAnswer.TryGetValue(session, out var last) && now - last < gap)
+        return WFTakeRequest(session, _wfTiming.RealTime);
+    }
+
+    /// <summary>As above, at a given time.</summary>
+    public bool WFTakeRequest(ICommonSession session, TimeSpan now)
+    {
+        var interval = TimeSpan.FromSeconds(1.0 / Math.Clamp(_wfCfg.GetCVar(WFRadarCVars.MaxRequestHz), 0.5f, 30f));
+        // Requests are handled on tick boundaries, so one may land up to a tick early. The next is still due a full
+        // interval after this one was due, which holds the average to the cap whatever the tick rate.
+        if (_wfNextAnswer.TryGetValue(session, out var due) && now < due - _wfTiming.TickPeriod)
             return false;
 
-        _wfLastAnswer[session] = now;
+        _wfNextAnswer[session] = (due > now ? due : now) + interval;
         return true;
     }
 
@@ -231,7 +237,7 @@ public sealed partial class RadarBlipSystem
         foreach (var session in _wfStale)
         {
             _wfLastRequest.Remove(session);
-            _wfLastAnswer.Remove(session);
+            _wfNextAnswer.Remove(session);
         }
 
         if (any)
