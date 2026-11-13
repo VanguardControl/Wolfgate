@@ -11,5 +11,5 @@ public sealed class WFRadarCVars
     /// updates, so a low rate makes a turning missile lurch; each request costs the server a walk of every blip.
     /// </summary>
     public static readonly CVarDef<float> RequestHz =
-        CVarDef.Create("wf.radar.request_hz", 15f, CVar.CLIENTONLY);
+        CVarDef.Create("wf.radar.request_hz", 8f, CVar.CLIENTONLY);
 }
