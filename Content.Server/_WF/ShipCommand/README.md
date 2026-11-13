@@ -260,6 +260,7 @@ sector, no mass penalty and short timings.
 - [`Content.Shared/_WF/ShipCommand/WFShipEmagPredictionSystem.cs`](../../../Content.Shared/_WF/ShipCommand/WFShipEmagPredictionSystem.cs)
 - [`Content.Shared/_WF/ShipCommand/WFShipPricing.cs`](../../../Content.Shared/_WF/ShipCommand/WFShipPricing.cs)
 - [`Content.Shared/_WF/ShipCommand/WFShipZonesComponent.cs`](../../../Content.Shared/_WF/ShipCommand/WFShipZonesComponent.cs)
+- [`Content.Shared/_WF/ShipCommand/WFStackMergeEvent.cs`](../../../Content.Shared/_WF/ShipCommand/WFStackMergeEvent.cs)
 
 ### Client
 
@@ -270,6 +271,7 @@ sector, no mass penalty and short timings.
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/ShipCommand/WFBargainStackTest.cs`](../../../Content.IntegrationTests/Tests/_WF/ShipCommand/WFBargainStackTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/ShipCommand/WFBargainTest.cs`](../../../Content.IntegrationTests/Tests/_WF/ShipCommand/WFBargainTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/ShipCommand/WFFtlUnrestrictedTest.cs`](../../../Content.IntegrationTests/Tests/_WF/ShipCommand/WFFtlUnrestrictedTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/ShipCommand/WFRecoveryPadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/ShipCommand/WFRecoveryPadTest.cs)
@@ -331,5 +333,6 @@ sector, no mass penalty and short timings.
 - [`Content.Shared/_NF/Shipyard/BUI/ShipyardConsoleInterfaceState.cs`](../../../Content.Shared/_NF/Shipyard/BUI/ShipyardConsoleInterfaceState.cs): what a commanded ship's price rules make of a list price
 - [`Content.Shared/Emag/Systems/EmagSystem.cs`](../../../Content.Shared/Emag/Systems/EmagSystem.cs): a ship with staff-only wires refuses an emag from anyone below its staff.
 - [`Content.Shared/Shuttles/Systems/SharedShuttleSystem.cs`](../../../Content.Shared/Shuttles/Systems/SharedShuttleSystem.cs): an unrestricted grid jumps into no-jump zones
+- [`Content.Shared/Stacks/SharedStackSystem.cs`](../../../Content.Shared/Stacks/SharedStackSystem.cs): a bargain's discount moves with the items it covers
 
 <!-- WOLFGATE-GENERATED END -->

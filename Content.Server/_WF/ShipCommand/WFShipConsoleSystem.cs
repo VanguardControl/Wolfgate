@@ -76,7 +76,12 @@ public sealed class WFShipConsoleSystem : EntitySystem
     private static readonly TimeSpan RefreshMessageGap = TimeSpan.FromSeconds(0.5);
     private static readonly TimeSpan PresetReadGap = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan PresetActionGap = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan ChangedGap = TimeSpan.FromSeconds(0.25);
     private TimeSpan _nextRefresh;
+    private TimeSpan _nextChangedSend;
+
+    /// <summary>Consoles whose viewers are owed a new state, sent together so a stream of messages can't force one each.</summary>
+    private readonly HashSet<EntityUid> _changed = new();
 
     /// <summary>When each viewer's refresh button may next rebuild their state.</summary>
     private readonly Dictionary<EntityUid, TimeSpan> _refreshAt = new();
@@ -117,6 +122,18 @@ public sealed class WFShipConsoleSystem : EntitySystem
     {
         base.Update(frameTime);
         var now = _timing.CurTime;
+        if (_changed.Count > 0 && now >= _nextChangedSend)
+        {
+            _nextChangedSend = now + ChangedGap;
+            foreach (var console in _changed)
+            {
+                if (!TerminatingOrDeleted(console))
+                    SendAll(console);
+            }
+
+            _changed.Clear();
+        }
+
         if (now < _nextRefresh)
             return;
 
@@ -302,6 +319,12 @@ public sealed class WFShipConsoleSystem : EntitySystem
         _ui.ServerSendUiMessage(console, WFShipConsoleUiKey.Key, new WFShipConsoleStateMessage(State(console, viewer)), viewer);
     }
 
+    /// <summary>Sends every viewer of the console their state within a quarter second.</summary>
+    private void MarkChanged(EntityUid console)
+    {
+        _changed.Add(console);
+    }
+
     /// <summary>Sends every viewer of the console their state.</summary>
     private void SendAll(EntityUid console)
     {
@@ -362,7 +385,7 @@ public sealed class WFShipConsoleSystem : EntitySystem
         var ids = args.Zone is { } one ? new List<string> { one } : zones.Zones.Select(z => z.Id).ToList();
         foreach (var id in ids)
             _command.SetZoneMode((ship, zones), id, args.Mode, args.Actor);
-        SendAll(console);
+        MarkChanged(console);
     }
 
     private void OnResponse(Entity<WFShipConsoleComponent> console, ref WFShipConsoleResponseMessage args)
@@ -390,7 +413,7 @@ public sealed class WFShipConsoleSystem : EntitySystem
         Dirty(ship);
         _adminLog.Add(LogType.Action, LogImpact.Medium,
             $"{ToPrettyString(args.Actor):actor} set the crew's {args.Slot} response on {ToPrettyString(ship.Owner):grid} to {args.Response}");
-        SendAll(console);
+        MarkChanged(console);
     }
 
     /// <summary>Where one of the owner's switches stands; automatic restaffing is off on a ship without a roster.</summary>
@@ -458,7 +481,7 @@ public sealed class WFShipConsoleSystem : EntitySystem
     private void OnSwitch(Entity<WFShipConsoleComponent> console, ref WFShipConsoleSwitchMessage args)
     {
         SetSwitch(console, args.Actor, args.Which, args.Value);
-        SendAll(console);
+        MarkChanged(console);
     }
 
     /// <summary>
@@ -480,7 +503,7 @@ public sealed class WFShipConsoleSystem : EntitySystem
     {
         if (GetEntity(args.Person) is { Valid: true } person)
             AddPerson(console, args.Actor, person, args.List);
-        SendAll(console);
+        MarkChanged(console);
     }
 
     private void OnRemovePerson(Entity<WFShipConsoleComponent> console, ref WFShipConsoleRemovePersonMessage args)
@@ -501,7 +524,7 @@ public sealed class WFShipConsoleSystem : EntitySystem
             _command.RemovePerson(ship, args.List, person.Key, person.User);
         }
 
-        SendAll(console);
+        MarkChanged(console);
     }
 
     /// <summary>
@@ -557,7 +580,7 @@ public sealed class WFShipConsoleSystem : EntitySystem
     {
         if (!SetRule(console, args.Actor, args))
             _popup.PopupEntity(Loc.GetString("wf-ship-console-bad-rule"), console, args.Actor, PopupType.MediumCaution);
-        SendAll(console);
+        MarkChanged(console);
     }
 
     private void OnToggleRule(Entity<WFShipConsoleComponent> console, ref WFShipConsoleToggleRuleMessage args)
@@ -565,14 +588,14 @@ public sealed class WFShipConsoleSystem : EntitySystem
         var name = args.Name;
         if (Configuring(console, args.Actor, out var ship) && ship.Comp.PriceRules.Exists(r => r.Name == name))
             _service.ToggleRule(ship, name, args.Actor, out _);
-        SendAll(console);
+        MarkChanged(console);
     }
 
     private void OnRemoveRule(Entity<WFShipConsoleComponent> console, ref WFShipConsoleRemoveRuleMessage args)
     {
         if (Configuring(console, args.Actor, out var ship))
             _service.RemoveRule(ship, args.Name, args.Actor);
-        SendAll(console);
+        MarkChanged(console);
     }
 
     private bool Roster(EntityUid console, EntityUid actor, out Entity<WFShipRosterComponent> roster)
@@ -589,14 +612,14 @@ public sealed class WFShipConsoleSystem : EntitySystem
     {
         if (Roster(console, args.Actor, out var roster) && (args.Slot == null || roster.Comp.Slots.ContainsKey(args.Slot)))
             _roster.Staff(roster, args.Slot, args.Actor);
-        SendAll(console);
+        MarkChanged(console);
     }
 
     private void OnStandDown(Entity<WFShipConsoleComponent> console, ref WFShipConsoleStandDownMessage args)
     {
         if (Roster(console, args.Actor, out var roster) && roster.Comp.Slots.ContainsKey(args.Slot))
             _roster.SetStoodDown(roster, args.Slot, args.Down, args.Actor);
-        SendAll(console);
+        MarkChanged(console);
     }
 
     private void OnRestaff(Entity<WFShipConsoleComponent> console, ref WFShipConsoleRestaffMessage args)
@@ -609,7 +632,7 @@ public sealed class WFShipConsoleSystem : EntitySystem
                 $"{ToPrettyString(args.Actor):actor} set automatic restaffing on {ToPrettyString(roster.Owner):grid} to {roster.Comp.RestaffDelay.TotalSeconds} s, {roster.Comp.RestaffsPerHour} an hour");
         }
 
-        SendAll(console);
+        MarkChanged(console);
     }
 
     /// <summary>Changes the crew's standing orders; null leaves one as it is. False when the actor may not.</summary>
@@ -626,7 +649,7 @@ public sealed class WFShipConsoleSystem : EntitySystem
     private void OnOrders(Entity<WFShipConsoleComponent> console, ref WFShipConsoleOrdersMessage args)
     {
         SetOrders(console, args.Actor, args.Marines, args.Gunners, args.Pilot, args.Callsign);
-        SendAll(console);
+        MarkChanged(console);
     }
 
     private void OnJobSlots(Entity<WFShipConsoleComponent> console, ref WFShipConsoleJobSlotsMessage args)
@@ -634,7 +657,7 @@ public sealed class WFShipConsoleSystem : EntitySystem
         if (Configuring(console, args.Actor, out var ship) && TryComp<WFShipJobsComponent>(ship, out var jobs)
             && jobs.Jobs.ContainsKey(args.Job))
             _jobs.SetSlots((ship, jobs), args.Job, Math.Clamp(args.Slots, 0, MaxJobSlots), args.Actor);
-        SendAll(console);
+        MarkChanged(console);
     }
 
     private void OnReleaseJob(Entity<WFShipConsoleComponent> console, ref WFShipConsoleReleaseJobMessage args)
@@ -642,7 +665,7 @@ public sealed class WFShipConsoleSystem : EntitySystem
         if (Configuring(console, args.Actor, out var ship) && GetEntity(args.Holder) is { Valid: true } holder
             && TryComp<WFShipJobHolderComponent>(holder, out var comp) && comp.Grid == ship.Owner)
             _jobs.Leave((holder, comp));
-        SendAll(console);
+        MarkChanged(console);
     }
 
     private void OnPadAccess(Entity<WFShipConsoleComponent> console, ref WFShipConsolePadAccessMessage args)
@@ -650,7 +673,7 @@ public sealed class WFShipConsoleSystem : EntitySystem
         if (TryGetShip(console, out var ship) && GetEntity(args.Pad) is { Valid: true } pad
             && TryComp<WFRecoveryPadComponent>(pad, out var comp) && Transform(pad).GridUid == ship.Owner)
             _pads.SetAccess((pad, comp), args.Actor, args.Access);
-        SendAll(console);
+        MarkChanged(console);
     }
 
     #endregion

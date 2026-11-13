@@ -33,6 +33,7 @@ public sealed class WFShipServiceSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<WFCrewTreatedEvent>(OnCrewTreated);
         SubscribeLocalEvent<WFBargainComponent, StackSplitEvent>(OnBargainSplit);
+        SubscribeLocalEvent<WFBargainComponent, WFStackMergeEvent>(OnBargainMerge);
         SubscribeLocalEvent<WFBargainComponent, WFFlatpackUnpackedEvent>(OnBargainUnpacked);
     }
 
@@ -188,6 +189,17 @@ public sealed class WFShipServiceSystem : EntitySystem
         var moved = ent.Comp.Discount * split.Count / total;
         ent.Comp.Discount -= moved;
         EnsureComp<WFBargainComponent>(args.NewId).Discount += moved;
+    }
+
+    /// <summary>Items merged into another stack take their share of the bargain with them, by count.</summary>
+    private void OnBargainMerge(Entity<WFBargainComponent> ent, ref WFStackMergeEvent args)
+    {
+        if (args.Moved <= 0 || args.Count <= 0)
+            return;
+
+        var moved = ent.Comp.Discount * args.Moved / args.Count;
+        ent.Comp.Discount -= moved;
+        EnsureComp<WFBargainComponent>(args.Recipient).Discount += moved;
     }
 
     /// <summary>A flatpack bought at a bargain unpacks into a machine that resells for no more.</summary>
