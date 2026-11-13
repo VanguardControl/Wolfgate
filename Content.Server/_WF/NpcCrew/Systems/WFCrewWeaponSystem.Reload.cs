@@ -439,6 +439,14 @@ public sealed partial class WFCrewWeaponSystem
             return true;
         }
 
+        if (TryComp<WFCrewComponent>(uid, out var crew) && crew.InfiniteAmmo && Refill(gun))
+        {
+            EntityManager.System<WFCrewSpeechSystem>().Say(uid, "reload");
+            ReadyChamber(uid, gun);
+            return AmmoCount(gun) > 0;
+        }
+
+        Unwield(uid, gun);
         if (FindMagazine(uid, gun, out var magazine, out var equipmentSlot)
             && TakeMagazine(uid, magazine, equipmentSlot))
         {
@@ -452,6 +460,7 @@ public sealed partial class WFCrewWeaponSystem
                     EntityManager.System<WFCrewSpeechSystem>().Say(uid, "reload");
                     ReadyChamber(uid, gun);
                     _hands.TrySelect(uid, gun);
+                    Wield(uid, gun);
                     return AmmoCount(gun) > 0;
                 }
             }
@@ -466,6 +475,25 @@ public sealed partial class WFCrewWeaponSystem
         TryHolster(uid);
         TryDraw(uid);
         return false;
+    }
+
+    /// <summary>Fills the gun's own box or its loaded magazine back to capacity, for crew who never run dry.</summary>
+    private bool Refill(EntityUid gun)
+    {
+        var holder = gun;
+        if (!HasComp<BallisticAmmoProviderComponent>(gun)
+            && _slots.TryGetSlot(gun, MagazineSlot, out var slot) && slot.Item is { } magazine)
+            holder = magazine;
+
+        if (!TryComp<BallisticAmmoProviderComponent>(holder, out var ammo))
+            return false;
+
+        var missing = ammo.Capacity - ammo.Container.ContainedEntities.Count;
+        if (missing <= 0)
+            return false;
+
+        _guns.SetBallisticUnspawned((holder, ammo), missing);
+        return true;
     }
 
     private bool TakeMagazine(EntityUid uid, EntityUid magazine, string slot)

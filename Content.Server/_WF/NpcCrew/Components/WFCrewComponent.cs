@@ -68,6 +68,10 @@ public sealed partial class WFCrewComponent : Component
     [DataField]
     public WFCrewSkill Skill = WFCrewSkill.Veteran;
 
+    /// <summary>The crewman's gun refills itself when it runs dry, so he never falls back to his fists.</summary>
+    [DataField]
+    public bool InfiniteAmmo;
+
     /// <summary>When this crew stops attacking another ship.</summary>
     [DataField]
     public WFCrewDisengage Disengage = WFCrewDisengage.Disable;

@@ -165,6 +165,7 @@ shut out of a helm that ended up on a broken-off section.
 - [`Content.Server/_WF/ShipAccess/WFShipAccessServerSystem.Readers.cs`](WFShipAccessServerSystem.Readers.cs)
 - [`Content.Server/_WF/ShipAccess/WFShipAccessServerSystem.Stations.cs`](WFShipAccessServerSystem.Stations.cs)
 - [`Content.Server/_WF/ShipAccess/WFShipGridLockSplitSystem.cs`](WFShipGridLockSplitSystem.cs)
+- [`Content.Server/_WF/ShipAccess/WFShipManagerEvent.cs`](WFShipManagerEvent.cs)
 - [`Content.Server/_WF/ShipAccess/WFShipReaderBackupComponent.cs`](WFShipReaderBackupComponent.cs)
 
 ### Shared
@@ -231,5 +232,6 @@ shut out of a helm that ended up on a broken-off section.
 - [`Content.Shared/Access/Systems/AccessReaderSystem.cs`](../../../Content.Shared/Access/Systems/AccessReaderSystem.cs): dirty the reader whose lists were cleared (a door's electronics), or clients keep predicting its old access
 - [`Resources/Prototypes/Entities/Mobs/Player/admin_ghost.yml`](../../../Resources/Prototypes/Entities/Mobs/Player/admin_ghost.yml): admin ghosts open locked ship doors, as they open every other airlock
 - [`Resources/Prototypes/Entities/Mobs/Player/silicon.yml`](../../../Resources/Prototypes/Entities/Mobs/Player/silicon.yml): holds the ship key of the grid the core is anchored on
+- [`Resources/Prototypes/Entities/Objects/Devices/door_remote.yml`](../../../Resources/Prototypes/Entities/Objects/Devices/door_remote.yml): the admin remote opens locked ships and zones, as an aghost does
 
 <!-- WOLFGATE-GENERATED END -->

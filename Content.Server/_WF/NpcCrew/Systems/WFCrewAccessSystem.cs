@@ -7,7 +7,9 @@ using Content.Shared._WF.NpcCrew;
 using Content.Shared._WF.ShipAccess;
 using Content.Shared.Access.Systems;
 using Content.Shared.Inventory;
+using Content.Shared.Mobs;
 using Content.Shared.Station.Components;
+using Content.Shared.Tag;
 using Content.Shared.StationRecords;
 using Robust.Shared.Prototypes;
 
@@ -25,7 +27,10 @@ public sealed partial class WFCrewAccessSystem : EntitySystem
     [Dependency] private StationRecordKeyStorageSystem _keys = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
 
+    [Dependency] private TagSystem _tags = default!;
+
     private static readonly EntProtoId CrewCard = "PassengerIDCard";
+    private static readonly ProtoId<TagPrototype> DoorBumpTag = "DoorBumpOpener";
 
     public override void Initialize()
     {
@@ -95,7 +100,29 @@ public sealed partial class WFCrewAccessSystem : EntitySystem
             _id.TryChangeJobTitle(id, title);
     }
 
-    /// <summary>A deleted crewman's card key comes off the ship's allow list; a dead one keeps it, as a looted card would.</summary>
+    /// <summary>
+    /// A downed crewman no longer bumps doors open, so nobody drags his body through them; a dead one's card also comes
+    /// off his ship's allow list, so it opens nothing looted. Both come back if he is revived.
+    /// </summary>
+    public void SetDown(EntityUid uid, WFCrewComponent crew, MobState state)
+    {
+        if (state == MobState.Alive)
+            _tags.AddTag(uid, DoorBumpTag);
+        else
+            _tags.RemoveTag(uid, DoorBumpTag);
+
+        if (crew.AccessShip is not { } grid || TerminatingOrDeleted(grid)
+            || !TryComp<WFShipAccessComponent>(grid, out var ship)
+            || !_access.TryGetWornCard(uid, out var card) || !_access.TryGetKey(card, out var key))
+            return;
+
+        if (state == MobState.Dead)
+            _ships.RemoveEntry((grid, ship), key);
+        else if (state == MobState.Alive)
+            _ships.TryAddCard((grid, ship), card, Name(uid));
+    }
+
+    /// <summary>A deleted crewman's card key comes off the ship's allow list.</summary>
     private void OnCrewTerminating(Entity<WFCrewComponent> ent, ref EntityTerminatingEvent args)
     {
         if (ent.Comp.AccessShip is not { } grid || TerminatingOrDeleted(grid)

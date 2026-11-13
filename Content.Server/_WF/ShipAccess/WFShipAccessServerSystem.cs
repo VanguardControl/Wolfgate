@@ -143,10 +143,18 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
         return true;
     }
 
-    /// <summary>Console verb bridge: whether the user holds the ship's deed, a voucher with it included, or the ship is registered to them.</summary>
+    /// <summary>
+    /// Console verb bridge: whether the user holds the ship's deed, a voucher with it included, or the ship is
+    /// registered to them; or another system lets them manage it (<see cref="WFShipManagerEvent"/>).
+    /// </summary>
     public bool IsOwner(EntityUid user, EntityUid grid)
     {
-        return _access.IsOwner(user, grid);
+        if (_access.IsOwner(user, grid))
+            return true;
+
+        var ev = new WFShipManagerEvent(user);
+        RaiseLocalEvent(grid, ref ev);
+        return ev.Allowed;
     }
 
     /// <summary>Sets the lock and rewrites every door and locker reader on the grid to match.</summary>
