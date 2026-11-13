@@ -8,7 +8,7 @@
   id: WFVOXVrakritatat
   parent: BaseVessel
   name: 'VOX-Vrakritatat'
-  description: 'Describe the ship here.'
+  description: 'A large Vox scrapper and mining hauler. Has a docking day for small craft'
   price: 550500 # appraised at 170808
   category: Large # 1327 tiles
   group: Scrap
