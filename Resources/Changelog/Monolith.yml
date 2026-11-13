@@ -26491,3 +26491,12 @@ Entries:
   id: 2874
   time: '2026-11-02T22:46:22.0000000+00:00'
   url: https://github.com/Monolith-Station/Monolith/pull/4950
+- author: SuperGDPWYL
+  changes:
+    - type: Fix
+      message: Fixed an exploit.
+    - type: Fix
+      message: The search feature on the PDV uplink works again.
+  id: 2902
+  time: '2026-11-10T09:32:57.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4962
