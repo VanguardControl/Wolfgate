@@ -37,11 +37,15 @@ public partial class ShuttleNavControl
 
     protected override void MouseWheel(GUIMouseWheelEventArgs args)
     {
-        if (_wfZoomToMouse && (Draggable || WfCockpitControls) && _coordinates != null && MinimapScale > 0f)
+        if (_wfZoomToMouse && (Draggable || WfCockpitControls) && _coordinates != null && MinimapScale > 0f &&
+            WfZoomChangesRange(args))
         {
-            WfDetachForPan();
+            // The point under the cursor, turned from the view's old rotation into the one it has once detached.
             _wfZoomPixel = args.RelativePixelPosition;
-            _wfZoomWorld = InverseMapPosition(_wfZoomPixel);
+            var before = InverseMapPosition(_wfZoomPixel);
+            var oldRot = WfViewRotation();
+            WfDetachForPan();
+            _wfZoomWorld = (-WfViewRotation()).RotateVec(oldRot.RotateVec(before));
             _wfZoomSetOffset = Offset;
             if (!_wfZoomHooked)
             {
@@ -51,6 +55,20 @@ public partial class ShuttleNavControl
         }
 
         base.MouseWheel(args);
+    }
+
+    /// <summary>Whether this wheel step moves the zoom; at either limit it doesn't, and the view stays on the ship.</summary>
+    private bool WfZoomChangesRange(GUIMouseWheelEventArgs args)
+    {
+        var direction = -args.Delta.Y / ScrollSensitivity;
+        var target = Math.Clamp(ActualRadarRange * MathF.Pow(ZoomFactor, direction), WorldMinRange, WorldMaxRange);
+        return !target.Equals(ActualRadarRange);
+    }
+
+    /// <summary>The rotation the view is drawn in: its anchor's when following it, otherwise north-up.</summary>
+    private Angle WfViewRotation()
+    {
+        return _angleFollow && _coordinates is { } cord ? _transform.GetWorldRotation(cord.EntityId) : Angle.Zero;
     }
 
     /// <summary>Re-pans each eased zoom step so the anchored point stays under the cursor.</summary>
