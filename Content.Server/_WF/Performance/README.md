@@ -96,6 +96,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Server/_WF/Performance/WFDockIndexSystem.cs`](WFDockIndexSystem.cs)
 - [`Content.Server/_WF/Performance/WFGridDeleteSystem.cs`](WFGridDeleteSystem.cs)
 - [`Content.Server/_WF/Performance/WFGridDeleteWatchSystem.cs`](WFGridDeleteWatchSystem.cs)
+- [`Content.Server/_WF/Performance/WFRequestCap.cs`](WFRequestCap.cs)
 - [`Content.Server/_WF/Performance/WFSerializerWarmupSystem.cs`](WFSerializerWarmupSystem.cs)
 - [`Content.Server/_WF/Performance/WorldControllerSystem.WFIdleHelms.cs`](WorldControllerSystem.WFIdleHelms.cs)
 - [`Content.Server/_WF/Performance/WorldControllerSystem.WFUnloadGrace.cs`](WorldControllerSystem.WFUnloadGrace.cs)
@@ -151,6 +152,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 
 ### Unit tests
 
+- [`Content.Tests/_WF/Performance/WFRequestCapTest.cs`](../../../Content.Tests/_WF/Performance/WFRequestCapTest.cs)
 - [`Content.Tests/_WF/Performance/WFTickBucketsTest.cs`](../../../Content.Tests/_WF/Performance/WFTickBucketsTest.cs)
 - [`Content.Tests/_WF/Performance/WFTickSpreadTest.cs`](../../../Content.Tests/_WF/Performance/WFTickSpreadTest.cs)
 

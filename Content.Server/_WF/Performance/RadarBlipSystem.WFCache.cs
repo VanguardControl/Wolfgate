@@ -1,3 +1,4 @@
+using Content.Server._WF.Performance;
 using Content.Shared._WF.Performance;
 using System.Numerics;
 using Content.Shared._Mono.Radar;
@@ -176,19 +177,13 @@ public sealed partial class RadarBlipSystem
     /// </summary>
     public bool WFTakeRequest(ICommonSession session)
     {
-        return WFTakeRequest(session, _wfTiming.RealTime);
-    }
-
-    /// <summary>As above, at a given time.</summary>
-    public bool WFTakeRequest(ICommonSession session, TimeSpan now)
-    {
         var interval = TimeSpan.FromSeconds(1.0 / Math.Clamp(_wfCfg.GetCVar(WFRadarCVars.MaxRequestHz), 0.5f, 30f));
-        // Requests are handled on tick boundaries, so one may land up to a tick early. The next is still due a full
-        // interval after this one was due, which holds the average to the cap whatever the tick rate.
-        if (_wfNextAnswer.TryGetValue(session, out var due) && now < due - _wfTiming.TickPeriod)
+        TimeSpan? due = _wfNextAnswer.TryGetValue(session, out var at) ? at : null;
+        // Requests are handled on tick boundaries, so one may land up to a tick early.
+        if (!WFRequestCap.Take(ref due, _wfTiming.RealTime, interval, _wfTiming.TickPeriod))
             return false;
 
-        _wfNextAnswer[session] = (due > now ? due : now) + interval;
+        _wfNextAnswer[session] = due.GetValueOrDefault();
         return true;
     }
 
