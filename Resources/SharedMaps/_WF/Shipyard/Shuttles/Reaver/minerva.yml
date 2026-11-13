@@ -11463,7 +11463,7 @@ entities:
       parent: 2
       rot: 3.141592653589793 rad
       pos: -6.5,-32.5
-- proto: WeaponTurretHeavyReaver
+- proto: WFWeaponTurretHeavyReaver
   entities:
   - uid: 7
     components:

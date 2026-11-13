@@ -162,7 +162,7 @@
         acts: [ "Destruction" ]
 
 # Rock Walls for asteroid ships. PKA does increased damage to them, but doesn't mine them outright.
-# They have a high HP value but little armor thickness, so they're anywhere as tanky as plastitanium
+# They have a high HP value but little armor thickness, so they're nowhere near as tanky as plastitanium
 - type: entity
   id: WFWallHypercompactedRock
   parent: BaseAltRock
@@ -178,6 +178,11 @@
       behaviors:
       - !type:DoActsBehavior
         acts: ["Destruction"]
+      - !type:PlaySoundBehavior
+        sound:
+          path: /Audio/Effects/break_stone.ogg
+          params:
+            volume: -6
   - type: OreVein
     oreChance: 0.33
     oreRarityPrototypeId: RandomOreDistributionStandard

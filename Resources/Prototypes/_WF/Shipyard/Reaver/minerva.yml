@@ -1,7 +1,7 @@
 # Author: Gooorn (Discord), antananat (github)
 
 - type: vessel
-  id: minerva
+  id: WFMinerva
   parent: BaseVessel
   name: 'RVR Minerva'
   description: 'A hollowed out asteroid, formerly belonging to some mining corp. Now, with new walls and scavenged guns, it serves as a centerpiece of the Reaver fleet.'
@@ -18,12 +18,12 @@
   - AME
 
 - type: gameMap
-  id: minerva
+  id: WFMinerva
   mapName: 'RVR Minerva'
   mapPath: /SharedMaps/_WF/Shipyard/Shuttles/Reaver/minerva.yml
   minPlayers: 0
   stations:
-    minerva:
+    WFMinerva:
       stationProto: StandardFrontierVessel
       components:
       - type: StationNameSetup
