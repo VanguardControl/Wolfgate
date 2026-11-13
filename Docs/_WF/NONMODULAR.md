@@ -452,6 +452,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - the uplink sells the Vympel but had no 5.56 for it; priced like the 6.35 magazine and big 7.62 box
   - TSF Balance Pass; +100 tax from mat cost since no research cost
   - TSF Balance Pass; +150 tax from mat cost since no research cost
+- [`Resources/Prototypes/_Mono/Catalogs/tsfmc_uplink_catalog.yml`](../../Resources/Prototypes/_Mono/Catalogs/tsfmc_uplink_catalog.yml): TSF Balance Pass; from 175 -> 130
 - [`Resources/Prototypes/_Mono/Catalogs/VendingMachines/Inventories/ussp.yml`](../../Resources/Prototypes/_Mono/Catalogs/VendingMachines/Inventories/ussp.yml): the loaded magazine is class-3 contraband worth 10 FMC since Monolith#4816
 - [`Resources/Prototypes/_Mono/Claws/reptilian.yml`](../../Resources/Prototypes/_Mono/Claws/reptilian.yml): huge claws never stop a lizard shooting; they take the worst spread instead
 - [`Resources/Prototypes/_Mono/Entities/Clothing/OuterClothing/modsuit.yml`](../../Resources/Prototypes/_Mono/Entities/Clothing/OuterClothing/modsuit.yml): the rsi has no resomi state, so sealed Resomi drew an error sprite
