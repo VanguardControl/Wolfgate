@@ -23,7 +23,7 @@
   mapPath: /SharedMaps/_WF/Shipyard/Shuttles/Reaver/minerva.yml
   minPlayers: 0
   stations:
-    WFRVRMinerva:
+    minerva:
       stationProto: StandardFrontierVessel
       components:
       - type: StationNameSetup
