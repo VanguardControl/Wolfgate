@@ -29,7 +29,9 @@ public sealed class WFAngularThrustIdleTest
             Assert.That(first.Comp.Firing, Is.True);
 
             // Out of step on purpose: a skipped call leaves the thruster alone.
+#pragma warning disable RA0002
             first.Comp.Firing = false;
+#pragma warning restore RA0002
             thrusters.SetAngularThrust(shuttle, true);
             Assert.That(first.Comp.Firing, Is.False, "A repeat of the same state doesn't walk the thrusters.");
 
@@ -52,7 +54,9 @@ public sealed class WFAngularThrustIdleTest
         Entity<ThrusterComponent> Gyroscope()
         {
             var uid = entMan.SpawnEntity(null, map.GridCoords);
+#pragma warning disable RA0002
             var comp = new ThrusterComponent { Type = ThrusterType.Angular };
+#pragma warning restore RA0002
             entMan.AddComponent(uid, comp);
             thrusters.EnableThruster(uid, comp);
             return (uid, comp);
