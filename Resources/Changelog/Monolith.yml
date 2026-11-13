@@ -26491,3 +26491,70 @@ Entries:
   id: 2874
   time: '2026-11-02T22:46:22.0000000+00:00'
   url: https://github.com/Monolith-Station/Monolith/pull/4950
+- author: Mrrpip
+  changes:
+    - type: Tweak
+      message: Tweaks the brass knuckles to pack more of a whallop.
+  id: 2898
+  time: '2026-11-10T00:14:38.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4946
+- author: Mrrpip
+  changes:
+    - type: Tweak
+      message: >-
+        Tweaks the punch range on S4 mechs. They can now generally punch
+        disposal bins that'd block their movement.
+  id: 2899
+  time: '2026-11-10T00:17:37.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4988
+- author: DoubleHypercube
+  changes:
+    - type: Add
+      message: TSF can now buy T1/T2 vouchers with FMC
+    - type: Fix
+      message: Infinite vouchers are now actually infinite
+  id: 2901
+  time: '2026-11-10T00:22:10.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4909
+- author: lordsej
+  changes:
+    - type: Add
+      message: Added more animals have voice lines
+    - type: Fix
+      message: dead animals should no longer speak voicelines
+  id: 2903
+  time: '2026-11-10T09:45:17.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4918
+- author: Mrrpip
+  changes:
+    - type: Fix
+      message: Power cages no longer fit in most small items or IPCs. Sorry.
+    - type: Fix
+      message: Prespawned combat cells are EMP resistant now.
+  id: 2904
+  time: '2026-11-10T11:01:31.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4976
+- author: tonotom1
+  changes:
+    - type: Tweak
+      message: >-
+        Helepolis damage mult increased to 2.25, rof down 1.2 >> 0.5, slug
+        spread tightened, pellet spread worse by 300%, projectile speed reduced
+        40 >> 20, mag capacity 4 >> 3
+  id: 2906
+  time: '2026-11-10T12:48:02.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4892
+- author: Mrrpip
+  changes:
+    - type: Tweak
+      message: Underground pinpointers are unstashable.
+  id: 2907
+  time: '2026-11-11T17:42:22.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/5012
+- author: SuperGDPWYL
+  changes:
+    - type: Fix
+      message: The TSFMC Colonel no longer has Caelestinus comms.
+  id: 2908
+  time: '2026-11-12T19:31:15.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/5014
