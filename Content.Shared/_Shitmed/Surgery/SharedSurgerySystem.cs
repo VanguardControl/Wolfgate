@@ -272,13 +272,7 @@ public abstract partial class SharedSurgerySystem : EntitySystem
             return;
         }
 
-        // WOLFGATE(Wolfmed) START: HOOK 25 - P4-D18 untreated amputation consequence
-        if (WolfmedStumpBlocksAttachment(args.Part))
-        {
-            args.Cancelled = true;
-            return;
-        }
-        // WOLFGATE END
+        // WOLFGATE(Wolfmed): HOOK 25 - P4-D18; reattaching clears the stump wound, matching tg.
 
         // Get any existing body parts of the specified type/symmetry
         var results = _body.GetBodyChildrenOfType(args.Body, ent.Comp.Part, symmetry: ent.Comp.Symmetry);

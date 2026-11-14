@@ -1,0 +1,300 @@
+#nullable enable
+using System.Collections.Generic;
+using System.Numerics;
+using System.Linq;
+using System.Threading.Tasks;
+using Content.Client._WF.Surgery;
+using Content.IntegrationTests.Fixtures;
+using Content.Server._WF.Surgery;
+using Content.Shared._Shitmed.Medical.Surgery;
+using Content.Shared._Shitmed.Medical.Surgery.Steps.Parts;
+using Content.Shared._Shitmed.Medical.Surgery.Tools;
+using Content.Shared._WF.Surgery;
+using Content.Shared.Body.Part;
+using Content.Shared.Body.Systems;
+using Content.Shared.Buckle;
+using Content.Shared.Interaction;
+using NUnit.Framework;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
+using Robust.Shared.GameObjects;
+using Robust.Shared.Map;
+
+namespace Content.IntegrationTests.Tests._WF.Surgery;
+
+/// <summary>The operating computer's XAML loads on a real client and the computer opens it.</summary>
+[TestFixture]
+public sealed class SurgeryUiTest : GameTest
+{
+    [Test]
+    public async Task OperatingComputerWindowLoads()
+    {
+        await Client.WaitPost(() =>
+        {
+            var window = new OperatingComputerWindow();
+            Assert.That(window.Backdrop, Is.Not.Null);
+            window.Dispose();
+        });
+    }
+
+    [Test]
+    public async Task SurgicalRadialLoads()
+    {
+        await Client.WaitPost(() =>
+        {
+            var menu = new SurgicalRadialMenu();
+            Assert.That(menu.FindControl<Content.Client.UserInterface.Controls.RadialContainer>("Main"), Is.Not.Null);
+            menu.Dispose();
+        });
+    }
+
+    [Test]
+    public async Task EveryRadialIconResolves()
+    {
+        await Client.WaitAssertion(() =>
+        {
+            var prototypes = Client.ResolveDependency<Robust.Shared.Prototypes.IPrototypeManager>();
+            var sprites = Client.EntMan.System<Robust.Client.GameObjects.SpriteSystem>();
+            foreach (var operation in prototypes.EnumeratePrototypes<SurgicalOperationPrototype>())
+            {
+                if (operation.Icon != null)
+                    Assert.DoesNotThrow(() => sprites.Frame0(operation.Icon), $"{operation.ID} icon does not resolve.");
+            }
+        });
+    }
+
+    [Test]
+    public async Task OperatingComputerOpens()
+    {
+        var map = await Pair.CreateTestMap();
+        EntityUid computer = default;
+        EntityUid table = default;
+        EntityUid patient = default;
+        await Server.WaitPost(() =>
+        {
+            table = Server.EntMan.SpawnEntity("OperatingTable", map.GridCoords);
+            computer = Server.EntMan.SpawnEntity("WFOperatingComputer",
+                map.GridCoords.Offset(new Vector2(1, 0)));
+            patient = Server.EntMan.SpawnEntity("MobHuman", map.GridCoords);
+            if (ServerSession is { } session)
+                Server.PlayerMan.SetAttachedEntity(session, patient);
+            Assert.That(Server.EntMan.System<SharedBuckleSystem>().TryBuckle(patient, null, table), Is.True);
+
+            var ev = new ActivateInWorldEvent(patient, computer, true);
+            Server.EntMan.EventBus.RaiseLocalEvent(computer, ev);
+
+            var ui = Server.EntMan.System<Robust.Shared.GameObjects.SharedUserInterfaceSystem>();
+            Assert.That(Server.EntMan.HasComponent<Robust.Shared.GameObjects.UserInterfaceComponent>(computer),
+                Is.True, "the computer has no UserInterface component.");
+            var comp = Server.EntMan.GetComponent<Robust.Shared.GameObjects.UserInterfaceComponent>(computer);
+            var field = typeof(Robust.Shared.GameObjects.UserInterfaceComponent).GetField("Interfaces",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            var dict = field?.GetValue(comp) as System.Collections.IDictionary;
+            Assert.That(dict, Is.Not.Null);
+            Assert.That(dict!.Contains(OperatingComputerUiKey.Key), Is.True,
+                "the prototype did not register the operating computer interface key.");
+            Assert.That(ui.IsUiOpen(computer, OperatingComputerUiKey.Key, patient), Is.True,
+                "the server did not open the interface.");
+        });
+
+        await RunTicksSync(60);
+        await Pair.RunUntilSynced();
+
+        var clientComputer = Pair.ToClientUid(computer);
+        await Client.WaitAssertion(() =>
+        {
+            Assert.That(Client.EntMan.EntityExists(clientComputer), Is.True, "the computer never reached the client.");
+            Assert.That(Client.EntMan.System<Robust.Shared.GameObjects.SharedUserInterfaceSystem>()
+                .TryGetOpenUi<OperatingComputerBui>(clientComputer, OperatingComputerUiKey.Key, out var bui), Is.True,
+                "the operating computer did not open its window.");
+            Assert.That(bui!.CurrentState, Is.Not.Null);
+            Assert.That(bui.CurrentState!.Operations, Is.Not.Empty,
+                "the computer sent an empty operation catalog.");
+            Assert.That(bui.CurrentState.Operations.Any(operation => operation.ShowAsNext), Is.True,
+                "the computer sent no possible operations for the patient.");
+        });
+    }
+
+    [Test]
+    public async Task OperatingComputerRendersSurgeryState()
+    {
+        var map = await Pair.CreateTestMap();
+        EntityUid computer = default;
+        EntityUid patient = default;
+
+        await Server.WaitAssertion(() =>
+        {
+            var table = Server.EntMan.SpawnEntity("OperatingTable", map.GridCoords);
+            computer = Server.EntMan.SpawnEntity("WFOperatingComputer",
+                map.GridCoords.Offset(new Vector2(1, 0)));
+            patient = Server.EntMan.SpawnEntity("MobHuman", map.GridCoords);
+            if (ServerSession is { } session)
+                Server.PlayerMan.SetAttachedEntity(session, patient);
+            Assert.That(Server.EntMan.System<SharedBuckleSystem>().TryBuckle(patient, null, table), Is.True);
+
+            var body = Server.EntMan.System<SharedBodySystem>();
+            foreach (var (id, part) in body.GetBodyChildren(patient))
+            {
+                if (part.PartType == BodyPartType.Torso)
+                    Server.EntMan.AddComponent<IncisionOpenComponent>(id);
+            }
+
+            Server.EntMan.EventBus.RaiseLocalEvent(computer, new ActivateInWorldEvent(patient, computer, true));
+        });
+
+        await RunTicksSync(60);
+        await Pair.RunUntilSynced();
+
+        var clientComputer = Pair.ToClientUid(computer);
+        await Client.WaitAssertion(() =>
+        {
+            Assert.That(Client.EntMan.System<Robust.Shared.GameObjects.SharedUserInterfaceSystem>()
+                .TryGetOpenUi<OperatingComputerBui>(clientComputer, OperatingComputerUiKey.Key, out var bui), Is.True,
+                "the operating computer did not open its window.");
+            Assert.That(bui!.CurrentWindow, Is.Not.Null);
+
+            var labels = new List<Label>();
+            var buttons = new List<Button>();
+            Collect(bui.CurrentWindow!.Body, labels, buttons);
+
+            var labelText = string.Join(" | ", labels.Select(label => label.Text));
+            var buttonText = string.Join(" | ", buttons.Select(button => button.Text));
+
+            var stateLabels = labels.Where(label => label.Text.Contains("Skin is cut")).ToList();
+            Assert.That(stateLabels, Is.Not.Empty,
+                $"the patient state is not rendered. Labels: {labelText}");
+            Assert.That(stateLabels.Any(label => label.Size.X > 4f), Is.True,
+                $"the patient state label was laid out with no width. Sizes: {string.Join(", ", stateLabels.Select(label => label.Size))}");
+
+            var operationButtons = buttons
+                .Where(button => button.Text.Contains("retract skin", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            Assert.That(operationButtons, Is.Not.Empty,
+                $"the next operations are not rendered. Buttons: {buttonText}");
+            Assert.That(operationButtons.Any(button => button.Size.Y > 4f), Is.True,
+                $"the next operation button was laid out with no height. Sizes: {string.Join(", ", operationButtons.Select(button => button.Size))}");
+        });
+    }
+
+    private static void Collect(Control control, List<Label> labels, List<Button> buttons)
+    {
+        foreach (var child in control.Children)
+        {
+            if (child is Label label)
+                labels.Add(label);
+            if (child is Button button)
+                buttons.Add(button);
+            Collect(child, labels, buttons);
+        }
+    }
+
+    [Test]
+    public async Task OrganSelectionWindowLoads()
+    {
+        await Client.WaitPost(() =>
+        {
+            var window = new OrganSelectionWindow();
+            window.SetOptions(new SurgicalOrganSelectState
+            {
+                Options =
+                {
+                    new SurgicalOrganOption { Name = "Remove heart" },
+                    new SurgicalOrganOption { Name = "Remove liver" },
+                },
+            });
+
+            Assert.That(window.Options.ChildCount, Is.EqualTo(2));
+            window.Dispose();
+        });
+    }
+
+    [Test]
+    public async Task OperatingComputerShowsOpenedIncision()
+    {
+        var map = await Pair.CreateTestMap();
+        EntityUid computer = default;
+        EntityUid patient = default;
+
+        await Server.WaitAssertion(() =>
+        {
+            var table = Server.EntMan.SpawnEntity("OperatingTable", map.GridCoords);
+            computer = Server.EntMan.SpawnEntity("WFOperatingComputer",
+                map.GridCoords.Offset(new Vector2(1, 0)));
+            patient = Server.EntMan.SpawnEntity("MobHuman", map.GridCoords);
+            if (ServerSession is { } session)
+                Server.PlayerMan.SetAttachedEntity(session, patient);
+            Assert.That(Server.EntMan.System<SharedBuckleSystem>().TryBuckle(patient, null, table), Is.True);
+
+            // Open the chest, as a surgeon would before the computer is opened.
+            var body = Server.EntMan.System<SharedBodySystem>();
+            var incised = false;
+            foreach (var (id, part) in body.GetBodyChildren(patient))
+            {
+                if (part.PartType != BodyPartType.Torso)
+                    continue;
+
+                Server.EntMan.AddComponent<IncisionOpenComponent>(id);
+                incised = true;
+            }
+
+            Assert.That(incised, Is.True, "the human has no torso part to incise.");
+
+            var ev = new ActivateInWorldEvent(patient, computer, true);
+            Server.EntMan.EventBus.RaiseLocalEvent(computer, ev);
+        });
+
+        await RunTicksSync(60);
+        await Pair.RunUntilSynced();
+
+        var clientComputer = Pair.ToClientUid(computer);
+        await Client.WaitAssertion(() =>
+        {
+            Assert.That(Client.EntMan.System<Robust.Shared.GameObjects.SharedUserInterfaceSystem>()
+                .TryGetOpenUi<OperatingComputerBui>(clientComputer, OperatingComputerUiKey.Key, out var bui), Is.True,
+                "the operating computer did not open its window.");
+
+            var state = bui!.CurrentState;
+            Assert.That(state, Is.Not.Null);
+            Assert.That(state!.HasPatient, Is.True, "the computer did not find the patient.");
+            Assert.That(state.SurgeryState, Has.Some.Contains("Skin is cut"),
+                "the opened incision is not reported.");
+            Assert.That(state.Operations.Where(operation => operation.ShowAsNext).Select(operation => operation.Id),
+                Has.Some.EqualTo("WFRetractSkin"),
+                "retracting the skin is not offered after the incision.");
+        });
+    }
+
+    [Test]
+    public async Task OrganPickerDoesNotCloseTheInterfaceWhileOpening()
+    {
+        var map = await Pair.CreateTestMap();
+        EntityUid patient = default;
+
+        await Server.WaitPost(() =>
+        {
+            patient = Server.EntMan.SpawnEntity("MobHuman", map.GridCoords);
+            if (ServerSession is { } session)
+                Server.PlayerMan.SetAttachedEntity(session, patient);
+
+            var ui = Server.EntMan.System<Robust.Shared.GameObjects.SharedUserInterfaceSystem>();
+            Assert.That(ui.TryOpenUi(patient, SurgeryUIKey.Key, patient), Is.True,
+                "MobHuman does not expose the surgery interface.");
+
+            // The generic organ operation replaces the wheel with the picker in the same tick it opens.
+            ui.SetUiState(patient, SurgeryUIKey.Key, new SurgicalOrganSelectState(
+                Server.EntMan.GetNetEntity(patient),
+                new List<SurgicalOrganOption> { new() { Name = "Remove heart" } }));
+        });
+
+        await RunTicksSync(60);
+        await Pair.RunUntilSynced();
+
+        var clientPatient = Pair.ToClientUid(patient);
+        await Client.WaitAssertion(() =>
+        {
+            Assert.That(Client.EntMan.System<Robust.Shared.GameObjects.SharedUserInterfaceSystem>()
+                .TryGetOpenUi<SurgicalRadialBui>(clientPatient, SurgeryUIKey.Key, out _), Is.True,
+                "the organ picker closed the surgery interface.");
+        });
+    }
+}
