@@ -7331,3 +7331,28 @@ Entries:
   id: 100463
   time: '2026-11-13T20:58:47.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/635
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: The Anvilhold drydock's new west berth has a name on its console.
+  id: 100464
+  time: '2026-11-13T22:08:15.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/641
+- author: antanananat
+  changes:
+    - type: Tweak
+      message: >-
+        The price of the TSF exotic materials crate was adjusted from 175 to
+        130, and it now contains 2 fissile uranium instead of 1
+    - type: Tweak
+      message: Prices of PDV ready-to-buy vouchers increased slightly
+    - type: Tweak
+      message: >-
+        Costs of TSF ships have been adjusted, depleted uranium cost for T3 and
+        T4 ships went down but they gained a plastitanium cost. Copper and
+        lithium costs went down a little.
+    - type: Tweak
+      message: The TSF vouchers are renewable again
+  id: 100465
+  time: '2026-11-14T06:48:09.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/632

@@ -107,8 +107,8 @@
       color: "#05ffff"
       shader: unshaded
   - type: ShipyardVoucher
-    redemptionsLeft: 1 # WOLFGATE(Drydock): single use; the renewable parent would give 12
-    destroyOnEmpty: true # WOLFGATE(Drydock): single use, so a drydock repair undercuts printing another card
+    destroyOnEmpty: false # WOLFGATE: TSF Balance Pack, giving the TSF its renewable vouchers back
+    redemptionsLeft: 12 # WOLFGATE: TSF Balance Pack, giving the TSF its renewable vouchers back
     cooldown: 1800 # 30 minutes
     companyName: TSF
     vessels:
@@ -131,7 +131,8 @@
       color: "#05ffff"
       shader: unshaded
   - type: ShipyardVoucher
-    destroyOnEmpty: true # WOLFGATE(Drydock): single use, so a drydock repair undercuts printing another card
+    destroyOnEmpty: false # WOLFGATE: TSF Balance Pack, giving the TSF its renewable vouchers back
+    redemptionsLeft: 12 # WOLFGATE: TSF Balance Pack, giving the TSF its renewable vouchers back
     cooldown: 3600 # one hour
     companyName: TSF
     vessels:
@@ -164,8 +165,8 @@
   - type: Item
     heldPrefix: tsf
   - type: ShipyardVoucher
-    destroyOnEmpty: true # WOLFGATE(Drydock): single use, so a drydock repair undercuts printing another card
-    redemptionsLeft: 1 # WOLFGATE(Drydock)
+    destroyOnEmpty: false # WOLFGATE: TSF Balance Pack, giving the TSF its renewable vouchers back
+    redemptionsLeft: 12 # WOLFGATE: TSF Balance Pack, giving the TSF its renewable vouchers back
     cooldown: 5100 # hour and 25 minutes
     companyName: TSF
     vessels:
@@ -189,8 +190,8 @@
   - type: Item
     heldPrefix: tsf
   - type: ShipyardVoucher
-    destroyOnEmpty: true # WOLFGATE(Drydock): single use, so a drydock repair undercuts printing another card
-    redemptionsLeft: 1 # WOLFGATE(Drydock)
+    destroyOnEmpty: false # WOLFGATE: TSF Balance Pack, giving the TSF its renewable vouchers back
+    redemptionsLeft: 12 # WOLFGATE: TSF Balance Pack, giving the TSF its renewable vouchers back
     companyName: TSF
     cooldown: 14400 # two hour
     vessels:

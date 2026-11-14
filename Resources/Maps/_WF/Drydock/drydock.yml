@@ -18104,6 +18104,8 @@ entities:
     - type: Transform
       parent: 2
       pos: -24.5,17.5
+    - type: WFDrydockConsole
+      berth: West
     - type: DeviceLinkSource
       linkedPorts:
         613:

@@ -92,8 +92,8 @@
       color: "#05ffff"
       shader: unshaded
   - type: ShipyardVoucher
-    destroyOnEmpty: true
-    redemptionsLeft: 1
+    destroyOnEmpty: false # WOLFGATE: TSF Balance Pack, giving the TSF its renewable vouchers back
+    redemptionsLeft: 12 # WOLFGATE: TSF Balance Pack, giving the TSF its renewable vouchers back
     cooldown: 5100 # hour and 25 minutes
     companyName: TSF
     vessels:
@@ -117,8 +117,8 @@
       color: "#05ffff"
       shader: unshaded
   - type: ShipyardVoucher
-    destroyOnEmpty: true
-    redemptionsLeft: 1
+    destroyOnEmpty: false # WOLFGATE: TSF Balance Pack, giving the TSF its renewable vouchers back
+    redemptionsLeft: 12 # WOLFGATE: TSF Balance Pack, giving the TSF its renewable vouchers back
     cooldown: 5100 # hour and 25 minutes
     companyName: TSF
     vessels:
@@ -142,8 +142,8 @@
       color: "#05ffff"
       shader: unshaded
   - type: ShipyardVoucher
-    destroyOnEmpty: true
-    redemptionsLeft: 1
+    destroyOnEmpty: false # WOLFGATE: TSF Balance Pack, giving the TSF its renewable vouchers back
+    redemptionsLeft: 12 # WOLFGATE: TSF Balance Pack, giving the TSF its renewable vouchers back
     cooldown: 7200 # 2 hours
     companyName: TSF
     vessels:
