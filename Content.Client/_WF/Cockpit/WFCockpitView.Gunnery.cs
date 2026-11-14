@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Numerics;
 using Content.Client._WF.CombatConsole;
+using Content.Client._WF.LockOn;
 using Content.Client.Shuttles.UI;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._Mono.FireControl;
@@ -79,6 +80,17 @@ public sealed partial class WFCockpitView
         {
             _console.WfCockpitGunneryUpdated -= UpdateGunnery;
             _console.WfSendCockpitGunnery(new WFCockpitGunnerySessionMessage(false));
+        });
+
+        Func<IReadOnlyList<NetEntity>> lockOnWeapons = () =>
+            _gunneryControlling && _gunneryPanel != null
+                ? _gunneryPanel.SelectedWeapons
+                : (IReadOnlyList<NetEntity>) Array.Empty<NetEntity>();
+        WFLockOnClientState.CockpitWeapons = lockOnWeapons;
+        _lease.Remember(() =>
+        {
+            if (ReferenceEquals(WFLockOnClientState.CockpitWeapons, lockOnWeapons))
+                WFLockOnClientState.CockpitWeapons = null;
         });
     }
 

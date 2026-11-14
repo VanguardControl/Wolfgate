@@ -624,3 +624,50 @@
     range: 7
     energyConsumption: 2900000
     disableDuration: 7
+
+# Smart variants: descriptor-based acquisition for the reliable tier.
+
+- type: entity
+  id: MissileProjectile50mmHESmart
+  name: ASM-50 50mm Mini Missile (smart)
+  parent: MissileProjectile50mmHE
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: WFMissileFlight
+    descriptorSeeking: true
+
+- type: entity
+  id: ShipMissileASM150Smart
+  name: ASM-150 150mm missile (smart)
+  parent: ShipMissileASM150
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: WFMissileFlight
+    descriptorSeeking: true
+
+- type: entity
+  id: ShipMissileASM250Smart
+  name: ASM-250 Hybrid EMP Missile (smart)
+  parent: ShipMissileASM250
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: WFMissileFlight
+    descriptorSeeking: true
+
+- type: entity
+  id: ShipMissileASM250HEATSmart
+  name: 250mm HEAT missile (smart)
+  parent: ShipMissileASM250HEAT
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: WFMissileFlight
+    descriptorSeeking: true
+
+- type: entity
+  id: ShipMissileASM250HVSmart
+  name: 250mm HV missile (smart)
+  parent: ShipMissileASM250HV
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: WFMissileFlight
+    descriptorSeeking: true

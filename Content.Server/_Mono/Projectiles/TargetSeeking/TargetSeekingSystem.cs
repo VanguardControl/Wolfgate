@@ -12,8 +12,11 @@ using Content.Shared.Interaction;
 using Content.Shared.Projectiles;
 using Robust.Server.GameObjects;
 using Robust.Shared.Physics.Components;
+using Robust.Shared.Physics.Systems; // WOLFGATE(ShipMissiles)
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
+using Content.Server._WF.ShipMissiles; // WOLFGATE(ShipMissiles)
+using Content.Shared._WF.ShipMissiles; // WOLFGATE(ShipMissiles)
 
 namespace Content.Server._Mono.Projectiles.TargetSeeking;
 
@@ -224,6 +227,10 @@ public sealed partial class TargetSeekingSystem : EntitySystem
         var sourceMap = transform.MapID;
         var sourcePos = _transform.GetWorldPosition(transform);
         var currentRotation = _transform.GetWorldRotation(transform);
+
+        TryComp<WFMissileFlightComponent>(uid, out var wfFlight);
+        var descriptorSeeking = wfFlight is { DescriptorSeeking: true, DescriptorCaptured: true };
+        var bestCost = float.MaxValue;
         // WOLFGATE END
 
         var closestDistance = float.MaxValue;
@@ -261,9 +268,7 @@ public sealed partial class TargetSeekingSystem : EntitySystem
             // Check if target is within field of view
             var angleDifference = Angle.ShortestDistance(currentRotation, angleToTarget).Degrees;
             if (MathF.Abs((float)angleDifference) > component.ScanArc / 2)
-            {
                 continue; // Target is outside our field of view
-            }
 
             // Calculate distance to target
             // var distance = Vector2.Distance(sourcePos, targetPos); // WOLFGATE(Performance): computed and range-tested above
@@ -277,15 +282,29 @@ public sealed partial class TargetSeekingSystem : EntitySystem
 
                 // If the shooter is on the same grid as this potential target, skip it
                 if (targetXform.GridUid.HasValue && shooterGridUid == targetXform.GridUid)
-                {
                     continue;
-                }
-
                 if (_wfHack.IsLockedOut(shooterGridUid, actualTarget)) // WOLFGATE(BoardingAction): a locked-down ship's seekers can't take the hacker.
                     continue;
             }
 
-            // If this is closer than our previous best target, update
+            // WOLFGATE(ShipMissiles) START: score against descriptor for smart missiles
+            if (descriptorSeeking)
+            {
+                _physicsQuery.TryGetComponent(targetUid, out var candidateBody);
+                var candidateVel = _physics.GetMapLinearVelocity(targetUid, candidateBody, targetXform);
+                var candidateRadius = TargetDescriptorCapture.Radius(EntityManager, targetUid, targetXform);
+                var cost = MissileGuidance.DescriptorMatch(
+                    candidateVel, candidateRadius,
+                    wfFlight!.DescriptorVelocity, wfFlight.DescriptorRadius,
+                    wfFlight.DescriptorSizeTolerance, wfFlight.DescriptorSpeedTolerance, wfFlight.DescriptorHeadingTolerance)
+                    + distance * 0.001f;
+                if (cost >= bestCost)
+                    continue;
+                bestCost = cost;
+                bestTarget = actualTarget;
+            }
+            else
+            // WOLFGATE END
             if (closestDistance > distance)
             {
                 closestDistance = distance;
@@ -293,9 +312,15 @@ public sealed partial class TargetSeekingSystem : EntitySystem
             }
         }
 
+        // WOLFGATE(ShipMissiles) START: fallback capture when fire-time didn't get one
         // Set our new target
         if (bestTarget.HasValue)
+        {
             SetSeekerTarget((uid, component), bestTarget, transform);
+            if (wfFlight is { DescriptorSeeking: true, DescriptorCaptured: false })
+                TargetDescriptorCapture.FromEntity(EntityManager, _physics, _transform, wfFlight, bestTarget.Value);
+        }
+        // WOLFGATE END
     }
 
     /// <summary>

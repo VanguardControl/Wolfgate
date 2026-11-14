@@ -37,6 +37,8 @@ Design notes: `Docs/_WF/ShipMissiles/design.md`.
 
 ### Server
 
+- [`Content.Server/_WF/ShipMissiles/TargetDescriptorCapture.cs`](TargetDescriptorCapture.cs)
+- [`Content.Server/_WF/ShipMissiles/WFLockOnMissileIndicatorSystem.cs`](WFLockOnMissileIndicatorSystem.cs)
 - [`Content.Server/_WF/ShipMissiles/WFMissileFlightComponent.cs`](WFMissileFlightComponent.cs)
 - [`Content.Server/_WF/ShipMissiles/WFMissileFlightSystem.cs`](WFMissileFlightSystem.cs)
 - [`Content.Server/_WF/ShipMissiles/WFMissileFlightSystem.Launch.cs`](WFMissileFlightSystem.Launch.cs)
@@ -62,6 +64,10 @@ Design notes: `Docs/_WF/ShipMissiles/design.md`.
 
 - [`Content.Server/_Mono/FireControl/FireControlSystem.TargetGuided.cs`](../../_Mono/FireControl/FireControlSystem.TargetGuided.cs): tell a soft-launched missile where the console aimed, before its seeker locks
 - [`Content.Server/_Mono/NPC/HTN/ShipTargetingSystem.cs`](../../_Mono/NPC/HTN/ShipTargetingSystem.cs): a flown missile's carrier has zero thrust, so lead it on its motor instead
+- [`Content.Server/_Mono/Projectiles/TargetSeeking/TargetSeekingSystem.cs`](../../_Mono/Projectiles/TargetSeeking/TargetSeekingSystem.cs)
+  - descriptor-aware acquisition for smart missiles
+  - score against descriptor for smart missiles
+  - fallback capture when fire-time didn't get one
 - [`Resources/Prototypes/_Mono/Entities/SpaceArtillery/SpaceArtillery/Missile/projectiles.yml`](../../../Resources/Prototypes/_Mono/Entities/SpaceArtillery/SpaceArtillery/Missile/projectiles.yml)
   - the carrier only seeks; WFMissileFlightSystem flies the missile
   - motor only, no seeker and no diverters

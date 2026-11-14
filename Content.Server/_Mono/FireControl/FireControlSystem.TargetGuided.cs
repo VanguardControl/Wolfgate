@@ -13,6 +13,7 @@ public sealed partial class FireControlSystem
 {
     [Dependency] private TargetGuidedSystem _targetGuided = null!;
     [Dependency] private Content.Server._WF.BoardingAction.WFHackHarpoonSystem _wfHack = default!; // WOLFGATE(BoardingAction)
+    [Dependency] private Content.Server._WF.ShipMissiles.WFMissileFlightSystem _wfMissileFlight = default!; // WOLFGATE(ShipMissiles)
 
     /// <summary>
     /// List of active guided missiles that need cursor position updates
@@ -95,6 +96,8 @@ public sealed partial class FireControlSystem
                 !_wfHack.RefusesGuidance(projectileUid, targetCoords.Value))
             {
                 wfMissile.Designated = _xform.ToMapCoordinates(targetCoords.Value);
+                _wfMissileFlight.CaptureDescriptorFromCoordinate(wfMissile, wfMissile.Designated.Value,
+                    Transform(projectileUid)); // added
             }
         }
         // WOLFGATE END
@@ -128,6 +131,9 @@ public sealed partial class FireControlSystem
                 guidedComp.ControllingConsole = controllingConsole;
             }
         }
+
+        // WOLFGATE(LockOn): a missile fired under the ship's lock seeks that target.
+        WfLockOnApply(uid, args);
     }
 
     /// <summary>
@@ -203,6 +209,14 @@ public sealed partial class FireControlSystem
             {
                 continue;
             }
+
+            // WOLFGATE(LockOn) START: a missile fired under the ship's lock tracks that target, not the cursor.
+            if (WfLockOnGuidedTarget(consoleUid) is { } lockedTarget)
+            {
+                _targetGuided.SetTargetPosition(missileUid, lockedTarget);
+                continue;
+            }
+            // WOLFGATE END
 
             // Update the missile's target to the console's current mouse position
             _targetGuided.SetTargetPosition(missileUid, mousePosition);

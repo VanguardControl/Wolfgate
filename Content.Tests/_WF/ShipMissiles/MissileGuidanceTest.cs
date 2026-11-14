@@ -148,4 +148,27 @@ public sealed class MissileGuidanceTest
         var half = MissileGuidance.BlendDirection(nose, -nose, 0.5f);
         Assert.That(half.Length(), Is.EqualTo(1f).Within(1e-4f), "A half turn still gives a unit vector.");
     }
+
+    /// <summary>Exact match scores zero; over-tolerance candidates are rejected outright.</summary>
+    [Test]
+    public void ScoresDescriptorMatches()
+    {
+        var vel = new Vector2(10f, 0f);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(MissileGuidance.DescriptorMatch(vel, 50f, vel, 50f, 0.5f, 40f, 45f),
+                Is.EqualTo(0f).Within(1e-5f));
+
+            Assert.That(MissileGuidance.DescriptorMatch(new Vector2(0f, 10f), 50f, vel, 50f, 0.5f, 40f, 45f),
+                Is.EqualTo(float.MaxValue), "Ninety-degree heading break is rejected.");
+
+            Assert.That(MissileGuidance.DescriptorMatch(vel, 200f, vel, 50f, 0.5f, 40f, 45f),
+                Is.EqualTo(float.MaxValue), "Four-times size is rejected.");
+
+            // Speed 100 vs 10: delta 90 > tolerance 40, so it must be rejected.
+            Assert.That(MissileGuidance.DescriptorMatch(new Vector2(100f, 0f), 50f, vel, 50f, 0.5f, 40f, 45f),
+                Is.EqualTo(float.MaxValue), "Too fast is rejected.");
+        });
+    }
 }
