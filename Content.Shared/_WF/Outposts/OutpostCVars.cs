@@ -43,5 +43,5 @@ public sealed class OutpostCVars
 
     /// <summary>Most outposts live at once; Outpost crews past it fall back to a normal start.</summary>
     public static readonly CVarDef<int> MaxLive =
-        CVarDef.Create("wf.outposts.max_live", 40, CVar.SERVERONLY);
+        CVarDef.Create("wf.outposts.max_live", 200, CVar.SERVERONLY);
 }

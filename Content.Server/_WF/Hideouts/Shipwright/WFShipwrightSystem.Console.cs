@@ -38,6 +38,7 @@ public sealed partial class WFShipwrightSystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPlayerManager _players = default!;
     [Dependency] private IResourceManager _resources = default!;
+    [Dependency] private ITileDefinitionManager _tileDefs = default!;
     [Dependency] private MetaDataSystem _metaData = default!;
     [Dependency] private BankSystem _bank = default!;
     [Dependency] private SharedDeviceLinkSystem _deviceLink = default!;
@@ -190,7 +191,6 @@ public sealed partial class WFShipwrightSystem
         if (TryOutpost(console, out var outpost))
         {
             var owner = outpost.Comp.Owner;
-            state.BayPoints = BayPoints(outpost);
             state.CanBuildFrame = !_hideouts.IsBusy(owner) && _hideouts.GetStored(owner) == null && !_hideouts.TryGetShip(owner, out _);
             if (_players.TryGetSessionById(owner, out var session))
                 _bank.TryGetBalance(session, out state.Balance);
@@ -207,7 +207,7 @@ public sealed partial class WFShipwrightSystem
 
     private WFShipwrightHullView HullView(EntityUid hull, Entity<WFOutpostComponent> outpost)
     {
-        var survey = Survey(hull, outpost);
+        var survey = Survey(hull);
         var mounts = new List<WFShipwrightMountView>();
         foreach (var (hardpoint, comp) in Hardpoints(hull))
         {
@@ -484,7 +484,7 @@ public sealed partial class WFShipwrightSystem
         if (!TryOwnHull(user, console, out var outpost, out var hull, out var drydock, out reason))
             return false;
 
-        var survey = Survey(hull, outpost);
+        var survey = Survey(hull);
         var parts = survey.UnfittedWeapons.Concat(survey.UnfittedSystems).Concat(survey.UnfittedMounts).ToList();
         if (parts.Count == 0)
         {
@@ -543,7 +543,7 @@ public sealed partial class WFShipwrightSystem
         if (!TryOwnHull(user, console, out var outpost, out var hull, out var drydock, out reason))
             return false;
 
-        var survey = Survey(hull, outpost);
+        var survey = Survey(hull);
         var rules = Rules;
         var scale = WorkScale(hull);
         var guns = Guns().ToDictionary(gun => gun.Id);
@@ -1087,8 +1087,9 @@ public sealed partial class WFShipwrightSystem
     }
 
     /// <summary>
-    /// The outpost's owner has a plan built on the hull in the bay: floor over the hull's own tiles, walls, furniture,
-    /// decorations and decals. Nothing a brush lays is a gun or a system, so the fit and its points are untouched.
+    /// The outpost's owner has a plan built on the hull in the bay: floor, walls, furniture, decorations and decals.
+    /// A shipwright ship's floor may grow out from its edge (<see cref="PaintHull"/>); a faction ship keeps its shape.
+    /// Nothing a brush lays is a gun or a system, so the fit and its points are untouched.
     /// </summary>
     private void OnInteriorApply(Entity<WFShipwrightConsoleComponent> console, ref Content.Shared._WF.Hideouts.Blueprint.WFBlueprintApplyMessage args)
     {
@@ -1105,9 +1106,14 @@ public sealed partial class WFShipwrightSystem
             return;
         }
 
+        var grows = TryGetBay(console, out var pad) && !console.Comp.Faction && HasComp<WFShipwrightShipComponent>(hull);
         var built = _hideouts.ApplyPlan(user, hull, grid, args.Strokes,
-            (IReadOnlyList<(Vector2i Index, string Tile)> cells, out string? refused) => _hideouts.RelayFloor(hull, grid, cells, out refused),
-            null, InteriorRoom, out var spent, out var reason);
+            (IReadOnlyList<(Vector2i Index, string Tile)> cells, out string? refused) => grows
+                ? PaintHull(user, hull, grid, pad, cells, out refused)
+                : _hideouts.RelayFloor(hull, grid, cells, out refused),
+            null, InteriorRoom, out var spent, out var reason,
+            // On a shipwright ship the removal brush takes the frame's own walls and fittings too, never its mounts, guns or systems.
+            erasable: grows ? IsFitting : null, ship: true);
         if (built > 0)
         {
             _adminLog.Add(Content.Shared.Database.LogType.WFOutpost, Content.Shared.Database.LogImpact.Low,
@@ -1117,6 +1123,85 @@ public sealed partial class WFShipwrightSystem
         _hideouts.ReportBlueprint(user, built, spent, reason);
         _hideouts.SendCanvas(console, WFShipwrightConsoleUiKey.Key, hull, user);
         UpdateUi(console);
+    }
+
+    /// <summary>Whether something on a hull is plain fitting-out: not a hardpoint, a gun or a system the refit counts.</summary>
+    private bool IsFitting(EntityUid uid)
+    {
+        return !HasComp<HardpointComponent>(uid) && !HasComp<HardpointAnchorableOnlyComponent>(uid) && SystemOf(uid) == null;
+    }
+
+    private static readonly Vector2i[] Neighbours = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
+
+    /// <summary>
+    /// Lays floor on a shipwright hull: over its own tiles, or out from its edge, for the rules' price a new tile, while
+    /// the hull stays on its bay and under the largest frame's floor. Returns the tiles that changed.
+    /// </summary>
+    public List<Vector2i> PaintHull(EntityUid user, EntityUid hull, MapGridComponent grid, Entity<WFLandingPadComponent> pad,
+        IReadOnlyList<(Vector2i Index, string Tile)> cells, out string? refused)
+    {
+        refused = null;
+        var done = new List<Vector2i>();
+        var rules = Rules;
+        var tiles = 0;
+        var all = _maps.GetAllTilesEnumerator(hull, grid);
+        while (all.MoveNext(out _))
+            tiles++;
+
+        var padXform = Transform(pad);
+        var toPad = _transform.GetWorldMatrix(hull) * _transform.GetInvWorldMatrix(padXform.ParentUid);
+        var half = pad.Comp.Size / 2f;
+        var waiting = new List<(Vector2i Index, string Tile)>();
+        foreach (var cell in cells)
+        {
+            if (!_tileDefs.TryGetDefinition(cell.Tile, out var def))
+                continue;
+
+            if (!_maps.TryGetTileRef(hull, grid, cell.Index, out var existing) || existing.Tile.IsEmpty)
+            {
+                waiting.Add(cell);
+                continue;
+            }
+
+            if (existing.Tile.TypeId == def.TileId)
+                continue;
+
+            _maps.SetTile(hull, grid, cell.Index, new Tile(def.TileId));
+            done.Add(cell.Index);
+        }
+
+        // New tiles join the hull edge first, so a run painted outward is laid whichever way it was drawn.
+        var progress = true;
+        while (progress && waiting.Count > 0)
+        {
+            progress = false;
+            for (var i = waiting.Count - 1; i >= 0; i--)
+            {
+                var (index, tileId) = waiting[i];
+                if (!Neighbours.Any(step => _maps.TryGetTileRef(hull, grid, index + step, out var beside) && !beside.Tile.IsEmpty))
+                    continue;
+
+                waiting.RemoveAt(i);
+                var at = Vector2.Transform(index + new Vector2(0.5f), toPad) - padXform.LocalPosition;
+                if (tiles >= rules.CustomMaxTiles)
+                    refused ??= "wf-blueprint-ship-too-big";
+                else if (MathF.Abs(at.X) > half || MathF.Abs(at.Y) > half)
+                    refused ??= "wf-blueprint-ship-off-bay";
+                else if (rules.HullTilePrice > 0 && !_bank.TryBankWithdraw(user, rules.HullTilePrice))
+                    refused ??= "wf-hideout-cannot-afford";
+                else
+                {
+                    _maps.SetTile(hull, grid, index, new Tile(_tileDefs[tileId].TileId));
+                    done.Add(index);
+                    tiles++;
+                    progress = true;
+                }
+            }
+        }
+
+        if (waiting.Count > 0)
+            refused ??= "wf-blueprint-ship-not-joined";
+        return done;
     }
 
     private void Report(Entity<WFShipwrightConsoleComponent> console, EntityUid user, bool ok, string reason)

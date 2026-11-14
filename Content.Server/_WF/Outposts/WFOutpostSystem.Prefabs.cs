@@ -294,6 +294,9 @@ public sealed partial class WFOutpostSystem
         if (_shell)
             Unfurnish(user, source, target);
 
+        var laid = new WFOutpostPrefabLaidEvent(source);
+        RaiseLocalEvent(ref laid);
+
         _maps.SetTiles(outpost, gridComp, placed);
         if (TryComp<RoofComponent>(source, out var sourceRoof) && TryComp<RoofComponent>(outpost, out var roof))
         {

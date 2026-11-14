@@ -47,13 +47,6 @@ public sealed partial class WFHideoutSystem
     [Dependency] private WFShipAccessServerSystem _shipAccess = default!;
     [Dependency] private WFShipAccessSystem _access = default!;
 
-    /// <summary>The widest a hangar's pad goes; a shipwright bay goes past a plain pad's limit for medium frames.</summary>
-    private const int MaxBay = 25;
-
-    /// <summary>The insurance terms of an outpost with no level that sets them.</summary>
-    private const float DefaultPremium = 0.25f;
-    private const float DefaultDeductible = 0.2f;
-
     /// <summary>Each account's hangar ship as the database has it; an account not listed hasn't been read yet.</summary>
     private readonly Dictionary<NetUserId, WFStoredHideoutShip?> _rows = new();
 
@@ -114,44 +107,10 @@ public sealed partial class WFHideoutSystem
         return _hulls.TryGetValue(owner, out hull) && !TerminatingOrDeleted(hull);
     }
 
-    /// <summary>Sets the hangar pads of an outpost to the widest its built levels allow.</summary>
-    private void ApplyHangar(EntityUid outpost)
+    private (float Premium, float Deductible) Terms()
     {
-        if (!TryComp<WFHideoutComponent>(outpost, out var hideout))
-            return;
-
-        if (TryGetHangar(outpost, out var bay, shipwright: true))
-            Widen(bay, Built(hideout).Select(level => level.ShipwrightSize).DefaultIfEmpty(0).Max());
-
-        if (TryGetHangar(outpost, out var pad, shipwright: false))
-            Widen(pad, Built(hideout).Select(level => level.HangarSize).DefaultIfEmpty(0).Max());
-    }
-
-    /// <summary>Sets how wide a hangar pad may go, and widens it to that while nothing is on it.</summary>
-    private void Widen(Entity<WFLandingPadComponent> pad, int widest)
-    {
-        if (widest < WFLandingPadComponent.MinSize || pad.Comp.Widest == widest)
-            return;
-
-        pad.Comp.Widest = Math.Min(widest, MaxBay);
-        if (pad.Comp.Parked == null && !pad.Comp.Guiding)
-            pad.Comp.Size = pad.Comp.Widest;
-        Dirty(pad);
-    }
-
-    private (float Premium, float Deductible) Terms(WFHideoutComponent hideout)
-    {
-        float? premium = null;
-        float? deductible = null;
-        foreach (var level in Built(hideout))
-        {
-            if (level.InsurancePremium is { } p && (premium == null || p < premium))
-                premium = p;
-            if (level.InsuranceDeductible is { } d && (deductible == null || d < deductible))
-                deductible = d;
-        }
-
-        return (premium ?? DefaultPremium, deductible ?? DefaultDeductible);
+        var rules = HideoutRules;
+        return (rules.InsurancePremium, rules.InsuranceDeductible);
     }
 
     private static int Share(int value, float share)
@@ -179,7 +138,7 @@ public sealed partial class WFHideoutSystem
         if (hasPad && pad.Comp.Parked is { } parked && !TerminatingOrDeleted(parked) && !HasComp<WFHideoutShipComponent>(parked))
             unregistered = Name(parked);
 
-        var (premium, deductible) = Terms(outpost.Comp1);
+        var (premium, deductible) = Terms();
         return new WFHideoutHangarView(hasPad, status, row?.Name, row?.Value ?? 0, row?.InsuredValue ?? 0,
             Share(row?.Value ?? 0, premium), Share(row?.InsuredValue ?? 0, deductible), unregistered,
             _busy.Contains(owner) || !_rows.ContainsKey(owner));
@@ -624,7 +583,6 @@ public sealed partial class WFHideoutSystem
 
     private void OnSettled(Entity<WFHideoutComponent> outpost, ref WFOutpostSettledEvent args)
     {
-        ApplyHangar(outpost);
         if (TryComp<WFOutpostComponent>(outpost, out var settled))
             EnsureHome((outpost, outpost.Comp, settled));
         if (!_cfg.GetCVar(HideoutCVars.Enabled) || !TryComp<WFOutpostComponent>(outpost, out var comp) || TryGetShip(comp.Owner, out _))
@@ -727,7 +685,7 @@ public sealed partial class WFHideoutSystem
     public bool TryInsure(EntityUid user, Entity<WFOutpostComponent> outpost, out string reason)
     {
         var owner = outpost.Comp.Owner;
-        if (!_outposts.IsOwnerOf(user, outpost.Comp) || _busy.Contains(owner) || !TryComp<WFHideoutComponent>(outpost, out var hideout))
+        if (!_outposts.IsOwnerOf(user, outpost.Comp) || _busy.Contains(owner))
         {
             reason = "wf-hideout-ship-busy";
             return false;
@@ -739,7 +697,7 @@ public sealed partial class WFHideoutSystem
             return false;
         }
 
-        var premium = Share(Appraise(hull), Terms(hideout).Premium);
+        var premium = Share(Appraise(hull), Terms().Premium);
         if (premium > 0 && !_bank.TryBankWithdraw(user, premium))
         {
             reason = "wf-hideout-cannot-afford";
@@ -763,7 +721,7 @@ public sealed partial class WFHideoutSystem
     public bool TryClaim(EntityUid user, Entity<WFOutpostComponent> outpost, out string reason)
     {
         var owner = outpost.Comp.Owner;
-        if (!_outposts.IsOwnerOf(user, outpost.Comp) || _busy.Contains(owner) || !TryComp<WFHideoutComponent>(outpost, out var hideout)
+        if (!_outposts.IsOwnerOf(user, outpost.Comp) || _busy.Contains(owner)
             || !_rows.TryGetValue(owner, out var row))
         {
             reason = "wf-hideout-ship-busy";
@@ -795,7 +753,7 @@ public sealed partial class WFHideoutSystem
             return false;
         }
 
-        var deductible = Share(row.InsuredValue, Terms(hideout).Deductible);
+        var deductible = Share(row.InsuredValue, Terms().Deductible);
         if (deductible > 0 && !_bank.TryBankWithdraw(user, deductible))
         {
             reason = "wf-hideout-cannot-afford";

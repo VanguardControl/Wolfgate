@@ -1,4 +1,4 @@
-# A level with a prefab leaves one of these at the console; its prefab and name are set when it is handed out.
+# Buying a module leaves one of these at the console; its prefab and name are set when it is handed out.
 - type: entity
   parent: BaseItem
   id: WFHideoutSurveyStake
@@ -26,8 +26,8 @@
   - type: ApcPowerReceiver
     needsPower: false
   - type: WFLandingPad
-    size: 9
-    widest: 9
+    size: 21
+    widest: 21
   - type: WFHideoutHangar
 
 # The outpost registry at Central: found an outpost on a world's plots, land your save, or ride down to it.

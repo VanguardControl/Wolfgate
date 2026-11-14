@@ -152,7 +152,31 @@ public sealed partial class WFOutpostSystem
     /// <summary>What an outpost's parts are worth: what stands on it that a save keeps, and the plates its floor grew by.</summary>
     public int Appraise(Entity<MapGridComponent> grid)
     {
-        return Value(grid, IsKept);
+        return Value(grid, Kept(grid));
+    }
+
+    /// <summary>
+    /// What a save keeps of an outpost grid and the basement under it: what <see cref="IsKept"/> keeps, less what other
+    /// modules leave behind (<see cref="WFOutpostCargoEvent"/>).
+    /// </summary>
+    private Func<EntityUid, bool> Kept(EntityUid grid)
+    {
+        var cargo = CargoOf(grid);
+        return cargo.Count == 0 ? IsKept : uid => IsKept(uid) && !cargo.Contains(uid);
+    }
+
+    /// <summary>What other modules have a save leave behind on an outpost grid and the basement under it.</summary>
+    private HashSet<EntityUid> CargoOf(EntityUid grid)
+    {
+        var ev = new WFOutpostCargoEvent(grid, new HashSet<EntityUid>());
+        RaiseLocalEvent(ref ev);
+        if (TryComp<WFOutpostComponent>(grid, out var outpost) && outpost.Basement is { } basement && !TerminatingOrDeleted(basement))
+        {
+            var below = new WFOutpostCargoEvent(basement, ev.Cargo);
+            RaiseLocalEvent(ref below);
+        }
+
+        return ev.Cargo;
     }
 
     /// <summary>What one foundation plate is worth; the prototype's estimate is for a whole default stack of them.</summary>
@@ -366,6 +390,7 @@ public sealed partial class WFOutpostSystem
     /// <summary>Calls <paramref name="action"/> on everything on an outpost a save keeps, contents of containers included.</summary>
     private void ForEachKept(EntityUid grid, Action<EntityUid, TransformComponent> action)
     {
+        var kept = Kept(grid);
         var pending = new Stack<EntityUid>();
         pending.Push(grid);
         while (pending.TryPop(out var uid))
@@ -373,7 +398,7 @@ public sealed partial class WFOutpostSystem
             var children = Transform(uid).ChildEnumerator;
             while (children.MoveNext(out var child))
             {
-                if (!IsKept(child))
+                if (!kept(child))
                     continue;
 
                 action(child, Transform(child));
@@ -452,6 +477,7 @@ public sealed partial class WFOutpostSystem
     /// </summary>
     private void UpdateAutosave()
     {
+        UpdateLastSaves();
         UpdateSlicedSave();
         var now = _timing.CurTime;
         if (now < _nextAutosaveCheck || _sliced != null)
@@ -466,9 +492,11 @@ public sealed partial class WFOutpostSystem
                 || HasComp<WFOutpostPendingLoadComponent>(uid) || !EnsureSlot(uid, outpost) || outpost.Slot is not { } slot)
                 continue;
 
+            // One outpost a check: a fingerprint walks everything on it, and with many outposts due together the
+            // rest wait their turn a second apart.
             outpost.NextAutosave = now + interval;
             if (Fingerprint((uid, grid)) == outpost.SavedFingerprint)
-                continue;
+                break;
 
             // Spread over the ticks to come; an outpost whose sliced saves keep tearing is saved at once instead.
             if (_torn.GetValueOrDefault(uid) >= TornLimit)
@@ -487,22 +515,46 @@ public sealed partial class WFOutpostSystem
     /// <summary>Saves every changed outpost once more as the round ends.</summary>
     private void OnRunLevelChanged(GameRunLevelChangedEvent args)
     {
+        // The lobby is over and the round's entities are about to go: whatever isn't saved yet is saved now.
         if (args.New != GameRunLevel.PostRound)
+        {
+            UpdateLastSaves(all: true);
             return;
+        }
 
         SellAtRoundEnd();
 
-        // The round's last saves are taken at once: nothing is left to stall, and nothing may be left half saved.
+        // The round's last saves are each taken at once, so none is left half saved, but one a tick: with many outposts
+        // standing, saving them all in the tick the round ends would stall the server for as long as they all take.
         AbortSlicedSave();
-        var query = EntityQueryEnumerator<WFOutpostComponent, MapGridComponent>();
-        while (query.MoveNext(out var uid, out var outpost, out var grid))
+        _lastSaves.Clear();
+        var query = EntityQueryEnumerator<WFOutpostComponent>();
+        while (query.MoveNext(out var uid, out var outpost))
         {
-            if (!outpost.Abandoned && !TerminatingOrDeleted(uid))
-                EnsureSlot(uid, outpost);
+            if (!outpost.Abandoned)
+                _lastSaves.Enqueue(uid);
+        }
+    }
 
-            if (outpost.Slot is { } slot && !outpost.Abandoned && !TerminatingOrDeleted(uid)
-                && Fingerprint((uid, grid)) != outpost.SavedFingerprint)
-                TrySaveInto((uid, outpost), slot, null, out _);
+    /// <summary>Outposts still to be saved for the last time this round.</summary>
+    private readonly Queue<EntityUid> _lastSaves = new();
+
+    /// <summary>Takes the round's last saves, one changed outpost a tick; <paramref name="all"/> takes what is left at once.</summary>
+    private void UpdateLastSaves(bool all = false)
+    {
+        while (_lastSaves.TryDequeue(out var uid))
+        {
+            if (TerminatingOrDeleted(uid) || !TryComp<WFOutpostComponent>(uid, out var outpost) || outpost.Abandoned
+                || !TryComp<MapGridComponent>(uid, out var grid))
+                continue;
+
+            EnsureSlot(uid, outpost);
+            if (outpost.Slot is not { } slot || Fingerprint((uid, grid)) == outpost.SavedFingerprint)
+                continue;
+
+            TrySaveInto((uid, outpost), slot, null, out _);
+            if (!all)
+                return;
         }
     }
 

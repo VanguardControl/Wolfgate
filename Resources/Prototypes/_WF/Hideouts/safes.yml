@@ -1,0 +1,160 @@
+# Outpost safes: the only goods a hideout keeps between rounds are what a safe holds. Each takes storage points
+# (`stashPoints` in modules.yml), and takes only what its whitelist lists, so nobody starts a round with a stockpile of
+# weapons and armour. They are laid from the blueprint's Safes shelf.
+
+- type: entity
+  abstract: true
+  parent: [ BaseStructure, BaseBagOpenClose ]
+  id: WFHideoutSafeBase
+  components:
+  - type: Sprite
+    sprite: _WF/SafetyDepositBox/Objects/Economy/depositboxmedium.rsi
+    state: icon
+    noRot: true
+  - type: GenericVisualizer
+    visuals:
+      enum.StorageVisuals.Open:
+        base:
+          True: { state: icon-open }
+          False: { state: icon }
+  - type: Appearance
+  - type: Storage
+    maxItemSize: Normal
+    grid:
+    - 0,0,5,3
+    # What a safe takes: materials, tools, seeds and produce, clothes, paperwork, instruments, lights and cells.
+    whitelist:
+      components:
+      - Stack
+      - Material
+      - Tool
+      - Seed
+      - Produce
+      - Clothing
+      - Paper
+      - Instrument
+      - HandheldLight
+      - PowerCell
+    # And never: anything that fights, anything that holds more, and what a deposit box keeps out.
+    blacklist:
+      components:
+      - Gun
+      - BallisticAmmoProvider
+      - CartridgeAmmo
+      - Armor
+      - Explosive
+      - OnUseTimerTrigger
+      - Stunbaton
+      - IdCard
+      - Currency
+      - Store
+      - EncryptionKey
+      - Headset
+      - SubdermalImplant
+      - Storage
+      - SafetyDepositBox
+      - ShipyardVoucher
+      - SecretStash
+      - Implanter
+      - DoorRemote
+      - NukeDisk
+      - Contraband
+      - AccessOverrider
+      - Pda
+      - MachineBoard
+      - Flatpack
+      - WFShipSaveOrigin # Saved with a hangar ship's strongbox, so it comes back with the ship
+      tags:
+      - Unstashable
+      - SafetyDepositBlacklist
+  - type: UserInterface
+    interfaces:
+      enum.StorageUiKey.Key:
+        type: StorageBoundUserInterface
+  - type: ContainerContainer
+    containers:
+      storagebase: !type:Container
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.4,-0.4,0.4,0.4"
+        density: 300
+        mask:
+        - MachineMask
+        layer:
+        - MachineLayer
+  - type: InteractionOutline
+  - type: Damageable
+    damageContainer: StructuralInorganic
+    damageModifierSet: StructuralMetallicStrong
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 1500
+      behaviors:
+      - !type:EmptyAllContainersBehaviour
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+
+- type: entity
+  parent: WFHideoutSafeBase
+  id: WFHideoutLockbox
+  name: outpost lockbox
+  description: A small bolted-down box. What it holds is still here when the outpost next lands; nothing left lying about is.
+  components:
+  - type: Sprite
+    sprite: _WF/SafetyDepositBox/Objects/Economy/depositboxsmall.rsi
+  - type: Storage
+    maxItemSize: Small
+    grid:
+    - 0,0,3,2
+  - type: WFHideoutStash
+    points: 2
+  - type: StaticPrice
+    price: 15000
+
+- type: entity
+  parent: WFHideoutSafeBase
+  id: WFHideoutSafe
+  name: outpost safe
+  description: A bolted-down safe. What it holds is still here when the outpost next lands; nothing left lying about is.
+  components:
+  - type: WFHideoutStash
+    points: 5
+  - type: StaticPrice
+    price: 60000
+
+- type: entity
+  parent: WFHideoutSafeBase
+  id: WFHideoutVaultSafe
+  name: outpost vault safe
+  description: A safe the size of a wardrobe, and most of an outpost's storage on its own. What it holds is still here when the outpost next lands.
+  components:
+  - type: Sprite
+    sprite: _WF/SafetyDepositBox/Objects/Economy/depositboxlarge.rsi
+  - type: Storage
+    maxItemSize: Large
+    grid:
+    - 0,0,7,5
+  - type: WFHideoutStash
+    points: 10
+  - type: StaticPrice
+    price: 200000
+
+- type: wfBlueprintCatalogue
+  id: WFBlueprintShelfSafes
+  group: wf-blueprint-group-safes
+  order: 60
+  price: 0
+  scope: Outpost
+  color: "#C9A227"
+  entities:
+  - WFHideoutLockbox
+  - WFHideoutSafe
+  - WFHideoutVaultSafe

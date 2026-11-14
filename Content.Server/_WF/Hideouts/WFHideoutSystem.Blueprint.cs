@@ -7,9 +7,12 @@ using Content.Shared._WF.Outposts;
 using Content.Shared.Database;
 using Content.Shared.Decals;
 using Content.Shared.Doors.Components;
+using Content.Shared.Item;
+using Content.Shared.Storage;
 using Content.Shared.SubFloor;
 using Content.Shared.Tag;
 using Robust.Server.GameObjects;
+using Robust.Shared.Containers;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
@@ -25,6 +28,7 @@ public sealed partial class WFHideoutSystem
 {
     [Dependency] private ITileDefinitionManager _tileDefs = default!;
     [Dependency] private DecalSystem _decals = default!;
+    [Dependency] private SharedContainerSystem _containers = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private SharedMapSystem _maps = default!;
     [Dependency] private TagSystem _tags = default!;
@@ -44,19 +48,49 @@ public sealed partial class WFHideoutSystem
     /// <summary>Roofs or unroofs tiles for a plan and returns the tiles that changed.</summary>
     public delegate List<Vector2i> BlueprintRoof(IReadOnlyList<Vector2i> cells, bool roofed);
 
-    /// <summary>What a tile of a brush costs.</summary>
-    public int BrushPrice(WFBlueprintEntry brush)
-    {
-        if (brush.Entity is { } entity && _proto.TryIndex<EntityPrototype>(entity, out var proto))
-            return Math.Max(brush.Price, (int) Math.Ceiling(_pricing.GetEstimatedPrice(proto) * 1.5));
+    /// <summary>What each brush costs a tile, and the entity prototypes the brushes lay; worked out once, as pricing every brush is slow.</summary>
+    private Dictionary<string, int>? _brushPrices;
+    private HashSet<string>? _laid;
+    private HashSet<string>? _laidUnder;
 
-        return brush.Price;
+    private void ClearPalette()
+    {
+        _brushPrices = null;
+        _laid = null;
+        _laidUnder = null;
+    }
+
+    private Dictionary<string, int> BrushPrices()
+    {
+        if (_brushPrices != null)
+            return _brushPrices;
+
+        var brushes = WFBlueprintCatalog.All(_proto, _tileDefs);
+        _brushPrices = new Dictionary<string, int>(brushes.Count);
+        _laid = new HashSet<string>();
+        _laidUnder = new HashSet<string>();
+        foreach (var brush in brushes)
+        {
+            var price = brush.Price;
+            if (brush.Entity is { } entity)
+            {
+                _laid.Add(entity);
+                if (brush.Under)
+                    _laidUnder.Add(entity);
+                if (_proto.TryIndex<EntityPrototype>(entity, out var proto))
+                    price = Math.Max(price, (int) Math.Ceiling(_pricing.GetEstimatedPrice(proto) * 1.5));
+            }
+
+            _brushPrices[brush.Id] = price;
+        }
+
+        return _brushPrices;
     }
 
     /// <summary>What a tile of the brush with an id costs; 0 for an id that is no brush.</summary>
     public int BrushPrice(string id)
     {
-        return WFBlueprintCatalog.TryGet(_proto, _tileDefs, id, out var brush) ? BrushPrice(brush) : 0;
+        return BrushPrices().GetValueOrDefault(id);
     }
 
     private void OnCanvasRequest(Entity<WFOutpostConsoleComponent> console, ref WFBlueprintCanvasRequestMessage args)
@@ -68,9 +102,8 @@ public sealed partial class WFHideoutSystem
     /// <summary>Sends a player at a console what stands on a grid, the brushes' prices and their balance.</summary>
     public void SendCanvas(EntityUid console, Enum key, EntityUid gridUid, EntityUid actor)
     {
-        var prices = WFBlueprintCatalog.All(_proto, _tileDefs).ToDictionary(brush => brush.Id, BrushPrice);
         _bank.TryGetBalance(actor, out var balance);
-        _ui.ServerSendUiMessage(console, key, new WFBlueprintCanvasMessage(Cells(gridUid), prices, balance), actor);
+        _ui.ServerSendUiMessage(console, key, new WFBlueprintCanvasMessage(Cells(gridUid), BrushPrices(), balance), actor);
     }
 
     /// <summary>What stands on a grid, as a plan draws it: everything anchored, and what the brushes lay that isn't.</summary>
@@ -98,8 +131,8 @@ public sealed partial class WFHideoutSystem
     /// <summary>The entity prototypes the brushes lay.</summary>
     private HashSet<string> LaidEntities(bool underOnly = false)
     {
-        return WFBlueprintCatalog.All(_proto, _tileDefs).Where(brush => brush.Entity != null && (!underOnly || brush.Under))
-            .Select(brush => brush.Entity!).ToHashSet();
+        BrushPrices();
+        return underOnly ? _laidUnder! : _laid!;
     }
 
     private WFBlueprintCellKind CellKind(EntityUid uid)
@@ -150,7 +183,8 @@ public sealed partial class WFHideoutSystem
         var built = ApplyPlan(user, outpost, grid, strokes,
             (IReadOnlyList<(Vector2i Index, string Tile)> cells, out string? refused) => _outposts.PaintFloor(user, outpost, cells, out refused),
             (cells, roofed) => _outposts.PaintRoof(user, outpost, cells, roofed),
-            _outposts.EntityCap(outpost) - _outposts.CountAllEntities(outpost), out spent, out reason);
+            _outposts.EntityCap(outpost) - _outposts.CountAllEntities(outpost), out spent, out reason,
+            HideoutRules.StashPoints - StashUsed(outpost));
         if (built > 0)
         {
             _adminLog.Add(LogType.WFOutpost, LogImpact.Low,
@@ -163,18 +197,25 @@ public sealed partial class WFHideoutSystem
     /// <summary>
     /// Builds a plan on a grid. The whole plan's price is taken first and what a refused stroke cost is paid back.
     /// <paramref name="roofs"/> is null where roofs can't be painted, and <paramref name="room"/> is how many more
-    /// objects the grid may take. Returns the strokes built.
+    /// objects the grid may take, <paramref name="stashRoom"/> how many storage points of safes, and
+    /// <paramref name="erasable"/> what the removal brush takes besides what the brushes lay. Returns the strokes built.
     /// </summary>
     public int ApplyPlan(EntityUid user, EntityUid gridUid, MapGridComponent grid, IReadOnlyList<WFBlueprintStroke> strokes,
-        BlueprintFloor floors, BlueprintRoof? roofs, int room, out int spent, out string? reason)
+        BlueprintFloor floors, BlueprintRoof? roofs, int room, out int spent, out string? reason, int stashRoom = 0,
+        Func<EntityUid, bool>? erasable = null, bool ship = false)
     {
         spent = 0;
         reason = null;
         var plan = new List<(WFBlueprintStroke Stroke, WFBlueprintEntry Brush, int Price)>();
         foreach (var stroke in strokes.Take(WFBlueprintLimits.Strokes))
         {
-            if (WFBlueprintCatalog.TryGet(_proto, _tileDefs, stroke.Brush, out var brush))
-                plan.Add((stroke, brush, BrushPrice(brush)));
+            if (!WFBlueprintCatalog.TryGet(_proto, _tileDefs, stroke.Brush, out var brush))
+                continue;
+
+            if (brush.Fits(ship))
+                plan.Add((stroke, brush, BrushPrice(brush.Id)));
+            else
+                reason = "wf-blueprint-wrong-place";
         }
 
         if (plan.Count == 0)
@@ -194,7 +235,7 @@ public sealed partial class WFHideoutSystem
         var laid = LaidEntities();
         foreach (var (stroke, _, price) in plan.Where(entry => entry.Brush.Kind == WFBlueprintKind.Erase))
         {
-            if (Erase(gridUid, grid, stroke.Index, laid))
+            if (Erase(gridUid, grid, stroke.Index, laid, erasable))
             {
                 built++;
                 owed += price;
@@ -248,8 +289,22 @@ public sealed partial class WFHideoutSystem
                 continue;
             }
 
+            // A safe has to fit the storage points left.
+            if (_proto.Index<EntityPrototype>(brush.Entity!).TryGetComponent<WFHideoutStashComponent>(out var stash, EntityManager.ComponentFactory))
+            {
+                if (stash.Points > stashRoom)
+                {
+                    reason ??= "wf-hideout-stash-budget";
+                    continue;
+                }
+
+                stashRoom -= stash.Points;
+            }
+
             var ent = SpawnAtPosition(brush.Entity!, new EntityCoordinates(gridUid, stroke.Index + new Vector2(0.5f)));
             _transform.SetLocalRotation(ent, stroke.Facing.ToAngle());
+            if (!Transform(ent).Anchored && HasComp<ItemComponent>(ent))
+                EnsureComp<WFHideoutDecorComponent>(ent);
             room--;
             built++;
             owed += price;
@@ -383,21 +438,30 @@ public sealed partial class WFHideoutSystem
         return false;
     }
 
-    /// <summary>Takes away what the brushes lay on a tile, anchored or not; nothing else, and nothing anyone carries.</summary>
-    private bool Erase(EntityUid gridUid, MapGridComponent grid, Vector2i index, HashSet<string> laid)
+    /// <summary>
+    /// Takes away what the brushes lay on a tile, anchored or not, and whatever else anchored there <paramref name="erasable"/>
+    /// allows; nothing under the floor, and nothing anyone carries.
+    /// </summary>
+    private bool Erase(EntityUid gridUid, MapGridComponent grid, Vector2i index, HashSet<string> laid, Func<EntityUid, bool>? erasable)
     {
         _onTile.Clear();
         _lookup.GetLocalEntitiesIntersecting(gridUid, index, _onTile, flags: LookupFlags.Uncontained);
         var gone = new List<EntityUid>();
         foreach (var ent in _onTile)
         {
-            if (MetaData(ent).EntityPrototype?.ID is { } id && laid.Contains(id) && Transform(ent).ParentUid == gridUid
+            var xform = Transform(ent);
+            var taken = MetaData(ent).EntityPrototype?.ID is { } id && laid.Contains(id)
+                        || erasable != null && xform.Anchored && !HasComp<SubFloorHideComponent>(ent) && erasable(ent);
+            if (taken && xform.ParentUid == gridUid
                 && _maps.LocalToTile(gridUid, grid, Transform(ent).Coordinates) == index)
                 gone.Add(ent);
         }
 
         foreach (var ent in gone)
         {
+            // A safe leaves what it held on the floor.
+            if (TryComp<StorageComponent>(ent, out var storage))
+                _containers.EmptyContainer(storage.Container);
             Del(ent);
         }
 

@@ -104,7 +104,7 @@ public sealed partial class WFShipwrightSystem
         var budget = FactionBudget(hull);
         var spent = FactionSpent(hull);
         return new WFShipwrightHullView(Name(hull), null, registered, registered && owned!.Owner == outpost.Comp.Owner,
-            Survey(hull, outpost).Tiles, budget, spent, mounts, systems, new Dictionary<string, int>(), 0, 0, spent <= budget,
+            Survey(hull).Tiles, budget, spent, mounts, systems, new Dictionary<string, int>(), 0, 0, spent <= budget,
             GetNetEntity(hull), mounts.Count, new List<Vector2i>());
     }
 

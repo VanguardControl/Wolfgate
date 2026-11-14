@@ -63,13 +63,13 @@ public sealed class WFHideoutTestCommand : LocalizedEntityCommands
     private static readonly Vector2i ClearFrom = new(-30, -40);
     private static readonly Vector2i ClearTo = new(42, 28);
 
-    /// <summary>Each building laid on the test outpost: its module and level, where the stake points and the way it faces.</summary>
-    private static readonly (string Module, int Level, Vector2 At, Direction Facing)[] Buildings =
+    /// <summary>Each building laid on the test outpost: its module, where the stake points and the way it faces.</summary>
+    private static readonly (string Module, Vector2 At, Direction Facing)[] Buildings =
     {
-        ("WFHideoutShipwright", 1, new Vector2(6.5f, -2.5f), Direction.South),
-        ("WFHideoutHangar", 1, new Vector2(6.5f, 3.5f), Direction.North),
-        ("WFHideoutQuarters", 1, new Vector2(18.5f, 6.5f), Direction.East),
-        ("WFHideoutWorkshop", 1, new Vector2(-6.5f, 4.5f), Direction.West),
+        ("WFHideoutShipwright", new Vector2(6.5f, -2.5f), Direction.South),
+        ("WFHideoutHangar", new Vector2(6.5f, 3.5f), Direction.North),
+        ("WFHideoutQuarters", new Vector2(18.5f, 6.5f), Direction.East),
+        ("WFHideoutWorkshop", new Vector2(-6.5f, 4.5f), Direction.West),
     };
 
     public override CompletionResult GetCompletion(IConsoleShell shell, string[] args)
@@ -103,6 +103,13 @@ public sealed class WFHideoutTestCommand : LocalizedEntityCommands
         {
             _cfg.SetCVar(Content.Shared._WF.CCVar.PlanetCVars.PlanetNetworks, true);
             shell.WriteLine(Loc.GetString("cmd-wfhideouttest-networks-on"));
+        }
+
+        // The gallery lays every layout on one outpost, far more than an outpost may hold.
+        if (gallery)
+        {
+            _cfg.SetCVar(Content.Shared._WF.Outposts.OutpostCVars.MaxEntities,
+                Math.Max(_cfg.GetCVar(Content.Shared._WF.Outposts.OutpostCVars.MaxEntities), 8000));
         }
 
         if (!_proto.TryIndex<WFPlanetSurfacePrototype>(Surface, out var surface))
@@ -185,30 +192,22 @@ public sealed class WFHideoutTestCommand : LocalizedEntityCommands
         _bank.TryBankDeposit(user, Money, tax: false);
         _hideouts.LeaveTradeHub(outpost);
 
-        // Every module at its top level, with nothing handed out, then each building laid where it goes.
-        foreach (var module in _proto.EnumeratePrototypes<WFHideoutModulePrototype>())
-        {
-            if (!module.Company)
-                _hideouts.SetLevel(outpost, module.ID, module.Levels.Count);
-        }
-
         if (gallery)
         {
             LayGallery(shell, user, outpost, ground, site);
             return;
         }
 
-        foreach (var (module, level, at, facing) in Buildings)
+        foreach (var (module, at, facing) in Buildings)
         {
-            if (!_proto.TryIndex<WFHideoutModulePrototype>(module, out var proto) || proto.Levels[level - 1].Prefab is not { } prefab)
+            if (!_proto.TryIndex<WFHideoutModulePrototype>(module, out var proto) || proto.Prefab is not { } prefab)
                 continue;
 
             if (!_outposts.TryStampPrefab(user, outpost, prefab, new EntityCoordinates(ground, at - Site + site), facing, out reason))
                 shell.WriteError(Loc.GetString("cmd-wfhideouttest-prefab-failed", ("module", module), ("reason", Loc.GetString(reason))));
         }
 
-        // Laying refreshes the pads' widths and links the bay's cranes.
-        _hideouts.SetLevel(outpost, "WFHideoutShipwright", 3);
+        // The bay's console takes the cranes laid with it.
         var consoles = EntityManager.EntityQueryEnumerator<WFShipwrightConsoleComponent, TransformComponent>();
         while (consoles.MoveNext(out var console, out var consoleComp, out var xform))
         {
@@ -313,14 +312,14 @@ public sealed class WFHideoutTestCommand : LocalizedEntityCommands
         var index = 0;
         foreach (var module in _proto.EnumeratePrototypes<WFHideoutModulePrototype>().OrderBy(module => module.Order).ThenBy(module => module.ID))
         {
-            if (module.Levels.FirstOrDefault(level => level.Prefab != null) is not { } level)
+            if (module.Prefab is not { } first)
                 continue;
 
-            _hideouts.SpawnStake(module, level, feet);
+            _hideouts.SpawnStake(module, feet);
             if (GallerySkips.Contains(module.ID))
                 continue;
 
-            var prefabs = level.Layouts.Count > 0 ? level.Layouts.Select(layout => layout.Prefab).ToList() : new List<ResPath> { level.Prefab!.Value };
+            var prefabs = module.Layouts.Count > 0 ? module.Layouts.Select(layout => layout.Prefab).ToList() : new List<ResPath> { first };
             foreach (var prefab in prefabs)
             {
                 var from = module.Company ? wide : slots;

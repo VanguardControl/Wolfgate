@@ -2,16 +2,15 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._WF.Hideouts;
 
-/// <summary>The outpost console's Hideout tab: the modules' levels, the build under way and the hangar.</summary>
+/// <summary>The outpost console's Hideout tab: the hangar, the home world, the safes' storage points and what can be bought.</summary>
 [Serializable, NetSerializable]
 public sealed record WFHideoutView(
-    Dictionary<string, int> Levels,
-    string? Building,
-    TimeSpan BuildEnds,
     int Balance,
     bool Company,
     WFHideoutHangarView Hangar,
-    Dictionary<string, int> Held,
+    bool HasShipwright,
+    int StashUsed,
+    int StashBudget,
     string? HomeWorld,
     List<WFHideoutWorldView> Worlds,
     int MoveFee);
@@ -60,9 +59,9 @@ public enum WFHideoutShipStatus : byte
     Lost,
 }
 
-/// <summary>The owner starts the next level of a module.</summary>
+/// <summary>The owner buys a module: its survey stake or kit is left at the console.</summary>
 [Serializable, NetSerializable]
-public sealed class WFHideoutBuildMessage(string module) : BoundUserInterfaceMessage
+public sealed class WFHideoutBuyMessage(string module) : BoundUserInterfaceMessage
 {
     public readonly string Module = module;
 }

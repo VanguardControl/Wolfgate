@@ -39,7 +39,10 @@ public sealed class WFShipwrightConsoleBoundUserInterface(EntityUid owner, Enum 
         }
 
         _plan = new WFBlueprintPanel { HorizontalExpand = true, VerticalExpand = true };
-        _plan.SetShipMode();
+        var protos = IoCManager.Resolve<Robust.Shared.Prototypes.IPrototypeManager>();
+        _plan.SetShipMode(_state is { Faction: false } && protos.TryIndex<WFShipwrightRulesPrototype>(WFShipwrightRulesPrototype.Default, out var rules)
+            ? rules.HullTilePrice
+            : null);
         _plan.OnRequestCanvas += () => SendMessage(new WFBlueprintCanvasRequestMessage());
         _plan.OnApply += strokes => SendMessage(new WFBlueprintApplyMessage(strokes));
         _interior = new DefaultWindow

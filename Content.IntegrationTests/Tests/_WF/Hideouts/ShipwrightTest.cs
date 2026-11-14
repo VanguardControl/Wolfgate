@@ -148,12 +148,8 @@ public sealed class ShipwrightTest
                     new EntityCoordinates(ground, site.X, site.Y), out var grid, out var reason), Is.True, $"Founding was refused: {reason}.");
                 outpost = (grid.Value, entMan.GetComponent<WFOutpostComponent>(grid.Value));
 
-                foreach (var module in new[] { "WFHideoutGroundworks", "WFHideoutGroundworks", "WFHideoutPowerhouse", "WFHideoutShipwright" })
-                {
-                    HideoutTest.Supply(pair, outpost, module);
-                    Assert.That(hideouts.TryBuild(user, outpost, module, out reason), Is.True, $"{module} was refused: {reason}.");
-                    Assert.That(hideouts.SkipBuild(outpost), Is.True);
-                }
+                foreach (var module in new[] { "WFHideoutPowerhouse", "WFHideoutShipwright" })
+                    Assert.That(hideouts.TryBuy(user, outpost, module, out reason), Is.True, $"{module} was refused: {reason}.");
 
                 // The powerhouse's stake isn't wanted here; the bay's is the newest.
                 var stakes = new List<Entity<WFHideoutStakeComponent>>();
@@ -173,7 +169,7 @@ public sealed class ShipwrightTest
                 var dock = entMan.GetComponent<WFDrydockConsoleComponent>(console);
                 Assert.That(drydock.TryGetBerth(console, dock, out _), Is.True, "The console's cranes make no berth.");
                 Assert.That(shipwright.TryGetBay(console, out var bay), Is.True, "The console found no bay.");
-                Assert.That(bay.Comp.Size, Is.EqualTo(17), "Shipwright 1 sets the bay to 17 tiles.");
+                Assert.That(bay.Comp.Size, Is.EqualTo(25), "The bay is as wide as its apron.");
                 // Keep the test short; the work is sped up to fit.
                 dock.MaxDuration = 15f;
                 dock.MaxRefitDuration = 15f;
@@ -199,11 +195,34 @@ public sealed class ShipwrightTest
                 Assert.That(tiles, Is.EqualTo(98), "The cranes didn't lay every tile of the Guppy.");
                 Assert.That(Children(entMan, hull).Any(e => entMan.GetComponent<MetaDataComponent>(e).EntityPrototype?.ID == "ComputerShuttle"
                     || entMan.HasComponent<Content.Server.Shuttles.Components.ShuttleConsoleComponent>(e)), Is.True, "The frame has no helm.");
-                var survey = shipwright.Survey(hull, outpost);
+                var survey = shipwright.Survey(hull);
                 Assert.That(survey.Frame, Is.EqualTo("WFFrameGuppy"));
                 Assert.That(survey.Budget, Is.EqualTo(10));
                 Assert.That(survey.Certified, Is.True, "A bare frame should pass.");
                 Assert.That(hideouts.GetStored(owner), Is.Not.Null, "The frame wasn't saved.");
+            });
+
+            // The interior plan grows the hull from its edge, and nowhere else.
+            await server.WaitAssertion(() =>
+            {
+                var grid = entMan.GetComponent<MapGridComponent>(hull);
+                var maps = server.System<SharedMapSystem>();
+                var edge = new Vector2i(int.MinValue, 0);
+                var all = maps.GetAllTilesEnumerator(hull, grid);
+                while (all.MoveNext(out var tile))
+                {
+                    if (tile.Value.GridIndices.X > edge.X)
+                        edge = tile.Value.GridIndices;
+                }
+
+                Assert.That(hideouts.TryGetHangar(outpost, out var pad, shipwright: true), Is.True);
+                var before = Balance();
+                var grown = shipwright.PaintHull(user, hull, grid, pad,
+                    new List<(Vector2i, string)> { (edge + new Vector2i(1, 0), "FloorSteel"), (edge + new Vector2i(6, 0), "FloorSteel") }, out var refused);
+                Assert.That(grown, Is.EquivalentTo(new[] { edge + new Vector2i(1, 0) }), "Only the tile joining the hull is laid.");
+                Assert.That(refused, Is.EqualTo("wf-blueprint-ship-not-joined"));
+                Assert.That(Balance(), Is.EqualTo(before - shipwright.Rules.HullTilePrice), "The new hull tile was paid for.");
+                Assert.That(shipwright.Survey(hull).Budget, Is.EqualTo(10), "A bigger hull has no more points.");
             });
 
             // Fit a gun to the first hardpoint.
@@ -230,7 +249,7 @@ public sealed class ShipwrightTest
                 var (first, slot) = shipwright.Hardpoints(hull)[0];
                 Assert.That(slot.anchoring, Is.Not.Null, "The gun isn't on its hardpoint.");
                 Assert.That(entMan.HasComponent<WFShipwrightFittedComponent>(slot.anchoring!.Value), Is.True, "The refit's gun isn't marked fitted.");
-                var survey = shipwright.Survey(hull, outpost);
+                var survey = shipwright.Survey(hull);
                 Assert.That(survey.Spent, Is.GreaterThan(0));
                 Assert.That(survey.Certified, Is.True);
 
@@ -247,7 +266,7 @@ public sealed class ShipwrightTest
 
             await server.WaitAssertion(() =>
             {
-                var survey = shipwright.Survey(hull, outpost);
+                var survey = shipwright.Survey(hull);
                 Assert.That(survey.UnfittedWeapons.Count + survey.UnfittedSystems.Count, Is.EqualTo(1), "The hand-built gun wasn't seen.");
                 Assert.That(survey.Certified, Is.False);
                 Assert.That(hideouts.TrySaveHome(owner, out var reason), Is.False, "A hull with a hand-built gun was saved.");
@@ -259,7 +278,7 @@ public sealed class ShipwrightTest
 
             await server.WaitAssertion(() =>
             {
-                var survey = shipwright.Survey(hull, outpost);
+                var survey = shipwright.Survey(hull);
                 Assert.That(survey.Certified, Is.True, "Certifying left the hull failing.");
                 Assert.That(hideouts.TrySaveHome(owner, out var reason), Is.True, $"The certified hull wasn't saved: {reason}.");
             });
@@ -269,7 +288,7 @@ public sealed class ShipwrightTest
             Vector2i placedTile = default;
             await server.WaitAssertion(() =>
             {
-                var before = shipwright.Survey(hull, outpost);
+                var before = shipwright.Survey(hull);
                 Assert.That(before.Stock, Is.EqualTo(2), "The Guppy's own hardpoints aren't marked as the frame's.");
                 var (second, _) = shipwright.Hardpoints(hull)[1];
                 var free = shipwright.FreeEdgeTiles(hull);
@@ -299,7 +318,7 @@ public sealed class ShipwrightTest
                     (int) MathF.Floor(entMan.GetComponent<TransformComponent>(h.Uid).LocalPosition.Y)), placedTile));
                 Assert.That(entMan.HasComponent<WFShipwrightFittedComponent>(placed.Uid), Is.True, "The new hardpoint isn't fitted.");
                 Assert.That(entMan.HasComponent<WFShipwrightStockComponent>(placed.Uid), Is.False, "A laid hardpoint counts as the frame's.");
-                var survey = shipwright.Survey(hull, outpost);
+                var survey = shipwright.Survey(hull);
                 Assert.That(survey.Stock, Is.EqualTo(1));
                 Assert.That(survey.Certified, Is.True, "The hull fails after the hardpoint refit.");
             });
@@ -370,7 +389,6 @@ public sealed class ShipwrightTest
             Assert.That(consoles.MoveNext(out var console, out _), Is.True, "The bay has no console.");
             Assert.That(drydock.TryGetBerth(console, entMan.GetComponent<WFDrydockConsoleComponent>(console), out _), Is.True,
                 "The bay's cranes aren't linked.");
-            Assert.That(hideouts.Level(outpost, "WFHideoutShipwright"), Is.EqualTo(3));
         });
 
         await PoolManager.WaitUntil(server, () => !hideouts.IsBusy(owner), maxTicks: 900);
@@ -452,8 +470,7 @@ public sealed class ShipwrightTest
             // Every layout but the two aprons: each has an APC but the gardens, which have a fountain.
             var modules = protos.EnumeratePrototypes<Content.Shared._WF.Hideouts.WFHideoutModulePrototype>()
                 .Where(module => module.ID is not ("WFHideoutHangar" or "WFHideoutShipwright")).ToList();
-            var layouts = modules.Sum(module => module.Levels.Where(level => level.Prefab != null).Take(1)
-                .Sum(level => Math.Max(1, level.Layouts.Count)));
+            var layouts = modules.Sum(module => module.Prefab == null ? 0 : Math.Max(1, module.Layouts.Count));
             Assert.That(standing.GetValueOrDefault("APCBasic") + standing.GetValueOrDefault("DarkPackFountain"), Is.EqualTo(layouts),
                 "Not every layout was laid.");
             Assert.That(standing.GetValueOrDefault("WallBrick"), Is.GreaterThan(0), "Nothing was laid in the brick theme.");
@@ -463,7 +480,7 @@ public sealed class ShipwrightTest
             var query = entMan.EntityQueryEnumerator<WFHideoutStakeComponent>();
             while (query.MoveNext(out _, out _))
                 stakes++;
-            Assert.That(stakes, Is.EqualTo(modules.Count(module => module.Levels.Any(level => level.Prefab != null)) + 2),
+            Assert.That(stakes, Is.EqualTo(modules.Count(module => module.Prefab != null) + 2),
                 "A module's stake is missing.");
         });
 

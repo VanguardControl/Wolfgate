@@ -5,12 +5,16 @@ What the `Hideouts` module is for, what is built, and what comes next. The modul
 
 ## Goal
 
-A player's outpost is their home: somewhere secluded on a world of their choosing that they improve over many rounds,
-that keeps one ship of theirs, and that soaks up money for as long as they play. The model is Escape from Tarkov's
-hideout: a fixed list of modules, each with levels, each level with a price, a build time and other modules it needs.
+A player's outpost is their home: somewhere secluded on a world of their choosing that they build up over many rounds
+and that keeps one ship of theirs. The models are base builders (RimWorld, Dwarf Fortress, Starbound): the fun is in
+laying the place out, not in waiting on timers.
 
 Outposts (PR 570) already give the base: founding, building, saves, access, pads, presets, raids, world development.
-Hideouts adds the progression on top and changes nothing about how an outpost is founded or saved.
+Hideouts adds buildings to buy, the blueprint, the hangars and the storage rule, and changes nothing about how an
+outpost is founded or saved.
+
+An earlier design had Tarkov-style module levels, each with a price, materials, a build time and prerequisites. It was
+dropped (2026-11-13): buildings are bought outright, and nothing unlocks anything else.
 
 ## Getting an outpost
 
@@ -36,23 +40,51 @@ is larger.
    first)"** in the join chooser. Picking it charges the landing, drops their latest save on its home world, and wakes
    them in one of its cryopods once it is down. Their hangar ship comes back on its pad as it lands. Outpost crews in
    Crew Setup land the same way.
-4. Landing costs the usual load price (a save's value and half again) until a module stands; a home with any module
-   lands for a tenth of its value instead, as upkeep.
+4. A home lands for a tenth of its value, as upkeep, in place of the usual load price (a save's value and half again).
 
 ## Building it up
 
-Every module level costs money and goods, after Tarkov: sheets and cable (`stacks`, by stack type) and parts (`parts`,
-by prototype): stock parts, power cells, medkits, toolboxes, boards, gold and uranium for the late levels. Whatever lies
-on the outpost counts, in crates and lockers too, and starting the level uses it up. The Hideout tab shows each
-requirement as held / needed. Founding an outpost takes only its kit, bought with credits.
+Buildings are bought at the console's Hideout tab, for money only. A purchase leaves a survey stake at the console, and
+the stake lays the building wherever its owner points it. Any building can be bought again; a hangar that already
+stands can't, since an outpost holds one of each.
 
-**Shells.** Alt-use on a module's stake switches it to lay a shell: floors, walls, windows, doors, power and lighting,
-and a bay's cranes and console. Its machines come packed to set out by hand, and what its furniture was worth is paid
-back to furnish it as the owner likes. The prefabs are a basis to build on, not a finished room.
+**Shells.** Alt-use on a stake switches it to lay a shell: floors, walls, windows, doors, power and lighting, and a
+bay's cranes and console. Its machines come packed to set out by hand, and what its furniture was worth is paid back to
+furnish it as the owner likes. The prefabs are a basis to build on, not a finished room.
 
-**Sprawl.** Groundworks is what lets an outpost grow into a RimWorld-sized base: each level adds floor (1,000, 2,000,
-4,000), objects, and how far across the outpost may spread (64 tiles at first, then 96, 128 and 192). The rest is built
-by hand with foundation plates, walls and gizmos, or laid with module stakes.
+**Sprawl.** A hideout has room to grow into a RimWorld-sized base from the start: 4,000 floor tiles, 2,500 objects and
+128 tiles across (a plain outpost has 1,600, 2,000 and 64), and ten cryopods. A company's has 1,600 tiles, 1,000 objects
+and six cryopods more. Objects are kept down on purpose: with 160 outposts standing they are what the server pays for. These are `wfHideoutRules` in `modules.yml`. The rest is built by hand with foundation plates,
+walls and gizmos, painted from the Blueprint tab, or laid with stakes.
+
+## What an outpost keeps
+
+Everything built is saved: every tile, wall, door, machine, piece of furniture and decal in the claim. Goods are not.
+Of what lies about or sits in lockers, crates and shelves, a save keeps nothing, so nobody starts a round on a
+stockpile.
+
+The exception is a **safe** (`safes.yml`, laid from the Blueprint tab's Safes shelf). What a safe holds is saved with
+the outpost. Safes take **storage points**, of which an outpost has 10:
+
+| Safe | Grid | Largest item | Points | Price |
+|---|---|---|---|---|
+| Lockbox | 4 x 3 | Small | 2 | 22,500 |
+| Safe | 6 x 4 | Normal | 5 | 90,000 |
+| Vault safe | 8 x 6 | Large | 10 | 300,000 |
+
+A safe laid past the points is refused by the blueprint; one that ends up past them some other way says so when
+examined, and keeps nothing. Safes are counted in a fixed order (the outpost's before its basement's, then by tile), so
+a save and the load after it agree on which ones count.
+
+**The whitelist.** A safe takes materials (anything stacked), tools, seeds and produce, clothing, paper, instruments,
+hand lights and power cells. It never takes guns, ammunition, armour, explosives, grenades, stun batons, anything that
+is itself a container, or what a safety deposit box keeps out (IDs, cash, keys, implants, boards, contraband). This is
+a first list for review; it is the `whitelist` and `blacklist` of `WFHideoutSafeBase`. Food is not listed because its
+component only exists on the server, which a storage whitelist can't name; it needs a tag if it is wanted.
+
+Three things stay without a safe: survey stakes and packed machines, which were paid for at the console or the
+outfitter, and the loose decoration a prefab or the blueprint set out (plushies, candles, clutter), though not anything
+put inside it.
 
 ## Where outposts go
 
@@ -64,34 +96,26 @@ Carcinoma's are removed.
 Open: three lots a world is 15 across the five worlds. If more outposts than that are loaded in a round, the rest fall
 back to a random clear site, which is less secluded. Raising `outpostLots` is a one-line change per world.
 
-## Modules
+## Buildings
 
-| Module | Levels | What it gives | Total |
-|---|---|---|---|
-| Groundworks | 4 | Opens everything else; raises the floor and object caps | 2,775,000 |
-| Hangar | 4 | The hangar apron and beacon; wider ships and cheaper insurance by level | 5,220,000 |
-| Powerhouse | 3 | Batteries, solar and wind; later RTGs and a fuel generator | 1,375,000 |
-| Quarters | 3 | Bunkhouse with a cryopod; more cryopods allowed by level | 1,210,000 |
-| Workshop | 3 | Fabricator shed; later the parts press, silos, mining bots, power exporter | 1,540,000 |
-| Medbay | 2 | Medical beds, stasis bed; later an organics printer | 560,000 |
-| Vault | 2 | Strongroom with deposit boxes and a deposit terminal | 1,000,000 |
-| Defences | 3 | Warning masts and turrets; later flak and an orbital battery | 3,380,000 |
-| Company wing (company only) | 3 | Meeting hall, more floor, more cryopods | 12,000,000 |
+| Building | Price | What it lays |
+|---|---|---|
+| Faction hangar | 250,000 | A 21-tile apron with a hangar beacon, cranes and a refit console |
+| Shipwright bay | 500,000 | A 25-tile apron with a beacon, cranes and the shipwright console |
+| Quarters | 60,000 | Bunkhouse, cabin or dormitory, with a cryopod |
+| Canteen | 90,000 | Mess hall or diner |
+| Lounge | 150,000 | Bar or rec room |
+| Library | 100,000 | Reading room or study |
+| Garden | 40,000 | Courtyard or walk |
+| Powerhouse | 75,000 | Battery house or generator shed |
+| Workshop | 90,000 | Machine shop or garage |
+| Farm | 120,000 | Greenhouse or open field |
+| Medbay | 110,000 | Ward or clinic |
+| Vault | 200,000 | Strongroom or counting house |
+| Company wing (company only) | 1,500,000 | Hall or lodge |
 
-A full personal outpost is about 17 million. Level 1 of everything is about 860,000, which is the "lived in" stage most
-players will reach; the last levels are the long sink. All numbers live in `modules.yml` and are first guesses.
-
-Build times run from one minute to an hour and only tick while the outpost stands in a round, so a long build spans
-rounds. Tarkov's real-time timers that run while you are offline were considered and left out: they reward waiting,
-not playing.
-
-Each level is one of two kinds:
-
-- A **prefab** level leaves a survey stake at the console. The owner points it at open ground in their claim and the
-  building is laid there, front toward them. Where it goes is theirs to choose, which is what makes two outposts look
-  different.
-- A **grant** level leaves packed machines at the console (the outpost gizmos that already exist) for the owner to
-  set up where they like.
+Further machines (RTGs, cryopods, turrets, masts, silos) come from the outpost outfitter and the Trade tab, as before.
+All numbers live in `modules.yml`.
 
 ## The hangar and the ship
 
@@ -103,12 +127,11 @@ over rounds is the point.
 - A registered ship that is destroyed away from home is **lost**. It does not come back.
 - **Ship insurance** stores the ship as it stands on the pad, for a share of its value. A claim brings that ship back
   on the pad for a share of the insured value and uses the policy up, whether the ship was lost or only damaged.
-  Hangar levels lower both shares (25% and 20% down to 10% and 10%).
+  The shares are 20% and 15% (`insurancePremium` and `insuranceDeductible`).
 - A stored ship has no deed, so it can't be sold at a shipyard. A ship registered in the round it was bought still has
   its deed; selling it forgets it.
 
-The pad starts 9 tiles across and goes to 13, 17 and 21 with the Hangar's levels; each level hands out foundation
-plates to widen the apron.
+The faction hangar's pad is 21 tiles across and the shipwright bay's 25, the size of their aprons.
 
 ## Two kinds of hangar
 
@@ -133,7 +156,7 @@ cranes are the Drydock module's: every build and refit is a crane job, so it is 
 out, sparks and tool sounds, and it stops if the hull leaves the pad.
 
 **Refit points.** A hull's budget is its frame's points, or for a hull built by hand 8 plus a point per 10 floor tiles
-(at most 30); the bay's levels add 0, 8 and 16. Guns take points by the hardpoint size they need (1, 2, 4, 8, 16 from
+(at most 30). Guns take points by the hardpoint size they need (1, 2, 4, 8, 16 from
 superlight to superheavy). Systems take their own points:
 
 | Category | Systems |
@@ -148,7 +171,7 @@ role split (Combat, Industry, Logistics) is the next step once the totals feel r
 
 **Frames.** 26 stock hulls from the civilian and faction shipyards, from the Rook (51 tiles) to the Tanuki (346), at
 about 60% of the ship's price. The largest frame is the ceiling: no shipwright ship's budget goes past its 35 points,
-however many the bay's levels add, and no hand-built hull bigger than its floor registers. The cranes
+and no hull bigger than its floor registers or is grown. The cranes
 build a frame from a single keel tile: every tile, then everything that was anchored on it, without its guns and
 systems. A frame refits at half a repair's crane time, a hull built by hand at one and a half, so frames are the fast
 road and custom hulls the free one.
@@ -183,7 +206,19 @@ thruster, gyroscope and power part tiers, and atmospheric thrusters, fitted by t
 Anything else a ship needs is built aboard by hand, and certified at the bay on a custom ship.
 
 **The console.** The bay console lists the hull's hardpoints with a gun picker each, the systems with a count each, the
-points before and after, and the price, and enables Apply when the refit fits. With the bay empty it lists the frames.
+points before and after, and the price, and enables Apply when the refit fits.
+
+**Picking a frame.** With the bay empty the console is a frame picker, after the mapping palette: a search box and a
+class filter (civilian, civilian military, faction) over the frames, and beside the list the picked frame drawn whole
+in the ship previewer with its points and price. Build has the cranes put it up.
+
+**Changing the hull.** Interior opens the blueprint over the hull. On a shipwright ship, floor painted out from the
+hull's edge grows it, for 1,500 a tile on top of the floor (`hullTilePrice`), while every new tile joins the hull, stays
+on the bay's pad and the hull stays under the largest frame's floor. Walls, doors, furniture and decorations go
+anywhere on it, and the removal brush takes out whatever is anchored there, the frame's own walls and fittings
+included, but not hardpoints, guns, fitted systems or what runs under the floor. Nothing is paid back. Hull tiles
+can't be taken away yet, since a cut could split the ship in two. So a frame is a starting point to rebuild as its owner pleases; what stops an omniship is the refit
+points, which nothing at Interior adds to. A faction hangar's ship keeps its shape.
 
 ## Outposts
 
@@ -246,8 +281,16 @@ A shelf marked `under` shares a tile with whatever else stands there: rugs, and 
 turned the way the plan faces, up to eight a tile, and a Remove decals brush takes them off.
 
 The shipwright console and the faction hangar's console have an Interior button that opens the same blueprint over
-the hull in the bay. On a ship, floor only re-lays the hull's own tiles and roofs can't be painted; walls, doors,
-furniture, decorations and decals go anywhere on it. Nothing a brush lays is a gun or a system, so the fit and its
+the hull in the bay. On a ship roofs can't be painted and safes can't be laid (a ship has strongboxes); walls, doors,
+furniture, decorations and decals go anywhere on it. Floor grows a shipwright hull (see The shipwright bay) and only
+re-lays a faction ship's own tiles.
+
+More shelves are listed by `Tools/_WF/Hideouts/shelves.py` from the prototypes matching its patterns: more chairs,
+tables, counters and shelves, beds and instruments, a bathroom, palms and firs, crystals and stone, curtains, mirrors
+and clocks, every poster, sign and bar sign, clutter, and plushies, figurines and candles. The palette holds about 970
+decorations in all. Re-run it after a merge brings new ones.
+
+The server prices the palette once (`BrushPrices`) and not on every canvas and plan. Nothing a brush lays is a gun or a system, so the fit and its
 points are untouched.
 
 ## Saving and loading
@@ -267,6 +310,14 @@ Loading is still done at once, on a paused staging map, when the owner's outpost
 a round for each outpost. The engine's deserialiser has no way to load part of a file, so spreading it would mean
 saving an outpost as several files and landing them in turn.
 
+## Scale
+
+Outposts are planned for 160 or more standing at once. What is built for that: autosave checks one outpost a second;
+a landing save is parsed on the
+worker that unpacks it (`ParseSave`); the round's last saves are taken one outpost a tick through the post-round lobby
+and the rest as it ends (`UpdateLastSaves`); the palette is priced once. What is not yet: loading in pieces, leaving
+loose goods out of the save file, and stowing outposts nobody is at. `DIRECTION.md` lists both.
+
 ## Trade
 
 Every outpost founded from the registry comes with a hideout trade hub packed at its console. It runs off its own
@@ -276,8 +327,8 @@ could only be ordered with a hub already standing.
 
 ## Testing
 
-`wfhideouttest` (admin) builds a world of its own, stands the caller on it beside a founded outpost with every module
-built, the shipwright bay (at its widest), the faction hangar, quarters and workshop laid, a stock Guppy on the hangar
+`wfhideouttest` (admin) builds a world of its own, stands the caller on it beside a founded outpost with the shipwright
+bay, the faction hangar, quarters and workshop laid, a stock Guppy on the hangar
 pad to register, and 50 million thalers.
 
 `wfhideouttest gallery` builds the same world as a gallery instead: paved streets round the outpost with every layout
@@ -287,21 +338,18 @@ command grows the ground under its patch first, since a world only grows ground 
 
 ## Company outposts
 
-Built so far: an outpost founded by a member of a company is that company's (Outposts already does this), and modules
-marked `company` only build there. The Company wing is the one company module.
+Built so far: an outpost founded by a member of a company is that company's (Outposts already does this), has more
+floor, objects and cryopods, and buys the modules marked `company`. The Company wing is the one company module.
 
 Planned, in the order they are worth building:
 
-1. **Shared purse.** A company outpost's levels are paid from the company account (`WolfgateCompany`), by members
+1. **Shared purse.** A company outpost's buildings are paid from the company account (`WolfgateCompany`), by members
    whose rank allows it, so the sink is a team effort.
 2. **More hangars.** One hangar ship per account stays the rule; a company outpost gets a Hangar annex module whose
-   levels add pads, each registered to a member. Needs the stored ship keyed to a pad as well as an account.
-3. **Company-only top levels.** A fourth Powerhouse and Defences level, a drydock bay that repairs a parked ship over
-   time, a trade office that posts the company's contracts.
-4. **Themes.** A theme swaps the walls, floors and furniture a prefab is laid with (frontier timber, corporate white,
-   military concrete, salvage). The prefab layouts stay the same; `build_prefabs.py` writes one grid per theme from the
-   same layout, and the module level picks the grid by the outpost's theme. Personal outposts get the plain themes for
-   a fee, companies get their own colours.
+   purchases add pads, each registered to a member. Needs the stored ship keyed to a pad as well as an account.
+3. **Company-only buildings.** A drydock bay that repairs a parked ship over time, a trade office that posts the
+   company's contracts.
+4. **Company colours.** Themes of a company's own, on top of the six every stake offers.
 5. **Standing.** A company outpost counts double toward its world's development (Colonies), so a company has a reason
    to settle one world rather than spread.
 
@@ -309,22 +357,19 @@ Planned, in the order they are worth building:
 
 - Planet birds (`WFMobBirdVerdaSongbird`) trip a PVS "empty state" error log during long planet tests; the hideout tests
   clear them off their world. The cause in the Birds module is not found yet.
-- The outpost save cost grows with sprawl: a maxed outpost can hold over 4,000 objects, about a second of main-thread
-  work per save at Outposts' benchmark. Saves may need to be spread over ticks.
-
 - Refit roles: one shared pool of points today; splitting it by role is planned.
 - A frame build that is called off leaves the half-built hull on the pad, registered or not. It can be registered
   and refitted like any hull, but nothing finishes the frame for it.
 - Frames are rebuilt from prototypes, so device links on the stock ship (door buttons, for instance) don't come with
   them.
 
-- Object caps. Groundworks, the Vault and the Company wing raise the object cap from 2,000 to as much as 4,250. A save
-  costs about 0.21 ms an object on the main thread (Outposts' save benchmark), so a full company outpost is a hitch of
-  nearly a second on every save. The cap bumps may need to come down, or saves need to be split across ticks.
-- Prefabs have no preview outline yet. The stake refuses with a reason; an outline like the save-load one
-  (`WFOutpostPendingLoadOverlay`) would be better.
+- Farming. Botany is to be rebuilt toward Stardew Valley-style farming, which the Farm building and the safes' seeds
+  and produce are there for.
+- The safe whitelist is a first guess, and food isn't on it.
+- A saved outpost's file still holds its loose goods; they are taken off when it loads. Dropping them at save time
+  would make the files smaller.
 - A prefab can't be moved once laid. Its parts can be taken apart like anything built by hand.
 - Insurance prices the ship at what a save keeps of it (no cash, no mobs). Cargo aboard counts, so insuring a full hold
   is a way to keep cargo; whether that is wanted or needs a cargo exclusion is undecided.
-- Selling an outpost pays for its anchored structures, so a prefab laid from a paid level sells for a fraction of the
+- Selling an outpost pays for its anchored structures, so a prefab sells for a fraction of what its building cost.
   level's price. Levels are not refunded.

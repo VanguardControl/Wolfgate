@@ -77,6 +77,17 @@ public record struct WFOutpostConsoleStateEvent(Content.Shared._WF.Outposts.WFOu
 [ByRefEvent]
 public record struct WFOutpostCapsEvent(int Tiles, int Entities, int Span);
 
+/// <summary>
+/// Raised as a save, a load, an appraisal or a fingerprint walks an outpost grid, for what a save leaves behind though
+/// nothing about the thing itself rules it out; a module adds those entities to <see cref="Cargo"/>.
+/// </summary>
+[ByRefEvent]
+public record struct WFOutpostCargoEvent(EntityUid Grid, HashSet<EntityUid> Cargo);
+
+/// <summary>Raised with a prefab's staged grid just before what stands on it moves onto an outpost.</summary>
+[ByRefEvent]
+public record struct WFOutpostPrefabLaidEvent(EntityUid Grid);
+
 /// <summary>Raised on a landing pad once a hull has come to rest on it.</summary>
 [ByRefEvent]
 public record struct WFPadDockedEvent(EntityUid Hull);

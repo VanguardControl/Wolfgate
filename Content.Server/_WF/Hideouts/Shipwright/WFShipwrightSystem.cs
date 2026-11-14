@@ -138,32 +138,8 @@ public sealed partial class WFShipwrightSystem : EntitySystem
         return ceiling;
     }
 
-    /// <summary>Refit points the outpost's built levels add to its shipwright ship.</summary>
-    public int BayPoints(EntityUid outpost)
-    {
-        if (!TryComp<WFHideoutComponent>(outpost, out var hideout))
-            return 0;
-
-        var points = 0;
-        foreach (var (id, level) in hideout.Levels)
-        {
-            if (!_proto.TryIndex<WFHideoutModulePrototype>(id, out var module))
-                continue;
-
-            for (var i = 0; i < level && i < module.Levels.Count; i++)
-            {
-                points += module.Levels[i].ShipwrightPoints;
-            }
-        }
-
-        return points;
-    }
-
-    /// <summary>
-    /// Counts what a hull carries against its refit points. <paramref name="outpost"/> is the outpost whose bay it stands
-    /// in, for the bay's bonus; without one, the hull's owner's outpost counts.
-    /// </summary>
-    public WFShipwrightSurvey Survey(EntityUid hull, EntityUid? outpost = null)
+    /// <summary>Counts what a hull carries against its refit points.</summary>
+    public WFShipwrightSurvey Survey(EntityUid hull)
     {
         var survey = new WFShipwrightSurvey();
         var ship = CompOrNull<WFShipwrightShipComponent>(hull);
@@ -180,11 +156,6 @@ public sealed partial class WFShipwrightSystem : EntitySystem
             survey.Budget = frame.Points;
         else
             survey.Budget = rules.CustomPoints + Math.Min(rules.SizePointsCap, survey.Tiles / Math.Max(1, rules.TilesPerPoint));
-
-        if (outpost == null && TryComp<WFHideoutShipComponent>(hull, out var owned) && _outposts.TryGetOutpost(owned.Owner, out var home))
-            outpost = home;
-        if (outpost != null)
-            survey.Budget += BayPoints(outpost.Value);
 
         // No custom ship goes past the largest frame.
         survey.Budget = Math.Min(survey.Budget, Ceiling());

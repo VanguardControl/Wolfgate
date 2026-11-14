@@ -1,0 +1,79 @@
+# The palette's first dropdown: each category holds palette sections (a brush's or a shelf's `group`). A section no
+# category lists falls under Other.
+
+- type: wfBlueprintCategory
+  id: WFBlueprintCategoryBuild
+  name: wf-blueprint-category-build
+  order: 0
+  groups:
+  - wf-blueprint-group-floors
+  - wf-blueprint-group-hull-floors
+  - wf-blueprint-group-more-floors
+  - wf-blueprint-group-walls
+  - wf-blueprint-group-doors
+  - wf-blueprint-group-power
+  - wf-blueprint-group-tools
+
+- type: wfBlueprintCategory
+  id: WFBlueprintCategoryShip
+  name: wf-blueprint-category-ship
+  order: 1
+  groups:
+  - wf-blueprint-group-ship-hull
+  - wf-blueprint-group-ship-machines
+  - wf-blueprint-group-ship-fittings
+
+- type: wfBlueprintCategory
+  id: WFBlueprintCategoryStorage
+  name: wf-blueprint-category-storage
+  order: 2
+  groups:
+  - wf-blueprint-group-safes
+
+- type: wfBlueprintCategory
+  id: WFBlueprintCategoryFurniture
+  name: wf-blueprint-category-furniture
+  order: 3
+  groups:
+  - wf-blueprint-group-furniture
+  - wf-blueprint-group-more-furniture
+  - wf-blueprint-group-seating
+  - wf-blueprint-group-tables
+  - wf-blueprint-group-bedroom
+  - wf-blueprint-group-bathroom
+  - wf-blueprint-group-lights
+  - wf-blueprint-group-hearth
+
+- type: wfBlueprintCategory
+  id: WFBlueprintCategoryDecor
+  name: wf-blueprint-category-decor
+  order: 4
+  groups:
+  - wf-blueprint-group-plants
+  - wf-blueprint-group-rocks
+  - wf-blueprint-group-statues
+  - wf-blueprint-group-fences
+  - wf-blueprint-group-banners
+  - wf-blueprint-group-rugs
+  - wf-blueprint-group-clutter
+  - wf-blueprint-group-keepsakes
+
+- type: wfBlueprintCategory
+  id: WFBlueprintCategoryWalls
+  name: wf-blueprint-category-walls
+  order: 5
+  groups:
+  - wf-blueprint-group-wall-art
+  - wf-blueprint-group-posters
+  - wf-blueprint-group-signs
+  - wf-blueprint-group-bar-signs
+
+- type: wfBlueprintCategory
+  id: WFBlueprintCategoryDecals
+  name: wf-blueprint-category-decals
+  order: 6
+  groups:
+  - wf-blueprint-group-decal-markings
+  - wf-blueprint-group-decal-trim
+  - wf-blueprint-group-decal-nature
+  - wf-blueprint-group-decal-wear

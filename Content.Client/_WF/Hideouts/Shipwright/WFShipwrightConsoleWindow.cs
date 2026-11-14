@@ -1,10 +1,12 @@
 using System.Linq;
 using System.Text;
+using Content.Client._WF.ShipPreview;
 using Content.Shared._Crescent.Hardpoints;
 using Content.Shared._WF.Hideouts.Shipwright;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
+using Robust.Shared.ContentPack;
 using Robust.Shared.Prototypes;
 
 namespace Content.Client._WF.Hideouts.Shipwright;
@@ -18,6 +20,7 @@ public sealed class WFShipwrightConsoleWindow : DefaultWindow
 {
     [Dependency] private IComponentFactory _factory = default!;
     [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private IResourceManager _resources = default!;
 
     private static readonly Color GoodColor = Color.FromHex("#6FCF6F");
     private static readonly Color BadColor = Color.FromHex("#E05A4F");
@@ -53,6 +56,12 @@ public sealed class WFShipwrightConsoleWindow : DefaultWindow
 
     /// <summary>The count picked for each system, where it differs from what is fitted.</summary>
     private readonly Dictionary<string, int> _systems = new();
+
+    /// <summary>The frame picker's search text, class filter and picked frame.</summary>
+    private string _frameSearch = string.Empty;
+    private string? _frameClass;
+    private string? _frame;
+    private ShipPreviewControl? _framePreview;
 
     private Vector2i? _selected;
     private WFShipwrightHullMap? _map;
@@ -140,6 +149,8 @@ public sealed class WFShipwrightConsoleWindow : DefaultWindow
 
     private void Build(WFShipwrightConsoleState state)
     {
+        _framePreview?.Release();
+        _framePreview = null;
         _body.RemoveAllChildren();
         _points = null;
         _apply = null;
@@ -258,23 +269,118 @@ public sealed class WFShipwrightConsoleWindow : DefaultWindow
         UpdatePreview();
     }
 
+    /// <summary>
+    /// The frame picker, after the mapping palette: a search box and a class filter over the list of frames, and beside
+    /// it the picked frame drawn whole with its points, price and what its points buy.
+    /// </summary>
     private void BuildFrames(WFShipwrightConsoleState state)
     {
         _body.AddChild(Secondary(Loc.GetString("wf-shipwright-ui-empty")));
-        _body.AddChild(Heading(Loc.GetString("wf-shipwright-ui-frames")));
         if (!state.CanBuildFrame)
-            _body.AddChild(Secondary(Loc.GetString("wf-shipwright-ui-frame-slot-taken")));
+            _body.AddChild(new Label { Text = Loc.GetString("wf-shipwright-ui-frame-slot-taken"), FontColorOverride = BadColor });
 
-        foreach (var frame in _proto.EnumeratePrototypes<WFShipwrightFramePrototype>().OrderBy(f => f.Order).ThenBy(f => f.ID))
+        var frames = _proto.EnumeratePrototypes<WFShipwrightFramePrototype>().OrderBy(f => f.Order).ThenBy(f => f.ID).ToList();
+        var split = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 8, VerticalExpand = true };
+
+        var left = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 4, MinWidth = 280 };
+        left.AddChild(Heading(Loc.GetString("wf-shipwright-ui-frames")));
+        var search = new LineEdit { PlaceHolder = Loc.GetString("wf-shipwright-ui-frame-search"), Text = _frameSearch };
+        left.AddChild(search);
+        var classes = new OptionButton { HorizontalExpand = true };
+        var classIds = frames.Select(f => f.Class.Id).Distinct().ToList();
+        classes.AddItem(Loc.GetString("wf-shipwright-class-all"), 0);
+        for (var i = 0; i < classIds.Count; i++)
+            classes.AddItem(Loc.GetString(classIds[i]), i + 1);
+        classes.SelectId(Math.Max(0, classIds.IndexOf(_frameClass ?? string.Empty) + 1));
+        left.AddChild(classes);
+        var list = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 2 };
+        left.AddChild(list);
+        split.AddChild(left);
+
+        var right = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 4, HorizontalExpand = true };
+        var title = Heading(string.Empty);
+        var about = new RichTextLabel { HorizontalExpand = true };
+        var stats = new Label();
+        _framePreview?.Release();
+        _framePreview = new ShipPreviewControl { MinHeight = 300, VerticalExpand = true, HorizontalExpand = true };
+        var build = new Button();
+        right.AddChild(title);
+        right.AddChild(stats);
+        right.AddChild(_framePreview);
+        right.AddChild(about);
+        right.AddChild(build);
+        split.AddChild(right);
+        _body.AddChild(split);
+
+        build.OnPressed += _ =>
         {
-            var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
-            row.AddChild(new Label { Text = Loc.GetString(frame.Name) });
-            row.AddChild(Secondary(Loc.GetString(frame.Description)));
-            var id = frame.ID;
-            row.AddChild(Button(Loc.GetString("wf-shipwright-ui-frame-build", ("price", frame.Price)),
-                !state.CanBuildFrame || state.Blocked != null || frame.Price > state.Balance, () => OnBuildFrame?.Invoke(id)));
-            _body.AddChild(row);
+            if (_frame != null)
+                OnBuildFrame?.Invoke(_frame);
+        };
+
+        void Show(WFShipwrightFramePrototype frame)
+        {
+            _frame = frame.ID;
+            var name = Loc.GetString(frame.Name);
+            title.Text = name;
+            stats.Text = Loc.GetString("wf-shipwright-ui-frame-stats", ("points", frame.Points), ("price", frame.Price),
+                ("class", Loc.GetString(frame.Class)));
+            about.SetMessage(Loc.GetString(frame.Description));
+            build.Text = Loc.GetString("wf-shipwright-ui-frame-build", ("price", frame.Price));
+            build.Disabled = !state.CanBuildFrame || state.Blocked != null || frame.Price > state.Balance;
+            if (_resources.ContentFileExists(frame.Grid))
+                _framePreview!.SetGridText($"/WFShipwrightFrame/{frame.ID}.yml", _resources.ContentFileReadAllText(frame.Grid), name);
+            else
+                _framePreview!.ShowMessage("wf-outpost-preview-failed");
         }
+
+        void Fill()
+        {
+            list.RemoveAllChildren();
+            var shown = frames.Where(f => (_frameClass == null || f.Class.Id == _frameClass)
+                                          && (_frameSearch.Length == 0
+                                              || Loc.GetString(f.Name).Contains(_frameSearch, StringComparison.CurrentCultureIgnoreCase))).ToList();
+            foreach (var frame in shown)
+            {
+                var picked = frame;
+                var row = new Button
+                {
+                    Text = Loc.GetString("wf-shipwright-ui-frame-row", ("name", Loc.GetString(frame.Name)), ("points", frame.Points), ("price", frame.Price)),
+                    ToggleMode = true,
+                    Pressed = frame.ID == _frame,
+                    ClipText = true,
+                    HorizontalExpand = true,
+                };
+                row.Label.Align = Label.AlignMode.Left;
+                row.OnPressed += _ =>
+                {
+                    Show(picked);
+                    Fill();
+                };
+                list.AddChild(row);
+            }
+
+            if (shown.Count == 0)
+                list.AddChild(Secondary(Loc.GetString("wf-shipwright-ui-frame-none")));
+        }
+
+        search.OnTextChanged += args =>
+        {
+            _frameSearch = args.Text.Trim();
+            Fill();
+        };
+        classes.OnItemSelected += args =>
+        {
+            classes.SelectId(args.Id);
+            _frameClass = args.Id == 0 ? null : classIds[args.Id - 1];
+            Fill();
+        };
+
+        if (frames.FirstOrDefault(f => f.ID == _frame) is { } current)
+            Show(current);
+        else if (frames.Count > 0)
+            Show(frames[0]);
+        Fill();
     }
 
     /// <summary>The hardpoint list: each mount with its type and gun pickers, then the new ones placed on the plan.</summary>

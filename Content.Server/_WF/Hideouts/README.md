@@ -1,45 +1,53 @@
 # Hideouts
 
-Turns a player's outpost (module Outposts) into a home that is bought up level by level: modules with prices, build
-times and prerequisites, and a hangar that keeps one ship of the owner's between rounds, with insurance on it. The
-design, the numbers and the company outpost plan are in `Docs/_WF/Hideouts/DESIGN.md`; the prefabs are drawn in
-`Docs/_WF/Hideouts/prefabs.png`.
+Turns a player's outpost (module Outposts) into a home: buildings bought outright and laid from survey stakes, a
+blueprint to paint the rest, safes that are the only goods a save keeps, and a hangar that keeps one ship of the
+owner's between rounds, with insurance on it. The design and the numbers are in `Docs/_WF/Hideouts/DESIGN.md`, what is
+done and what is next in `Docs/_WF/Hideouts/DIRECTION.md`; the prefabs are drawn in `Docs/_WF/Hideouts/prefabs.png`.
 
-Players use the outpost console's Hideout tab (`WFHideoutPanel`, off with `wf.hideouts.enabled`). Admins have
-`wfhideout finish <player>` and `wfhideout setlevel <player> <module> <level>`.
+Players use the outpost console's Hideout and Blueprint tabs (`WFHideoutPanel`, `WFBlueprintPanel`, off with
+`wf.hideouts.enabled`). Admins have `wfhideouttest` (`WFHideoutTestCommand`), which builds a planetside test world with
+a ready outpost.
 
-Modules (`WFHideoutSystem`, `wfHideoutModule` in `Resources/Prototypes/_WF/Hideouts/modules.yml`): every outpost
-carries a `WFHideoutComponent` with the level of each module, saved with the outpost. The owner starts a module's next
-level (`TryBuild`) if the modules it needs stand and their bank covers its price; one level builds at a time, and its
-build time only runs while the outpost stands in a round. A finished level (`Complete`) leaves its grants at the
-console and adds to the outpost's caps: floor tiles and objects through `WFOutpostCapsEvent`, cryopods through
-`WFOutpostPodLimitEvent`. A module marked `company` is only built on an outpost founded under a company.
+Modules (`WFHideoutSystem`, `wfHideoutModule` in `Resources/Prototypes/_WF/Hideouts/modules.yml`): `TryBuy` takes a
+module's price from the owner's bank and leaves its survey stake (`WFHideoutSurveyStake`) and any `grants` at the
+console. Nothing is tracked on the outpost: a module can be bought again, except one whose `bay` already stands. Every
+outpost carries a `WFHideoutComponent` (its home world), and `wfHideoutRules` adds to its caps through
+`WFOutpostCapsEvent` and `WFOutpostPodLimitEvent`.
 
-Prefabs: a level with a `prefab` leaves a survey stake (`WFHideoutSurveyStake`) at the console. Used on open ground in
-the outpost's claim (`TryUseStake`), it lays the prefab's grid onto the outpost with `WFOutpostSystem.TryStampPrefab`:
-the prefab's bottom middle tile lands on the tile pointed at and it extends the way the user faces, with its roofs and
-everything on it. The prefab grids are written by `Tools/_WF/Hideouts/build_prefabs.py` from the layouts in it.
-A level may list `layouts`, other grids its stake can be set to from the same menu. A stake set to a theme (`wfHideoutTheme` in `themes.yml`, picked from the stake's alt-click menu) passes a
-`WFPrefabSkin` that swaps the prefab's walls, windows, doors and floors as they are laid, for the theme's price.
+Prefabs: a stake used on open ground in the outpost's claim (`TryUseStake`) lays its prefab's grid onto the outpost
+with `WFOutpostSystem.TryStampPrefab`: the prefab's bottom middle tile lands on the tile pointed at and it extends the
+way the user faces, with its roofs and everything on it. The prefab grids are written by
+`Tools/_WF/Hideouts/build_prefabs.py`. A module may list `layouts`, other grids its stake can be set to. A stake set to
+a theme (`wfHideoutTheme` in `themes.yml`, picked from the stake's alt-click menu) passes a `WFPrefabSkin` that swaps
+the prefab's walls, windows, doors and floors as they are laid, for the theme's price.
 
-The blueprint (`WFHideoutSystem.Blueprint`, the console's Blueprint tab, `WFBlueprintPanel` and `WFBlueprintCanvas`):
-a builder paints brushes (`wfBlueprintBrush` in `blueprint.yml`) onto a plan of the outpost and has it built at once
-for its price (`TryApplyBlueprint`). Floor goes through `WFOutpostSystem.PaintFloor`, roof through `PaintRoof`.
-The palette is every `wfBlueprintBrush` and every prototype on a `wfBlueprintCatalogue` shelf (`WFBlueprintCatalog`).
-`ApplyPlan` builds a plan on any grid; the shipwright consoles use it for a hull's interior (`OnInteriorApply`).
+Storage (`WFHideoutSystem.Storage`, `safes.yml`): Outposts raises `WFOutpostCargoEvent` whenever a save, a load, an
+appraisal or a fingerprint walks an outpost grid, and `OnCargo` answers with what a save leaves behind: loose items and
+crates, and what lockers and other storage hold. A safe (`WFHideoutStashComponent`) keeps what it holds while its
+points fit `stashPoints` (`KeptStashes`, counted in tile order so a save and its load agree). Stakes, packed machines
+and decoration (`WFHideoutDecorComponent`, set on loose items by `WFOutpostPrefabLaidEvent` and the blueprint) stay
+where they lie. What a safe takes is its `Storage` whitelist and blacklist.
+
+The blueprint (`WFHideoutSystem.Blueprint`): a builder paints brushes (`wfBlueprintBrush` in `blueprint.yml`) onto a
+plan of the outpost and has it built at once for its price (`TryApplyBlueprint`). Floor goes through
+`WFOutpostSystem.PaintFloor`, roof through `PaintRoof`. The palette is every `wfBlueprintBrush` and every prototype on
+a `wfBlueprintCatalogue` shelf (`WFBlueprintCatalog`); `blueprint_catalogue.yml`'s second half is written by
+`Tools/_WF/Hideouts/shelves.py`. The server prices it once (`BrushPrices`). `ApplyPlan` builds a plan on any grid; the
+shipwright consoles use it for a hull's interior (`OnInteriorApply`).
 
 Saving: a hideout answers `WFOutpostWantsSlotEvent`, so its outpost is given a save slot and autosaved without a
 manifest, over ticks (`WFOutpostSystem.SlicedSave`). `LeaveTradeHub` leaves a packed `WFHideoutTradeHub` at founding.
 
 The hangar (`WFHideoutSystem.Hangar`): the Hangar module's prefab is an apron with a hangar beacon
-(`WFHideoutHangarPad`, a landing pad that needs no power), whose widest size follows the module's level. The owner
-registers the hull parked there (`TryRegister`; it has to be theirs by deed or by account), one per account. A
-registered hull is serialised with `ShipyardSystem.TrySaveShipDeferred` every time it lands on its owner's hangar pad
-(`WFPadDockedEvent`) and once more at round end if it is home, into `wolfgate_hideout_ship`
-(`ServerDbManager.Hideouts`). When the owner's outpost next lands (`WFOutpostSettledEvent`), the ship is loaded,
-stripped like any loaded save and set on the pad (`TryPlaceStored`); `TryRecall` does the same from the console. It is
-the owner's through ship access by account and carries no deed, so it can't be sold at a shipyard; a hull registered
-while it still had a deed is forgotten if it is sold.
+(`WFHideoutHangarPad`, a landing pad that needs no power). The owner registers the hull parked there (`TryRegister`; it
+has to be theirs by deed or by account), one per account. A registered hull is serialised with
+`ShipyardSystem.TrySaveShipDeferred` every time it lands on its owner's hangar pad (`WFPadDockedEvent`) and once more
+at round end if it is home, into `wolfgate_hideout_ship` (`ServerDbManager.Hideouts`). When the owner's outpost next
+lands (`WFOutpostSettledEvent`), the ship is loaded, stripped like any loaded save and set on the pad
+(`TryPlaceStored`); `TryRecall` does the same from the console. It is the owner's through ship access by account and
+carries no deed, so it can't be sold at a shipyard; a hull registered while it still had a deed is forgotten if it is
+sold.
 
 Two kinds of hangar: the Hangar module's pad (a faction hangar) only registers a stock shipyard hull
 (`IsFactionHull`: a `VesselComponent`, and the owner's company if its listing names companies). The Shipwright module's
@@ -48,15 +56,17 @@ system that refuses a save sets `WFHideoutShipSaveAttemptEvent.Refusal`.
 
 Shipwright (`Shipwright/`, `WFShipwrightSystem`): a hull on a refit point budget (`Survey`). Guns take points by the
 hardpoint size they need, systems (`wfShipwrightSystem`, matched by prototype or component) their own; the budget is
-the frame's points, or the hand-built hull's size, plus the bay's levels (`shipwrightPoints`). Only parts marked
-`WFShipwrightFittedComponent` count as fitted: a gun that isn't won't fire on a shipwright ship (`ShotAttemptedEvent`
-on `HardpointAnchorableOnlyComponent`), and a hull that doesn't pass isn't saved. The console
-(`WFShipwrightSystem.Console`, client `WFShipwrightConsoleWindow`) is a drydock console whose cranes, linked when its
-window first opens (`LinkCranes`), do the work as drydock jobs: `TryBuildFrame` loads a `wfShipwrightFrame`'s grid onto
-the pad, strips it to a keel tile (`StripToKeel`) and queues every tile and part back on; `TryRefit` removes and
-installs guns and systems; `TryCertify` inspects hand-built parts. The drydock raises `WFDrydockPartInstalledEvent`
-and `WFDrydockPartInspectedEvent` on the hull, which mark parts fitted, and `WFDrydockJobEndedEvent` on the console,
-which registers a finished frame or saves a refitted ship. The numbers are `wfShipwrightRules` in `shipwright.yml`.
+the frame's points, or the hand-built hull's size. Only parts marked `WFShipwrightFittedComponent` count as fitted: a
+gun that isn't won't fire on a shipwright ship (`ShotAttemptedEvent` on `HardpointAnchorableOnlyComponent`), and a hull
+that doesn't pass isn't saved. The console (`WFShipwrightSystem.Console`, client `WFShipwrightConsoleWindow`) is a
+drydock console whose cranes, linked when its window first opens (`LinkCranes`), do the work as drydock jobs:
+`TryBuildFrame` loads a `wfShipwrightFrame`'s grid onto the pad, strips it to a keel tile (`StripToKeel`) and queues
+every tile and part back on; `TryRefit` removes and installs guns and systems; `TryCertify` inspects hand-built parts.
+The drydock raises `WFDrydockPartInstalledEvent` and `WFDrydockPartInspectedEvent` on the hull, which mark parts
+fitted, and `WFDrydockJobEndedEvent` on the console, which registers a finished frame or saves a refitted ship. The
+numbers are `wfShipwrightRules` in `shipwright.yml`. With the bay empty the window is a frame picker (`BuildFrames`):
+search, class filter and a preview of the frame's grid. `PaintHull` lets the interior plan grow a shipwright hull from
+its edge, on the bay and under `customMaxTiles`, for `hullTilePrice` a tile.
 
 Hardpoints (`TryRefit`'s other overload): swaps (`hardpoints`), removals and placements on free edge tiles
 (`FreeEdgeTiles`), priced and pointed by `mountPoints` and `mountPrices`; a frame's hardpoints carry
@@ -67,12 +77,10 @@ restored ship and `Appraise` leaves it out. A strongbox (`WFShipStashComponent`,
 contents stamped `WFShipSaveOriginComponent` by `StampStash`; outposts' `IsKept` leaves stamped items out and
 `IsKeptAnywhere` keeps them for the ship.
 
-Admins have `wfhideouttest` (`WFHideoutTestCommand`), which builds a planetside test world with a ready outpost.
-
 Insurance: `TryInsure` stores the parked ship as it stands for a share of its value. A registered hull deleted during a
 round is lost (`Lose`) and no longer comes back. `TryClaim` writes off whatever hull is out (no one may be aboard),
 makes the insured state the stored ship and sets it on the pad, for a share of the insured value; the policy is used
-up. The shares are the lowest `insurancePremium` and `insuranceDeductible` among the built levels.
+up. The shares are `insurancePremium` and `insuranceDeductible` in `wfHideoutRules`.
 
 <!-- WOLFGATE-GENERATED START -->
 <!-- Generated by python Tools/_WF/Ci/modules.py --write. Don't edit by hand. -->
@@ -86,14 +94,13 @@ up. The shares are the lowest `insurancePremium` and `insuranceDeductible` among
 - [`Content.Server/_WF/Hideouts/Shipwright/WFShipwrightSystem.Console.cs`](Shipwright/WFShipwrightSystem.Console.cs)
 - [`Content.Server/_WF/Hideouts/Shipwright/WFShipwrightSystem.cs`](Shipwright/WFShipwrightSystem.cs)
 - [`Content.Server/_WF/Hideouts/Shipwright/WFShipwrightSystem.Faction.cs`](Shipwright/WFShipwrightSystem.Faction.cs)
-- [`Content.Server/_WF/Hideouts/WFHideoutCommand.cs`](WFHideoutCommand.cs)
 - [`Content.Server/_WF/Hideouts/WFHideoutComponents.cs`](WFHideoutComponents.cs)
 - [`Content.Server/_WF/Hideouts/WFHideoutRegistrySystem.cs`](WFHideoutRegistrySystem.cs)
 - [`Content.Server/_WF/Hideouts/WFHideoutSystem.Blueprint.cs`](WFHideoutSystem.Blueprint.cs)
 - [`Content.Server/_WF/Hideouts/WFHideoutSystem.cs`](WFHideoutSystem.cs)
 - [`Content.Server/_WF/Hideouts/WFHideoutSystem.Hangar.cs`](WFHideoutSystem.Hangar.cs)
 - [`Content.Server/_WF/Hideouts/WFHideoutSystem.Home.cs`](WFHideoutSystem.Home.cs)
-- [`Content.Server/_WF/Hideouts/WFHideoutSystem.Materials.cs`](WFHideoutSystem.Materials.cs)
+- [`Content.Server/_WF/Hideouts/WFHideoutSystem.Storage.cs`](WFHideoutSystem.Storage.cs)
 - [`Content.Server/_WF/Hideouts/WFHideoutTestCommand.cs`](WFHideoutTestCommand.cs)
 
 ### Shared
@@ -133,8 +140,10 @@ up. The shares are the lowest `insurancePremium` and `insuranceDeductible` among
 
 - [`Resources/Prototypes/_WF/Hideouts/blueprint.yml`](../../../Resources/Prototypes/_WF/Hideouts/blueprint.yml)
 - [`Resources/Prototypes/_WF/Hideouts/blueprint_catalogue.yml`](../../../Resources/Prototypes/_WF/Hideouts/blueprint_catalogue.yml)
+- [`Resources/Prototypes/_WF/Hideouts/blueprint_categories.yml`](../../../Resources/Prototypes/_WF/Hideouts/blueprint_categories.yml)
 - [`Resources/Prototypes/_WF/Hideouts/entities.yml`](../../../Resources/Prototypes/_WF/Hideouts/entities.yml)
 - [`Resources/Prototypes/_WF/Hideouts/modules.yml`](../../../Resources/Prototypes/_WF/Hideouts/modules.yml)
+- [`Resources/Prototypes/_WF/Hideouts/safes.yml`](../../../Resources/Prototypes/_WF/Hideouts/safes.yml)
 - [`Resources/Prototypes/_WF/Hideouts/shipwright.yml`](../../../Resources/Prototypes/_WF/Hideouts/shipwright.yml)
 - [`Resources/Prototypes/_WF/Hideouts/themes.yml`](../../../Resources/Prototypes/_WF/Hideouts/themes.yml)
 
@@ -173,10 +182,12 @@ up. The shares are the lowest `insurancePremium` and `insuranceDeductible` among
 ### Tools
 
 - [`Tools/_WF/Hideouts/build_prefabs.py`](../../../Tools/_WF/Hideouts/build_prefabs.py)
+- [`Tools/_WF/Hideouts/shelves.py`](../../../Tools/_WF/Hideouts/shelves.py)
 
 ### Docs
 
 - [`Docs/_WF/Hideouts/DESIGN.md`](../../../Docs/_WF/Hideouts/DESIGN.md)
+- [`Docs/_WF/Hideouts/DIRECTION.md`](../../../Docs/_WF/Hideouts/DIRECTION.md)
 - [`Docs/_WF/Hideouts/prefabs.png`](../../../Docs/_WF/Hideouts/prefabs.png)
 
 ## Non-modular edits

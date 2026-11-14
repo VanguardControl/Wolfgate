@@ -30,6 +30,8 @@ public sealed class OutpostFoundationTest
     public async Task PlatesExtendTheOutpostNotTheGround()
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        // Plain outposts: a hideout has wider caps, a home's upkeep and keeps no loose goods.
+        await pair.Server.WaitPost(() => pair.Server.CfgMan.SetCVar(Content.Shared._WF.Hideouts.HideoutCVars.Enabled, false));
         var server = pair.Server;
         var entMan = server.EntMan;
         var (layers, user) = await OutpostFoundingTest.Setup(pair);

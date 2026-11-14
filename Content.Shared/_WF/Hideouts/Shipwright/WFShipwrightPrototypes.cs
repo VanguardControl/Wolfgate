@@ -83,9 +83,13 @@ public sealed partial class WFShipwrightFramePrototype : IPrototype
     [DataField(required: true)]
     public int Price;
 
-    /// <summary>The frame's refit points before the bay's levels add to them.</summary>
+    /// <summary>The frame's refit points.</summary>
     [DataField(required: true)]
     public int Points;
+
+    /// <summary>The shipyard class the picker lists it under.</summary>
+    [DataField]
+    public LocId Class = "wf-shipwright-class-civilian";
 
     [DataField]
     public int Order;
@@ -144,9 +148,13 @@ public sealed partial class WFShipwrightRulesPrototype : IPrototype
     [DataField]
     public int SizePointsCap = 30;
 
-    /// <summary>Most floor tiles a hand-built hull may have to register: the largest frame's.</summary>
+    /// <summary>Most floor tiles a shipwright hull may have, to register or to be grown to: the largest frame's.</summary>
     [DataField]
     public int CustomMaxTiles = 346;
+
+    /// <summary>What each tile a hull grows by costs at the Interior plan, on top of its floor.</summary>
+    [DataField]
+    public int HullTilePrice = 1500;
 
     /// <summary>Work time of each crane item on a frame, against a repair's.</summary>
     [DataField]

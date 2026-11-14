@@ -237,7 +237,8 @@ drops of any outpost on its world whose own hubs can't.
 Other modules keep state in a save through events on the outpost (`WFOutpostEvents.cs`): `WFOutpostSavingEvent` and
 `WFOutpostSavedEvent` round the serialisation, `WFOutpostSettledEvent` once a loaded save has landed, and
 `WFOutpostAppraiseEvent` and `WFOutpostFingerprintEvent` for its value and change check. Husbandry keeps penned livestock
-this way.
+this way. `WFOutpostCargoEvent` asks, per grid walked, for what a save leaves behind (`Kept`); Hideouts answers with
+every loose or stored good outside a safe.
 
 Foundation rock (`WFOutpostSystem.FoundationRock.cs`): the cavern under an outpost's claim loads as foundation rock
 (`WFOutpostFoundationRock`, laid by the biome loader through `BiomeSystem.Foundation.cs` from the cavern's

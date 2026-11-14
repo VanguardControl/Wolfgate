@@ -35,6 +35,8 @@ public sealed class OutpostBasementTest
     public async Task HatchDigsABasementThatSavesAndLoads()
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        // Plain outposts: a hideout saves itself from the start, which would be under way as this loads by hand.
+        await pair.Server.WaitPost(() => pair.Server.CfgMan.SetCVar(Content.Shared._WF.Hideouts.HideoutCVars.Enabled, false));
         var server = pair.Server;
         var entMan = server.EntMan;
         var maps = server.System<SharedMapSystem>();

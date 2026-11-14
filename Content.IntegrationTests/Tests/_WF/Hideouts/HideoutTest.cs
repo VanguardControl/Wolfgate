@@ -15,7 +15,6 @@ using Content.Shared._NF.Bank.Components;
 using Content.Shared._WF.Hideouts;
 using Content.Shared._WF.Outposts;
 using Content.Shared.Preferences;
-using Content.Shared.Stacks;
 using Content.Shared.Storage;
 using Content.Shared.Storage.EntitySystems;
 using Robust.Shared.EntitySerialization.Systems;
@@ -28,12 +27,11 @@ using static Content.IntegrationTests.Tests._WF.Planets.PlanetFixture;
 
 namespace Content.IntegrationTests.Tests._WF.Hideouts;
 
-/// <summary>Outpost modules are bought in order and lay their prefabs; the hangar keeps, insures and brings back a ship.</summary>
+/// <summary>Outpost modules are bought and lay their prefabs; only safes keep goods; the hangar keeps, insures and brings back a ship.</summary>
 [TestFixture]
 [TestOf(typeof(WFHideoutSystem))]
 public sealed class HideoutTest
 {
-    private const string Groundworks = "WFHideoutGroundworks";
     private const string Hangar = "WFHideoutHangar";
     private const string Quarters = "WFHideoutQuarters";
 
@@ -92,42 +90,10 @@ public sealed class HideoutTest
         return (grid.Value, entMan.GetComponent<WFOutpostComponent>(grid.Value));
     }
 
-    /// <summary>Lays the materials and parts a module's next level needs on the outpost, beside its console.</summary>
-    internal static void Supply(TestPair pair, Entity<WFOutpostComponent> outpost, string module)
+    /// <summary>Buys a module, which leaves its stake at the console.</summary>
+    private static void Buy(TestPair pair, EntityUid user, Entity<WFOutpostComponent> outpost, string module)
     {
-        var entMan = pair.Server.EntMan;
-        var protos = pair.Server.ResolveDependency<IPrototypeManager>();
-        var hideouts = pair.Server.System<WFHideoutSystem>();
-        var stacks = pair.Server.System<SharedStackSystem>();
-        var level = protos.Index<WFHideoutModulePrototype>(module).Levels[hideouts.Level(outpost, module)];
-        var at = entMan.GetComponent<TransformComponent>(outpost.Comp.Console).Coordinates;
-        foreach (var (stack, amount) in level.Stacks)
-        {
-            var stackProto = protos.Index(stack);
-            var left = amount;
-            while (left > 0)
-            {
-                var spawned = entMan.SpawnEntity(stackProto.Spawn, at);
-                var count = Math.Min(left, stacks.GetMaxCount(spawned));
-                stacks.SetCount(spawned, count);
-                left -= count;
-            }
-        }
-
-        foreach (var (part, amount) in level.Parts)
-        {
-            for (var i = 0; i < amount; i++)
-                entMan.SpawnEntity(part, at);
-        }
-    }
-
-    /// <summary>Supplies and buys a module's next level and finishes it at once.</summary>
-    private static void Build(TestPair pair, EntityUid user, Entity<WFOutpostComponent> outpost, string module)
-    {
-        var hideouts = pair.Server.System<WFHideoutSystem>();
-        Supply(pair, outpost, module);
-        Assert.That(hideouts.TryBuild(user, outpost, module, out var reason), Is.True, $"{module} was refused: {reason}.");
-        Assert.That(hideouts.SkipBuild(outpost), Is.True);
+        Assert.That(pair.Server.System<WFHideoutSystem>().TryBuy(user, outpost, module, out var reason), Is.True, $"{module} was refused: {reason}.");
     }
 
     /// <summary>The stake the last level left, used on a ground tile with the user facing south.</summary>
@@ -139,18 +105,18 @@ public sealed class HideoutTest
         while (query.MoveNext(out var uid, out var comp))
             stakes.Add((uid, comp));
 
-        Assert.That(stakes, Has.Count.EqualTo(1), "The level left one survey stake.");
+        Assert.That(stakes, Has.Count.EqualTo(1), "The purchase left one survey stake.");
         pair.Server.System<SharedTransformSystem>().SetWorldRotation(user, Direction.South.ToAngle());
         Assert.That(pair.Server.System<WFHideoutSystem>().TryUseStake(user, stakes[0], new EntityCoordinates(ground, tile.X + 0.5f, tile.Y + 0.5f),
             out var reason), Is.True, $"The stake was refused: {reason}.");
     }
 
     /// <summary>
-    /// A module waits for the modules it needs, costs its price and takes its build time; a finished level raises the
-    /// outpost's caps and leaves a stake that lays its prefab onto the outpost, turned the way its user faces.
+    /// A module costs its price and leaves a stake that lays its prefab onto the outpost, turned the way its user faces.
+    /// Of the goods on an outpost, a save keeps only what a safe within the storage points holds.
     /// </summary>
     [Test]
-    public async Task ModulesBuildInOrderAndLayTheirPrefabs()
+    public async Task ModulesAreBoughtAndOnlySafesKeepGoods()
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
         var server = pair.Server;
@@ -160,6 +126,7 @@ public sealed class HideoutTest
         var outposts = server.System<WFOutpostSystem>();
         var hideouts = server.System<WFHideoutSystem>();
         var bank = server.System<BankSystem>();
+        var storage = server.System<SharedStorageSystem>();
         var protos = server.ResolveDependency<IPrototypeManager>();
         await Fund(pair, user, 5_000_000);
         await PrepareYard(pair, ground);
@@ -172,39 +139,15 @@ public sealed class HideoutTest
 
         try
         {
-            Entity<WFOutpostComponent> outpost = default;
             await server.WaitAssertion(() =>
             {
-                outpost = Found(pair, user, ground);
-                Assert.That(hideouts.TryBuild(user, outpost, Quarters, out var reason), Is.False, "Quarters started without Groundworks.");
-                Assert.That(reason, Is.EqualTo("wf-hideout-build-requires"));
+                var outpost = Found(pair, user, ground);
+                var rules = hideouts.HideoutRules;
+                Assert.That(outposts.TileCap(outpost), Is.GreaterThan(rules.Tiles), "A hideout's floor cap lacks the rules' share.");
 
                 var before = Balance();
-                var price = protos.Index<WFHideoutModulePrototype>(Groundworks).Levels[0].Price;
-                Assert.That(hideouts.TryBuild(user, outpost, Groundworks, out reason), Is.False, "Groundworks started without its materials.");
-                Assert.That(reason, Is.EqualTo("wf-hideout-build-materials"));
-                Supply(pair, outpost, Groundworks);
-                Assert.That(hideouts.TryBuild(user, outpost, Groundworks, out reason), Is.True, $"Groundworks was refused: {reason}.");
-                Assert.That(hideouts.Holdings(outpost).GetValueOrDefault(WFHideoutSystem.StackKey("Steel")), Is.EqualTo(0),
-                    "The level's steel wasn't used up.");
-                Assert.That(Balance(), Is.EqualTo(before - price), "The level was paid for.");
-                Assert.That(hideouts.TryBuild(user, outpost, Quarters, out reason), Is.False, "Two modules were built at once.");
-                Assert.That(hideouts.Level(outpost, Groundworks), Is.EqualTo(0), "The level stood before its build time ran.");
-            });
-
-            // Groundworks takes a minute.
-            await pair.RunTicksSync(pair.SecondsToTicks(62f));
-
-            await server.WaitAssertion(() =>
-            {
-                Assert.That(hideouts.Level(outpost, Groundworks), Is.EqualTo(1), "The build never finished.");
-                var tiles = outposts.TileCap(outpost);
-                var pods = outposts.PodLimit(outpost);
-                Build(pair, user, outpost, Groundworks);
-                Assert.That(outposts.TileCap(outpost), Is.EqualTo(tiles + 1000), "Groundworks 2 raises the floor cap.");
-
-                Build(pair, user, outpost, Quarters);
-                Assert.That(outposts.PodLimit(outpost), Is.EqualTo(pods + 1), "Quarters 1 allows one more cryopod.");
+                Buy(pair, user, outpost, Quarters);
+                Assert.That(Balance(), Is.EqualTo(before - protos.Index<WFHideoutModulePrototype>(Quarters).Price), "The module was paid for.");
 
                 var grid = entMan.GetComponent<MapGridComponent>(outpost);
                 var floor = outposts.CountTiles((outpost, grid));
@@ -218,6 +161,30 @@ public sealed class HideoutTest
                 var at = server.System<SharedTransformSystem>().GetWorldPosition(pod);
                 Assert.That(at.Y, Is.EqualTo(-4.5f).Within(0.01f), "The prefab wasn't turned to face its user.");
                 Assert.That(at.X, Is.EqualTo(11.5f).Within(0.01f));
+
+                // Goods lying about aren't worth anything to a save; goods in a safe are.
+                var console = entMan.GetComponent<TransformComponent>(outpost.Comp.Console).Coordinates;
+                var bare = outposts.Appraise((outpost, grid));
+                entMan.SpawnEntity("SheetPlasteel", console.Offset(new Vector2(1f, 0f)));
+                Assert.That(outposts.Appraise((outpost, grid)), Is.EqualTo(bare), "A save counted goods left on the floor.");
+
+                var safe = entMan.SpawnEntity("WFHideoutVaultSafe", console.Offset(new Vector2(1f, 0f)));
+                Assert.That(entMan.GetComponent<TransformComponent>(safe).Anchored, Is.True, "The safe isn't bolted down.");
+                Assert.That(hideouts.StashUsed(outpost), Is.EqualTo(rules.StashPoints), "The vault safe takes the whole of the storage points.");
+                var empty = outposts.Appraise((outpost, grid));
+                Assert.That(storage.Insert(safe, entMan.SpawnEntity("SheetPlasteel", console), out _, playSound: false), Is.True,
+                    "The safe refused sheets.");
+                Assert.That(outposts.Appraise((outpost, grid)), Is.GreaterThan(empty), "A save left out what a safe holds.");
+                Assert.That(storage.Insert(safe, entMan.SpawnEntity("WeaponPistolMk58", console), out _, playSound: false), Is.False,
+                    "The safe took a gun.");
+
+                // A second safe, later in tile order, is past the storage points: what it holds isn't kept.
+                var kept = outposts.Appraise((outpost, grid));
+                var second = entMan.SpawnEntity("WFHideoutLockbox", console.Offset(new Vector2(1f, 1f)));
+                var withBox = outposts.Appraise((outpost, grid));
+                Assert.That(storage.Insert(second, entMan.SpawnEntity("Wrench", console), out _, playSound: false), Is.True);
+                Assert.That(outposts.Appraise((outpost, grid)), Is.EqualTo(withBox), "A safe past the storage points kept what it held.");
+                Assert.That(withBox, Is.GreaterThanOrEqualTo(kept));
             });
         }
         finally
@@ -228,7 +195,7 @@ public sealed class HideoutTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Every module's prefab loads as one grid with floor, and every level's needs name real modules and levels.</summary>
+    /// <summary>Every module's prefab and layout loads as one grid with floor, and its kit names real prototypes.</summary>
     [Test]
     public async Task EveryModuleIsSound()
     {
@@ -244,43 +211,28 @@ public sealed class HideoutTest
         {
             foreach (var module in protos.EnumeratePrototypes<WFHideoutModulePrototype>())
             {
-                Assert.That(module.Levels, Is.Not.Empty, $"{module.ID} has no levels.");
-                for (var i = 0; i < module.Levels.Count; i++)
+                foreach (var grant in module.Grants)
+                    Assert.That(protos.HasIndex(grant), Is.True, $"{module.ID} grants unknown {grant}.");
+
+                if (module.Prefab is not { } first)
                 {
-                    var level = module.Levels[i];
-                    foreach (var (needed, at) in level.Requires)
-                    {
-                        Assert.That(protos.TryIndex(needed, out var other), Is.True, $"{module.ID} level {i + 1} needs unknown module {needed}.");
-                        Assert.That(at, Is.InRange(1, other.Levels.Count), $"{module.ID} level {i + 1} needs {needed} at a level it lacks.");
-                        Assert.That(needed.Id, Is.Not.EqualTo(module.ID), $"{module.ID} level {i + 1} needs itself.");
-                    }
+                    Assert.That(module.Layouts, Is.Empty, $"{module.ID} has layouts but no prefab.");
+                    Assert.That(module.Grants, Is.Not.Empty, $"{module.ID} sells nothing.");
+                    continue;
+                }
 
-                    foreach (var grant in level.Grants)
-                        Assert.That(protos.HasIndex(grant), Is.True, $"{module.ID} level {i + 1} grants unknown {grant}.");
+                if (module.Layouts.Count > 0)
+                    Assert.That(module.Layouts.Select(layout => layout.Prefab), Does.Contain(first), $"{module.ID}'s prefab isn't among its layouts.");
 
-                    if (level.Prefab is not { } first)
-                    {
-                        Assert.That(level.Layouts, Is.Empty, $"{module.ID} level {i + 1} has layouts but no prefab.");
-                        continue;
-                    }
-
-                    if (level.Layouts.Count > 0)
-                    {
-                        Assert.That(level.Layouts.Select(layout => layout.Prefab), Does.Contain(first),
-                            $"{module.ID} level {i + 1}'s prefab isn't among its layouts.");
-                    }
-
-                    // The prefab and every layout the stake can be set to.
-                    foreach (var prefab in level.Layouts.Select(layout => layout.Prefab).Append(first).Distinct())
-                    {
-                        Assert.That(loader.TryLoadGrid(map.MapId, prefab, out var grid), Is.True, $"{prefab} failed to load.");
-                        var tiles = 0;
-                        var enumerator = maps.GetAllTilesEnumerator(grid.Value.Owner, grid.Value.Comp);
-                        while (enumerator.MoveNext(out _))
-                            tiles++;
-                        Assert.That(tiles, Is.GreaterThan(0), $"{prefab} has no floor.");
-                        entMan.DeleteEntity(grid.Value.Owner);
-                    }
+                foreach (var prefab in module.Layouts.Select(layout => layout.Prefab).Append(first).Distinct())
+                {
+                    Assert.That(loader.TryLoadGrid(map.MapId, prefab, out var grid), Is.True, $"{prefab} failed to load.");
+                    var tiles = 0;
+                    var enumerator = maps.GetAllTilesEnumerator(grid.Value.Owner, grid.Value.Comp);
+                    while (enumerator.MoveNext(out _))
+                        tiles++;
+                    Assert.That(tiles, Is.GreaterThan(0), $"{prefab} has no floor.");
+                    entMan.DeleteEntity(grid.Value.Owner);
                 }
             }
         });
@@ -331,11 +283,10 @@ public sealed class HideoutTest
             await server.WaitAssertion(() =>
             {
                 outpost = Found(pair, user, ground);
-                Build(pair, user, outpost, Groundworks);
-                Build(pair, user, outpost, Hangar);
+                Buy(pair, user, outpost, Hangar);
                 UseStake(pair, user, ground, new Vector2i(6, -3));
                 Assert.That(hideouts.TryGetHangar(outpost, out pad), Is.True, "The apron came without its beacon.");
-                Assert.That(pad.Comp.Size, Is.EqualTo(9));
+                Assert.That(pad.Comp.Size, Is.EqualTo(21));
                 padWorld = transform.GetWorldPosition(pad);
             });
 

@@ -7,6 +7,36 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Hideouts.Blueprint;
 
+/// <summary>Where a shelf's brushes may be painted.</summary>
+public enum WFBlueprintScope : byte
+{
+    Any,
+
+    /// <summary>On an outpost only: safes.</summary>
+    Outpost,
+
+    /// <summary>On a ship in a bay only: thrusters, helms, hull fittings.</summary>
+    Ship,
+}
+
+/// <summary>A heading of the palette's first dropdown: the shelves (palette sections) listed under it.</summary>
+[Prototype("wfBlueprintCategory")]
+public sealed partial class WFBlueprintCategoryPrototype : IPrototype
+{
+    [IdDataField]
+    public string ID { get; private set; } = default!;
+
+    [DataField(required: true)]
+    public LocId Name;
+
+    [DataField]
+    public int Order;
+
+    /// <summary>The palette sections it holds, by their group id.</summary>
+    [DataField]
+    public List<LocId> Groups = new();
+}
+
 /// <summary>
 /// A shelf of the blueprint's palette filled straight from the game's prototypes: every entity, floor tile or decal
 /// listed becomes a brush under the shelf's heading, named as the prototype is, at the shelf's price.
@@ -31,6 +61,10 @@ public sealed partial class WFBlueprintCataloguePrototype : IPrototype
     /// <summary>Whether its entities share a tile with whatever else stands there: rugs, and what hangs on a wall.</summary>
     [DataField]
     public bool Under;
+
+    /// <summary>Where its brushes may be painted.</summary>
+    [DataField]
+    public WFBlueprintScope Scope;
 
     /// <summary>The colour its brushes are drawn in where they have no picture.</summary>
     [DataField]
@@ -58,8 +92,15 @@ public sealed record WFBlueprintEntry(
     string? Decal,
     int Price,
     bool Under,
-    Color Color)
+    Color Color,
+    WFBlueprintScope Scope = WFBlueprintScope.Any)
 {
+    /// <summary>Whether the brush may be painted on a ship (true) or an outpost (false).</summary>
+    public bool Fits(bool ship)
+    {
+        return Scope == WFBlueprintScope.Any || Scope == WFBlueprintScope.Ship == ship;
+    }
+
     /// <summary>The plan layer the brush paints on; a tile takes one stroke per layer.</summary>
     public int Layer => Kind switch
     {
@@ -150,6 +191,6 @@ public static class WFBlueprintCatalog
         string? tile = null, string? entity = null, string? decal = null)
     {
         return new WFBlueprintEntry($"{shelf.ID}{Separator}{item}", name, shelf.Group, shelf.Order, kind, tile, entity, decal, shelf.Price,
-            shelf.Under, shelf.Color);
+            shelf.Under, shelf.Color, shelf.Scope);
     }
 }

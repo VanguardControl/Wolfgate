@@ -12,7 +12,7 @@ namespace Content.Server._WF.Hideouts;
 
 /// <summary>
 /// The home world: an outpost keeps the world it was founded on and lands there every round, for a small upkeep in
-/// place of the load markup once a module stands. The owner moves it to another world for a fee.
+/// place of the load markup. The owner moves it to another world for a fee.
 /// </summary>
 public sealed partial class WFHideoutSystem
 {
@@ -57,8 +57,8 @@ public sealed partial class WFHideoutSystem
 
     private void OnMarkup(Entity<WFHideoutComponent> outpost, ref WFOutpostMarkupEvent args)
     {
-        // A home with a module built lands for its upkeep, not the outpost load markup.
-        if (outpost.Comp.Levels.Count > 0)
+        // A home lands for its upkeep, not the outpost load markup.
+        if (_cfg.GetCVar(HideoutCVars.Enabled))
             args.Markup = Math.Min(args.Markup, HideoutRules.HomeMarkup);
     }
 

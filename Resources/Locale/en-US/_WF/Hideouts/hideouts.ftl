@@ -1,78 +1,41 @@
 wf-outpost-console-tab-hideout = Hideout
 
 # Modules.
-wf-hideout-module-groundworks = Groundworks
-wf-hideout-module-groundworks-desc = Surveyed and levelled ground. Everything else is built on it, and each level lets the outpost grow.
-wf-hideout-level-groundworks-1 = Opens the other modules.
-wf-hideout-level-groundworks-2 = 1000 more floor tiles, 250 more objects, 32 tiles more across, two stacks of foundation plates.
-wf-hideout-level-groundworks-3 = 2000 more floor tiles, 500 more objects, 32 tiles more across, three stacks of foundation plates.
-wf-hideout-level-groundworks-4 = 4000 more floor tiles, 1000 more objects, 64 tiles more across, four stacks of foundation plates.
 
 wf-hideout-module-hangar = Faction hangar
 wf-hideout-module-hangar-desc = An apron with a beacon for one stock shipyard ship your faction may fly. The ship is saved every time it lands here and waits for you next round.
-wf-hideout-level-hangar-1 = The hangar apron, for a ship up to 9 tiles across. Insurance at 25% of the ship's value, claims at 20%.
-wf-hideout-level-hangar-2 = Ships up to 13 tiles across. Insurance at 20%.
-wf-hideout-level-hangar-3 = Ships up to 17 tiles across. Insurance and claims at 15%.
-wf-hideout-level-hangar-4 = Ships up to 21 tiles across. Insurance and claims at 10%.
 
 wf-hideout-module-shipwright = Shipwright bay
 wf-hideout-module-shipwright-desc = A bay with cranes for a ship of your own design. Buy a frame or build a hull by hand, then fit guns and systems within its refit points.
-wf-hideout-level-shipwright-1 = The bay, for hulls up to 17 tiles across.
-wf-hideout-level-shipwright-2 = Hulls up to 21 tiles across, and 8 more refit points.
-wf-hideout-level-shipwright-3 = Hulls up to 25 tiles across, and 16 more refit points.
 
 wf-hideout-module-powerhouse = Powerhouse
 wf-hideout-module-powerhouse-desc = The outpost's own supply: batteries under a roof, panels and a turbine in the yard.
-wf-hideout-level-powerhouse-1 = The powerhouse, with three batteries, two solar strings and a wind turbine.
-wf-hideout-level-powerhouse-2 = A compact RTG and a large battery.
-wf-hideout-level-powerhouse-3 = Two compact RTGs, a fuel rod generator and a large battery.
 
 wf-hideout-module-quarters = Quarters
 wf-hideout-module-quarters-desc = Somewhere to sleep and to wake up. Each level lets the outpost hold more cryopods.
-wf-hideout-level-quarters-1 = The bunkhouse, with three beds and a cryopod. One more cryopod allowed.
-wf-hideout-level-quarters-2 = Two cryopods and a sustenance dispenser. Two more cryopods allowed.
-wf-hideout-level-quarters-3 = Three cryopods, a range and a rations printer. Three more cryopods allowed.
 
 wf-hideout-module-workshop = Workshop
 wf-hideout-module-workshop-desc = A fabricator behind shutters, and later the machines that make an outpost pay.
-wf-hideout-level-workshop-1 = The workshop, with a fabricator, a recycler and a charger.
-wf-hideout-level-workshop-2 = A parts press, a fabrication silo and an ore silo.
-wf-hideout-level-workshop-3 = A mining bot dock and a power exporter.
 
 wf-hideout-module-medbay = Medbay
 wf-hideout-module-medbay-desc = Beds, a stasis bed and a stocked locker for when a trip goes badly.
-wf-hideout-level-medbay-1 = The medbay.
-wf-hideout-level-medbay-2 = An organics printer and a nutrient synthesizer.
 
 wf-hideout-module-vault = Vault
 wf-hideout-module-vault-desc = A strongroom behind an airlock for what you would rather not carry.
-wf-hideout-level-vault-1 = The vault, with deposit boxes, a deposit terminal and secure crates.
-wf-hideout-level-vault-2 = 250 more objects and a second deposit terminal.
 
-wf-hideout-module-defences = Defences
-wf-hideout-module-defences-desc = Warning of a raid, and something to meet it with.
-wf-hideout-level-defences-1 = A warning mast and two turrets.
-wf-hideout-level-defences-2 = A long-range mast and four turrets.
-wf-hideout-level-defences-3 = A sensor uplink, two flak batteries and an orbital defence battery.
 
 wf-hideout-module-company-wing = Company wing
 wf-hideout-module-company-wing-desc = A hall for a company's outpost: a meeting room, more beds and a line to the rest of the world.
-wf-hideout-level-company-wing-1 = The company wing. 600 more floor tiles, 250 more objects, three more cryopods allowed.
-wf-hideout-level-company-wing-2 = Three cryopods and a descent jammer. 600 more floor tiles, 250 more objects, three more cryopods allowed.
-wf-hideout-level-company-wing-3 = Six cryopods. 800 more floor tiles, 500 more objects, six more cryopods allowed.
 
-# Building.
-wf-hideout-build-not-owner = Only the outpost's owner builds its modules.
-wf-hideout-build-busy = A module is already being built.
-wf-hideout-build-done = That module has no further level.
-wf-hideout-build-company = Only a company's outpost builds that.
-wf-hideout-build-requires = Other modules have to be built first.
-wf-hideout-build-materials = The outpost doesn't hold the materials and parts that level needs. Bring them onto the outpost; crates and lockers count.
+# Buying.
+wf-hideout-build-not-owner = Only the outpost's owner buys its buildings.
+wf-hideout-build-company = Only a company's outpost buys that.
+wf-hideout-build-stands = That hangar already stands on the outpost; it holds one of each.
+wf-hideout-bought = {$module} is paid for. Its survey stake is at the console.
 wf-hideout-move-unknown = That world doesn't take outposts.
 wf-hideout-move-same = That's already the outpost's home.
 wf-hideout-moved = The outpost will land on its new home world from its next landing.
 wf-hideout-cannot-afford = Your account doesn't cover that.
-wf-hideout-build-finished = {$module} level {$level} is finished.
 wf-hideout-stake-name = survey stake ({$module})
 wf-hideout-stake-no-outpost = You have no outpost to lay this on.
 wf-hideout-stake-verb-shell = Lay as a shell
@@ -102,14 +65,37 @@ wf-hideout-ship-not-stock = A faction hangar only takes stock shipyard ships. Ta
 wf-hideout-ship-wrong-faction = Your faction can't keep that ship.
 
 # The Hideout tab.
-wf-hideout-ui-material = {$name}: {$held} / {$amount}
+wf-hideout-ui-home-help = Your outpost lands here each round for a tenth of its value in upkeep.
+wf-hideout-ui-no-hangar = Buy the Faction hangar and lay its apron to keep a ship here.
+wf-hideout-ui-storage = Storage
+wf-hideout-ui-storage-points = Safes: {$used} of {$budget} storage points
+wf-hideout-ui-storage-help = Everything built here is saved. Of your goods, only what a safe holds is: lay safes from the Blueprint tab's Safes shelf.
+wf-hideout-ui-buildings = Buildings
+wf-hideout-ui-buildings-help = Bought outright. Each leaves a survey stake at the console: alt-click it for layouts and materials, use it in hand for an outline, then on the ground to build.
+wf-hideout-ui-balance = Balance: {$balance} thalers
+wf-hideout-ui-buy = Purchase ({$price} thalers)
+wf-hideout-ui-stands = Already built
+wf-hideout-ui-gives-stake = { $layouts ->
+        [one] A survey stake, one layout.
+       *[other] A survey stake, {$layouts} layouts.
+    }
+wf-hideout-ui-gives-kit = A kit of {$count} packed machines.
+wf-hideout-category-all = All
+wf-hideout-category-ships = Ships
+wf-hideout-category-living = Living
+wf-hideout-category-work = Work
+
+# Safes.
+wf-hideout-stash-budget = The outpost's storage points don't cover another safe of that size.
+wf-hideout-stash-examine-kept = Takes [color=yellow]{$points}[/color] of the outpost's {$budget} storage points. What it holds is saved with the outpost.
+wf-hideout-stash-examine-over = [color=red]Past the outpost's {$budget} storage points.[/color] What it holds won't be saved.
+wf-hideout-stash-examine-loose = Takes {$points} storage points once it is bolted down on an outpost.
+wf-blueprint-group-safes = Safes
 wf-hideout-ui-home = Home world
 wf-hideout-ui-home-world = Lands on {$world} each round.
 wf-hideout-ui-home-unset = wherever it next lands
-wf-hideout-ui-home-help = A home with a module built lands for a tenth of its value in upkeep, not the usual load price.
-wf-hideout-ui-home-move = Move home ({$price} thalers)
+wf-hideout-ui-home-move = Relocate ({$price} thalers)
 wf-hideout-ui-hangar = Hangar
-wf-hideout-ui-no-hangar = Build the Hangar and lay its apron to keep a ship here.
 wf-hideout-ui-ship = {$name}: {$status}, worth {$value} thalers when it last landed
 wf-hideout-ui-ship-none = No ship is registered.
 wf-hideout-ui-ship-parked = in the hangar
@@ -119,33 +105,13 @@ wf-hideout-ui-ship-lost = destroyed
 wf-hideout-ui-insured = Insured as it stood at {$value} thalers.
 wf-hideout-ui-uninsured = Not insured: a destroyed ship is gone for good.
 wf-hideout-ui-register = Register {$name}
-wf-hideout-ui-register-none = Land a ship to register it
-wf-hideout-ui-recall = Bring it out
-wf-hideout-ui-insure = Insure as it stands ({$price} thalers)
-wf-hideout-ui-claim = Claim ({$price} thalers)
-wf-hideout-ui-unregister = Give up
-wf-hideout-ui-level = Level {$level} of {$max}
-wf-hideout-ui-complete = Fully built.
-wf-hideout-ui-next = Next: {$summary}
+wf-hideout-ui-register-none = No ship on the pad
+wf-hideout-ui-recall = Retrieve ship
+wf-hideout-ui-insure = Insure ship ({$price} thalers)
+wf-hideout-ui-claim = File claim ({$price} thalers)
+wf-hideout-ui-unregister = Unregister ship
 wf-hideout-ui-company-only = Company outposts only.
-wf-hideout-ui-requires = Needs {$module} level {$level}
-wf-hideout-ui-build = Build ({$price} thalers, {$time})
-wf-hideout-ui-building = Building {$module} level {$level}: {$time} left
-wf-hideout-ui-minutes = {$minutes} min {$seconds} s
-wf-hideout-ui-seconds = {$seconds} s
 
-# The wfhideout admin command.
-cmd-wfhideout-desc = Finishes the module an outpost is building, or sets a module's level.
-cmd-wfhideout-help = Usage: wfhideout finish <player> | wfhideout setlevel <player> <module> <level>
-cmd-wfhideout-invalid-args = Expected finish or setlevel, then a player.
-cmd-wfhideout-no-outpost = {$player} has no outpost standing this round.
-cmd-wfhideout-not-building = That outpost isn't building anything.
-cmd-wfhideout-finished = The build is finished.
-cmd-wfhideout-bad-level = Expected a module and a level it has.
-cmd-wfhideout-level-set = {$module} is now level {$level}.
-cmd-wfhideout-hint-player = Player
-cmd-wfhideout-hint-module = Module
-cmd-wfhideout-hint-level = Level
 
 # The shipwright.
 wf-shipwright-not-outpost = The shipwright console has to stand on your outpost.
@@ -274,9 +240,17 @@ wf-shipwright-category-utility = Utility
 wf-shipwright-category-mobility = Mobility
 
 wf-shipwright-ui-title = Shipwright
-wf-shipwright-ui-empty = The bay is empty. Land a hull to register it, or have the cranes build a frame.
+wf-shipwright-ui-empty = The bay is empty. Pick a frame for the cranes to build, or land a hull of your own to register it. Either is yours to change from there: guns and systems within its refit points, and its hull and rooms from Interior.
+wf-shipwright-ui-frame-search = Search frames
+wf-shipwright-ui-frame-none = No frame matches.
+wf-shipwright-ui-frame-row = {$name}   {$points} pts   {$price}
+wf-shipwright-ui-frame-stats = {$class}: {$points} refit points, {$price} thalers
+wf-shipwright-class-all = All classes
+wf-shipwright-class-civilian = Civilian
+wf-shipwright-class-military = Civilian military
+wf-shipwright-class-faction = Faction
 wf-shipwright-ui-frames = Frames
-wf-shipwright-ui-frame-build = Build ({$price} thalers)
+wf-shipwright-ui-frame-build = Build frame ({$price} thalers)
 wf-shipwright-ui-frame-slot-taken = You already keep a ship. Give it up at the outpost console to build another.
 wf-shipwright-ui-hull-frame = {$frame}, {$tiles} tiles
 wf-shipwright-ui-hull-custom = Built by hand, {$tiles} tiles
@@ -284,9 +258,9 @@ wf-shipwright-ui-points = Refit points: {$spent} of {$budget}
 wf-shipwright-ui-points-after = After this refit: {$spent} of {$budget}
 wf-shipwright-ui-certified = Passes: the ship is saved when it lands here.
 wf-shipwright-ui-uncertified = Doesn't pass: {$weapons} guns and {$systems} systems aboard weren't fitted here ({$points} points). It won't be saved until they're certified or removed.
-wf-shipwright-ui-register = Register as my ship
+wf-shipwright-ui-register = Register ship
 wf-shipwright-ui-not-yours = Someone else's ship. Only its owner works it here.
-wf-shipwright-ui-certify = Certify hand-built parts ({$price} thalers)
+wf-shipwright-ui-certify = Certify parts ({$price} thalers)
 wf-shipwright-ui-mounts = Hardpoints
 wf-shipwright-ui-mount = {$size} {$types}
 wf-shipwright-ui-plan-help = Yellow: hardpoints. Green: free edge tiles; click one to place a new hardpoint, again to drop it.
@@ -296,7 +270,7 @@ wf-shipwright-ui-mount-new = New ({$x}, {$y})
 wf-shipwright-ui-mount-keep = Keep {$mount}
 wf-shipwright-ui-mount-keep-stock = Keep {$mount} (frame's own, free)
 wf-shipwright-ui-mount-type = {$name} ({$points} pts, {$price} th)
-wf-shipwright-ui-mount-remove = Take the hardpoint off
+wf-shipwright-ui-mount-remove = Remove hardpoint
 wf-shipwright-ui-mount-count = Hardpoints: {$count} of {$max}
 wf-shipwright-ui-mount-empty = (empty)
 wf-shipwright-ui-mount-unfitted = {$gun} (not fitted)
@@ -305,11 +279,11 @@ wf-shipwright-ui-systems = Systems
 wf-shipwright-ui-system = {$name} ({$points} pts, {$price} th)
 wf-shipwright-ui-system-unfitted = {$count} not fitted
 wf-shipwright-ui-apply = Apply refit ({$price} thalers)
-wf-shipwright-ui-reset = Reset
+wf-shipwright-ui-reset = Discard changes
 wf-shipwright-ui-upgrades = Upgrades
 wf-shipwright-ui-upgrades-help = Armour plating and better machine parts, fitted by the cranes. Anything else a ship needs can be built aboard by hand.
 wf-shipwright-ui-upgrade = {$name}: Mk {$tier} of {$max}
-wf-shipwright-ui-upgrade-buy = Up to Mk {$next} ({$price} thalers)
+wf-shipwright-ui-upgrade-buy = Upgrade to Mk {$next} ({$price} thalers)
 wf-shipwright-ui-upgrade-done = Fully upgraded
 wf-shipwright-ui-working = Cranes at work: {$done} of {$total}
 wf-shipwright-ui-balance = Balance: {$balance} thalers
@@ -323,16 +297,16 @@ wf-hideout-registry-title = Outpost registry
 wf-hideout-registry-balance = Balance: {$balance} thalers
 wf-hideout-registry-yours = Your outpost
 wf-hideout-registry-standing = {$outpost} stands on {$world}.
-wf-hideout-registry-ride = Ride the drop down to it ({$price} thalers)
+wf-hideout-registry-ride = Travel to outpost ({$price} thalers)
 wf-hideout-registry-reading = Looking up your outposts...
 wf-hideout-registry-landing = Your outpost is on its way down to its home world.
 wf-hideout-registry-saved = {$outpost} is saved and can come back down to its home world.
-wf-hideout-registry-land = Bring it down ({$price} thalers)
+wf-hideout-registry-land = Land outpost ({$price} thalers)
 wf-hideout-registry-or-found = Or found a new outpost:
 wf-hideout-registry-found-heading = Found an outpost
 wf-hideout-registry-found-help = Each world keeps a ring of plots for outposts, past its towns and sites. Founding takes a plot and costs {$price} thalers; the world becomes the outpost's home.
 wf-hideout-registry-world = {$world}: {$free} of {$plots} plots free
-wf-hideout-registry-found = Found here ({$price} thalers)
+wf-hideout-registry-found = Found outpost ({$price} thalers)
 wf-hideout-registry-founded = Your outpost is founded. Ride the drop down from here, or fly down to it.
 wf-hideout-registry-landed = Your outpost has landed on its home world.
 wf-hideout-registry-arrived = The registry's drop sets you down at your outpost.
@@ -369,36 +343,40 @@ wf-hideout-stake-examine-theme = Set to lay in [color=yellow]{$theme}[/color], f
 
 # The outpost console's Blueprint tab.
 wf-blueprint-tab = Blueprint
-wf-blueprint-palette = Brushes
-wf-blueprint-tool-brush = Brush
-wf-blueprint-tool-brush-tip = Paints the tiles you drag over.
-wf-blueprint-tool-box = Box
-wf-blueprint-tool-box-tip = Fills the box you drag out.
-wf-blueprint-tool-outline = Outline
-wf-blueprint-tool-outline-tip = Paints only the edge of the box you drag out: the walls of a room.
-wf-blueprint-tool-unplan = Unplan
-wf-blueprint-tool-unplan-tip = Takes strokes back off the plan. Nothing built is touched.
-wf-blueprint-facing = Facing: {$direction}
-wf-blueprint-facing-tip = The way doors, lights and furniture face. Click to turn.
+wf-blueprint-palette = Parts
+wf-blueprint-tool-brush = Paint
+wf-blueprint-tool-brush-tip = Adds the selected part to every tile you drag over.
+wf-blueprint-tool-box = Fill area
+wf-blueprint-tool-box-tip = Adds the selected part to every tile of the box you drag out.
+wf-blueprint-tool-outline = Outline area
+wf-blueprint-tool-outline-tip = Adds the selected part along the edge of the box you drag out: the walls of a room.
+wf-blueprint-tool-unplan = Unmark
+wf-blueprint-tool-unplan-tip = Takes tiles back off the plan before it is built. Nothing already built is touched.
+wf-blueprint-facing = Rotate (facing {$direction})
+wf-blueprint-facing-tip = Turns the selected part a quarter turn: the way doors, lights and furniture face.
 wf-blueprint-facing-south = south
 wf-blueprint-facing-west = west
 wf-blueprint-facing-north = north
 wf-blueprint-facing-east = east
 wf-blueprint-show-roofs = Show roofs
-wf-blueprint-centre = Centre
+wf-blueprint-centre = Centre view
 wf-blueprint-refresh = Refresh
 wf-blueprint-hover = {$x}, {$y}
 wf-blueprint-undo = Undo
-wf-blueprint-clear = Clear plan
+wf-blueprint-clear = Discard plan
 wf-blueprint-apply = Build plan
 wf-blueprint-hint = Left paints, right drags the view, the wheel zooms. Floor painted past the outpost's edge extends it, inside the orange claim.
 wf-blueprint-hint-ship = Left paints, right drags the view, the wheel zooms. Floor only goes over the hull's own tiles; nothing here counts toward refit points.
-wf-blueprint-search = Search brushes...
-wf-blueprint-more = {$count} more; search to narrow the list.
-wf-blueprint-selected = Brush: {$name}
+wf-blueprint-hint-ship-grow = Left paints, right drags the view, the wheel zooms. Floor painted out from the hull's edge grows it, for {$price} thalers a tile more, while it stays on the bay. The removal brush takes out walls, doors and fittings, the frame's own included; mounts, guns and systems are changed on the console. Nothing here counts toward refit points.
+wf-blueprint-ship-too-big = The hull is as large as the shipwright builds.
+wf-blueprint-ship-off-bay = The hull can't grow past its bay.
+wf-blueprint-ship-not-joined = New hull has to join the hull's edge.
+wf-blueprint-search = Search all parts...
+wf-blueprint-more = {$count} more not listed. Pick a section or search to narrow it.
+wf-blueprint-selected = Selected: {$name}
 wf-blueprint-brush-priced = {$name} · {$price}
-wf-blueprint-cost = {$count} of {$max} strokes · {$price} th
-wf-blueprint-balance = Balance {$balance} th
+wf-blueprint-cost = Plan: {$count} of {$max} tiles, {$price} thalers
+wf-blueprint-balance = Balance: {$balance} thalers
 wf-blueprint-built = Built {$count} strokes for {$price} thalers.
 wf-blueprint-some-refused = Some were refused and not charged: {$reason}
 wf-blueprint-not-builder = Only the outpost's owner and its listed builders can build from the blueprint.
@@ -409,7 +387,7 @@ wf-blueprint-no-roof = A ship's roof can't be painted.
 wf-blueprint-ship-no-hull = Floor only goes over the hull's own tiles.
 wf-blueprint-ship-not-ready = There is no hull in the bay to work on, or the cranes are busy.
 wf-blueprint-brush-clean-decals = Remove decals
-wf-shipwright-ui-interior = Interior...
+wf-shipwright-ui-interior = Edit interior
 wf-shipwright-ui-interior-tip = Paint the hull's floors, walls, furniture, decorations and decals. None of it counts toward refit points.
 wf-shipwright-ui-interior-title = Ship interior
 wf-blueprint-group-floors = Floors
@@ -510,24 +488,19 @@ wf-hideout-layout-library-b = Study
 # Living-space modules.
 wf-hideout-module-canteen = Canteen
 wf-hideout-module-canteen-desc = A kitchen and somewhere to eat together.
-wf-hideout-level-canteen-1 = A canteen with a range, a griddle, a freezer and a rations printer, and tables to eat at.
 wf-hideout-module-farm = Farm
 wf-hideout-module-farm-desc = Somewhere to grow the outpost's own food.
-wf-hideout-level-farm-1 = A farm with growing plots, a water tank, a nutrient synthesizer and an animal feeder.
 wf-hideout-module-garden = Garden
 wf-hideout-module-garden-desc = Lawns, flowers and a fountain, open to the sky.
-wf-hideout-level-garden-1 = A garden with lawns, flower beds, benches and a fountain.
 wf-hideout-module-lounge = Lounge
 wf-hideout-module-lounge-desc = Somewhere to sit down after a run.
-wf-hideout-level-lounge-1 = A lounge with a sofa by the rug, a jukebox and games tables.
 wf-hideout-module-library = Library
 wf-hideout-module-library-desc = Shelves, desks and a quiet corner.
-wf-hideout-level-library-1 = A library with bookshelves, desks and armchairs.
 cmd-wfhideouttest-street-failed = Some of the gallery's streets couldn't be laid: {$reason}
 cmd-wfhideouttest-gallery-done = The gallery is ready: {$count} buildings along the streets round your outpost, a survey stake of every module at your feet (alt-click one for its layouts and materials), and {$money} thalers in your account. The outpost console's Blueprint tab paints floor, walls and furniture.
 
 # Blueprint catalogue shelves.
-wf-blueprint-group-all = All brushes
+wf-blueprint-group-all = All sections
 wf-blueprint-group-seating = Seating
 wf-blueprint-group-more-furniture = More furniture
 wf-blueprint-group-plants = Plants and trees
@@ -542,3 +515,40 @@ wf-blueprint-group-decal-markings = Floor markings
 wf-blueprint-group-decal-trim = Floor trim
 wf-blueprint-group-decal-nature = Flowers and bushes
 wf-blueprint-group-decal-wear = Wear and dirt
+wf-blueprint-group-tables = Tables, counters and shelves
+wf-blueprint-group-bedroom = Beds and instruments
+wf-blueprint-group-bathroom = Bathroom
+wf-blueprint-group-rocks = Crystals and stone
+wf-blueprint-group-posters = Posters
+wf-blueprint-group-signs = Signs
+wf-blueprint-group-bar-signs = Bar signs
+wf-blueprint-group-clutter = Clutter
+wf-blueprint-group-keepsakes = Plushies, figurines and candles
+
+# The palette's dropdowns and tooltips.
+wf-blueprint-category = Category
+wf-blueprint-category-tip = Narrows the list to one kind of part. A search looks through every part.
+wf-blueprint-group = Section
+wf-blueprint-group-tip = Narrows the list to one section of the category.
+wf-blueprint-count = Showing {$shown} of {$total}
+wf-blueprint-category-all = All categories
+wf-blueprint-category-other = Other
+wf-blueprint-category-build = Structure
+wf-blueprint-category-ship = Ship parts
+wf-blueprint-category-storage = Storage
+wf-blueprint-category-furniture = Furniture
+wf-blueprint-category-decor = Decoration
+wf-blueprint-category-walls = Wall pieces
+wf-blueprint-category-decals = Floor decals
+wf-blueprint-group-hull-floors = Hull and deck plating
+wf-blueprint-group-more-floors = More floors
+wf-blueprint-group-ship-hull = Hull walls, windows and airlocks
+wf-blueprint-group-ship-machines = Engines, power, helm and air
+wf-blueprint-group-ship-fittings = Antennas and radar panels
+wf-blueprint-centre-tip = Moves the view back over the middle of the plan.
+wf-blueprint-refresh-tip = Reads what stands here again, if something was built by hand since.
+wf-blueprint-undo-tip = Takes back the last stroke.
+wf-blueprint-clear-tip = Throws the whole plan away. Nothing already built is touched.
+wf-blueprint-apply-tip = Builds everything on the plan at once and takes its price from your account. What can't be built is paid back.
+wf-blueprint-apply-priced = Build plan ({$price} thalers)
+wf-blueprint-wrong-place = That part doesn't go here: safes are for outposts, ship parts for ships.

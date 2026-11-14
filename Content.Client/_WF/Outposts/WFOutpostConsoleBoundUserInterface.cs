@@ -43,7 +43,7 @@ public sealed class WFOutpostConsoleBoundUserInterface : BoundUserInterface
         development.OnYardKit += () => SendMessage(new WFColonyYardKitMessage());
 
         var hideout = _window.HideoutTab;
-        hideout.OnBuild += module => SendMessage(new WFHideoutBuildMessage(module));
+        hideout.OnBuy += module => SendMessage(new WFHideoutBuyMessage(module));
         hideout.OnRegister += () => SendMessage(new WFHideoutRegisterShipMessage());
         hideout.OnUnregister += () => SendMessage(new WFHideoutUnregisterShipMessage());
         hideout.OnRecall += () => SendMessage(new WFHideoutRecallShipMessage());

@@ -29,8 +29,10 @@
   customPoints: 8
   tilesPerPoint: 10
   sizePointsCap: 30
-  # The Tanuki's floor, the largest frame's: no bigger hull built by hand registers.
+  # The Tanuki's floor, the largest frame's: no bigger hull registers, and none grows past it.
   customMaxTiles: 346
+  # What each tile a hull grows by costs at the Interior plan, on top of its floor.
+  hullTilePrice: 1500
   frameWorkScale: 0.5
   customWorkScale: 1.5
 
@@ -53,6 +55,7 @@
   grid: /SharedMaps/_Mono/Shuttles/CivilianMil/qj340.yml
   price: 30000
   points: 14
+  class: wf-shipwright-class-military
   order: 1
 
 - type: wfShipwrightFrame
@@ -62,6 +65,7 @@
   grid: /SharedMaps/_Mono/Shuttles/CivilianMil/talon.yml
   price: 42000
   points: 18
+  class: wf-shipwright-class-military
   order: 2
 
 - type: wfShipwrightFrame
@@ -80,6 +84,7 @@
   grid: /SharedMaps/_Mono/Shuttles/CivilianMil/femur.yml
   price: 60000
   points: 30
+  class: wf-shipwright-class-military
   order: 4
 
 - type: wfShipwrightFrame
@@ -143,6 +148,7 @@
   grid: /SharedMaps/_Mono/Shuttles/CSec/lightning.yml
   price: 42500
   points: 20
+  class: wf-shipwright-class-faction
   order: 11
 
 - type: wfShipwrightFrame
@@ -170,6 +176,7 @@
   grid: /SharedMaps/_Mono/Shuttles/VG/talonuran.yml
   price: 41000
   points: 19
+  class: wf-shipwright-class-faction
   order: 14
 
 - type: wfShipwrightFrame
@@ -179,6 +186,7 @@
   grid: /SharedMaps/_Mono/Shuttles/PDV/kresta.yml
   price: 43000
   points: 15
+  class: wf-shipwright-class-faction
   order: 15
 
 - type: wfShipwrightFrame
@@ -206,6 +214,7 @@
   grid: /SharedMaps/_Mono/Shuttles/TSF/paladin.yml
   price: 39500
   points: 32
+  class: wf-shipwright-class-faction
   order: 18
 
 - type: wfShipwrightFrame
@@ -215,6 +224,7 @@
   grid: /SharedMaps/_Mono/Shuttles/PDV/gadfly.yml
   price: 41000
   points: 21
+  class: wf-shipwright-class-faction
   order: 19
 
 - type: wfShipwrightFrame
@@ -224,6 +234,7 @@
   grid: /SharedMaps/_Mono/Shuttles/USSP/strayk.yml
   price: 39500
   points: 17
+  class: wf-shipwright-class-faction
   order: 20
 
 - type: wfShipwrightFrame
@@ -242,6 +253,7 @@
   grid: /SharedMaps/_Mono/Shuttles/Underground/bluefin.yml
   price: 60000
   points: 25
+  class: wf-shipwright-class-faction
   order: 22
 
 - type: wfShipwrightFrame
@@ -269,6 +281,7 @@
   grid: /SharedMaps/_Mono/Shuttles/CivilianMil/sellsword.yml
   price: 43000
   points: 21
+  class: wf-shipwright-class-military
   order: 25
 
 # Systems. Points come out of the same budget as guns; a mounted system (mining lasers, harpoons) goes on a hardpoint.
@@ -534,8 +547,8 @@
   description: Guides ships with access to this outpost down onto the shipwright bay and back up. The owner's shipwright ship is saved every time it lands here, if it passes its points.
   components:
   - type: WFLandingPad
-    size: 17
-    widest: 17
+    size: 25
+    widest: 25
   - type: WFShipwrightBay
 
 # The bay's cranes run off the outpost's own supply, like its beacon.

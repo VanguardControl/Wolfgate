@@ -27,9 +27,6 @@ public sealed class WFShipwrightConsoleState : BoundUserInterfaceState
 
     public int Balance;
 
-    /// <summary>The bay's own refit point bonus, from the Shipwright module's levels.</summary>
-    public int BayPoints;
-
     /// <summary>Whether the owner's ship slot is free for a new frame.</summary>
     public bool CanBuildFrame;
 

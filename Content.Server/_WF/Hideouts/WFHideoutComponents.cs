@@ -4,26 +4,30 @@ using Robust.Shared.Utility;
 
 namespace Content.Server._WF.Hideouts;
 
-/// <summary>An outpost's modules: the level each stands at and the one being built. Saved with the outpost.</summary>
+/// <summary>An outpost as its owner's home: the world it lands on. Saved with the outpost.</summary>
 [RegisterComponent, Access(typeof(WFHideoutSystem))]
 public sealed partial class WFHideoutComponent : Component
 {
-    /// <summary>The level each module stands at, by module id; a module not listed isn't built.</summary>
-    [DataField]
-    public Dictionary<string, int> Levels = new();
-
-    /// <summary>The module whose next level is being built.</summary>
-    [DataField]
-    public string? Building;
-
-    /// <summary>Seconds of building left; it only runs while the outpost stands in a round.</summary>
-    [DataField]
-    public float BuildLeft;
-
     /// <summary>The planet surface the outpost lands on each round, set where it was founded; moving it costs a fee.</summary>
     [DataField]
     public string? HomeWorld;
 }
+
+/// <summary>
+/// A safe: what it holds is saved with the outpost it is anchored on, while its points fit the outpost's storage
+/// points. Nothing else loose or stored on an outpost is.
+/// </summary>
+[RegisterComponent]
+public sealed partial class WFHideoutStashComponent : Component
+{
+    /// <summary>Storage points it takes.</summary>
+    [DataField]
+    public int Points = 1;
+}
+
+/// <summary>Something loose a prefab or the blueprint set out as decoration: saved where it lies, without what it holds.</summary>
+[RegisterComponent]
+public sealed partial class WFHideoutDecorComponent : Component;
 
 /// <summary>A survey stake: used on the ground in its owner's claim, it lays a module's prefab there.</summary>
 [RegisterComponent, Access(typeof(WFHideoutSystem))]
@@ -43,6 +47,10 @@ public sealed partial class WFHideoutStakeComponent : Component
     /// <summary>The theme the stake lays its module in; null lays the prefab as drawn.</summary>
     [DataField]
     public string? Theme;
+
+    /// <summary>The hangar the stake lays, which an outpost holds one of.</summary>
+    [DataField]
+    public WFHideoutBay Bay;
 }
 
 /// <summary>The landing pad of an outpost's hangar: the owner's registered ship is saved whenever it lands here.</summary>

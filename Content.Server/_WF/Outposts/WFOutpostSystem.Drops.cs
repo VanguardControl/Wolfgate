@@ -11,6 +11,7 @@ using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Network;
 using Robust.Shared.Random;
+using Robust.Shared.Serialization.Markdown.Mapping;
 
 namespace Content.Server._WF.Outposts;
 
@@ -50,6 +51,9 @@ public sealed partial class WFOutpostSystem
         public Action<EntityUid?, string> Done = default!;
         public string Name = string.Empty;
         public string? Yaml;
+
+        /// <summary>The save parsed, where the worker that unpacked it got that far.</summary>
+        public MappingDataNode? Data;
         public bool Reading;
     }
 
@@ -236,7 +240,13 @@ public sealed partial class WFOutpostSystem
             }
 
             drop.Name = row.Save.Name;
-            drop.Yaml = await Task.Run(() => Unpack(row.Data));
+            var (yaml, data) = await Task.Run(() =>
+            {
+                var text = Unpack(row.Data);
+                return (text, ParseSave(text));
+            });
+            drop.Data = data;
+            drop.Yaml = yaml;
         }
         catch (Exception e)
         {
@@ -269,7 +279,9 @@ public sealed partial class WFOutpostSystem
             return;
         }
 
-        if (!TryStageSave(drop.Yaml!, $"outpost drop {drop.Name}", out var staged, out var console))
+        if (!(drop.Data is { } parsed
+                ? TryStageSave(parsed, $"outpost drop {drop.Name}", out var staged, out var console)
+                : TryStageSave(drop.Yaml!, $"outpost drop {drop.Name}", out staged, out console)))
         {
             Log.Error($"Outpost save slot {drop.Slot} of {drop.Owner} failed to stage for a drop.");
             FinishDrop(drop, null, "wf-outpost-load-failed");

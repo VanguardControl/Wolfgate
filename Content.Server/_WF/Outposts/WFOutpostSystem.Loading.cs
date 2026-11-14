@@ -301,6 +301,21 @@ public sealed partial class WFOutpostSystem
     {
         staged = default;
         console = default;
+        return ParseSave(yaml) is { } data && TryStageSave(data, label, out staged, out console);
+    }
+
+    /// <summary>Parses a save's YAML. It touches nothing live, so a worker can do it: it is a good part of what a load costs.</summary>
+    private static MappingDataNode? ParseSave(string yaml)
+    {
+        using var reader = new StringReader(yaml);
+        return DataNodeParser.ParseYamlStream(reader).FirstOrDefault()?.Root as MappingDataNode;
+    }
+
+    /// <summary>Stages a parsed save, which is used up by it.</summary>
+    private bool TryStageSave(MappingDataNode data, string label, out Entity<MapGridComponent> staged, out EntityUid console)
+    {
+        staged = default;
+        console = default;
         if (!Exists(_stageMap))
         {
             _stageMap = _maps.CreateMap(out var stageId);
@@ -309,14 +324,6 @@ public sealed partial class WFOutpostSystem
         }
 
         _stageOffset += StageSpacing;
-        MappingDataNode data;
-        using (var reader = new StringReader(yaml))
-        {
-            if (DataNodeParser.ParseYamlStream(reader).FirstOrDefault()?.Root is not MappingDataNode root)
-                return false;
-            data = root;
-        }
-
         var depths = TakeDepths(data);
         var mapId = Transform(_stageMap.Value).MapID;
         if (!TryStageGrid(data, label, mapId, new Vector2(_stageOffset, 0f), out var loaded))
@@ -337,10 +344,10 @@ public sealed partial class WFOutpostSystem
                 || !TryStageGrid(gridData, $"{label} depth {depth}", mapId, new Vector2(_stageOffset, StageSpacing / 2), out var below))
                 continue;
 
-            Strip(below.Value);
             var basement = EnsureComp<WFOutpostBasementComponent>(below.Value);
             basement.Outpost = staged;
             Comp<WFOutpostComponent>(staged).Basement = below.Value;
+            Strip(below.Value);
         }
 
         return true;
@@ -374,7 +381,7 @@ public sealed partial class WFOutpostSystem
     /// <summary>Takes off the copy what a save never keeps (<see cref="IsKept"/>), wherever it sits.</summary>
     private void Strip(EntityUid grid)
     {
-        Strip(grid, IsKept);
+        Strip(grid, Kept(grid));
     }
 
     /// <summary>Takes off a loaded copy whatever <paramref name="kept"/> doesn't keep, wherever it sits.</summary>

@@ -3,24 +3,22 @@ using Content.Shared._WF.Hideouts;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Timing;
 
 namespace Content.Client._WF.Hideouts;
 
 /// <summary>
-/// The outpost console's Hideout tab: the hangar with the owner's ship and its insurance, and the modules with their
-/// levels, prices and what each needs.
+/// The outpost console's Hideout tab: the home world, the hangar with the owner's ship and its insurance, the safes'
+/// storage points, and the buildings on sale, listed by category.
 /// </summary>
 public sealed class WFHideoutPanel : BoxContainer
 {
-    [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _proto = default!;
 
     private static readonly Color GoodColor = Color.FromHex("#6FCF6F");
     private static readonly Color BadColor = Color.FromHex("#E05A4F");
 
-    /// <summary>The owner starts a module's next level.</summary>
-    public event Action<string>? OnBuild;
+    /// <summary>The owner buys a module.</summary>
+    public event Action<string>? OnBuy;
 
     public event Action? OnRegister;
     public event Action? OnUnregister;
@@ -32,7 +30,10 @@ public sealed class WFHideoutPanel : BoxContainer
     public event Action<string>? OnMoveHome;
 
     private WFHideoutView? _view;
-    private Label? _building;
+    private bool _isOwner;
+
+    /// <summary>The category whose buildings are listed; null lists them all.</summary>
+    private WFHideoutModuleCategory? _category;
 
     public WFHideoutPanel()
     {
@@ -49,31 +50,22 @@ public sealed class WFHideoutPanel : BoxContainer
     /// <summary>What the list was last built from; the console sends its state every second, and a rebuild is only for a change.</summary>
     private string? _built;
 
-    /// <summary>Everything the list shows, as one string to compare; the build's end is left out, its countdown runs by itself.</summary>
-    private static string Shown(WFHideoutView view, bool isOwner)
+    /// <summary>Everything the list shows, as one string to compare.</summary>
+    private string Shown(WFHideoutView view, bool isOwner)
     {
         // Built piece by piece: one Join over this many values compiles to an inline array, which the client sandbox refuses.
         var shown = new System.Text.StringBuilder();
         void Add(object? value) => shown.Append(value).Append('|');
 
         Add(isOwner);
-        Add(view.Building);
+        Add(_category);
         Add(view.Balance);
         Add(view.Company);
+        Add(view.HasShipwright);
+        Add(view.StashUsed);
+        Add(view.StashBudget);
         Add(view.HomeWorld);
         Add(view.MoveFee);
-        foreach (var (module, level) in view.Levels.OrderBy(pair => pair.Key))
-        {
-            Add(module);
-            Add(level);
-        }
-
-        foreach (var (thing, count) in view.Held.OrderBy(pair => pair.Key))
-        {
-            Add(thing);
-            Add(count);
-        }
-
         foreach (var world in view.Worlds)
         {
             Add(world.Id);
@@ -95,9 +87,9 @@ public sealed class WFHideoutPanel : BoxContainer
     public void UpdateState(WFHideoutView? view, bool isOwner)
     {
         _view = view;
+        _isOwner = isOwner;
         if (view == null)
         {
-            _building = null;
             _built = null;
             _scroll = null;
             _body = null;
@@ -110,7 +102,6 @@ public sealed class WFHideoutPanel : BoxContainer
             return;
 
         _built = shown;
-        _building = null;
         if (_scroll == null || _body == null)
         {
             RemoveAllChildren();
@@ -124,43 +115,73 @@ public sealed class WFHideoutPanel : BoxContainer
         var body = _body;
         body.RemoveAllChildren();
 
-        body.AddChild(Card(Home(view, isOwner)));
+        var top = new BoxContainer { Orientation = LayoutOrientation.Horizontal, SeparationOverride = 8 };
+        var home = Card(Home(view, isOwner));
+        var storage = Card(Storage(view));
+        home.SizeFlagsStretchRatio = 3;
+        storage.SizeFlagsStretchRatio = 2;
+        top.AddChild(home);
+        top.AddChild(storage);
+        body.AddChild(top);
         body.AddChild(Card(Hangar(view.Hangar, view.Balance, isOwner)));
-        if (view.Building is { } building && _proto.TryIndex<WFHideoutModulePrototype>(building, out var underWay))
-        {
-            _building = new Label { FontColorOverride = GoodColor };
-            body.AddChild(Card(_building));
-            UpdateBuilding(underWay);
-        }
+        body.AddChild(Shop(view));
 
-        foreach (var module in _proto.EnumeratePrototypes<WFHideoutModulePrototype>().OrderBy(module => module.Order).ThenBy(module => module.ID))
+        foreach (var module in _proto.EnumeratePrototypes<WFHideoutModulePrototype>()
+                     .Where(module => _category == null || module.Category == _category)
+                     .OrderBy(module => module.Category).ThenBy(module => module.Order).ThenBy(module => module.ID))
         {
             body.AddChild(Card(Module(module, view, isOwner)));
         }
     }
 
-    protected override void FrameUpdate(FrameEventArgs args)
+    /// <summary>The storage points the outpost's safes take, and what the rule is.</summary>
+    private Control Storage(WFHideoutView view)
     {
-        base.FrameUpdate(args);
-        if (_building != null && _view?.Building is { } building && _proto.TryIndex<WFHideoutModulePrototype>(building, out var module))
-            UpdateBuilding(module);
+        var box = new BoxContainer { Orientation = LayoutOrientation.Vertical, SeparationOverride = 4 };
+        box.AddChild(Heading(Loc.GetString("wf-hideout-ui-storage")));
+        box.AddChild(new Label
+        {
+            Text = Loc.GetString("wf-hideout-ui-storage-points", ("used", view.StashUsed), ("budget", view.StashBudget)),
+            FontColorOverride = view.StashUsed > view.StashBudget ? BadColor : null,
+        });
+        box.AddChild(new ProgressBar
+        {
+            MinValue = 0, MaxValue = 1, MinHeight = 10, HorizontalExpand = true,
+            Value = view.StashBudget <= 0 ? 1 : Math.Clamp(view.StashUsed / (float) view.StashBudget, 0f, 1f),
+        });
+        box.AddChild(Help(Loc.GetString("wf-hideout-ui-storage-help")));
+        return box;
     }
 
-    private void UpdateBuilding(WFHideoutModulePrototype module)
+    /// <summary>The heading over the buildings on sale: the balance, and a button for each category.</summary>
+    private Control Shop(WFHideoutView view)
     {
-        if (_building == null || _view == null)
-            return;
+        var box = new BoxContainer { Orientation = LayoutOrientation.Vertical, SeparationOverride = 4 };
+        var title = Heading(Loc.GetString("wf-hideout-ui-buildings"));
+        title.HorizontalExpand = true;
+        box.AddChild(Row(title, new Label { Text = Loc.GetString("wf-hideout-ui-balance", ("balance", view.Balance)) }));
+        box.AddChild(Help(Loc.GetString("wf-hideout-ui-buildings-help")));
 
-        var left = Math.Max(0, (int) Math.Ceiling((_view.BuildEnds - _timing.CurTime).TotalSeconds));
-        _building.Text = Loc.GetString("wf-hideout-ui-building", ("module", Loc.GetString(module.Name)),
-            ("level", _view.Levels.GetValueOrDefault(module.ID) + 1), ("time", Duration(left)));
+        var filters = new BoxContainer { Orientation = LayoutOrientation.Horizontal, SeparationOverride = 4 };
+        filters.AddChild(Filter(Loc.GetString("wf-hideout-category-all"), null));
+        foreach (var category in Enum.GetValues<WFHideoutModuleCategory>())
+        {
+            filters.AddChild(Filter(Loc.GetString($"wf-hideout-category-{category.ToString().ToLowerInvariant()}"), category));
+        }
+
+        box.AddChild(filters);
+        return box;
     }
 
-    private static string Duration(int seconds)
+    private Button Filter(string text, WFHideoutModuleCategory? category)
     {
-        return seconds >= 60
-            ? Loc.GetString("wf-hideout-ui-minutes", ("minutes", seconds / 60), ("seconds", seconds % 60))
-            : Loc.GetString("wf-hideout-ui-seconds", ("seconds", seconds));
+        var button = new Button { Text = text, ToggleMode = true, Pressed = _category == category };
+        button.OnPressed += _ =>
+        {
+            _category = category;
+            UpdateState(_view, _isOwner);
+        };
+        return button;
     }
 
     /// <summary>The home world the outpost lands on each round, and moving it for the fee.</summary>
@@ -170,7 +191,7 @@ public sealed class WFHideoutPanel : BoxContainer
         box.AddChild(Heading(Loc.GetString("wf-hideout-ui-home")));
         var current = view.Worlds.FirstOrDefault(w => w.Id == view.HomeWorld)?.Name ?? view.HomeWorld ?? Loc.GetString("wf-hideout-ui-home-unset");
         box.AddChild(new Label { Text = Loc.GetString("wf-hideout-ui-home-world", ("world", current)) });
-        box.AddChild(Secondary(Loc.GetString("wf-hideout-ui-home-help")));
+        box.AddChild(Help(Loc.GetString("wf-hideout-ui-home-help")));
 
         var picker = new OptionButton { HorizontalExpand = true, Disabled = !isOwner };
         var others = view.Worlds.Where(w => w.Id != view.HomeWorld).ToList();
@@ -238,66 +259,34 @@ public sealed class WFHideoutPanel : BoxContainer
     private Control Module(WFHideoutModulePrototype module, WFHideoutView view, bool isOwner)
     {
         var box = new BoxContainer { Orientation = LayoutOrientation.Vertical, SeparationOverride = 2 };
-        var level = view.Levels.GetValueOrDefault(module.ID);
         var title = Heading(Loc.GetString(module.Name));
         title.HorizontalExpand = true;
-        box.AddChild(Row(title, new Label { Text = Loc.GetString("wf-hideout-ui-level", ("level", level), ("max", module.Levels.Count)) }));
-        box.AddChild(Secondary(Loc.GetString(module.Description)));
-        if (level >= module.Levels.Count)
-        {
-            box.AddChild(new Label { Text = Loc.GetString("wf-hideout-ui-complete"), FontColorOverride = GoodColor });
-            return box;
-        }
-
-        var next = module.Levels[level];
-        if (next.Summary is { } summary)
-            box.AddChild(new Label { Text = Loc.GetString("wf-hideout-ui-next", ("summary", Loc.GetString(summary))) });
-
-        var ready = !module.Company || view.Company;
-        if (!ready)
-            box.AddChild(new Label { Text = Loc.GetString("wf-hideout-ui-company-only"), FontColorOverride = BadColor });
-
-        foreach (var (stack, amount) in next.Stacks)
-        {
-            var held = view.Held.GetValueOrDefault("stack:" + stack.Id);
-            ready &= held >= amount;
-            var name = _proto.TryIndex(stack, out var proto) ? Loc.GetString(proto.Name) : stack.Id;
-            box.AddChild(new Label
-            {
-                Text = Loc.GetString("wf-hideout-ui-material", ("name", name), ("held", held), ("amount", amount)),
-                FontColorOverride = held >= amount ? GoodColor : BadColor,
-            });
-        }
-
-        foreach (var (part, amount) in next.Parts)
-        {
-            var held = view.Held.GetValueOrDefault("part:" + part.Id);
-            ready &= held >= amount;
-            var name = _proto.TryIndex(part, out var proto) ? proto.Name : part.Id;
-            box.AddChild(new Label
-            {
-                Text = Loc.GetString("wf-hideout-ui-material", ("name", name), ("held", held), ("amount", amount)),
-                FontColorOverride = held >= amount ? GoodColor : BadColor,
-            });
-        }
-
-        foreach (var (needed, at) in next.Requires)
-        {
-            var met = view.Levels.GetValueOrDefault(needed) >= at;
-            ready &= met;
-            var name = _proto.TryIndex(needed, out var other) ? Loc.GetString(other.Name) : needed.Id;
-            box.AddChild(new Label
-            {
-                Text = Loc.GetString("wf-hideout-ui-requires", ("module", name), ("level", at)),
-                FontColorOverride = met ? GoodColor : BadColor,
-            });
-        }
-
         var id = module.ID;
-        var build = Button(Loc.GetString("wf-hideout-ui-build", ("price", next.Price), ("time", Duration((int) next.BuildTime))),
-            !isOwner || !ready || view.Building != null || next.Price > view.Balance, () => OnBuild?.Invoke(id));
-        box.AddChild(Row(build));
+
+        // A hangar that already stands isn't sold twice.
+        var stands = module.Bay == WFHideoutBay.Faction && view.Hangar.HasPad || module.Bay == WFHideoutBay.Shipwright && view.HasShipwright;
+        var locked = module.Company && !view.Company;
+        var buy = Button(Loc.GetString(stands ? "wf-hideout-ui-stands" : "wf-hideout-ui-buy", ("price", module.Price)),
+            !isOwner || stands || locked || module.Price > view.Balance, () => OnBuy?.Invoke(id));
+        buy.MinWidth = 170;
+        box.AddChild(Row(title, buy));
+        box.AddChild(Help(Loc.GetString(module.Description)));
+
+        var gives = module.Prefab == null
+            ? Loc.GetString("wf-hideout-ui-gives-kit", ("count", module.Grants.Count))
+            : Loc.GetString("wf-hideout-ui-gives-stake", ("layouts", Math.Max(1, module.Layouts.Count)));
+        box.AddChild(new Label { Text = gives, FontColorOverride = GoodColor });
+        if (locked)
+            box.AddChild(new Label { Text = Loc.GetString("wf-hideout-ui-company-only"), FontColorOverride = BadColor });
         return box;
+    }
+
+    /// <summary>A line of explanation that wraps to the card's width.</summary>
+    private static RichTextLabel Help(string text)
+    {
+        var label = new RichTextLabel { HorizontalExpand = true };
+        label.SetMessage(text, defaultColor: Color.FromHex("#A5A8B4"));
+        return label;
     }
 
     private static Button Button(string text, bool disabled, Action pressed)
