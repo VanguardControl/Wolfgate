@@ -276,27 +276,16 @@ public partial class ChatBox
     private async void SaveChatLog()
     {
         var fileDialog = IoCManager.Resolve<IFileDialogManager>();
-        var filters = new FileDialogFilters(new FileDialogFilters.Group("txt"));
+        var filters = new FileDialogFilters(
+            new FileDialogFilters.Group("html"),
+            new FileDialogFilters.Group("txt")
+        );
         var file = await fileDialog.SaveFile(filters);
         if (file == null)
             return;
 
         var controller = UserInterfaceManager.GetUIController<ChatUIController>();
         var tab = _wfTabs.SelectedTab;
-        var channels = tab.Channels;
-
-        await using var writer = new StreamWriter(file.Value.fileStream);
-        await writer.WriteLineAsync($"Chat log – {tab.Name}");
-        await writer.WriteLineAsync();
-
-        foreach (var (tick, msg) in controller.History)
-        {
-            if ((msg.Channel & channels) == 0)
-                continue;
-
-            var channelName = Loc.GetString($"chat-channel-{msg.Channel.ToString().ToLowerInvariant()}");
-            var sender = msg.SenderKey.HasValue ? $"#{msg.SenderKey.Value}" : "unknown";
-            await writer.WriteLineAsync($"[{tick}] [{channelName}] {sender}: {msg.Message}");
-        }
+        await ChatLogSaver.SaveChatLogAsync(file.Value.fileStream, controller, tab);
     }
 }
