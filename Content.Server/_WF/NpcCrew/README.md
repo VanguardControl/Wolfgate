@@ -239,7 +239,8 @@ carrying one of the crew's downed or dead is told to put him down and has ten se
 Crew out of a fight patch their own wounds, one item every eight seconds, and anyone hurt past 40 damage counts as
 calling for a medic (`WFCrewMedicSystem.SelfCare.cs`). Crew out of a fight stop short of a burning tile rather than walk
 through it (`NPCSteeringSystem.Fire.cs`). A downed crewman stops bumping doors open, a dead one's card comes off his ship's allow list and out of
-its zone keys, and both come back on revival. Janitors (`WFCrewJanitor`, duty Janitor) mop puddles on their own ship
+its zone keys, and both come back on revival with the door lists it was on (`WFShipAccessServerSystem.SuspendEntry`); a card
+swapped while he was down replaces the old one. Janitors (`WFCrewJanitor`, duty Janitor) mop puddles on their own ship
 (`WFCrewShipPuddles`, scored by `WFTargetOnHomeGridCon`) and wash dirt off the floor across it with their own hands, as a cleanbot does, and wait at their post when it's clean.
 Hull impacts from another ship's artillery raise crew alerts and a radio mayday through the existing projectile
 handler. Gunners walk to an available powered console and use Mono's ship targeting and fire-control path only

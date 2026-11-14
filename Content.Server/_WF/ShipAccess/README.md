@@ -156,6 +156,7 @@ shut out of a helm that ended up on a broken-off section.
 
 - [`Content.Server/_WF/ShipAccess/WFDoorZoneKeysEvent.cs`](WFDoorZoneKeysEvent.cs)
 - [`Content.Server/_WF/ShipAccess/WFShipAccessCodeComponent.cs`](WFShipAccessCodeComponent.cs)
+- [`Content.Server/_WF/ShipAccess/WFShipAccessHold.cs`](WFShipAccessHold.cs)
 - [`Content.Server/_WF/ShipAccess/WFShipAccessServerSystem.Ai.cs`](WFShipAccessServerSystem.Ai.cs)
 - [`Content.Server/_WF/ShipAccess/WFShipAccessServerSystem.Codes.cs`](WFShipAccessServerSystem.Codes.cs)
 - [`Content.Server/_WF/ShipAccess/WFShipAccessServerSystem.Console.cs`](WFShipAccessServerSystem.Console.cs)

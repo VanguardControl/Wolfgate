@@ -119,14 +119,26 @@ public sealed partial class WFCrewAccessSystem : EntitySystem
             || !TryComp<WFShipAccessComponent>(grid, out var ship))
             return;
 
-        // The stored key is revoked even if the card was taken off him while he was down.
-        if (state == MobState.Dead && crew.AccessKey is { } enrolled)
-            _ships.RemoveEntry((grid, ship), enrolled);
+        // The stored key is held off the list even if the card was taken off him while he was down.
+        if (state == MobState.Dead && crew.AccessKey is { } enrolled && crew.AccessHold == null)
+            crew.AccessHold = _ships.SuspendEntry((grid, ship), enrolled);
         else if (state == MobState.Alive && _access.TryGetWornCard(uid, out var card) && _access.TryGetKey(card, out var key))
-        {
-            _ships.TryAddCard((grid, ship), card, Name(uid));
-            crew.AccessKey = key;
-        }
+            Reenroll(uid, crew, (grid, ship), card, key);
+    }
+
+    /// <summary>A revived crewman's worn card goes back on the list with its door lists; a card he no longer wears comes off.</summary>
+    private void Reenroll(EntityUid uid, WFCrewComponent crew, Entity<WFShipAccessComponent> ship, EntityUid card, WFShipAccessKey key)
+    {
+        if (crew.AccessKey is { } old && old != key && crew.AccessHold == null)
+            _ships.RemoveEntry(ship, old);
+
+        if (crew.AccessHold is { } hold && hold.Entry.Key == key)
+            _ships.RestoreEntry(ship, hold);
+        else
+            _ships.TryAddCard(ship, card, Name(uid));
+
+        crew.AccessKey = key;
+        crew.AccessHold = null;
     }
 
     /// <summary>A deleted crewman's card key comes off the ship's allow list.</summary>

@@ -1,4 +1,5 @@
 using Content.Shared._WF.NpcCrew;
+using Content.Server._WF.ShipAccess;
 using Content.Shared._WF.ShipAccess;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
@@ -96,6 +97,10 @@ public sealed partial class WFCrewComponent : Component
     /// <summary>The card key enrolled on <see cref="AccessShip"/>, kept so it is revoked even once the card is taken.</summary>
     [ViewVariables]
     public WFShipAccessKey? AccessKey;
+
+    /// <summary><see cref="AccessKey"/>'s entry and door lists while he is dead, put back if he is revived.</summary>
+    [ViewVariables]
+    public WFShipAccessHold? AccessHold;
 
     /// <summary>Whether the role title has been put in front of the name.</summary>
     [ViewVariables]

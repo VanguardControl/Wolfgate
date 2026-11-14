@@ -221,6 +221,37 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
         return true;
     }
 
+    /// <summary>Takes a key off the allow list and every door list, keeping both for <see cref="RestoreEntry"/>; null when it was not on it.</summary>
+    public WFShipAccessHold? SuspendEntry(Entity<WFShipAccessComponent> ship, WFShipAccessKey key)
+    {
+        if (!_access.TryGetEntry(ship.Comp, key, out var entry))
+            return null;
+
+        var doors = DoorsListing(ship.Owner, key);
+        RemoveEntry(ship, key);
+        return new WFShipAccessHold(entry, doors);
+    }
+
+    /// <summary>Puts a held entry back on the allow list and on the doors still aboard; false when its key is listed already.</summary>
+    public bool RestoreEntry(Entity<WFShipAccessComponent> ship, WFShipAccessHold hold)
+    {
+        if (_access.TryGetEntry(ship.Comp, hold.Entry.Key, out _))
+            return false;
+
+        ship.Comp.AllowList.Add(hold.Entry);
+        Dirty(ship);
+        foreach (var door in hold.Doors)
+        {
+            if (!TerminatingOrDeleted(door) && Transform(door).ParentUid == ship.Owner)
+                SetDoorPlayer(ship, door, hold.Entry.Key, true);
+        }
+
+        RefreshShip(ship);
+        _adminLog.Add(LogType.Action, LogImpact.Low,
+            $"{hold.Entry.Name} was restored to the allow list of {ToPrettyString(ship.Owner):grid}");
+        return true;
+    }
+
     /// <summary>Sets a listed card's builder flag; false when it is not listed.</summary>
     public bool SetBuilder(Entity<WFShipAccessComponent> ship, WFShipAccessKey key, bool builder)
     {
