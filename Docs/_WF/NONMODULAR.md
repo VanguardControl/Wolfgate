@@ -125,6 +125,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - an instant do-after has already ended, so nothing would ever delete the effect
 - [`Content.Server/_Mono/AmmoLoader/AmmoLoaderSystem.cs`](../../Content.Server/_Mono/AmmoLoader/AmmoLoaderSystem.cs): an infinite magazine reports no rounds, which hid it and blocked unloading
 - [`Content.Server/_Mono/Botany/PlantAnalyzer/PlantAnalyzerSystem.cs`](../../Content.Server/_Mono/Botany/PlantAnalyzer/PlantAnalyzerSystem.cs): was 0.01, so the slightest drift silently cancelled the scan
+- [`Content.Server/_Mono/Detection/ThermalSignatureSystem.cs`](../../Content.Server/_Mono/Detection/ThermalSignatureSystem.cs): one bad source must not poison a grid's heat for good
 - [`Content.Server/_Mono/FireControl/FireControlRotateComponent.cs`](../../Content.Server/_Mono/FireControl/FireControlRotateComponent.cs): restore the licence header removed by Kill Spdx
 - [`Content.Server/_Mono/FireControl/FireControlSystem.cs`](../../Content.Server/_Mono/FireControl/FireControlSystem.cs): restore the licence header removed by Kill Spdx
 - [`Content.Server/_Mono/Projectiles/TargetSeeking/Events.cs`](../../Content.Server/_Mono/Projectiles/TargetSeeking/Events.cs): restore the licence header removed by Kill Spdx
@@ -297,6 +298,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - document the armed action's flat damage bonus
   - flat bonus added after melee modifiers, about 100 with a bare fist
 - [`Content.Shared/_Mono/BlackFlash/BlackFlashSystem.cs`](../../Content.Shared/_Mono/BlackFlash/BlackFlashSystem.cs): apply configured flat damage after melee modifiers
+- [`Content.Shared/_Mono/Detection/DetectionSystem.cs`](../../Content.Shared/_Mono/Detection/DetectionSystem.cs): a NaN or infinite heat made a grid undetectable, so radar dropped its hull
 - [`Content.Shared/_Mono/Economy/SharedCreditReceiverSystem.cs`](../../Content.Shared/_Mono/Economy/SharedCreditReceiverSystem.cs): _log was never assigned, so every log line in TryCashPayment threw a NullReferenceException
 - [`Content.Shared/_Mono/ShipGuns/ShipGunClassComponent.cs`](../../Content.Shared/_Mono/ShipGuns/ShipGunClassComponent.cs): restore the licence header removed by Kill Spdx
 - [`Content.Shared/_Mono/Traits/Physical/BionicLegsComponent.cs`](../../Content.Shared/_Mono/Traits/Physical/BionicLegsComponent.cs): restore the licence header removed by Kill Spdx

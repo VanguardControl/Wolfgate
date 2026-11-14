@@ -197,6 +197,14 @@ public sealed partial class NPCSteeringSystem
             return false;
         }
 
+        // WOLFGATE(NpcCrew) START: crew out of a fight hold short of a burning tile rather than walk through the fire
+        if (!directMove && IsCrewFireAhead(uid, targetCoordinates))
+        {
+            steering.Status = SteeringStatus.NoPath;
+            return false;
+        }
+        // WOLFGATE END
+
         var direction = targetMap.Position - ourMap.Position;
 
         // Need to be pretty close if it's just a node to make sure LOS for door bashes or the likes.
