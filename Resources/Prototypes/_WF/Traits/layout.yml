@@ -4,11 +4,8 @@
   groups:
   - name: wf-trait-group-toughness
     traits:
-    - Vigor
-    - Tenacity
     - WillToLive
     - Steadfast
-    - DermalArmor
   - name: wf-trait-group-healing
     traits:
     - PlateletFactories
@@ -32,7 +29,6 @@
   - name: wf-trait-group-skills
     traits:
     - Thieving
-    - TrapAvoider
     - SelfAware
     - Voracious
     - Helmsmanship
