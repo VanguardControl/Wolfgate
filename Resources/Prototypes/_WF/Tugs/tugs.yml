@@ -1,0 +1,146 @@
+# Luggage tugs (Content.Server/_WF/Tugs/README.md). Names and descriptions are in Resources/Locale/en-US/_WF/Tugs/tugs.ftl.
+
+# A sit-on tug driven by the CMU grid mover. It has no interior: whoever buckles into it is the operator.
+- type: entity
+  id: WFLuggageTug
+  categories: [ WFVehicles ]
+  save: false
+  components:
+  - type: CleanupImmune
+  - type: FTLSmashImmune
+  - type: StaticPrice
+    price: 2500
+  - type: RMCVehicle
+    movementKind: Grid
+  - type: LagCompensation
+  - type: Clickable
+  - type: InteractionOutline
+  - type: Physics
+    bodyType: Dynamic
+  - type: Fixtures
+    fixtures:
+      world:
+        shape:
+          !type:PhysShapeAabb
+          bounds: -0.4,-0.4,0.4,0.4
+        density: 300
+        mask:
+        - Impassable
+        - HighImpassable
+        - LowImpassable
+        - LargeMobLayer
+        - Vehicle
+        layer:
+        - LargeMobLayer
+        - Vehicle
+      mob:
+        shape:
+          !type:PhysShapeAabb
+          bounds: -0.4,-0.4,0.4,0.4
+        density: 300
+        mask:
+        - MidImpassable
+        - LargeMobLayer
+        layer:
+        - LargeMobLayer
+  - type: Damageable
+    damageContainer: StructuralInorganic
+    damageModifierSet: StructuralMetallic
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 300
+      behaviors:
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+  - type: Sprite
+    drawdepth: Objects
+    sprite: _WF/Tugs/tug.rsi
+    state: tug
+  # A rider on a moving body gets nudged by physics; the default 3 mm tolerance would throw them off.
+  - type: Strap
+    position: Stand
+    unbuckleDistanceSquared: 0.09
+  - type: GridVehicleMover
+    freeSteering: true
+    maxRotationSpeedDegrees: 110
+    rotationAccelerationDegrees: 220
+    rotationDecelerationDegrees: 240
+    maxSpeed: 5
+    acceleration: 3
+    deceleration: 8
+    maxReverseSpeed: 2
+    reverseAcceleration: 2
+    turnDelay: 0
+    turnInPlace: false
+    canPushVehicles: false
+  - type: VehicleFall
+    bodyHealth: 300
+  - type: VehicleSound
+    runningSound:
+      path: /Audio/_WF/Vehicles/box_van_driving.ogg
+      params:
+        volume: -10
+        pitch: 1.3
+    runningSoundCooldown: 2.3
+    hornSound: /Audio/Effects/double_beep.ogg
+    hornCooldown: 1
+    mobCollisionSound:
+      path: /Audio/Effects/metal_thud1.ogg
+      params:
+        volume: -4
+    collisionSoundCooldown: 1.5
+  - type: WFTug
+
+# A trolley that couples behind a tug and carries one strapped crate.
+- type: entity
+  id: WFLuggageTrolley
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Transform
+    anchored: false
+  - type: Clickable
+  - type: StaticPrice
+    price: 300
+  - type: Sprite
+    drawdepth: SmallObjects
+    sprite: _WF/Tugs/trolley.rsi
+    state: trolley
+  - type: InteractionOutline
+  - type: Physics
+    bodyType: Dynamic
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: -0.4,-0.3,0.4,0.3
+        density: 150
+        mask:
+        - MachineMask
+        layer:
+        - MidImpassable
+        - LowImpassable
+  - type: Pullable
+  - type: Damageable
+    damageContainer: StructuralInorganic
+    damageModifierSet: StructuralMetallic
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 150
+      behaviors:
+      - !type:EmptyAllContainersBehaviour
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+  - type: ContainerContainer
+    containers:
+      wf-trolley-cargo: !type:ContainerSlot
+        showEnts: True
+  - type: WFTugTrolley
+    cargoWhitelist:
+      components:
+      - EntityStorage

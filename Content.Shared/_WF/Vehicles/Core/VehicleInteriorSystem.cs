@@ -975,7 +975,8 @@ public sealed partial class VehicleInteriorSystem : EntitySystem
         if (_net.IsClient)
             return;
 
-        if (!HasComp<VehicleEnterComponent>(args.Vehicle.Owner))
+        // A vehicle that is its own operator (the Bison at rest) has no driver to give a view.
+        if (!HasComp<VehicleEnterComponent>(args.Vehicle.Owner) || ent.Owner == args.Vehicle.Owner)
             return;
 
         _eye.SetTarget(ent.Owner, args.Vehicle.Owner);
