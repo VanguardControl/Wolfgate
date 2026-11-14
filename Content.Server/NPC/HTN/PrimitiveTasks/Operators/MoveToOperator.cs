@@ -204,8 +204,14 @@ public sealed partial class MoveToOperator : HTNOperator, IHtnConditionalShutdow
 
         // Need to remove the planning value for execution.
         blackboard.Remove<EntityCoordinates>(NPCBlackboard.OwnerCoordinates);
-        var targetCoordinates = blackboard.GetValue<EntityCoordinates>(TargetKey);
         var uid = blackboard.GetValue<EntityUid>(NPCBlackboard.Owner);
+        // WOLFGATE START: a target dropped since planning, or on a map since deleted, threw and stopped every NPC that tick
+        if (!blackboard.TryGetValue<EntityCoordinates>(TargetKey, out var targetCoordinates, _entManager)
+            || _entManager.Deleted(targetCoordinates.EntityId))
+        {
+            targetCoordinates = _entManager.GetComponent<TransformComponent>(uid).Coordinates;
+        }
+        // WOLFGATE END
 
         // Re-use the path we may have if applicable.
         var comp = _steering.Register(uid, targetCoordinates);

@@ -29,6 +29,7 @@ when the machine is deconstructed (`WFKitRefundSystem`).
 ### Shared
 
 - [`Content.Shared/_WF/Construction/CraftRepeatRequestEvent.cs`](../../../Content.Shared/_WF/Construction/CraftRepeatRequestEvent.cs)
+- [`Content.Shared/_WF/Construction/WFAnchorPassableComponent.cs`](../../../Content.Shared/_WF/Construction/WFAnchorPassableComponent.cs)
 - [`Content.Shared/_WF/Construction/WFKitRefundComponent.cs`](../../../Content.Shared/_WF/Construction/WFKitRefundComponent.cs)
 - [`Content.Shared/_WF/Construction/WFKitRefundSystem.cs`](../../../Content.Shared/_WF/Construction/WFKitRefundSystem.cs)
 
@@ -52,5 +53,10 @@ when the machine is deconstructed (`WFKitRefundSystem`).
 - [`Content.Client/Construction/UI/ConstructionMenuPresenter.cs`](../../../Content.Client/Construction/UI/ConstructionMenuPresenter.cs): repeat-craft buttons
 - [`Content.Server/Materials/MaterialReclaimerSystem.cs`](../../Materials/MaterialReclaimerSystem.cs): a screwdriver opens the panel instead of being recycled
 - [`Content.Shared/_DV/Construction/UpgradeKitSystem.cs`](../../../Content.Shared/_DV/Construction/UpgradeKitSystem.cs): deconstructing the machine gives the kit back
+- [`Content.Shared/Construction/EntitySystems/AnchorableSystem.cs`](../../../Content.Shared/Construction/EntitySystems/AnchorableSystem.cs)
+  - wrenching past a wall light
+  - wfAnchoring skips wall lights
+  - a wall light doesn't block anchoring under it
+- [`Resources/Prototypes/Entities/Structures/Lighting/base_lighting.yml`](../../../Resources/Prototypes/Entities/Structures/Lighting/base_lighting.yml): machines anchor on the tile under a wall light
 
 <!-- WOLFGATE-GENERATED END -->
