@@ -1,31 +1,30 @@
 # Vessel prototype made in mapping mode from "Vrakritatat". Check every field before it goes in the game.
 # Grid: put Vrakritatat.yml at Resources/SharedMaps/_WF/Community/vox_vrakritatat.yml
 # Prototype: put this file, Vrakritatat.vessel.yml, at Resources/Prototypes/_WF/Community/vox_vrakritatat.yml
-# Guessed from the grid (1327 tiles), not set by the mapper: description, engine. Check them.
-# Set by the mapper in the export wizard: name, price, category, class, group, access, requireCrew.
+# Guessed from the grid (1327 tiles), not set by the mapper: engine. Check them.
+# Set by the mapper in the export wizard: name, description, price, category, class, group, access, requireCrew.
 
 - type: vessel
   id: WFVOXVrakritatat
   parent: BaseVessel
   name: 'VOX-Vrakritatat'
-  description: 'A large Vox scrapper and mining hauler. Has a docking day for small craft'
-  price: 550500 # appraised at 170808
+  description: 'A large Vox scrapper and mining hauler. Has a docking bay for small craft'
+  price: 550500 # appraised at 171036
   category: Large # 1327 tiles
   group: Scrap
-  shuttlePath: /SharedMaps/_WF/Shipyard/Shuttles/vox_vrakritatat.yml
+  shuttlePath: /SharedMaps/_WF/Community/vox_vrakritatat.yml
   guidebookPage: null
   class:
   - Capital
   - Scrapyard
   - Salvage
-  - Carrier
   engine:
   - AME
 
 - type: gameMap
   id: WFVOXVrakritatat
   mapName: 'VOX-Vrakritatat'
-  mapPath: /SharedMaps/_WF/Shipyard/Shuttles/vox_vrakritatat.yml
+  mapPath: /SharedMaps/_WF/Community/vox_vrakritatat.yml
   minPlayers: 0
   stations:
     WFVOXVrakritatat:
