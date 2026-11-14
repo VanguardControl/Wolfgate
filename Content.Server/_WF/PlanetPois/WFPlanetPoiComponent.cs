@@ -126,6 +126,9 @@ public sealed class WFPlanetPoiSite
     /// <summary>The station whose contract holds the site; expeditions skip it while it does.</summary>
     public EntityUid? ContractClaim;
     public bool Cleared;
+
+    /// <summary>When an expedition cleared the site; it is offered again once it has had time to fill back up.</summary>
+    public TimeSpan ClearedAt;
 }
 
 /// <summary>
