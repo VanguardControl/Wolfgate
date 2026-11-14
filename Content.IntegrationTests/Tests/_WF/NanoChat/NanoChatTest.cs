@@ -112,8 +112,8 @@ public sealed class NanoChatTest
 
         await server.WaitAssertion(() =>
         {
-            Send(entMan, pdaA, cartA, cardB.Comp.Number!.Value, "anyone?");
-            var sent = cardA.Comp.Messages[cardB.Comp.Number!.Value];
+            Send(entMan, pdaA, cartA, cardB.Comp!.Number!.Value, "anyone?");
+            var sent = cardA.Comp!.Messages[cardB.Comp.Number!.Value];
             Assert.That(sent, Has.Count.EqualTo(2));
             Assert.That(sent[1].DeliveryFailed, Is.True, "A message went out with no telecom server.");
             Assert.That(cardB.Comp.Messages[cardA.Comp.Number!.Value], Has.Count.EqualTo(1));
