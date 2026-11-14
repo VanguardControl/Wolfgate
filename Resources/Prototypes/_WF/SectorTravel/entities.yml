@@ -1,0 +1,178 @@
+# The jump beacon a sector's beacon platform carries. WFSectorTravelSystem adds its WFJumpBeacon data on spawn.
+- type: entity
+  id: WFJumpBeacon
+  name: jump beacon
+  description: A bluespace anchor the size of a building. Hail it from inside its zone to jump to the next sector.
+  categories: [ HideSpawnMenu ]
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Transform
+    anchored: true
+  - type: Clickable
+  - type: InteractionOutline
+  - type: Sprite
+    sprite: _WF/SectorTravel/jump_beacon.rsi
+    # Lifts the art so the plinth, not the crystal, sits on the collision circle.
+    offset: 0,0.3
+    drawdepth: Mobs
+    layers:
+    - state: base
+    - state: lights
+      shader: unshaded
+  - type: PointLight
+    radius: 12
+    energy: 3
+    color: "#7fd4ff"
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 1.3
+        density: 1000
+        mask:
+        - MachineMask
+        layer:
+        - WallLayer
+
+# Carries a sector's radio: non-long-range channels need a powered telecom server on the sender's map.
+- type: entity
+  id: WFSectorRelay
+  name: beacon relay
+  description: A telecom server sealed into the beacon platform. It carries radio across the sector.
+  categories: [ HideSpawnMenu ]
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Transform
+    anchored: true
+  - type: Clickable
+  - type: InteractionOutline
+  - type: Sprite
+    sprite: Structures/Machines/telecomms.rsi
+    snapCardinals: true
+    layers:
+    - state: icon
+    - state: unlit
+      shader: unshaded
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.4,-0.4,0.4,0.4"
+        density: 190
+        mask:
+        - MachineMask
+        layer:
+        - MachineLayer
+  - type: ApcPowerReceiver
+    needsPower: false
+  - type: TelecomServer
+  - type: EncryptionKeyHolder
+    keysUnlocked: false
+    keySlots: 10
+  - type: ContainerContainer
+    containers:
+      key_slots: !type:Container
+  - type: ContainerFill
+    containers:
+      key_slots:
+      - EncryptionKeyCommon
+      - EncryptionKeyCargo
+      - EncryptionKeyEngineering
+      - EncryptionKeyMedical
+      - EncryptionKeyScience
+      - EncryptionKeySecurity
+      - EncryptionKeyService
+      - EncryptionKeyCommand
+
+# The beacon's traffic control: a hidden shuttle console that makes the platform hailable, and with no power
+# receiver always powered. WFJumpBeaconSystem answers for the beacon; WFSectorTravelSystem spawns it on the beacon.
+- type: entity
+  id: WFJumpBeaconConsole
+  name: beacon traffic control
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Transform
+    anchored: true
+  - type: ShuttleConsole
+  # The console's startup adds these ports; declared here so spawning changes nothing.
+  - type: DeviceLinkSource
+    ports:
+    - device-button-1
+    - device-button-2
+    - device-button-3
+    - device-button-4
+    - device-button-5
+    - device-button-6
+    - device-button-7
+    - device-button-8
+  - type: WFJumpBeaconConsole
+
+# The portal a beacon opens across a ship's nose. WFJumpBeaconSystem stretches it to the ship's width and deletes it
+# when the jump ends. It never traverses grids, or the ship flying into it would pick it up and carry it.
+- type: entity
+  id: WFJumpPortal
+  name: bluespace portal
+  description: Fly through to jump.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Transform
+    gridTraversal: false
+  - type: Sprite
+    sprite: Effects/portal.rsi
+    drawdepth: Effects
+    layers:
+    - state: portal-blue
+      shader: unshaded
+  - type: PointLight
+    radius: 10
+    energy: 4
+    color: "#7fd4ff"
+    castShadows: false
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+# The bolt a beacon throws to open a portal: lightning that harms nothing.
+- type: entity
+  id: WFJumpBeaconBolt
+  name: beacon bolt
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: Effects/lightning.rsi
+    drawdepth: Effects
+    layers:
+    - state: lightning_1
+      shader: unshaded
+  - type: Physics
+    canCollide: false
+  - type: PointLight
+    enabled: true
+    color: "#7fd4ff"
+    radius: 3.5
+    softness: 1
+    autoRot: true
+    castShadows: false
+  - type: Beam
+    sound: /Audio/Effects/Lightning/lightningshock.ogg
+  - type: TimedDespawn
+    lifetime: 1.5
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+# An end point for a long beacon bolt, which is drawn only near its two ends.
+- type: entity
+  id: WFJumpBeaconBoltAnchor
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 2
