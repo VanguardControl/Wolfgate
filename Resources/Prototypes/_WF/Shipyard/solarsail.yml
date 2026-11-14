@@ -1,17 +1,15 @@
-# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
-
+#Author Info
+#zy.dras (Discord)
 - type: vessel
-  id: Solarsail
+  id: WFSolarsail
   parent: BaseVessel
   name: Solarsail
-  description: A personal transport and mobile office for the Overseer. Part of the combined service ship.
-  price: 35417
+  description: A personal transport and mobile office for the Overseer.
+  price: 23829 #appraised at 20721, 15% markup
   category: Small
   group: Sr
   access: HeadOfPersonnel
-  shuttlePath: /SharedMaps/_WF/OldVessels/solarsail.yml
-  tags:
-  - WFClassicVessel
+  shuttlePath: /SharedMaps/_WF/Shipyard/Shuttles/solarsail.yml
   guidebookPage: Null
   class:
   - Civilian
@@ -19,12 +17,12 @@
   - Plasma
 
 - type: gameMap
-  id: Solarsail
+  id: WFSolarsail
   mapName: 'Solarsail'
-  mapPath: /SharedMaps/_WF/OldVessels/solarsail.yml
+  mapPath: /SharedMaps/_WF/Shipyard/Shuttles/solarsail.yml
   minPlayers: 0
   stations:
-    Solarsail:
+    WFSolarsail:
       stationProto: StandardFrontierVessel
       components:
         - type: StationNameSetup

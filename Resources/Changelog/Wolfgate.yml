@@ -7211,3 +7211,155 @@ Entries:
   id: 100456
   time: '2026-11-13T07:07:17.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/633
+- author: Balls2zawall
+  changes:
+    - type: Add
+      message: >-
+        Added a new Solarsail overseer ship, the combined service ship is now
+        kill
+    - type: Add
+      message: Added a new Hermes mail ship
+  id: 100457
+  time: '2026-11-13T15:25:17.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/623
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Added street drugs with real highs, crashes and overdoses: cocaine,
+        crack, opium, heroin, crystal, hash, Redline, Anvil, Chorus and Halo.
+    - type: Add
+      message: >-
+        Added dependence, tolerance and withdrawal, and three traits that start
+        you with a habit.
+    - type: Add
+      message: >-
+        Added purity grades. Reactions run off their ideal temperature and
+        street cuts come out weaker and more toxic; a purity tester reads the
+        grade.
+    - type: Add
+      message: >-
+        Added neuroware: data sticks that give synthetics the same highs as
+        programs, and can be copied at a loss.
+    - type: Add
+      message: Added powder lines, a craftable bong and second-hand smoke.
+    - type: Add
+      message: >-
+        Examining someone who is high, drunk, crashing or in withdrawal now
+        shows it in their face and the way they move.
+    - type: Add
+      message: Flying a ship while high or drunk changes how it handles.
+    - type: Add
+      message: >-
+        Chorus lets you sense asteroids holding exotic matter in the Coda, at
+        the cost of faster Drift.
+    - type: Add
+      message: >-
+        Health analyzers have a Conditions tab listing highs, crashes and habits
+        and what clears them.
+    - type: Add
+      message: >-
+        Added a Reaver drug runner, dealer stock, three Bench laws and a
+        Narcotics guidebook page.
+    - type: Tweak
+      message: >-
+        Drunkenness and several drug effects now last as long as the substance
+        stays in your blood.
+    - type: Tweak
+      message: Synthetics no longer feel chemical drugs.
+    - type: Fix
+      message: THC cigarettes now contain THC.
+  id: 100458
+  time: '2026-11-13T16:00:17.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/619
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: >-
+        Fugitives and other Underground roles are no longer kill on sight. The
+        TSFMC can arrest them on sight, but lethal force needs escalation like
+        anyone else.
+  id: 100459
+  time: '2026-11-13T16:12:32.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/637
+- author: Balls2zawall
+  changes:
+    - type: Add
+      message: >-
+        Anvilhold has a new EVA drydock berth, the normal berths are 6 tiles
+        wider, and the cranes should be a little faster.
+  id: 100460
+  time: '2026-11-13T19:02:36.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/640
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: >-
+        Smuggling crates now cost 15,000 and sell for 20,000, and each sale also
+        pays 2 telecrystals.
+    - type: Tweak
+      message: >-
+        Customs now flags 1 in 4 smuggling sales. Each flag adds 20,000 to the
+        seller's warrant, up to 300,000.
+    - type: Add
+      message: >-
+        Smuggling crates now sell at only one station at a time, and the drop
+        moves every 30 minutes. The Underground sees where in their Market app;
+        security is tipped off 10 minutes after each move.
+    - type: Tweak
+      message: >-
+        Smuggling money reaching the Ashfall Reavers now sends out extra patrols
+        and is announced on the radio.
+  id: 100461
+  time: '2026-11-13T19:41:36.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/636
+- author: NEWSUI
+  changes:
+    - type: Add
+      message: Added Dread
+  id: 100462
+  time: '2026-11-13T20:06:12.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/624
+- author: antanananat
+  changes:
+    - type: Add
+      message: RVR Minerva, the reaver asteroid ship.
+    - type: Add
+      message: >-
+        Reavers have finally figured out how to hack and override TSF turrets
+        and can now put them on their ships. Boarders beware.
+  id: 100463
+  time: '2026-11-13T20:58:47.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/635
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: The Anvilhold drydock's new west berth has a name on its console.
+  id: 100464
+  time: '2026-11-13T22:08:15.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/641
+- author: antanananat
+  changes:
+    - type: Tweak
+      message: >-
+        The price of the TSF exotic materials crate was adjusted from 175 to
+        130, and it now contains 2 fissile uranium instead of 1
+    - type: Tweak
+      message: Prices of PDV ready-to-buy vouchers increased slightly
+    - type: Tweak
+      message: >-
+        Costs of TSF ships have been adjusted, depleted uranium cost for T3 and
+        T4 ships went down but they gained a plastitanium cost. Copper and
+        lithium costs went down a little.
+    - type: Tweak
+      message: The TSF vouchers are renewable again
+  id: 100465
+  time: '2026-11-14T06:48:09.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/632
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Ported 25 Monolith changes; their entries are in the Monolith changelog.
+  id: 100466
+  time: '2026-11-14T09:41:17.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/653
