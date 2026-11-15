@@ -20,3 +20,5 @@ wf-chat-tabs-window-title = Chat
 wf-chat-tabs-popped-out = The chat log is in its own window.
 wf-chat-tabs-dock-button = Dock
 wf-chat-tabs-save = Save chat log
+
+wf-chat-log = Chat log

@@ -28,7 +28,7 @@ public static class ChatLogSaver
             "<html lang=\"en\">\n" +
             "<head>\n" +
             "  <meta charset=\"utf-8\">\n" +
-            $"  <title>Chat log \u2013 {HtmlEncode(tab.Name)}</title>\n" +
+            $"  <title>{Loc.GetString("wf-chat-log")} \u2013 {HtmlEncode(tab.Name)}</title>\n" +
             "  <style>\n" +
             "    body { font-family: 'Consolas', 'Monaco', monospace; background: #2B2B2B; color: #d4d4d4; padding: 16px; }\n" +
             "    .header { color: #888; margin-bottom: 8px; }\n" +
@@ -38,7 +38,7 @@ public static class ChatLogSaver
             "  </style>\n" +
             "</head>\n" +
             "<body>\n" +
-            $"  <div class=\"header\">Chat log \u2013 {HtmlEncode(tab.Name)}</div>\n");
+            $"  <div class=\"header\">{Loc.GetString("wf-chat-log")} \u2013 {HtmlEncode(tab.Name)}</div>\n");
 
         foreach (var (_, msg) in controller.History)
         {
