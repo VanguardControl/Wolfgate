@@ -1,4 +1,3 @@
-using System.IO;
 using Content.Client._WF.ChatTabs;
 using Content.Client.UserInterface.Systems.Chat;
 using Content.Shared.Chat;

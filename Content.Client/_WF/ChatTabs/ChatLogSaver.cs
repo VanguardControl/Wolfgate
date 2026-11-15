@@ -163,7 +163,7 @@ public static class ChatLogSaver
                 $"<span style=\"color:{ResolveColor(param)}\">",
                 "</span>"
             ),
-            // WOLFGATE(EventStaff): keep event chat link formatting
+            // Ghost orbit links from event staff.
             "WFGhostOrbitLink" => (
                 $"<span style=\"color:#9cdcfe\">",
                 "</span>"
