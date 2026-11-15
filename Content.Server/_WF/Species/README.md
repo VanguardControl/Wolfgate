@@ -267,7 +267,7 @@ it back up to Okay after any drain, a Kelotane overdose included, before their d
   - HardLight circle squeeze fields
   - unused once sneak state moved onto the networked component fields directly
 - [`Content.Shared/_DV/Abilities/SharedCrawlUnderObjectsSystem.cs`](../../../Content.Shared/_DV/Abilities/SharedCrawlUnderObjectsSystem.cs): rewritten as a shared, predicted system with HardLight's squeeze geometry
-- [`Content.Shared/_EinsteinEngines/Language/ObfuscationMethods.cs`](../../../Content.Shared/_EinsteinEngines/Language/ObfuscationMethods.cs): ported from HardLight/Starlight, needed by the Avali "Scratch" language
+- [`Content.Shared/_EinsteinEngines/Language/ObfuscationMethods.cs`](../../../Content.Shared/_EinsteinEngines/Language/ObfuscationMethods.cs): the message is upper-cased first, so lower-case chars never matched and nothing scrambled
 - [`Content.Shared/_FarHorizons/Damage/HealModifyEvent.cs`](../../../Content.Shared/_FarHorizons/Damage/HealModifyEvent.cs): heal modifiers, ported from HardLight
 - [`Content.Shared/_FarHorizons/Damage/UniversalHealModifierComponent.cs`](../../../Content.Shared/_FarHorizons/Damage/UniversalHealModifierComponent.cs): heal modifiers, ported from HardLight
 - [`Content.Shared/_FarHorizons/Damage/UniversalHealModifierSystem.cs`](../../../Content.Shared/_FarHorizons/Damage/UniversalHealModifierSystem.cs): heal modifiers, ported from HardLight

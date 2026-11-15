@@ -145,11 +145,14 @@
     - SignLanguage
     - SiikMaas
     - NovuNederic
-    - MonoNekomimetic
     - MonoElyran
     - MonoCanilunzt
     - MonoFelyaic
     - MonoClassical
+    - MonoMoffic
+    - MonoScratch
+    - MonoSqueakish
+    - MonoNovaCygniClassical
   - name: wf-trait-group-language-drawbacks
     traits:
     - Foreigner
