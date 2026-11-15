@@ -44,6 +44,7 @@ Skipped ("dirty-disposed").
 - [`Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Atmosphere.cs`](Autodoc/AutodocSystem.Atmosphere.cs)
 - [`Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Blood.cs`](Autodoc/AutodocSystem.Blood.cs)
 - [`Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.cs`](Autodoc/AutodocSystem.cs)
+- [`Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Hand.cs`](Autodoc/AutodocSystem.Hand.cs)
 - [`Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Procedure.cs`](Autodoc/AutodocSystem.Procedure.cs)
 - [`Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Session.cs`](Autodoc/AutodocSystem.Session.cs)
 - [`Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Triage.cs`](Autodoc/AutodocSystem.Triage.cs)
@@ -923,6 +924,9 @@ Skipped ("dirty-disposed").
   - the dead view and a synthetic body's readout are Wolfmed's; the white fade-out here never cleared.
   - HOOK 15 — pain owns the brute vignette on wound hosts (Wolfmed phase 2).
   - HOOK 15 — ONYX Content.Client/DamageOverlay/DamageOverlay.cs:175
+- [`Content.Client/UserInterface/Systems/Hands/Controls/HandsContainer.cs`](../../../Content.Client/UserInterface/Systems/Hands/Controls/HandsContainer.cs)
+  - a hand reattached after the other keeps its side; right, middle, then left
+  - the hand bar's order, as the server sorts hands
 - [`Content.IntegrationTests/Tests/_Onyx/Body/BodyConsequencesTest.cs`](../../../Content.IntegrationTests/Tests/_Onyx/Body/BodyConsequencesTest.cs)
   - §2.7, Onyx's SharedBodySystem.TryDetachPart lives here.
   - Onyx's version asserts Nubody behaviour Wolfgate does not have. Its `Groin` part does not exist
@@ -1266,6 +1270,7 @@ Skipped ("dirty-disposed").
   - HOOK 7 / D14, Wolfmed wound treatment data.
 - [`Content.Server/Medical/DefibrillatorSystem.cs`](../../Medical/DefibrillatorSystem.cs)
   - BRAIN
+  - a living Wolfmed patient in arrest can be shocked; Unrevivable only stops the dead
   - BRAIN, the Wolfmed rule replaces the threshold gate for a wound host.
   - M1a: the refusal carries the patient's numbers (blood %, units to transfuse).
   - M1a
@@ -1743,6 +1748,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_Goobstation/Entities/Clothing/Head/hardsuit-helmets.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Clothing/Head/hardsuit-helmets.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_Goobstation/Entities/Clothing/Head/modsuit.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Clothing/Head/modsuit.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_Goobstation/Entities/Clothing/OuterClothing/armour.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Clothing/OuterClothing/armour.yml): P6, P3-D6: locational armour coverage
+- [`Resources/Prototypes/_Goobstation/Entities/Mobs/Species/tajaran.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Mobs/Species/tajaran.yml): rinses caustic residue off, as on the humanoid base
 - [`Resources/Prototypes/_Goobstation/Entities/Objects/Misc/Crafting/ghetto_stuff.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Objects/Misc/Crafting/ghetto_stuff.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/_Goobstation/Entities/Objects/Tools/tools.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Objects/Tools/tools.yml): a multi-mode tool does the surgery its modes stand in for (feedback #136)
 - [`Resources/Prototypes/_Goobstation/Entities/Objects/Weapons/Melee/hammer.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Objects/Weapons/Melee/hammer.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
@@ -1844,6 +1850,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_NF/Entities/Clothing/Neck/scarfs.yml`](../../../Resources/Prototypes/_NF/Entities/Clothing/Neck/scarfs.yml): warm like the other scarves
 - [`Resources/Prototypes/_NF/Entities/Clothing/OuterClothing/armor.yml`](../../../Resources/Prototypes/_NF/Entities/Clothing/OuterClothing/armor.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_NF/Entities/Markers/Spawners/Random/dungeon_items_medical.yml`](../../../Resources/Prototypes/_NF/Entities/Markers/Spawners/Random/dungeon_items_medical.yml): playtest 5: sutures found in more places.
+- [`Resources/Prototypes/_NF/Entities/Mobs/Species/goblin.yml`](../../../Resources/Prototypes/_NF/Entities/Mobs/Species/goblin.yml): rinses caustic residue off, as on the humanoid base
 - [`Resources/Prototypes/_NF/Entities/Objects/Tools/flashlights.yml`](../../../Resources/Prototypes/_NF/Entities/Objects/Tools/flashlights.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/_NF/Entities/Objects/Tools/tools.yml`](../../../Resources/Prototypes/_NF/Entities/Objects/Tools/tools.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/_NF/Entities/Objects/Weapons/Melee/caveman_club.yml`](../../../Resources/Prototypes/_NF/Entities/Objects/Weapons/Melee/caveman_club.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
@@ -1936,6 +1943,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_StarLight/Entities/Mobs/Species/avali.yml`](../../../Resources/Prototypes/_StarLight/Entities/Mobs/Species/avali.yml)
   - D22, OD12: the Blunt gib moves to 1500 and the Heat body ash is removed, as on every other wound host
   - the Starlight teleport sound never shipped here, and the client logged an error every stasis.
+- [`Resources/Prototypes/_StarLight/Entities/Mobs/Species/felionoid.yml`](../../../Resources/Prototypes/_StarLight/Entities/Mobs/Species/felionoid.yml): rinses caustic residue off, as on the humanoid base
 - [`Resources/Prototypes/_StarLight/Entities/Mobs/Species/shadekin.yml`](../../../Resources/Prototypes/_StarLight/Entities/Mobs/Species/shadekin.yml)
   - M4, OD16: shadekin is a wound host, so Wolfmed decides its state.
   - blood loss damage heals at every other species' rate; at a quarter of it the reading outlasted the bleed by half an hour
@@ -2058,6 +2066,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/Entities/Mobs/Player/admin_ghost.yml`](../../../Resources/Prototypes/Entities/Mobs/Player/admin_ghost.yml)
   - playtest 3: the IPC's container, so its bar shows
   - the HardLight Synth's container, so its bar shows
+- [`Resources/Prototypes/Entities/Mobs/Species/arachnid.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/arachnid.yml): rinses caustic residue off, as on the humanoid base
 - [`Resources/Prototypes/Entities/Mobs/Species/base.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/base.yml)
   - WP11-4, P3-4 Option B: the damage overlays use Onyx's wound art, severed parts included.
   - W4: rinses caustic residue off a wound host.
@@ -2065,7 +2074,10 @@ Skipped ("dirty-disposed").
   - W5: antiseptics clean open wounds on touch.
   - D20-D22, P2-D7, P2-D9: organic species get wound hosting, pain and a Blunt gib threshold.
   - D29: passive regen is neutralised on wound hosts.
+- [`Resources/Prototypes/Entities/Mobs/Species/diona.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/diona.yml): rinses caustic residue off, as on the humanoid base
 - [`Resources/Prototypes/Entities/Mobs/Species/reptilian.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/reptilian.yml): was 285; room air chills a lizard, only cold that harms a human harms it
+- [`Resources/Prototypes/Entities/Mobs/Species/skeleton.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/skeleton.yml): rinses caustic residue off, as on the humanoid base
+- [`Resources/Prototypes/Entities/Mobs/Species/slime.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/slime.yml): rinses caustic residue off, as on the humanoid base
 - [`Resources/Prototypes/Entities/Objects/Materials/Sheets/glass.yml`](../../../Resources/Prototypes/Entities/Objects/Materials/Sheets/glass.yml): IPCs, synthetic biotypes and Synths moved off Silicon and could no longer fix their optics
 - [`Resources/Prototypes/Entities/Objects/Misc/fire_extinguisher.yml`](../../../Resources/Prototypes/Entities/Objects/Misc/fire_extinguisher.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/Entities/Objects/Specific/chemistry.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/chemistry.yml): Bobstation's pill swallow (owner's pick, playtest 4), inherited by every Pill variant
@@ -2122,6 +2134,7 @@ Skipped ("dirty-disposed").
   - AUTODOC
 - [`Resources/Prototypes/Nyanotrasen/Entities/Clothing/Head/hats.yml`](../../../Resources/Prototypes/Nyanotrasen/Entities/Clothing/Head/hats.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/Nyanotrasen/Entities/Clothing/OuterClothing/armor.yml`](../../../Resources/Prototypes/Nyanotrasen/Entities/Clothing/OuterClothing/armor.yml): P6, P3-D6: locational armour coverage
+- [`Resources/Prototypes/Nyanotrasen/Entities/Mobs/Species/felinid.yml`](../../../Resources/Prototypes/Nyanotrasen/Entities/Mobs/Species/felinid.yml): rinses caustic residue off, as on the humanoid base
 - [`Resources/Prototypes/Nyanotrasen/Entities/Objects/Weapons/Melee/blunt.yml`](../../../Resources/Prototypes/Nyanotrasen/Entities/Objects/Weapons/Melee/blunt.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/Nyanotrasen/Entities/Objects/Weapons/Melee/breaching_hammer.yml`](../../../Resources/Prototypes/Nyanotrasen/Entities/Objects/Weapons/Melee/breaching_hammer.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/Reagents/cleaning.yml`](../../../Resources/Prototypes/Reagents/cleaning.yml): GORE: wall blood splats are entities, not decals.

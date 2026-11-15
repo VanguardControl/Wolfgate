@@ -51,6 +51,13 @@
     - WFFragility
     - Redshirt
     - Uncloneable
+  - name: wf-trait-group-habits
+    traits:
+    - WFDependentStimulant
+    - WFDependentOpioid
+    - WFDependentEmpathogen
+    - WFDependentCannabinoid
+    - WFDependentNicotine
   - name: wf-trait-group-light-sensitivity
     traits:
     - MildLightSensitivity

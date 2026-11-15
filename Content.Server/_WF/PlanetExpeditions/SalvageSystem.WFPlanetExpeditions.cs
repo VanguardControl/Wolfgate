@@ -50,6 +50,12 @@ public sealed partial class SalvageSystem
 
     private TimeSpan _wfNextCheck;
 
+    /// <summary>
+    /// How long a cleared site lies quiet before it is offered again. Without it every world ran dry over a long
+    /// round but Carcinoma, whose sites nobody clears, and the console offered nothing else.
+    /// </summary>
+    private static readonly TimeSpan WfSiteRecovery = TimeSpan.FromMinutes(45);
+
     private void WfInitializePlanetExpeditions()
     {
         SubscribeLocalEvent<WFPlanetExpeditionComponent, ComponentShutdown>(WfOnExpeditionShutdown);
@@ -75,7 +81,19 @@ public sealed partial class SalvageSystem
             for (var i = 0; i < record.Sites.Count; i++)
             {
                 var site = record.Sites[i];
-                if (site.Expeditions && site.ExpeditionClaim == null && !site.Cleared)
+                if (site.Cleared && _timing.CurTime >= site.ClearedAt + WfSiteRecovery)
+                {
+                    site.Cleared = false;
+                    foreach (var hostile in site.Leftovers)
+                    {
+                        if (!TerminatingOrDeleted(hostile) && !_mobState.IsDead(hostile))
+                            QueueDel(hostile);
+                    }
+
+                    site.Leftovers.Clear();
+                }
+
+                if (site.Expeditions && site.ExpeditionClaim == null && site.ContractClaim == null && !site.Cleared)
                     free.Add((ground, i));
             }
         }
@@ -120,7 +138,7 @@ public sealed partial class SalvageSystem
 
         if (!TryComp<WFPlanetPoiComponent>(offer.Ground, out var record)
             || offer.SiteIndex >= record.Sites.Count
-            || record.Sites[offer.SiteIndex] is not { ExpeditionClaim: null, Cleared: false } site)
+            || record.Sites[offer.SiteIndex] is not { ExpeditionClaim: null, ContractClaim: null, Cleared: false } site)
         {
             // Another crew got there first; fresh offers next tick.
             PlayDenySound(console, component);
@@ -456,6 +474,10 @@ public sealed partial class SalvageSystem
             var site = record.Sites[active.SiteIndex];
             site.ExpeditionClaim = null;
             site.Cleared = completed;
+            site.ClearedAt = _timing.CurTime;
+            // Survivors of a cleared site go when it recovers, so the next claim doesn't stack on them.
+            if (completed)
+                site.Leftovers = new List<EntityUid>(active.Hostiles);
         }
 
         if (completed)

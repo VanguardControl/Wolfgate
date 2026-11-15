@@ -796,6 +796,7 @@
   - WFMeridianLoadoutClothingHeadPeaceflower
   - WFMeridianLoadoutClothingHeadPillowHood
   - WFMeridianLoadoutClothingHeadPizza
+  - WFMeridianLoadoutClothingHeadPlaybunnyears
   - WFMeridianLoadoutClothingHeadPlaybunnyearsCmo
   - WFMeridianLoadoutClothingHeadPlaybunnyearsCoroner
   - WFMeridianLoadoutClothingHeadPlaybunnyearsDoctor
@@ -1146,6 +1147,7 @@
   - WFMeridianLoadoutClothingNeckScarf
   - WFMeridianLoadoutClothingNeckTesharianMantle
   - WFMeridianLoadoutClothingNeckTie
+  - WFMeridianLoadoutClothingNeckTieBunnytie
   - WFMeridianLoadoutClothingNeckTieBunnytieBitrunner
   - WFMeridianLoadoutClothingNeckTieBunnytieCargo
   - WFMeridianLoadoutClothingNeckTieBunnytieCmo
@@ -1413,6 +1415,7 @@
   - WFContractorLauncherCreamPie
   - WFContractorHonkCoFlippo
   - WFContractorClothingMaskPartyHorn
+  - WFContractorCrazyGlue
   # WOLFGATE END
 
 - type: loadoutGroup # Mono - removed standard supply boxes.

@@ -36,6 +36,10 @@
   - type: Tag
     tags:
     - RawMaterial
+    # Too valuable to bank between rounds.
+    - SafetyDepositBlacklist
+    # An ore magnet collects it with the ore it is mined alongside.
+    - WFOreMagnetPickup
   - type: Stack
     stackType: WFExoticMatter
     baseLayer: base
@@ -50,6 +54,16 @@
     color: "#b040e0"
   - type: Item
     size: Tiny
+  # Grinds down to the residue Chorus is cooked from (Narcotics).
+  - type: SolutionContainerManager
+    solutions:
+      exotic:
+        maxVol: 5
+        reagents:
+        - ReagentId: WFLatticeResidue
+          Quantity: 5
+  - type: Extractable
+    grindableSolutionName: exotic
   # Cuts the song out of a Choir member's head, a shard at a time.
   - type: WFSongExcisionTool
   # Matter from outside the Lattice's hold still carries a little of it.
@@ -198,3 +212,6 @@
   materials:
     Gold: 100
     WFExoticMatter: 100
+
+- type: Tag
+  id: WFOreMagnetPickup

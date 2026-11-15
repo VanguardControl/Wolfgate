@@ -48,6 +48,7 @@ spine, flared shoulders with the docks, a pinched waist and a wide engineering s
   | Bulwark (gunship) | 99 | 4: Hummingbird, Serpent | small | 75k |
   | Guardian (corvette) | 237 | 12: Apollo, 2 Hummingbird, 2 Tarnyx | small | 123k |
   | Revelation (research, drone hunter) | 313 | 6: 2 Hummingbird, 2 Flutter | small | 162k |
+  | Surveyor (mining) | 189 | 2: Flutter | small | 86k |
   | Lodestar (flagship frigate) | 479 | 22: 2 Apollo, 4 Hummingbird, 2 Serpent, 2 Flutter | MS-250 Aegis | 250k, voucher only |
 
   Peers at those sizes: QJ340/Bazalt (fighters), QJ270/Strayk/Reaver (gunships), Paladin/Kite/Shiv (corvettes),
@@ -192,14 +193,19 @@ The wardrobe sprites and the seven hulls come from
 - [`Resources/Textures/_WF/Asf/Clothing/Head/beret.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/Head/beret.rsi/)
 - [`Resources/Textures/_WF/Asf/Clothing/Head/beret_plumed.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/Head/beret_plumed.rsi/)
 - [`Resources/Textures/_WF/Asf/Clothing/Head/cap.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/Head/cap.rsi/)
+- [`Resources/Textures/_WF/Asf/Clothing/Head/conductor_cap.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/Head/conductor_cap.rsi/)
 - [`Resources/Textures/_WF/Asf/Clothing/Head/eva.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/Head/eva.rsi/)
 - [`Resources/Textures/_WF/Asf/Clothing/Head/hat.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/Head/hat.rsi/)
 - [`Resources/Textures/_WF/Asf/Clothing/Head/modsuit.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/Head/modsuit.rsi/)
 - [`Resources/Textures/_WF/Asf/Clothing/Head/modsuit_aegis.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/Head/modsuit_aegis.rsi/)
 - [`Resources/Textures/_WF/Asf/Clothing/Neck/cape.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/Neck/cape.rsi/)
 - [`Resources/Textures/_WF/Asf/Clothing/Neck/capelet.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/Neck/capelet.rsi/)
+- [`Resources/Textures/_WF/Asf/Clothing/Neck/envoy_shroud.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/Neck/envoy_shroud.rsi/)
+- [`Resources/Textures/_WF/Asf/Clothing/Neck/researcher_shroud.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/Neck/researcher_shroud.rsi/)
 - [`Resources/Textures/_WF/Asf/Clothing/OuterClothing/eva.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/OuterClothing/eva.rsi/)
+- [`Resources/Textures/_WF/Asf/Clothing/OuterClothing/explorer_labcoat.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/OuterClothing/explorer_labcoat.rsi/)
 - [`Resources/Textures/_WF/Asf/Clothing/OuterClothing/greatcoat.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/OuterClothing/greatcoat.rsi/)
+- [`Resources/Textures/_WF/Asf/Clothing/OuterClothing/haori.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/OuterClothing/haori.rsi/)
 - [`Resources/Textures/_WF/Asf/Clothing/OuterClothing/labcoat.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/OuterClothing/labcoat.rsi/)
 - [`Resources/Textures/_WF/Asf/Clothing/OuterClothing/modsuit.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/OuterClothing/modsuit.rsi/)
 - [`Resources/Textures/_WF/Asf/Clothing/OuterClothing/modsuit_aegis.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/OuterClothing/modsuit_aegis.rsi/)
@@ -214,6 +220,8 @@ The wardrobe sprites and the seven hulls come from
 - [`Resources/Textures/_WF/Asf/Clothing/Uniforms/medic.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/Uniforms/medic.rsi/)
 - [`Resources/Textures/_WF/Asf/Clothing/Uniforms/researcher.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/Uniforms/researcher.rsi/)
 - [`Resources/Textures/_WF/Asf/Clothing/Uniforms/service.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/Uniforms/service.rsi/)
+- [`Resources/Textures/_WF/Asf/Clothing/Uniforms/starfleet_jumpskirt.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/Uniforms/starfleet_jumpskirt.rsi/)
+- [`Resources/Textures/_WF/Asf/Clothing/Uniforms/starfleet_jumpskirt_black.rsi/`](../../../Resources/Textures/_WF/Asf/Clothing/Uniforms/starfleet_jumpskirt_black.rsi/)
 - [`Resources/Textures/_WF/Asf/Effects/ship_beams.rsi/`](../../../Resources/Textures/_WF/Asf/Effects/ship_beams.rsi/)
 - [`Resources/Textures/_WF/Asf/Interface/job_icons.rsi/`](../../../Resources/Textures/_WF/Asf/Interface/job_icons.rsi/)
 - [`Resources/Textures/_WF/Asf/Interface/research_disciplines.rsi/`](../../../Resources/Textures/_WF/Asf/Interface/research_disciplines.rsi/)
@@ -251,12 +259,14 @@ The wardrobe sprites and the seven hulls come from
 - [`Resources/SharedMaps/_WF/Asf/lodestar.yml`](../../../Resources/SharedMaps/_WF/Asf/lodestar.yml)
 - [`Resources/SharedMaps/_WF/Asf/porter.yml`](../../../Resources/SharedMaps/_WF/Asf/porter.yml)
 - [`Resources/SharedMaps/_WF/Asf/revelation.yml`](../../../Resources/SharedMaps/_WF/Asf/revelation.yml)
+- [`Resources/SharedMaps/_WF/Asf/surveyor.yml`](../../../Resources/SharedMaps/_WF/Asf/surveyor.yml)
 - [`Resources/SharedMaps/_WF/Asf/vigil.yml`](../../../Resources/SharedMaps/_WF/Asf/vigil.yml)
 
 ### Guidebook
 
 - [`Resources/ServerInfo/_WF/Asf/Guidebook/Factions/Asf.xml`](../../../Resources/ServerInfo/_WF/Asf/Guidebook/Factions/Asf.xml)
 - [`Resources/ServerInfo/_WF/Asf/Guidebook/Shipyard/Revelation.xml`](../../../Resources/ServerInfo/_WF/Asf/Guidebook/Shipyard/Revelation.xml)
+- [`Resources/ServerInfo/_WF/Asf/Guidebook/Shipyard/Surveyor.xml`](../../../Resources/ServerInfo/_WF/Asf/Guidebook/Shipyard/Surveyor.xml)
 
 ## Non-modular edits
 

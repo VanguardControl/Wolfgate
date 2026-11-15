@@ -16,12 +16,6 @@
       - type: IFF
         color: "#37946e"
         readOnly: true # mono
-      - type: StationCargoOrderDatabase
-        capacity: 240 # has to be large to compensate for playerbase
-      # WOLFGATE START: trade crate destinations must be on the station entity, not the grid
-      # - type: TradeCrateDestination
-      #   destinationProto: Trade
-      # WOLFGATE END
       - type: VesselMusic
         ambientMusicPrototype: ColossusCentralMusic
       - type: VesselInfo
@@ -36,10 +30,10 @@
           mapNameTemplate: 'Caelestinus Central'
         - type: StationDeadDrop
           maxDeadDrops: 2
-        # WOLFGATE START: moved from gridComponents so crates sold here count as delivered
+        - type: StationCargoOrderDatabase
+          capacity: 240 # has to be large to compensate for playerbase
         - type: TradeCrateDestination
           destinationProto: Trade
-        # WOLFGATE END
         - type: ExtraStationInformation
           icon: /Textures/_Mono/Logo/icon/icon-256x256.png # used the biggest one, looks better when downscaling than upscaling
           stationSubtext: 'frontier-lobby-frontier-subtext'
@@ -56,7 +50,7 @@
             Borg: [ -1, -1 ]
             StationRepresentative: [ 1, 1 ]
             #StationTrafficController: [ 2, 2 ]
-            SecurityGuard: [ 3, 3 ]
+            SecurityGuard: [ 5, 5 ] # WOLFGATE(Judges): judge cap raised from 3 to 5
             CCServiceWorker: [ 4, 4 ]
             NFJanitor: [ 2, 2 ] # WOLFGATE(Janitorial): janitors are back on Caelestinus
             #MailCarrier: [ 2, 2 ]

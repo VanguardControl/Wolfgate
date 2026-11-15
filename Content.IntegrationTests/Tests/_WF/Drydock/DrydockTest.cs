@@ -70,7 +70,7 @@ public sealed class DrydockTest
     private static readonly Vector2 BerthAHull = StationPos + new Vector2(0.5f, -67f);
 
     /// <summary>World position of a damaged hull outside the bays, past their open end.</summary>
-    private static readonly Vector2 OutsideBayPos = StationPos + new Vector2(0.5f, -115f);
+    internal static readonly Vector2 OutsideBayPos = StationPos + new Vector2(0.5f, -115f);
 
     /// <summary>World position of a mobile shipyard's host grid, clear of the drydock.</summary>
     private static readonly Vector2 HostPos = new(-300f, 0f);
@@ -826,6 +826,8 @@ public sealed class DrydockTest
                 consoleA = uid;
             else if (comp.Berth == "North")
                 consoleB = uid;
+            else
+                comp.Locked = true; // The EVA dock's small berth would take a small test ship before berth A.
         }
 
         Assert.That(consoleA.IsValid() && consoleB.IsValid(), "The drydock needs a console for each berth.");
@@ -981,17 +983,17 @@ public sealed class DrydockTest
             {
                 // The work area is the cranes' reach: the bay plus the approach out of its open end.
                 Assert.That(drydock.TryGetBerth(consoleA, compA, out var berthA), "Berth A needs cranes.");
-                Assert.That(berthA.Area.Contains(new Vector2(-20f, -100f)) && berthA.Area.Contains(new Vector2(20f, -30f)),
+                Assert.That(berthA.Area.Contains(new Vector2(-15f, -80f)) && berthA.Area.Contains(new Vector2(15f, -5f)),
                     "Berth A's area should cover its bay.");
                 Assert.That(berthA.Area.Center.X, Is.EqualTo(0.5f).Within(2f), "Berth A's area should be centred on its bay.");
                 Assert.That(berthA.Approach, Is.EqualTo(new Vector2(0f, -1f)), "Berth A should be approached from the bay's open end.");
                 Assert.That(drydock.TryGetBerth(consoleB, compB, out var berthB), "Berth B needs cranes.");
-                Assert.That(berthB.Area.Contains(new Vector2(-20f, 100f)) && berthB.Area.Contains(new Vector2(20f, 30f)),
+                Assert.That(berthB.Area.Contains(new Vector2(-15f, 110f)) && berthB.Area.Contains(new Vector2(15f, 35f)),
                     "Berth B's area should cover its bay.");
                 Assert.That(berthB.Area.Center.X, Is.EqualTo(0.5f).Within(2f), "Berth B's area should be centred on its bay.");
                 Assert.That(berthB.Approach, Is.EqualTo(new Vector2(0f, 1f)), "Berth B should be approached from the bay's open end.");
-                Assert.That(Cranes(pair, station, "South"), Has.Count.EqualTo(2), "Berth A needs a crane on each side.");
-                Assert.That(Cranes(pair, station, "North"), Has.Count.EqualTo(2), "Berth B needs a crane on each side.");
+                Assert.That(Cranes(pair, station, "South"), Has.Count.EqualTo(4), "Berth A needs two cranes on each side.");
+                Assert.That(Cranes(pair, station, "North"), Has.Count.EqualTo(4), "Berth B needs two cranes on each side.");
                 var op = FindOperator(pair, station);
                 Assert.That(em.TryGetComponent<HailServiceComponent>(op, out var service) && service.PerCaller,
                     "The operator should be the one per-caller hail service.");
@@ -1020,7 +1022,7 @@ public sealed class DrydockTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Berth A's two cranes reach 95% of their working draw within 45 s of starting from idle.</summary>
+    /// <summary>Berth A's four cranes reach 95% of their working draw within 45 s of starting from idle.</summary>
     [Test]
     public async Task DrydockCranesArePowered()
     {
@@ -1034,7 +1036,7 @@ public sealed class DrydockTest
         {
             var (station, _, _) = LoadDrydock(pair, map.MapId);
             berthCranes.AddRange(Cranes(pair, station, "South").Select(c => c.Uid));
-            Assert.That(berthCranes, Has.Count.EqualTo(2), "Berth A needs two cranes.");
+            Assert.That(berthCranes, Has.Count.EqualTo(4), "Berth A needs four cranes.");
         });
 
         // Let the RTGs and SMES settle at idle before berth A starts work.

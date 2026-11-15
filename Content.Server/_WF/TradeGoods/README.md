@@ -44,7 +44,11 @@ researched ship ammo, fission fuel becomes reactor fuel for uranium fuel rods, m
 medipens, ship components become ship parts for ship vouchers and weapon parts become gun parts for turrets. A crate is 10000
 of its material and is used up going in. A lathe only takes one it has a recipe for, researched or not. Roundstart ship ammo
 stays free so a new crew never has to buy crates to fire. These materials cost nothing, since the crate carries the value, and
-have no stack, so they can't be taken back out. `CrateMaterialTest` covers this.
+have no stack, so they can't be taken back out. A lathe names each by the crate it comes from. `CrateMaterialTest` covers this.
+
+The two kinds of cargo depot sell different goods (medical supplies only at the alt depot), so
+`PointOfInterestSystem.GenerateDepots` spawns one of each before any repeats, counting a planet hub as the standard
+kind (`DepotKindsTest`).
 
 Players fill shelves too. Every crate a chute takes goes on the station's shelf. Once a good is scarce, the station's chutes take it
 even if they don't list it, at the best rate any open chute lists, and rush and bulk orders go to the station furthest under target
@@ -104,10 +108,23 @@ or cloth only have a heavier steel shell, and fissile fuel is unchanged.
 Contraband (`WFTradeContrabandSystem`, `contrabandGoods`): the smuggling crate is sold by the Underground's fence vendor
 (`WFVendingMachineFence`) and bought well by every open chute, after the usual
 haul, at a fixed street price: sales never glut it, no event raises what chutes pay for it and buying it never makes
-the vendor dearer. It shows on radar from other grids like the PDV supply crates. It is Frontier contraband, so security can seize it at their contraband pallet for
-faction credits. Each sale at an open chute has a `contrabandWarrantChance` of customs flagging the seller: a criminal
-warrant (`contrabandWarrant`) goes on the bounty board in their name and security hears who sold it where on
-`contrabandAlertChannel`; a flagged seller isn't flagged again for `contrabandWarrantCooldown`. Hidden markets don't buy it. While the Reaver campaign runs, every few crates sold at open chutes fund the Reavers (ReaverCampaign `.Funding`).
+the vendor dearer. The margin is small (15,000 to buy, 20,000 to sell); each sale also drops `contrabandTelecrystals`
+telecrystals at the chute, the black market's steady source of them. It shows on radar from other grids like the PDV supply crates. It is Frontier contraband, so security can seize it at their contraband pallet for
+faction credits. Each sale at an open chute has a `contrabandWarrantChance` of customs flagging the seller: each flag
+adds `contrabandWarrant` to one criminal warrant on the bounty board in their name, up to `contrabandWarrantCap`, so a
+bigger run is a bigger target. A warrant taken off the board starts over. The warrant is a notice only: nothing pays
+it out automatically. Security hears who sold it where, and the warrant's total, on `contrabandAlertChannel`, at most
+once per `contrabandAlertCooldown` for each seller. Hidden markets don't buy it. While the Reaver campaign runs, every few crates sold at open chutes fund the Reavers (ReaverCampaign `.Funding`).
+
+Only the drop buys it (`WFTradeContrabandSystem.Drop`): one open station whose chute lists contraband, never a
+wandering merchant, hidden market or blockaded station. Every other open chute refuses a smuggling crate with a popup.
+The drop moves every `contrabandDropInterval` (30 minutes, and never to the same station twice running when there is
+another), or at once if its station is gone. The underground companies are told where it went in chat and see it, with
+its countdown, in the Market app's alerts and as its own card at the top of the Underground tab
+(`WFMarketCartridgeSystem.DropCard`); a Market app hint on a smuggling crate names the drop only to them. The open
+station cards on the Prices tab leave contraband out while there is a drop, so lawful players see no price for it.
+Security is tipped off on `contrabandAlertChannel` `contrabandDropLeak` (10 minutes) after each move. A
+`contrabandDropInterval` of zero lets every open chute buy contraband, and the Prices tab lists it again. The drop only moves in round; `Rotate`, `Leak` and `TickDrop` are public for tests.
 
 Priority deliveries (consignments in code, `WFTradeSpecialCrateSystem`): a crate appears at one station's chute, bound
 for another station at least a haul away, never a wandering merchant or a hidden market, and pays well at that station's chute on time
@@ -163,6 +180,7 @@ still well over the roughly 260 in materials it costs to print.
 - [`Content.Server/_WF/TradeGoods/Systems/WFCrateMaterialStorageSystem.cs`](Systems/WFCrateMaterialStorageSystem.cs)
 - [`Content.Server/_WF/TradeGoods/Systems/WFMarketCartridgeSystem.cs`](Systems/WFMarketCartridgeSystem.cs)
 - [`Content.Server/_WF/TradeGoods/Systems/WFTradeContrabandSystem.cs`](Systems/WFTradeContrabandSystem.cs)
+- [`Content.Server/_WF/TradeGoods/Systems/WFTradeContrabandSystem.Drop.cs`](Systems/WFTradeContrabandSystem.Drop.cs)
 - [`Content.Server/_WF/TradeGoods/Systems/WFTradeCrateMarketSystem.cs`](Systems/WFTradeCrateMarketSystem.cs)
 - [`Content.Server/_WF/TradeGoods/Systems/WFTradeEconomySystem.cs`](Systems/WFTradeEconomySystem.cs)
 - [`Content.Server/_WF/TradeGoods/Systems/WFTradeFreightSystem.cs`](Systems/WFTradeFreightSystem.cs)
@@ -199,6 +217,7 @@ still well over the roughly 260 in materials it costs to print.
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/TradeGoods/CrateMaterialTest.cs`](../../../Content.IntegrationTests/Tests/_WF/TradeGoods/CrateMaterialTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/TradeGoods/DepotKindsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/TradeGoods/DepotKindsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/TradeGoods/EconomyLedgerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/TradeGoods/EconomyLedgerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/TradeGoods/MarketAppTest.cs`](../../../Content.IntegrationTests/Tests/_WF/TradeGoods/MarketAppTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/TradeGoods/MarketBestSaleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/TradeGoods/MarketBestSaleTest.cs)
@@ -211,6 +230,7 @@ still well over the roughly 260 in materials it costs to print.
 - [`Content.IntegrationTests/Tests/_WF/TradeGoods/TradeChuteTest.cs`](../../../Content.IntegrationTests/Tests/_WF/TradeGoods/TradeChuteTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/TradeGoods/TradeCommandTest.cs`](../../../Content.IntegrationTests/Tests/_WF/TradeGoods/TradeCommandTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/TradeGoods/TradeConsignmentTest.cs`](../../../Content.IntegrationTests/Tests/_WF/TradeGoods/TradeConsignmentTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/TradeGoods/TradeContrabandDropTest.cs`](../../../Content.IntegrationTests/Tests/_WF/TradeGoods/TradeContrabandDropTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/TradeGoods/TradeContrabandTest.cs`](../../../Content.IntegrationTests/Tests/_WF/TradeGoods/TradeContrabandTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/TradeGoods/TradeFreightTest.cs`](../../../Content.IntegrationTests/Tests/_WF/TradeGoods/TradeFreightTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/TradeGoods/TradeMarketTest.cs`](../../../Content.IntegrationTests/Tests/_WF/TradeGoods/TradeMarketTest.cs)
@@ -252,7 +272,11 @@ still well over the roughly 260 in materials it costs to print.
   - chutes also take consignments they don't list
   - say the chute doesn't buy it instead of only buzzing
   - pay the live quote, print live prices
-- [`Content.Server/_NF/GameRule/PointOfInterestSystem.cs`](../../_NF/GameRule/PointOfInterestSystem.cs): stations take their economy role from their POI
+- [`Content.Server/_NF/GameRule/PointOfInterestSystem.cs`](../../_NF/GameRule/PointOfInterestSystem.cs)
+  - the depot kinds not spawned yet this round
+  - a planet hub is a standard depot, so the space slots owe the other kind
+  - every kind of depot spawns once before any repeats, as each sells goods the other doesn't
+  - stations take their economy role from their POI
 - [`Content.Server/Cargo/Systems/CargoSystem.Shuttle.cs`](../../Cargo/Systems/CargoSystem.Shuttle.cs): materials pay what the station's stock makes them worth
 - [`Content.Server/VendingMachines/VendingMachineSystem.cs`](../../VendingMachines/VendingMachineSystem.cs): trade vendors charge the station's live price
 - [`Resources/Locale/en-US/paper/paper-misc.ftl`](../../../Resources/Locale/en-US/paper/paper-misc.ftl)

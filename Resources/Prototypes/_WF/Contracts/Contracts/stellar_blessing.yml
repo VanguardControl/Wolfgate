@@ -7,9 +7,9 @@
   tier: 1
   title: wf-contract-sb-colony-stores
   briefing: wf-contract-sb-colony-stores-brief
-  reward: 6250, 8750
+  reward: 10950, 18800
   minutes: 45
-  weight: 2
+  weight: 4
   objective: !type:WFContractSupply
     pick: 2
     premium: 1.5
@@ -19,9 +19,9 @@
     - entity: FoodBreadPlain
       count: 4, 8
     - stack: Gauze
-      count: 20, 30
+      count: 6, 10
     - stack: Ointment
-      count: 20, 30
+      count: 6, 10
     - entity: EmergencyOxygenTankFilled
       count: 4, 8
 
@@ -32,10 +32,10 @@
   tier: 2
   title: wf-contract-sb-construction
   briefing: wf-contract-sb-construction-brief
-  reward: 12500, 17500
+  reward: 21900, 30600
   deposit: 1000
   minutes: 55
-  weight: 1.5
+  weight: 3
   objective: !type:WFContractSupply
     pick: 3
     premium: 1.5
@@ -81,7 +81,7 @@
   reward: 12500, 16250
   deposit: 1500
   minutes: 50
-  weight: 1.5
+  weight: 3
   objective: !type:WFContractCourier
     package: WFContractFreightSupplies
     count: 2, 4
@@ -100,7 +100,7 @@
   reward: 13750, 17500
   deposit: 1500
   minutes: 50
-  weight: 1
+  weight: 2
   objective: !type:WFContractCourier
     package: WFContractFreightMedical
     count: 2, 3
@@ -116,10 +116,10 @@
   tier: 1
   title: wf-contract-sb-ore-quota
   briefing: wf-contract-sb-ore-quota-brief
-  reward: 7000, 9500
+  reward: 12250, 16600
   minutes: 50
   crewBonus: 0.5
-  weight: 1.5
+  weight: 3
   objective: !type:WFContractSupply
     pick: 1
     premium: 2
@@ -162,24 +162,24 @@
   tier: 2
   title: wf-contract-sb-foundation
   briefing: wf-contract-sb-foundation-brief
-  reward: 36000, 45000
+  reward: 84000, 101500
   deposit: 2000
   minutes: 90
-  minCrew: 3
+  minCrew: 2
   crewBonus: 0.35
-  weight: 1
+  weight: 2
   objective: !type:WFContractSupply
     premium: 1.25
     goodsCap: 30000
     goods:
     - stack: Steel
-      count: 250, 350
+      count: 180, 260
     - stack: Glass
-      count: 150, 250
+      count: 110, 180
     - stack: Plasteel
-      count: 50, 80
+      count: 40, 60
     - stack: Plastic
-      count: 80, 120
+      count: 60, 90
 
 - type: wfContract
   id: WFContractSBColonyOre
@@ -188,11 +188,11 @@
   tier: 1
   title: wf-contract-sb-colony-ore
   briefing: wf-contract-sb-colony-ore-brief
-  reward: 18000, 24000
+  reward: 31500, 42000
   minutes: 75
   minCrew: 2
   crewBonus: 0.4
-  weight: 1.2
+  weight: 2.4
   objective: !type:WFContractSupply
     pick: 2
     premium: 1.5
@@ -248,7 +248,7 @@
   reward: 7500, 10000
   deposit: 500
   minutes: 45
-  weight: 1.2
+  weight: 2.4
   objective: !type:WFContractCourier
     package: WFContractFreightLivestock
     count: 2, 4
@@ -264,9 +264,9 @@
   tier: 1
   title: wf-contract-sb-seed-bank
   briefing: wf-contract-sb-seed-bank-brief
-  reward: 6000, 8500
+  reward: 10500, 14900
   minutes: 50
-  weight: 1.2
+  weight: 2.4
   objective: !type:WFContractSupply
     premium: 1.5
     goods:
@@ -303,3 +303,58 @@
     - /Maps/Salvage/cargo-1.yml
     - /Maps/Salvage/hauling-shuttle.yml
     - /Maps/Salvage/medium-crashed-shuttle.yml
+
+# Fifth batch.
+
+- type: wfContract
+  id: WFContractSBCensusMail
+  contractor: WFContractorStellarBlessing
+  category: Delivery
+  tier: 1
+  title: wf-contract-sb-census-mail
+  briefing: wf-contract-sb-census-mail-brief
+  reward: 5500, 7500
+  minutes: 60
+  weight: 1.2
+  objective: !type:WFContractMailRun
+    package: WFContractParcel
+    stops: 3, 4
+    perStop: 1250
+    perKilometre: 750
+
+- type: wfContract
+  id: WFContractSBCommRelays
+  contractor: WFContractorStellarBlessing
+  category: Delivery
+  tier: 1
+  title: wf-contract-sb-comm-relays
+  briefing: wf-contract-sb-comm-relays-brief
+  reward: 5500, 7500
+  minutes: 45
+  weight: 1.2
+  objective: !type:WFContractDeploy
+    buoy: WFContractRelayBuoy
+    points: 2, 3
+    perPoint: 1500
+    minDistance: 1500
+    maxDistance: 4000
+
+- type: wfContract
+  id: WFContractSBPlanetHomesteaders
+  contractor: WFContractorStellarBlessing
+  category: Salvage
+  tier: 2
+  title: wf-contract-sb-planet-homesteaders
+  briefing: wf-contract-sb-planet-homesteaders-brief
+  reward: 24000, 30000
+  deposit: 1000
+  minutes: 80
+  weight: 1.1
+  minCrew: 2
+  crewBonus: 0.25
+  objective: !type:WFContractRecovery
+    wrecks: []
+    item: WFContractStasisBag
+    count: 2, 3
+    planet:
+      hostiles: 3, 5

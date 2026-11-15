@@ -56,6 +56,11 @@ public sealed partial class WFCrewSecuritySystem : EntitySystem
     /// <summary>Whether the current security rule explicitly targets this visitor.</summary>
     public bool IsHostileVisitor(EntityUid crew, EntityUid visitor) => _ownedHostiles.Contains((crew, visitor));
 
+    /// <summary>Whether any crewman standing on this grid holds a visitor hostile under its boarding rule.</summary>
+    public bool OwnsHostile(EntityUid grid, EntityUid visitor) =>
+        _ownedHostiles.Any(pair => pair.Visitor == visitor && !TerminatingOrDeleted(pair.Crew)
+            && Transform(pair.Crew).GridUid == grid);
+
     /// <summary>Explicit docking hostility overrides faction friendship for the current ship threat.</summary>
     public bool IsHostileDockingTarget(EntityUid grid, string group, EntityUid visitor) =>
         _hostileDocks.TryGetValue((grid, group, visitor), out var until) && _timing.CurTime < until;
@@ -96,25 +101,29 @@ public sealed partial class WFCrewSecuritySystem : EntitySystem
             || Transform(uid).GridUid is not { } grid
             || crew.Post is { } post && post.EntityId != grid || Transform(visitor).GridUid != grid)
             return;
-        if (rules.Boarding == WFCrewSecurityResponse.Hostile)
+        var boarding = BoardingResponse(uid, visitor, rules);
+        if (boarding == WFCrewSecurityResponse.Hostile)
         {
             if (!TryComp<FactionExceptionComponent>(uid, out var exceptions) || !exceptions.Hostiles.Any(target => target == visitor))
                 _ownedHostiles.Add((uid, visitor));
             _factions.AggroEntity(uid, visitor);
+            var answered = new WFCrewAttackAnsweredEvent(crew.Group, visitor, Sighting: true);
+            RaiseLocalEvent(grid, ref answered);
         }
         // A person told to leave has a while to go before the crew's fighters turn on him; animals are let be.
-        if (rules.Boarding == WFCrewSecurityResponse.Warn
+        if (boarding == WFCrewSecurityResponse.Warn
             && (HasComp<ActorComponent>(visitor) || HasComp<HumanoidAppearanceComponent>(visitor)))
         {
-            _warned.TryAdd((grid, crew.Group, visitor), (_timing.CurTime + rules.WarnTime, false));
+            if (_warned.TryAdd((grid, crew.Group, visitor), (_timing.CurTime + rules.WarnTime, false)))
+                Challenge(uid, visitor, grid, rules.WarnTime);
         }
         // The crew's cowards don't wait to see how it turns out: a stranger seen aboard is alarm enough, for as long
         // as he is seen.
-        if (rules.Boarding != WFCrewSecurityResponse.Ignore
+        if (boarding != WFCrewSecurityResponse.Ignore
             && (HasComp<ActorComponent>(visitor) || HasComp<HumanoidAppearanceComponent>(visitor)))
             EntityManager.System<WFCrewShelterSystem>().Shelter(grid, crew.Group);
         if (_boarders.Add((uid, visitor)) && HasComp<WFRadioOperatorComponent>(uid))
-            Respond(grid, crew.Group, visitor, rules.Boarding, docking: false);
+            Respond(grid, crew.Group, visitor, boarding, docking: false);
     }
 
     /// <summary>Re-evaluates visitors after a policy edit without retaining hostility introduced by the old rule.</summary>
@@ -157,9 +166,19 @@ public sealed partial class WFCrewSecuritySystem : EntitySystem
         return false;
     }
 
-    /// <summary>Authorization requires a company of the same faction or an overlapping NPC faction.</summary>
+    /// <summary>
+    /// Authorization requires a company of the same faction or an overlapping NPC faction, unless the system commanding
+    /// the crew's ship answers first (<see cref="WFCrewAuthorizeEvent"/>).
+    /// </summary>
     public bool IsAuthorized(EntityUid crew, EntityUid other)
     {
+        // A hull boarders hold has no leave to dock, whatever colours it still shows.
+        if (HasComp<WFCrewSeizedHullComponent>(other))
+            return false;
+
+        if (AskCommand(crew, other).Authorized is { } answer)
+            return answer;
+
         // What the ship came out carrying is its own, whatever faction it is: the Remade a flesh ship brings, say.
         if (TryComp<Content.Server._WF.Encounters.Components.WFEncounterPassengerComponent>(other, out var passenger)
             && TryComp<Content.Server._WF.Encounters.Components.WFEncounterComponent>(passenger.Encounter, out var encounter)
@@ -173,6 +192,27 @@ public sealed partial class WFCrewSecuritySystem : EntitySystem
         return TryComp<NpcFactionMemberComponent>(crew, out var faction)
             && TryComp<NpcFactionMemberComponent>(other, out var visitorFaction)
             && faction.Factions.Intersect(visitorFaction.Factions).Any();
+    }
+
+    /// <summary>Whether the system commanding the crewman's ship welcomes someone; false where no such system answers.</summary>
+    public bool CommandAuthorizes(EntityUid crew, EntityUid other)
+    {
+        return AskCommand(crew, other).Authorized == true;
+    }
+
+    /// <summary>How this crewman answers an unauthorized visitor: as the ship's command says for where he stands, else by his boarding rule.</summary>
+    public WFCrewSecurityResponse BoardingResponse(EntityUid crew, EntityUid visitor, WFCrewSecurityComponent rules)
+    {
+        return AskCommand(crew, visitor).Response ?? rules.Boarding;
+    }
+
+    /// <summary>Asks the system commanding the crewman's home grid, if any, about a visitor.</summary>
+    private WFCrewAuthorizeEvent AskCommand(EntityUid crew, EntityUid other)
+    {
+        var ev = new WFCrewAuthorizeEvent(crew, other);
+        if (_crews.HomeGrid(crew) is { } home)
+            RaiseLocalEvent(home, ref ev);
+        return ev;
     }
 
     private void OnDock(DockEvent args)
@@ -264,11 +304,12 @@ public sealed partial class WFCrewSecuritySystem : EntitySystem
                         continue;
                     seen.Add((grid, group, visitor));
                     ReceiveSighting(uid, visitor, aiRemotes);
-                    if (rules.Boarding != WFCrewSecurityResponse.Ignore)
+                    if (BoardingResponse(uid, visitor, rules) != WFCrewSecurityResponse.Ignore)
                         _comms.Report(uid, visitor);
                 }
             }
         }
+        LastWarnings(seen);
         CheckWarnings(strangers, seen);
         if (_ownedHostiles.Count > 0)
         {
@@ -312,6 +353,7 @@ public sealed partial class WFCrewSecuritySystem : EntitySystem
                 continue;
 
             _warned[key] = (warning.Deadline, true);
+            Engaging(key);
             Respond(key.Grid, key.Group, key.Visitor, WFCrewSecurityResponse.Hostile, docking: false);
         }
     }

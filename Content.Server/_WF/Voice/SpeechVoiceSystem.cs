@@ -67,13 +67,19 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
     {
         base.Update(frameTime);
 
-        foreach (var (key, radio) in _radio)
+        // Cleared even if a send throws: a line left queued threw again every tick and silenced radio voices.
+        try
         {
-            SendRadio(key, radio);
+            foreach (var (key, radio) in _radio)
+            {
+                SendRadio(key, radio);
+            }
         }
-
-        _radio.Clear();
-        _lines.Clear();
+        finally
+        {
+            _radio.Clear();
+            _lines.Clear();
+        }
     }
 
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent args)
@@ -185,7 +191,8 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
         foreach (var receiver in radio.Receivers)
         {
             // Ghosts hear every channel, which would fill their voice cap. They still get the text.
-            if (_ghostQuery.HasComp(receiver))
+            // A receiver deleted since the line went out has nothing to play it on.
+            if (TerminatingOrDeleted(receiver) || _ghostQuery.HasComp(receiver))
                 continue;
 
             if (_speakerQuery.HasComp(receiver))
@@ -276,16 +283,36 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
         return line;
     }
 
-    /// <summary>The voice a mask gives, worked out once per line. Null when the speaker uses their own.</summary>
+    /// <summary>
+    /// The voice a mask gives, then anything on the speaker that changes it for now, such as a drug; worked out once
+    /// per line. Null when the speaker uses their own unchanged.
+    /// </summary>
     private SpeechVoice? VoiceFor(EntityUid speaker, Line line)
     {
         if (!line.VoiceResolved)
         {
-            line.Voice = MaskedVoice(speaker);
+            line.Voice = Modified(speaker, MaskedVoice(speaker));
             line.VoiceResolved = true;
         }
 
         return line.Voice;
+    }
+
+    /// <summary>The voice after <see cref="SpeechVoiceModifyEvent"/>, or the given one when nothing changed it.</summary>
+    private SpeechVoice? Modified(EntityUid speaker, SpeechVoice? voice)
+    {
+        var current = voice;
+        if (current == null)
+        {
+            if (!TryComp<SpeechVoiceComponent>(speaker, out var own))
+                return null;
+
+            current = own.Voice;
+        }
+
+        var ev = new SpeechVoiceModifyEvent(current.Clone());
+        RaiseLocalEvent(speaker, ref ev);
+        return ev.Changed ? ev.Voice.Clamped() : voice;
     }
 
     /// <summary>The named character's own voice if one exists, else a voice made from the mask's name.</summary>

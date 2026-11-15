@@ -104,6 +104,7 @@ namespace Content.Shared.Stacks
             }
 
             _storage.PlayPickupAnimation(args.Used, popupPos, userCoords, localRotation, args.User);
+            args.InteractionParticle = false; // WOLFGATE(InteractionParticles)
         }
 
         private bool TryMergeStacks(
@@ -124,6 +125,10 @@ namespace Content.Shared.Stacks
                 return false;
 
             transferred = Math.Min(donorStack.Count, GetAvailableSpace(recipientStack));
+            // WOLFGATE(ShipCommand) START: a bargain's discount moves with the items it covers
+            var wfMerge = new Content.Shared._WF.ShipCommand.WFStackMergeEvent(recipient, transferred, donorStack.Count);
+            RaiseLocalEvent(donor, ref wfMerge);
+            // WOLFGATE END
             SetCount(donor, donorStack.Count - transferred, donorStack);
             SetCount(recipient, recipientStack.Count + transferred, recipientStack);
             return transferred > 0;

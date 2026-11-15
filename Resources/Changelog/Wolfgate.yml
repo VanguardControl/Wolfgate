@@ -6446,7 +6446,7 @@ Entries:
         Judge ships now fly under Caelestinus instead of showing as
         unaffiliated. [639]
     - type: Fix
-      message: Joining a crew mid-round now gives you access to the crew's ship. [637]
+      message: Joining a crew mid-round now gives you access to the crew's ship.
     - type: Tweak
       message: >-
         The drydock crane now lists the capacitor power saving on its own line,
@@ -6460,7 +6460,7 @@ Entries:
         The pneumatic loader now sees the AC-35's ammo and can unload and swap
         it. [627]
     - type: Fix
-      message: The material reclaimer no longer eats your screwdriver or crowbar. [625]
+      message: The material reclaimer no longer eats your screwdriver or crowbar.
     - type: Fix
       message: >-
         A dead chimera drops what it was carrying instead of locking it on the
@@ -6580,17 +6580,963 @@ Entries:
         [696] Opening a gas tank's valve on a planet no longer sends it flying
         up out of sight.
     - type: Fix
-      message: '[691] The Lee-Enfield accepts low-capacity 7.62x51 magazines.'
+      message: The Lee-Enfield accepts low-capacity 7.62x51 magazines.
     - type: Fix
-      message: '[689] Burst fire stops when you let go of the trigger.'
+      message: Burst fire stops when you let go of the trigger.
     - type: Fix
-      message: '[688] The leopard tail wag animation no longer flips back and forth.'
+      message: The leopard tail wag animation no longer flips back and forth.
     - type: Fix
       message: >-
         [685] [686] TSF, PDV and MMC bodycams can only be viewed from consoles
         on their own ship or base.
     - type: Fix
-      message: '[668] You can no longer toggle hardsuit seals while crit or dead.'
+      message: You can no longer toggle hardsuit seals while crit or dead.
   id: 100405
   time: '2026-11-09T20:55:58.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/573
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: >-
+        NPC crews no longer trust a ship of theirs that boarders have taken. It
+        is hailed, then fired on, and can no longer dock with them.
+    - type: Tweak
+      message: >-
+        Boarding a Reaver ship now raises the alarm. Nearby patrols are
+        recalled, and a patrol hunts a seized Reaver ship.
+  id: 100406
+  time: '2026-11-10T05:55:19.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/578
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Recolourable bunnysuits, bunny ears and bunny ties are now in the
+        civilian loadouts.
+    - type: Tweak
+      message: The AutoDrobe no longer runs out of recolourable clothing.
+  id: 100407
+  time: '2026-11-10T05:55:49.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/576
+- author: burgerenergy
+  changes:
+    - type: Tweak
+      message: Heavy vehicle licenses can now fit in wallets.
+  id: 100408
+  time: '2026-11-10T06:11:10.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/551
+- author: antanananat
+  changes:
+    - type: Tweak
+      message: >-
+        Old Welder hulls have been retrofitted to the more modern Block 2
+        configuration, featuring a mobile drydock, an upgraded engine, among
+        other changes
+  id: 100409
+  time: '2026-11-10T06:16:09.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/539
+- author: Balls2zawall
+  changes:
+    - type: Add
+      message: >-
+        The beloved dwarf who runs Anvilhold has commissioned a new drydock, it
+        has less berths, but quicker turnaround time.
+  id: 100410
+  time: '2026-11-10T06:25:07.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/569
+- author: DriftingSkies
+  changes:
+    - type: Add
+      message: >-
+        The Colony Council on TSFMC Industry and ASF Research on the Lantern
+        Post now post contracts on their own boards.
+    - type: Add
+      message: >-
+        Dozens of new members-only contracts for the TSF, PDV and USSP: hunts,
+        raids, rescues, blockades, ransoms, customs and more.
+    - type: Add
+      message: >-
+        Planetside contracts on every board: clear dens, recover lost gear,
+        repair relays, rescue homesteaders and more, at sites on the sector's
+        worlds. Carcinoma is never included.
+    - type: Add
+      message: >-
+        The Colonial Development Office and the USSP offer a six-stage
+        outpost-building quest worth around 600,000 thalers, paid stage by
+        stage.
+    - type: Add
+      message: >-
+        Viper Group has its own contract board in Camelot. Its work is deniable
+        and pays in ship components.
+    - type: Add
+      message: >-
+        New contract types: deploy relay buoys, hold a picket point against
+        raiders, and build with deployable kits.
+    - type: Tweak
+      message: >-
+        Supply deliveries to faction stations now go into the station's material
+        silo, or into a receiving crate only that faction can open.
+    - type: Tweak
+      message: >-
+        Ammo contracts take loaded magazines and ammo boxes instead of magazine
+        boxes.
+    - type: Tweak
+      message: Your company now takes its cut of contract pay.
+    - type: Fix
+      message: >-
+        Escorts now need the escorted ship to actually dock, and fail if it
+        surrenders.
+  id: 100411
+  time: '2026-11-10T06:31:32.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/540
+- author: Roguenoob
+  changes:
+    - type: Add
+      message: DYRV-Crucible
+  id: 100412
+  time: '2026-11-10T06:41:35.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/572
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: >-
+        Every round now has both kinds of cargo depot, so medical supplies and
+        the other goods only one kind sells can always be bought.
+    - type: Tweak
+      message: >-
+        Lathe recipes that use trade crates now name the crate they need, such
+        as "medical supplies crate" for medipens.
+    - type: Tweak
+      message: >-
+        The Market app's Materials tab now explains that it shows where to sell
+        mined materials and where to buy them, not a trade route.
+  id: 100413
+  time: '2026-11-10T06:47:37.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/575
+- author: Sushiburger
+  changes:
+    - type: Add
+      message: Several new ASF themed clothing items.
+    - type: Tweak
+      message: Moved some neck items into ASF loadouts
+  id: 100414
+  time: '2026-11-10T06:49:56.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/567
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: The good ending.
+  id: 100415
+  time: '2026-11-10T06:52:20.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/565
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Caelestinus now has 5 Judge slots, up from 3.
+  id: 100416
+  time: '2026-11-10T06:55:01.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/580
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: The website now only lists the rules that are shown in-game.
+  id: 100417
+  time: '2026-11-10T06:58:33.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/581
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Fixed a broken Tacet track that stopped the server from building.
+  id: 100418
+  time: '2026-11-10T07:10:18.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/582
+- author: Balls2zawall
+  changes:
+    - type: Tweak
+      message: >-
+        Moved the contract console out of the way of the cargo airlock on the
+        ASF Lantern
+  id: 100419
+  time: '2026-11-10T08:11:06.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/585
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Drydock berths are named North and South again.
+  id: 100420
+  time: '2026-11-10T12:13:21.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/583
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Losing both legs no longer stops you using consoles, seats, lockers and
+        fabricators. [708]
+    - type: Fix
+      message: >-
+        The Scallywag's small light hangs on the wall instead of in the hatch.
+        [712]
+    - type: Fix
+      message: Harpies can spawn without a head-top marking.
+    - type: Fix
+      message: The AME is called the IRE everywhere now.
+    - type: Fix
+      message: Doctors can take the jaws of life in their gear.
+    - type: Fix
+      message: The Autumn's side airlocks no longer vent the ship.
+    - type: Fix
+      message: >-
+        Unrevivable patients can be shocked out of cardiac arrest while they're
+        still alive. [733]
+    - type: Fix
+      message: Nanite applicators can repair vehicle hardpoints.
+    - type: Fix
+      message: Medical bounty bodies can't be sold through cargo.
+    - type: Fix
+      message: The STC cap looks right on vulpkanin.
+    - type: Fix
+      message: The Juggernaut suit counts as faction gear.
+  id: 100421
+  time: '2026-11-10T15:32:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/587
+- author: Balls2zawall
+  changes:
+    - type: Add
+      message: >-
+        The Judges at CC have a shiny new brig to work from! it should feel more
+        like a work space than a banquet hall now.
+  id: 100422
+  time: '2026-11-10T15:36:52.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/588
+- author: antanananat
+  changes:
+    - type: Remove
+      message: >-
+        UBM Excelsior now has a normal and boring IFF console instead of a red
+        and evil one. 
+  id: 100423
+  time: '2026-11-10T21:39:40.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/593
+- author: Balls2zawall
+  changes:
+    - type: Remove
+      message: Removed the DYRV Crucible, pending re-design.
+  id: 100424
+  time: '2026-11-11T05:34:27.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/594
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Added the MD-10 "Parasol" deflector generator, sold as a flatpack by the
+        systems broker and flatpack vendor. It runs on little power and covers a
+        180° arc at most. Shells pass through it at half damage; missiles and
+        energy weapons are stopped.
+  id: 100425
+  time: '2026-11-11T06:26:16.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/591
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: >-
+        Contract bounty targets no longer spawn right next to other players'
+        ships.
+  id: 100426
+  time: '2026-11-11T08:20:43.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/592
+- author: ImogenOC
+  changes:
+    - type: Fix
+      message: >-
+        Fixed a server freeze caused by whispers and radio messages containing
+        emphasis marks.
+    - type: Fix
+      message: Fixed the cargo telepad crashing the client.
+  id: 100427
+  time: '2026-11-11T08:20:58.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/597
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Cyborgs can drain APCs and power cells to recharge, and have a bank
+        account for ATMs and pay.
+    - type: Add
+      message: Zoomba/Doomba cyborg chassis added.
+    - type: Add
+      message: >-
+        Cyborgs carry an ID card in their tool module and can buy and fly their
+        own ship.
+    - type: Fix
+      message: >-
+        Cyborgs in a crew can open their crew ship's doors, and a ship's owner
+        can add a cyborg to the access list at the console.
+    - type: Add
+      message: >-
+        Every cyborg's tool module has gripper hands for cells, tanks, jerry
+        cans, flatpacks and stacks.
+    - type: Add
+      message: >-
+        Cyborg construction and treatment stacks start stocked and refill in a
+        charger.
+    - type: Add
+      message: >-
+        Cyborg headlights are back as a toggle, and cyborgs can buckle into
+        seats and climb tables.
+    - type: Add
+      message: >-
+        Borg skins show wrecked, tipped and seated poses, with rest, sit and
+        belly-up actions where the skin has them.
+    - type: Tweak
+      message: >-
+        The RCD module carries a gas analyzer, geiger counter and t-ray scanner,
+        and its ship repair device starts full.
+    - type: Tweak
+      message: >-
+        The treatment module includes the defibrillator; the chem module has
+        four beakers and a hand labeler.
+    - type: Tweak
+      message: >-
+        TSF and PDV engineer and medical cyborgs have four spare module slots.
+        They also get recolored versions of the skins added in another PR
+    - type: Tweak
+      message: >-
+        Cyborgs in a crew can open their crew ship's doors, and a ship's owner
+        can add a cyborg to the access list at the console. Cyborgs can also be
+        chosen in a crew start
+  id: 100428
+  time: '2026-11-11T08:22:55.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/589
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: MD-10 parasol shield is now 30.000 credits at the flatpack vendor
+  id: 100429
+  time: '2026-11-11T18:04:10.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/600
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: NPC ship dealers now accept a cyborg's ID card.
+  id: 100430
+  time: '2026-11-11T18:05:02.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/599
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        Random encounters no longer start right beside other encounters, and
+        fewer start while several fights are going on.
+  id: 100431
+  time: '2026-11-11T22:11:07.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/601
+- author: SylvaraWasTaken
+  changes:
+    - type: Add
+      message: Adds the ASF Surveyor, a proper ASF mining ship with Loreful™ design
+  id: 100432
+  time: '2026-11-11T22:13:25.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/586
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        Ship autocannon shells and explosions use far less network traffic, so
+        big space battles should rubberband less.
+  id: 100433
+  time: '2026-11-11T23:22:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/603
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Fixed an air alarm test that failed at random.
+  id: 100434
+  time: '2026-11-11T23:23:25.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/604
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Fixed players freezing after big load-ins, like spawning ships or
+        switching to observer.
+  id: 100435
+  time: '2026-11-12T00:25:14.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/605
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Added scratch tickets in three tiers: Mother Lode, Foundry Gold and
+        Thaler Tycoon. Scratch the foil and redeem winners at any ATM.
+    - type: Add
+      message: >-
+        Scratches-to-Win sells scratch tickets, singly or in packs of 10 and 20,
+        in the Caelestinus Central bar. Tickets also turn up in maintenance.
+  id: 100436
+  time: '2026-11-12T00:26:33.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/598
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Fixed players sometimes staying frozen until they reconnect after a big
+        load-in.
+  id: 100437
+  time: '2026-11-12T00:35:23.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/606
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Removed an unused network setting from the game engine.
+  id: 100438
+  time: '2026-11-12T06:22:27.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/607
+- author: DriftingSkies
+  changes:
+    - type: Fix
+      message: >-
+        The Contracts PDA app no longer freezes or shows blank contract details
+        until it is reopened.
+  id: 100439
+  time: '2026-11-12T06:44:39.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/611
+- author: ImogenOC
+  changes:
+    - type: Fix
+      message: Fixed cyborgs causing network lag for everyone who could see them.
+    - type: Fix
+      message: >-
+        Shuttle consoles, gas canisters, holopads, AME controllers and radar
+        consoles no longer send their window data to players who don't have the
+        window open.
+    - type: Tweak
+      message: >-
+        Ship repair data is only sent to players using a repair tool, which cuts
+        network use around ships.
+  id: 100440
+  time: '2026-11-12T06:49:44.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/609
+- author: DriftingSkies
+  changes:
+    - type: Fix
+      message: >-
+        Body markings ported from Meridian now come as full sets. Parts that
+        were missing, such as Husky (Right Leg), are back.
+    - type: Tweak
+      message: >-
+        Left and right parts of a body marking set are now offered to the same
+        species, so nobody gets only half a pair.
+    - type: Tweak
+      message: >-
+        Characters now get more marking slots: Arms and Legs go from 8 to 16,
+        and Chest from 4 to 8, on most species.
+  id: 100441
+  time: '2026-11-12T10:09:32.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/608
+- author: antanananat
+  changes:
+    - type: Tweak
+      message: >-
+        The Engineering Wing of TSFN Halcyon ordered a shipment of welders, but
+        instead they've received a whole warehouse full of TSF-ENG Welders. High
+        Command wants you to use them, soldier, so they dropped its
+        classification to T0. 
+  id: 100442
+  time: '2026-11-12T10:13:48.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/602
+- author: DriftingSkies
+  changes:
+    - type: Add
+      message: >-
+        Coats and jackets can be adjusted for non-functional use and worn in a
+        neck slot, drawn over your armor. In that mode they give no protection
+        and no slowdown.
+  id: 100443
+  time: '2026-11-12T10:16:24.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/614
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        Players are only sent the ships and maps of the system they are in,
+        which cuts network load.
+    - type: Tweak
+      message: Removed an unused network setting from the game engine.
+  id: 100444
+  time: '2026-11-12T10:27:23.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/613
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: The changelog window shows its entries again. [742, 838]
+    - type: Fix
+      message: >-
+        Links in the rules and guidebook open the page in the window you clicked
+        them in. [840]
+    - type: Fix
+      message: The Overseer gets the Bench app and can issue tickets. [849]
+    - type: Fix
+      message: >-
+        A Bench ticket no longer fails when the offender takes a step back.
+        [851]
+    - type: Fix
+      message: >-
+        Building with a stack of parts, like capacitors on a mech, uses one part
+        instead of the whole stack. [815]
+    - type: Fix
+      message: >-
+        Slimes can't feed forever on medibots and other things their acid can't
+        hurt. [800]
+    - type: Fix
+      message: NPC crews no longer fill up the overwatch consoles. [767]
+    - type: Fix
+      message: >-
+        Using a wrench or drill on a reagent grinder no longer says it can't go
+        in. [744]
+    - type: Fix
+      message: >-
+        Borers no longer lose contract standing for fights their host's ship
+        gets into. [809]
+    - type: Fix
+      message: Xenos can't open folding barricade doors. [839]
+    - type: Tweak
+      message: >-
+        Boomboxes follow the jukebox volume setting, now called Jukebox and
+        boombox volume. [796]
+    - type: Fix
+      message: Examining a contract's marked cargo up close inspects it. [806]
+  id: 100445
+  time: '2026-11-12T13:02:01.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/617
+- author: Balls2zawall
+  changes:
+    - type: Add
+      message: Added a new Sunrise detective ship
+    - type: Add
+      message: >-
+        Added a new Bucket janitorial ship, sorry combined service vessel but
+        your days are numbered
+  id: 100446
+  time: '2026-11-12T13:21:25.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/616
+- author: DriftingSkies
+  changes:
+    - type: Remove
+      message: >-
+        Removed the Baeg from all shuttle consoles until its remade/reworked.
+        Yes, I know. No fun allowed.
+  id: 100447
+  time: '2026-11-13T04:44:30.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/625
+- author: DriftingSkies
+  changes:
+    - type: Add
+      message: Weh.
+  id: 100448
+  time: '2026-11-13T04:46:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/628
+- author: DriftingSkies
+  changes:
+    - type: Tweak
+      message: >-
+        The contract board now holds far more offers, sized for a full server of
+        up to 160 players.
+    - type: Tweak
+      message: >-
+        Supply, mining and hauling contracts show up more often, including
+        orders for steel, glass, plasteel and plastic.
+    - type: Tweak
+      message: Supply and mining contracts pay 75% more.
+    - type: Tweak
+      message: Contractors post new offers sooner after one is taken.
+  id: 100449
+  time: '2026-11-13T04:47:13.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/630
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Radar screens have a new toggle to zoom toward your cursor instead of
+        the screen center.
+  id: 100450
+  time: '2026-11-13T05:01:45.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/584
+- author: TheSlapper
+  changes:
+    - type: Add
+      message: Clown Plush.
+    - type: Add
+      message: Clown Music to the Jukebox.
+    - type: Add
+      message: Space Glue to trinkets.
+  id: 100451
+  time: '2026-11-13T05:03:16.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/627
+- author: Kepteyn
+  changes:
+    - type: Add
+      message: New greeblies! Some ported from Bubber, others custom made for Wolfgate.
+  id: 100452
+  time: '2026-11-13T05:10:55.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/568
+- author: Nagoll12
+  changes:
+    - type: Add
+      message: The_Scarab a new Large Drydock ship.
+  id: 100453
+  time: '2026-11-13T05:13:18.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/620
+- author: Armyguy
+  changes:
+    - type: Add
+      message: >-
+        Added the Vrakritatat, a large Vox scrapper and mining hauler, and its
+        Skipjack runabout.
+  id: 100454
+  time: '2026-11-13T05:27:50.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/615
+- author: ImogenOC
+  changes:
+    - type: Add
+      message: >-
+        Added the Lupercal, an admin station-ship with its own crew, services
+        and player jobs.
+  id: 100455
+  time: '2026-11-13T07:02:57.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/629
+- author: Sushiburger
+  changes:
+    - type: Tweak
+      message: Modified Judge loadouts to be more expansive
+  id: 100456
+  time: '2026-11-13T07:07:17.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/633
+- author: Balls2zawall
+  changes:
+    - type: Add
+      message: >-
+        Added a new Solarsail overseer ship, the combined service ship is now
+        kill
+    - type: Add
+      message: Added a new Hermes mail ship
+  id: 100457
+  time: '2026-11-13T15:25:17.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/623
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Added street drugs with real highs, crashes and overdoses: cocaine,
+        crack, opium, heroin, crystal, hash, Redline, Anvil, Chorus and Halo.
+    - type: Add
+      message: >-
+        Added dependence, tolerance and withdrawal, and three traits that start
+        you with a habit.
+    - type: Add
+      message: >-
+        Added purity grades. Reactions run off their ideal temperature and
+        street cuts come out weaker and more toxic; a purity tester reads the
+        grade.
+    - type: Add
+      message: >-
+        Added neuroware: data sticks that give synthetics the same highs as
+        programs, and can be copied at a loss.
+    - type: Add
+      message: Added powder lines, a craftable bong and second-hand smoke.
+    - type: Add
+      message: >-
+        Examining someone who is high, drunk, crashing or in withdrawal now
+        shows it in their face and the way they move.
+    - type: Add
+      message: Flying a ship while high or drunk changes how it handles.
+    - type: Add
+      message: >-
+        Chorus lets you sense asteroids holding exotic matter in the Coda, at
+        the cost of faster Drift.
+    - type: Add
+      message: >-
+        Health analyzers have a Conditions tab listing highs, crashes and habits
+        and what clears them.
+    - type: Add
+      message: >-
+        Added a Reaver drug runner, dealer stock, three Bench laws and a
+        Narcotics guidebook page.
+    - type: Tweak
+      message: >-
+        Drunkenness and several drug effects now last as long as the substance
+        stays in your blood.
+    - type: Tweak
+      message: Synthetics no longer feel chemical drugs.
+    - type: Fix
+      message: THC cigarettes now contain THC.
+  id: 100458
+  time: '2026-11-13T16:00:17.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/619
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: >-
+        Fugitives and other Underground roles are no longer kill on sight. The
+        TSFMC can arrest them on sight, but lethal force needs escalation like
+        anyone else.
+  id: 100459
+  time: '2026-11-13T16:12:32.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/637
+- author: Balls2zawall
+  changes:
+    - type: Add
+      message: >-
+        Anvilhold has a new EVA drydock berth, the normal berths are 6 tiles
+        wider, and the cranes should be a little faster.
+  id: 100460
+  time: '2026-11-13T19:02:36.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/640
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: >-
+        Smuggling crates now cost 15,000 and sell for 20,000, and each sale also
+        pays 2 telecrystals.
+    - type: Tweak
+      message: >-
+        Customs now flags 1 in 4 smuggling sales. Each flag adds 20,000 to the
+        seller's warrant, up to 300,000.
+    - type: Add
+      message: >-
+        Smuggling crates now sell at only one station at a time, and the drop
+        moves every 30 minutes. The Underground sees where in their Market app;
+        security is tipped off 10 minutes after each move.
+    - type: Tweak
+      message: >-
+        Smuggling money reaching the Ashfall Reavers now sends out extra patrols
+        and is announced on the radio.
+  id: 100461
+  time: '2026-11-13T19:41:36.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/636
+- author: NEWSUI
+  changes:
+    - type: Add
+      message: Added Dread
+  id: 100462
+  time: '2026-11-13T20:06:12.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/624
+- author: antanananat
+  changes:
+    - type: Add
+      message: RVR Minerva, the reaver asteroid ship.
+    - type: Add
+      message: >-
+        Reavers have finally figured out how to hack and override TSF turrets
+        and can now put them on their ships. Boarders beware.
+  id: 100463
+  time: '2026-11-13T20:58:47.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/635
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: The Anvilhold drydock's new west berth has a name on its console.
+  id: 100464
+  time: '2026-11-13T22:08:15.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/641
+- author: antanananat
+  changes:
+    - type: Tweak
+      message: >-
+        The price of the TSF exotic materials crate was adjusted from 175 to
+        130, and it now contains 2 fissile uranium instead of 1
+    - type: Tweak
+      message: Prices of PDV ready-to-buy vouchers increased slightly
+    - type: Tweak
+      message: >-
+        Costs of TSF ships have been adjusted, depleted uranium cost for T3 and
+        T4 ships went down but they gained a plastitanium cost. Copper and
+        lithium costs went down a little.
+    - type: Tweak
+      message: The TSF vouchers are renewable again
+  id: 100465
+  time: '2026-11-14T06:48:09.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/632
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Ported 25 Monolith changes; their entries are in the Monolith changelog.
+  id: 100466
+  time: '2026-11-14T09:41:17.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/653
+- author: ImogenOC
+  changes:
+    - type: Fix
+      message: >-
+        The Lupercal now spawns locked down; its doors can't be pried, its core
+        gates can't jam open, and its cameras, benches, shutters and carpets are
+        fixed.
+    - type: Add
+      message: >-
+        The Lupercal has hard-light barriers on its staff areas, sentry turrets
+        in its core, janitors, a warp point and named fax machines.
+    - type: Tweak
+      message: >-
+        Lupercal crew warn trespassers aloud, react to people dragging their
+        dead, patch their own wounds, avoid fires and repair the ship on their
+        own.
+  id: 100467
+  time: '2026-11-14T14:53:11.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/638
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        [638][646][695][718][719][774][791][868][930] Walls and objects on
+        planet levels no longer vanish after you leave a level and come back.
+    - type: Fix
+      message: >-
+        [813][860][939][866] Photographers get their scrapbook and camera again,
+        including with paid loadout items or a crew spawn.
+    - type: Fix
+      message: >-
+        [940] Starting items meant for your bag are no longer lost when you wear
+        something without storage on your back.
+    - type: Fix
+      message: >-
+        [932][933] Items from free vending machines no longer sell for full
+        price.
+    - type: Fix
+      message: >-
+        [941] Supplying your own faction's contract no longer hands the goods
+        back to you.
+    - type: Fix
+      message: >-
+        [911] A repair voucher is no longer refunded once the drydock has
+        started repairing.
+    - type: Fix
+      message: '[888] Wielding an energy gun no longer also switches its fire mode.'
+    - type: Fix
+      message: '[903] Failed organs can be healed with the organ heal surgery again.'
+    - type: Fix
+      message: >-
+        [884] Water washes acid off felionoids, tajarans, felinids, arachnids,
+        dionas, skeletons, slime people and goblins.
+    - type: Fix
+      message: '[907] An AI that uses a shuttle console keeps its remote eye afterwards.'
+    - type: Fix
+      message: '[871] Wall lights no longer stop you wrenching down machines under them.'
+    - type: Fix
+      message: >-
+        [882] Expedition sites come back a while after being cleared, so the
+        console offers more than Carcinoma.
+    - type: Fix
+      message: >-
+        [713] Spilled blood no longer turns loose grey slime extracts into
+        monkey cubes.
+    - type: Fix
+      message: '[604][598] Clothing on mothroaches no longer shows stray art.'
+    - type: Fix
+      message: '[900] The drydock rebuilds destroyed LAPC substations.'
+    - type: Fix
+      message: >-
+        [852] Long ship names no longer push the company licence buttons off the
+        window.
+    - type: Fix
+      message: '[775] The ore magnet collects exotic matter.'
+    - type: Fix
+      message: >-
+        [881] Master of the House slowly restores a hemophage's blood as
+        described.
+    - type: Fix
+      message: '[916] Using a drug baggie in hand tells you how to get the powder out.'
+    - type: Fix
+      message: '[752] Synths and IPCs understand each other''s machine languages.'
+    - type: Fix
+      message: '[770] Repaired borgs and objects lose the repair tool''s damage tint.'
+    - type: Fix
+      message: '[811] Reattached hands keep their side in the hands bar.'
+    - type: Fix
+      message: '[724] Admins who join later see which ahelps were resolved.'
+    - type: Fix
+      message: >-
+        [756] Lifting off no longer carries the planet's marker away on your
+        ship.
+    - type: Fix
+      message: >-
+        [835] Synthetic characters no longer rubberband when their battery runs
+        low.
+    - type: Fix
+      message: '[863] The chameleon projector works on items you were hovering over.'
+    - type: Fix
+      message: >-
+        Radio voice lines no longer stop working for the whole server after a
+        radio is destroyed.
+  id: 100468
+  time: '2026-11-14T16:11:47.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/659
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: >-
+        Slime steroid and slime boost now cap at two extra extracts or offspring
+        per slime, and offspring no longer inherit them.
+    - type: Tweak
+      message: >-
+        Xenobiology bounties are one shared board of five per research server,
+        redrawn every twelve minutes, and no longer accept spent extracts.
+    - type: Tweak
+      message: Adamantine extracts make 2 plasteel instead of 10.
+    - type: Tweak
+      message: >-
+        The volatile slime cell holds 1800 charge and recharges more slowly.
+        Purple extracts make 5u of omnizine.
+    - type: Fix
+      message: >-
+        Skipping a xenobiology bounty no longer brings back every bounty already
+        handed in.
+  id: 100469
+  time: '2026-11-14T18:19:35.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/662
+- author: Balls2zawall
+  changes:
+    - type: Fix
+      message: Fixed Anvilhold's docking arms missing power
+  id: 100470
+  time: '2026-11-14T18:21:27.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/663
+- author: Rayforx
+  changes:
+    - type: Add
+      message: barbed add-on.
+  id: 100471
+  time: '2026-11-15T07:59:46.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/669
+- author: Sushiburger
+  changes:
+    - type: Tweak
+      message: Made reality anchor hum quieter.
+  id: 100472
+  time: '2026-11-15T08:01:00.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/666
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: Drugs sell for their purity, and illegal drugs are worth a lot more.
+    - type: Add
+      message: >-
+        Empathogen habit and Stoner traits. Synthetics can take habits and start
+        with a copied neuroware stick.
+    - type: Add
+      message: >-
+        A blank neuroware stick can read a drug into a program. Blanks print at
+        the autolathe.
+    - type: Tweak
+      message: Hash and Idle are legal.
+    - type: Fix
+      message: >-
+        Drug crashes no longer knock you down again and again. Redline collapses
+        you once.
+    - type: Tweak
+      message: >-
+        Withdrawal brings a steady ache that painkillers dull, and nodding off
+        is shorter and rarer.
+    - type: Tweak
+      message: Neuroware for synth should have more similar effects to organics now.
+  id: 100473
+  time: '2026-11-15T08:06:34.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/665

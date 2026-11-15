@@ -2,6 +2,7 @@ wf-trade-chute-local-goods = This chute only takes goods shipped in from elsewhe
 wf-trade-chute-not-bought = This chute doesn't buy that. Its manifest lists what it takes.
 wf-trade-refuse-shunned = The merchant won't buy from someone who hurt them.
 wf-trade-refuse-unsealed = The fence only takes sealed freight off the haulers.
+wf-trade-refuse-drop = No one here is buying that crate right now. The Underground knows where the drop is.
 
 wf-encounter-name-merchant = Merchant {$designation}
 wf-encounter-announce-merchant = {$name} is in the sector buying luxury goods, medicine, reactor fuel, weapon parts and fabric at a premium. Bring cargo alongside before it moves on.
@@ -43,11 +44,11 @@ wf-trade-goods-chemicals = chemicals
 wf-trade-goods-fuel = reactor fuel
 wf-trade-goods-industrial = industrial goods
 wf-trade-goods-materials = construction materials
-materials-wf-munitions = munitions
-materials-wf-reactor-fuel = reactor fuel
-materials-wf-medical-stock = medical stock
-materials-wf-gun-parts = gun parts
-materials-wf-ship-parts = ship parts
+materials-wf-munitions = ammo crate
+materials-wf-reactor-fuel = fission reactor fuel crate
+materials-wf-medical-stock = medical supplies crate
+materials-wf-gun-parts = weapon parts crate
+materials-wf-ship-parts = ship components crate
 materials-unit-wf-crate-share = share
 wf-trade-goods-agriculture = fertilizer
 wf-trade-goods-luxuries = luxury goods
@@ -113,8 +114,16 @@ wf-trade-defector-warrant = Sold war goods to {$navy} in wartime.
 
 wf-trade-contraband-customs = Customs
 wf-trade-contraband-warrant = Sold contraband at {$station}.
-wf-trade-contraband-flagged = Customs flag: {$seller} sold contraband at {$station}. A warrant is posted.
-wf-trade-contraband-flagged-ship = Customs flag: {$seller} of {$ship} sold contraband at {$station}. A warrant is posted.
+wf-trade-contraband-flagged = Customs flag: {$seller} sold contraband at {$station}. Their warrant stands at {$reward} { $reward ->
+        [one] thaler
+       *[other] thalers
+    }.
+wf-trade-contraband-flagged-ship = Customs flag: {$seller} of {$ship} sold contraband at {$station}. Their warrant stands at {$reward} { $reward ->
+        [one] thaler
+       *[other] thalers
+    }.
+wf-trade-contraband-drop = The drop has moved to {$station}. For the next {$minutes} minutes, smuggling crates sell there and nowhere else.
+wf-trade-contraband-drop-leak = Customs tip: smugglers are moving their crates through {$station}.
 
 ## Priority deliveries
 
@@ -146,10 +155,12 @@ wf-market-sector-flow = {$made} made and {$used} used an hour
 wf-market-sector-short = Short at {$stations}
 wf-market-no-sector = No station is reporting its stocks.
 wf-market-shelf-tooltip = Shelf {$percent}% of target
-wf-market-material-pays = Sell at {$station}: {$amount} each
-wf-market-material-sells = Buy at {$station}: {$amount} each, {$stock} in stock
-wf-market-material-no-buyer = No pallet is buying this.
-wf-market-material-no-stock = No station has this in stock.
+wf-market-material-note-sell = Where to sell what you mine or salvage, and where to buy stock to build with.
+wf-market-material-note-spread = Stations charge more than they pay, so buying to resell loses money.
+wf-market-material-pays = Mined some? {$station} pays most: {$amount} each
+wf-market-material-sells = Need some? {$station} is cheapest: {$amount} each, {$stock} in stock
+wf-market-material-no-buyer = No pallet is paying for this.
+wf-market-material-no-stock = No station has this to sell.
 wf-market-no-materials = No station is trading materials.
 wf-market-tab-alerts-count = Alerts ({$count})
 wf-market-filter = Filter goods...
@@ -163,6 +174,7 @@ wf-market-no-stations = No stations are buying right now.
 wf-market-no-match = No market buys that.
 wf-market-best-sale = Best price for {$item}: {$station}, {$amount}.
 wf-market-best-sale-none = No market would buy {$item} from you right now.
+wf-market-best-sale-drop = Only one station buys {$item} right now, and only the Underground knows which.
 wf-market-tab-underground = Underground
 wf-market-underground-title = UNDERGROUND UPLINK
 wf-market-underground-subtitle = Unlisted buyers, cash only.
@@ -172,6 +184,7 @@ wf-market-faction-ussp = USSP
 wf-market-faction-pdv = Phaethon Dynasty
 wf-market-faction-underground = The Underground
 wf-market-faction-independent = Independent
+wf-market-faction-drop = Smuggling drop, moves in {$minutes} min
 wf-market-no-alerts = Nothing happening in the sector right now.
 wf-market-minutes-left = {$minutes} min left
 wf-market-alert-kind-deal = DEAL
@@ -196,6 +209,7 @@ wf-market-alert-boom = {CAPITALIZE($goods)} boom: +{$percent}% everywhere
 wf-market-alert-war = War demand: the navies pay {$factor}x for munitions and medicine
 wf-market-alert-freight = Freighter {$ship} inbound to {$station} with {$goods}
 wf-market-alert-merchant = Merchant {$ship} buying near {$cell} until it moves on
+wf-market-alert-drop = Smuggling drop at {$station}: smuggling crates sell there and nowhere else until it moves
 wf-market-alert-shunned = {$station} won't trade with you: you hurt its people
 wf-market-alert-war-effort = War effort: {$navy} pays you {$credits} faction credits a crate for munitions and ship parts
 wf-market-alert-defector = {$navy} pays you {$factor}x for war goods
