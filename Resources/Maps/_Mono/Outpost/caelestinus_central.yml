@@ -49675,8 +49675,6 @@ entities:
       rot: 4.71238898038469 rad
       pos: 6.5,40.5
     - type: DeviceNetwork
-      deviceLists:
-      - invalid
     - type: AtmosPipeLayers
       pipeLayer: Secondary
     - type: AtmosPipeColor
