@@ -332,7 +332,6 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Shared/_RMC14/Weapons/Ranged/Prediction/PredictedProjectileHitEvent.cs`](../../Content.Shared/_RMC14/Weapons/Ranged/Prediction/PredictedProjectileHitEvent.cs): restore the licence header removed by Kill Spdx
 - [`Content.Shared/_RMC14/Weapons/Ranged/Prediction/PredictedProjectileServerComponent.cs`](../../Content.Shared/_RMC14/Weapons/Ranged/Prediction/PredictedProjectileServerComponent.cs): restore the licence header removed by Kill Spdx
 - [`Content.Shared/_RMC14/Weapons/Ranged/Prediction/SharedGunPredictionSystem.cs`](../../Content.Shared/_RMC14/Weapons/Ranged/Prediction/SharedGunPredictionSystem.cs): restore the licence header removed by Kill Spdx
-- [`Content.Shared/Access/Components/IdCardConsoleComponent.cs`](../../Content.Shared/Access/Components/IdCardConsoleComponent.cs): Monolith#4816 added the level without a way to hand it out
 - [`Content.Shared/Blocking/BlockingSystem.User.cs`](../../Content.Shared/Blocking/BlockingSystem.User.cs)
   - throttles the shield refusal popup
   - only a gun the user carries is refused, not an innate ability or a mounted weapon
@@ -571,7 +570,6 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/Prototypes/Entities/Objects/Consumable/Food/Baked/cake.yml`](../../Resources/Prototypes/Entities/Objects/Consumable/Food/Baked/cake.yml): OwO accent removed
 - [`Resources/Prototypes/Entities/Objects/Devices/pda.yml`](../../Resources/Prototypes/Entities/Objects/Devices/pda.yml): E and Z open the PDA instead of searching for a player to control it
 - [`Resources/Prototypes/Entities/Objects/Misc/identification_cards.yml`](../../Resources/Prototypes/Entities/Objects/Misc/identification_cards.yml): the universal card opens the Underground Black Market too
-- [`Resources/Prototypes/Entities/Objects/Tools/access_configurator.yml`](../../Resources/Prototypes/Entities/Objects/Tools/access_configurator.yml): Monolith#4816 added the level without a way to hand it out
 - [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Turrets/turrets_ballistic.yml`](../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Turrets/turrets_ballistic.yml)
   - parented to BaseWeaponTurret instead of BaseWeaponBallisticTurret so it has one ammo provider.
   - ammo container copied from BaseWeaponBallisticTurret.
