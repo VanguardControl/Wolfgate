@@ -120,6 +120,8 @@ public static class ChatLogSaver
             }
         }
 
+        while (tagStack.Count > 0)
+            sb.Append(tagStack.Pop());
         return sb.ToString();
     }
 

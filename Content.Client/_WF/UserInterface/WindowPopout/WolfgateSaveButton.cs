@@ -22,5 +22,6 @@ public sealed partial class WolfgateSaveButton : TextureButton
         VerticalAlignment = VAlignment.Center;
         Margin = new Thickness(0, 0, 4, 0);
         TextureNormal = _cache.GetTexture(SaveTexture);
+        ToolTip = Loc.GetString("wf-chat-tabs-save");
     }
 }

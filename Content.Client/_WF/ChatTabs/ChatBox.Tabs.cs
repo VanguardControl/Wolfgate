@@ -276,16 +276,20 @@ public partial class ChatBox
     private async void SaveChatLog()
     {
         var fileDialog = IoCManager.Resolve<IFileDialogManager>();
-        var filters = new FileDialogFilters(
-            new FileDialogFilters.Group("html"),
-            new FileDialogFilters.Group("txt")
-        );
+        var filters = new FileDialogFilters(new FileDialogFilters.Group("html"));
         var file = await fileDialog.SaveFile(filters);
         if (file == null)
             return;
 
         var controller = UserInterfaceManager.GetUIController<ChatUIController>();
         var tab = _wfTabs.SelectedTab;
-        await ChatLogSaver.SaveChatLogAsync(file.Value.fileStream, controller, tab);
+        try
+        {
+            await ChatLogSaver.SaveChatLogAsync(file.Value.fileStream, controller, tab);
+        }
+        catch (Exception e)
+        {
+            Logger.GetSawmill("wf.chat").Error($"Failed to save client chat log: {e}");
+        }
     }
 }
