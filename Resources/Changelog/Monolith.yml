@@ -26692,6 +26692,13 @@ Entries:
   id: 2904
   time: '2026-11-10T11:01:31.0000000+00:00'
   url: https://github.com/Monolith-Station/Monolith/pull/4976
+- author: Mrrpip
+  changes:
+    - type: Tweak
+      message: FlatpackvendPremiums now sell ammo loaders.
+  id: 2905
+  time: '2026-11-10T12:22:28.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/5006
 - author: tonotom1
   changes:
     - type: Tweak
@@ -26763,6 +26770,31 @@ Entries:
 - author: SuperGDPWYL
   changes:
     - type: Fix
+      message: >-
+        Chat rank, company biometrics, NPC faction, medic surgery bonuses and
+        faction affiliation are now transferred by cloning.
+  id: 2910
+  time: '2026-11-13T09:07:34.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/5016
+- author: DoubleHypercube
+  changes:
+    - type: Tweak
+      message: The Crew Manifest is now entirely gridless
+  id: 2911
+  time: '2026-11-13T09:42:36.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4982
+- author: Mrrpip
+  changes:
+    - type: Add
+      message: Adds circuitboards to the brass wreck loot pool.
+    - type: Tweak
+      message: The selection of ship guns at brass wrecks have been expanded.
+  id: 2912
+  time: '2026-11-13T11:33:25.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/5011
+- author: SuperGDPWYL
+  changes:
+    - type: Fix
       message: All MIL ships are purchaseable again.
     - type: Fix
       message: TSFMC Fireteam Leaders now have TSFMC access.
@@ -26789,6 +26821,46 @@ Entries:
   id: 2915
   time: '2026-11-14T12:06:48.0000000+00:00'
   url: https://github.com/Monolith-Station/Monolith/pull/5021
+- author: SuperGDPWYL
+  changes:
+    - type: Remove
+      message: >-
+        Removed combat traits, including Trap Avoider, Dermal Armor, Tenacity
+        and Vigor.
+    - type: Tweak
+      message: Redshirt now gives 3 points (was 8). Ironman now gives 2 points (was 5).
+    - type: Tweak
+      message: Added a warning about EMPs to Bionic Legs and Prybar Prosthetics
+  id: 2916
+  time: '2026-11-14T14:19:39.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/5023
+- author: DoubleHypercube
+  changes:
+    - type: Add
+      message: Languages can now have icons, which display before the speaker's name.
+    - type: Add
+      message: >-
+        Added icons for most common languages. Some are still missing them,
+        though.
+    - type: Add
+      message: Languages may now have their font only display when obfuscated.
+    - type: Add
+      message: Rodentia get a proper language, Squeakish (ported from Starlight).
+    - type: Add
+      message: >-
+        The USSP has received a second language, the antiquated Nova Cygni
+        Classical.
+    - type: Add
+      message: >-
+        Resomi _also_ get a proper language, Scratch (_also_ ported from
+        Starlight).
+    - type: Add
+      message: Felyaic has its custom obfuscation-only font back.
+    - type: Remove
+      message: Nekomimetic is no longer a selectable trait.
+  id: 2918
+  time: '2026-11-14T14:23:04.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/5001
 - author: DoubleHypercube
   changes:
     - type: Fix
