@@ -26716,3 +26716,48 @@ Entries:
   id: 2908
   time: '2026-11-12T19:31:15.0000000+00:00'
   url: https://github.com/Monolith-Station/Monolith/pull/5014
+- author: SuperGDPWYL
+  changes:
+    - type: Fix
+      message: All MIL ships are purchaseable again.
+    - type: Fix
+      message: TSFMC Fireteam Leaders now have TSFMC access.
+    - type: Fix
+      message: The MailDrobe is now usable by Caelestinus
+    - type: Fix
+      message: Fixed some other access-related issues.
+    - type: Tweak
+      message: PDV and TSFMC cyborgs can be unlocked by all faction members now.
+  id: 2913
+  time: '2026-11-13T18:34:16.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/5018
+- author: EquanimityX0880
+  changes:
+    - type: Fix
+      message: Fugitives no longer spawn in Godfather's room
+  id: 2914
+  time: '2026-11-14T10:40:41.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/5019
+- author: Mrrpip
+  changes:
+    - type: Tweak
+      message: The mudskipper now has an IFF console.
+  id: 2915
+  time: '2026-11-14T12:06:48.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/5021
+- author: DoubleHypercube
+  changes:
+    - type: Fix
+      message: Ship limits are now properly respected.
+  id: 2919
+  time: '2026-11-14T23:34:44.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/5026
+- author: SuperGDPWYL
+  changes:
+    - type: Fix
+      message: Fixed TSF/PDV borg accesses.
+    - type: Fix
+      message: TSF borgs now have access to the TSFMil radio channel.
+  id: 2920
+  time: '2026-11-14T23:35:00.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/5024
