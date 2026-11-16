@@ -100,7 +100,7 @@ entities:
   - uid: 1
     components:
     - type: MetaData
-      name: grid
+      name: Vrakrititat
     - type: Transform
       parent: invalid
       pos: -9,-3
