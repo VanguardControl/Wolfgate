@@ -12,7 +12,7 @@ using Robust.Shared.Map;
 namespace Content.Client._Mono.FireControl.UI;
 
 [UsedImplicitly]
-public sealed class FireControlConsoleBoundUserInterface : BoundUserInterface
+public sealed partial class FireControlConsoleBoundUserInterface : BoundUserInterface // WOLFGATE(LockOn): the lock overlay and its middle-click input.
 {
     [ViewVariables]
     private FireControlWindow? _window;
@@ -50,6 +50,7 @@ public sealed class FireControlConsoleBoundUserInterface : BoundUserInterface
 
         // Add event handler for when weapons are selected/deselected
         _window.OnWeaponSelectionChanged += UpdateSelectedWeapons;
+        WfLockOnOpen(); // WOLFGATE(LockOn): lock clicks and the shared lock overlay on the gunnery radar.
     }
 
     private void OnRefreshServer()

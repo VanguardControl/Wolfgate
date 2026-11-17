@@ -82,6 +82,13 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
     /// </summary>
     public Action<EntityCoordinates>? OnRadarClick;
 
+    // WOLFGATE(LockOn): separate cursor-move event so throttled radar moves cannot trigger lock requests.
+    /// <summary>
+    /// Raised for throttled cursor updates while the mouse moves over the radar. Used to keep
+    /// guided-missile aim current without triggering lock requests.
+    /// </summary>
+    public Action<EntityCoordinates>? OnRadarCursorMove;
+
     private List<Entity<MapGridComponent>> _grids = new();
 
     // Mono - set if we want this to detect not from itself

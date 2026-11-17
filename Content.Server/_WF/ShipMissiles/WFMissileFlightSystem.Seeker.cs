@@ -3,7 +3,10 @@ using System.Numerics;
 using Content.Server._Mono.Projectiles.TargetSeeking;
 using Content.Shared._WF.ShipMissiles;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
 using Robust.Shared.Physics.Components;
+using Robust.Shared.Physics.Systems;
 
 namespace Content.Server._WF.ShipMissiles;
 
@@ -99,8 +102,8 @@ public sealed partial class WFMissileFlightSystem
         if (flight.MemoryTimer > flight.MemoryTime)
         {
             flight.Seeker = WFMissileSeekerState.Lost;
-            _targetSeeking.SetSeekerTarget((uid, carrier), null, xform);
             // Upstream would reacquire the same hull on its next tick; a lost seeker stays lost.
+            _targetSeeking.SetSeekerTarget((uid, carrier), null, xform);
             carrier.SeekingDisabled = true;
             return false;
         }
@@ -108,5 +111,54 @@ public sealed partial class WFMissileFlightSystem
         aimPos = flight.KnownPosition + flight.KnownVelocity * flight.MemoryTimer;
         aimVel = flight.KnownVelocity;
         return true;
+    }
+
+    /// <summary>
+    /// Snapshot the target nearest the fire-control click, if this is a smart missile.
+    /// Called from the fire path, before the missile's first tick.
+    /// </summary>
+    public void CaptureDescriptorFromCoordinate(WFMissileFlightComponent flight, MapCoordinates designated, TransformComponent missileXform)
+    {
+        if (!flight.DescriptorSeeking || flight.DescriptorCaptured)
+            return;
+
+        EntityUid? best = null;
+        var bestDistance = flight.DescriptorSnapRadius;
+
+        var query = EntityQueryEnumerator<TargetSeekingTargetComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out _, out var targetXform))
+        {
+            if (targetXform.MapID != designated.MapId)
+                continue;
+
+            float distance;
+            if (targetXform.GridUid is { } gridUid &&
+                EntityManager.TryGetComponent<MapGridComponent>(gridUid, out var grid) &&
+                EntityManager.TryGetComponent<TransformComponent>(gridUid, out var gridXform))
+            {
+                // Measure to the closest point on the grid's hull bounds, so a click near a
+                // large hull's edge selects that hull over a nearer decoy at its marker origin.
+                var gridWorldPos = _transform.GetWorldPosition(gridXform);
+                var worldAABB = new Box2(
+                    gridWorldPos + grid.LocalAABB.BottomLeft,
+                    gridWorldPos + grid.LocalAABB.TopRight);
+                var closest = new Vector2(
+                    Math.Clamp(designated.Position.X, worldAABB.Left, worldAABB.Right),
+                    Math.Clamp(designated.Position.Y, worldAABB.Top, worldAABB.Bottom));
+                distance = Vector2.Distance(closest, designated.Position);
+            }
+            else
+            {
+                distance = Vector2.Distance(_transform.GetWorldPosition(targetXform), designated.Position);
+            }
+
+            if (distance >= bestDistance)
+                continue;
+            best = uid;
+            bestDistance = distance;
+        }
+
+        if (best != null)
+            TargetDescriptorCapture.FromEntity(EntityManager, _physics, _transform, flight, best.Value);
     }
 }

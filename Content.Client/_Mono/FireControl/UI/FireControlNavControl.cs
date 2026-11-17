@@ -131,8 +131,8 @@ public sealed class FireControlNavControl : ShuttleNavControl
         _lastCursorUpdateTime = (float)currentTime;
 
         var coords = GetMouseEntityCoordinates(relativePosition);
-        // This will update the server of our cursor position without triggering actual firing
-        OnRadarClick?.Invoke(coords);
+        // WOLFGATE(LockOn): route throttled cursor moves to a separate event so they cannot trigger lock requests.
+        OnRadarCursorMove?.Invoke(coords);
     }
 
     /// <summary>

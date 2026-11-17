@@ -40,6 +40,7 @@ public sealed partial class ShuttleConsoleBoundUserInterface : BoundUserInterfac
         WfCockpitAutoEnter(); // WOLFGATE(Cockpit): enter the cockpit by itself when the helm opens while buckled.
         WfHailOpen(); // WOLFGATE(Hailing): the hail window and its requests
         WfBoardingOpen(); // WOLFGATE(BoardingAction): the banner's release button
+        WfLockOnOpen(); // WOLFGATE(LockOn): lock clicks and the shared lock overlay on the helm radar.
     }
 
     private void OnToggleFTLLockRequest(List<NetEntity> dockEntities, bool enabled)

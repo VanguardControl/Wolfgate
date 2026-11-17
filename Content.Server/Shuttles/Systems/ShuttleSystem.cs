@@ -1,3 +1,4 @@
+using Content.Server._Mono.Projectiles.TargetSeeking;
 using Content.Server._NF.Shuttles.Components; // Frontier
 using Content.Server.Administration.Logs;
 using Content.Server.Body.Systems;
@@ -132,6 +133,7 @@ public sealed partial class ShuttleSystem : SharedShuttleSystem
             return;
 
         EnsureComp<ShuttleComponent>(ev.EntityUid);
+        EnsureComp<TargetSeekingTargetComponent>(ev.EntityUid);
 
         // This and RoofComponent should be mutually exclusive, so ImplicitRoof should be removed if the grid has RoofComponent
         if (HasComp<RoofComponent>(ev.EntityUid))

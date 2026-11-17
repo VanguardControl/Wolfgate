@@ -106,4 +106,51 @@ public static class MissileGuidance
         var blended = Vector2.Lerp(from, to, Math.Clamp(fraction, 0f, 1f));
         return blended.LengthSquared() > 1e-6f ? Vector2.Normalize(blended) : to;
     }
+
+    /// <summary>
+    /// Cost of a candidate against a captured target descriptor. Zero is a perfect match; higher is worse.
+    /// A candidate outside any tolerance scores <see cref="float.MaxValue"/>, so it is rejected.
+    /// </summary>
+    public static float DescriptorMatch(
+        Vector2 candidateVel, float candidateRadius,
+        Vector2 descriptorVel, float descriptorRadius,
+        float sizeTolerance, float speedTolerance, float headingToleranceDegrees)
+    {
+        var score = 0f;
+        var terms = 0;
+
+        if (descriptorRadius > 0.5f && candidateRadius > 0f && sizeTolerance > 0f)
+        {
+            var sizeDelta = MathF.Abs(candidateRadius - descriptorRadius) / descriptorRadius;
+            if (sizeDelta > sizeTolerance)
+                return float.MaxValue;
+            score += sizeDelta / sizeTolerance;
+            terms++;
+        }
+
+        var candidateSpeed = candidateVel.Length();
+        var descriptorSpeed = descriptorVel.Length();
+        if (speedTolerance > 0f)
+        {
+            var speedDelta = MathF.Abs(candidateSpeed - descriptorSpeed);
+            if (speedDelta > speedTolerance)
+                return float.MaxValue;
+            score += speedDelta / speedTolerance;
+            terms++;
+        }
+
+        if (candidateSpeed > 0.5f && descriptorSpeed > 0.5f && headingToleranceDegrees > 0f)
+        {
+            var dot = Vector2.Dot(candidateVel / candidateSpeed, descriptorVel / descriptorSpeed);
+            var angle = MathF.Acos(Math.Clamp(dot, -1f, 1f));
+            var tolerance = headingToleranceDegrees * (MathF.PI / 180f);
+            if (angle > tolerance)
+                return float.MaxValue;
+            score += angle / tolerance;
+            terms++;
+        }
+
+        return terms > 0 ? score / terms : 0f;
+    }
+
 }

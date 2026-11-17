@@ -137,6 +137,46 @@ public sealed partial class WFMissileFlightComponent : Component
 
     /// <summary>Last velocity the seeker actually saw the target with.</summary>
     public Vector2 KnownVelocity;
+
+    // Descriptor-based acquisition, for the smart tier.
+    // When DescriptorSeeking is set, the missile captures a snapshot of what the player
+    // fired at, and scores candidates against it during acquisition instead of picking the nearest.
+
+    /// <summary>Score candidates against the captured descriptor during acquisition.</summary>
+    [DataField]
+    public bool DescriptorSeeking;
+
+    /// <summary>Range, in metres, within which a fire-control click snaps to a target.</summary>
+    [DataField]
+    public float DescriptorSnapRadius = 64f;
+
+    /// <summary>Largest size difference, as a fraction of the descriptor's radius, that still matches.</summary>
+    [DataField]
+    public float DescriptorSizeTolerance = 0.5f;
+
+    /// <summary>Largest speed difference, in m/s, that still matches.</summary>
+    [DataField]
+    public float DescriptorSpeedTolerance = 40f;
+
+    /// <summary>Largest angle between velocity vectors, in degrees, that still matches.</summary>
+    [DataField]
+    public float DescriptorHeadingTolerance = 45f;
+
+    /// <summary>Position of the captured target when the descriptor was taken.</summary>
+    public Vector2 DescriptorPosition;
+
+    /// <summary>Velocity of the captured target when the descriptor was taken.</summary>
+    public Vector2 DescriptorVelocity;
+
+    /// <summary>Approximate radius of the captured target's hull, in metres. Zero when unknown.</summary>
+    public float DescriptorRadius;
+
+    /// <summary>Grid of the captured target, if it was on one.</summary>
+    public EntityUid? DescriptorGrid;
+
+    /// <summary>Whether a descriptor has been captured yet.</summary>
+    public bool DescriptorCaptured;
+
 }
 
 /// <summary>Seeker state of a <see cref="WFMissileFlightComponent"/> missile.</summary>

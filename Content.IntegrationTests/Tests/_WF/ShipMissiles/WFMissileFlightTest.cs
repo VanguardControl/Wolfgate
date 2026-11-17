@@ -1,11 +1,18 @@
+using System.Collections.Generic;
 using System.Numerics;
 using Content.Server._Mono.Projectiles.TargetSeeking;
 using Content.Server._WF.ShipMissiles;
+using Content.Server.Shuttles.Components;
+using Content.Shared.Tiles;
+using Content.Shared.Cargo.Components;
 using NUnit.Framework;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
+using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
+using Robust.Shared.Physics.Systems;
 
 namespace Content.IntegrationTests.Tests._WF.ShipMissiles;
 
@@ -13,7 +20,7 @@ namespace Content.IntegrationTests.Tests._WF.ShipMissiles;
 [TestFixture]
 public sealed class WFMissileFlightTest
 {
-    /// <summary>The missiles this module flies.</summary>
+    /// <summary>The missiles this module flies.</summary>>
     private static readonly string[] Flown =
     {
         "MissileProjectile50mmHE",
@@ -22,7 +29,6 @@ public sealed class WFMissileFlightTest
         "ShipMissileASM250HEAT",
         "ShipMissileASM250HV",
     };
-
     /// <summary>
     /// The carriers must stay neutral: a carrier that still flies itself would fight the flight system, and one
     /// without a seeker cone would stop flares working.
@@ -62,7 +68,6 @@ public sealed class WFMissileFlightTest
 
         await pair.CleanReturnAsync();
     }
-
     /// <summary>
     /// Fired down +x with the hull 600 m out and 100 m off the line of fire, the missile must lock, turn onto it and
     /// never exceed its speed cap.
@@ -86,7 +91,7 @@ public sealed class WFMissileFlightTest
 
             missile = em.SpawnEntity("ShipMissileASM150",
                 new EntityCoordinates(map.MapUid, new Vector2(-600f, -100f)));
-            xform.SetWorldRotation(missile, Angle.FromDegrees(90)); // +x
+            xform.SetWorldRotation(missile, Angle.FromDegrees(90));
         });
 
         await pair.RunTicksSync(20);
@@ -114,7 +119,6 @@ public sealed class WFMissileFlightTest
 
         await pair.CleanReturnAsync();
     }
-
     /// <summary>
     /// Handed 45 degrees off its nose, the missile still locks during the launch transient and takes the bearing: the
     /// ASM-50's own 7.5 degree scan arc would never see that hull.
@@ -161,5 +165,63 @@ public sealed class WFMissileFlightTest
         });
 
         await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// Fired at a large 5x5 hull with a small 1x1 decoy in between, the smart missile takes the far (matching) one
+    /// and the dumb one takes the nearer decoy. Descriptor size-match rejects the decoy.
+    /// </summary>
+    [Test]
+    [TestCase("ShipMissileASM150", false)]        // dumb: takes the near decoy
+    [TestCase("ShipMissileASM150Smart", true)]    // smart: takes the far hull
+    public async Task DescriptorSeekingPicksTheFiredAtTarget(string missileProto, bool expectFar)
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var map = await pair.CreateTestMap();
+        var em = pair.Server.EntMan;
+        var xform = em.System<SharedTransformSystem>();
+        var maps = em.System<SharedMapSystem>();
+
+        EntityUid missile = default, far = default, near = default;
+        await pair.Server.WaitAssertion(() =>
+        {
+            // Far hull: a large 5x5 ship. Near decoy: a small 1x1 ship. Both marked.
+            far = MakeGrid(em, maps, map.MapId, new Vector2(0f, 0f), 5);
+            em.EnsureComponent<TargetSeekingTargetComponent>(far);
+
+            near = MakeGrid(em, maps, map.MapId, new Vector2(-300f, 0f), 1);
+            em.EnsureComponent<TargetSeekingTargetComponent>(near);
+
+            missile = em.SpawnEntity(missileProto, new EntityCoordinates(map.MapUid, new Vector2(-600f, 0f)));
+            xform.SetWorldRotation(missile, Angle.FromDegrees(90)); // +x
+
+            // Designated is what "the player clicked": the far hull.
+            var ec = xform.GetMapCoordinates(far); em.GetComponent<WFMissileFlightComponent>(missile).Designated = new MapCoordinates(ec.Position, ec.MapId);
+        });
+
+        await pair.Server.WaitRunTicks(20);
+
+        await pair.Server.WaitAssertion(() =>
+        {
+            var target = em.GetComponent<TargetSeekingComponent>(missile).CurrentTarget;
+            var expectUid = expectFar ? far : near;
+            Assert.That(target, Is.EqualTo(expectUid));
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    private static EntityUid MakeGrid(IEntityManager em, SharedMapSystem maps, MapId mapId, Vector2 pos, int size)
+    {
+        var grid = maps.CreateGridEntity(mapId);
+        var tiles = new List<(Vector2i, Tile)>();
+        for (var x = 0; x < size; x++)
+            for (var y = 0; y < size; y++)
+                tiles.Add((new Vector2i(x, y), new Tile(1)));
+        maps.SetTiles(grid.Owner, grid.Comp, tiles);
+        em.System<SharedPhysicsSystem>().SetBodyType(grid.Owner, BodyType.Dynamic);
+        em.System<SharedTransformSystem>().SetWorldPosition(grid.Owner, pos);
+        em.EnsureComponent<ShuttleComponent>(grid.Owner);
+        return grid.Owner;
     }
 }
