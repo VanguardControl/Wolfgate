@@ -37,6 +37,8 @@ public abstract partial class GameRuleSystem<T>
 
         if (!TerminatingOrDeleted(target.Station) && (filter == null || filter(target.Station)))
             station = target.Station;
+        else
+            WgMissed(_wgStartingRule!.Value, target);
 
         return true;
     }
@@ -57,7 +59,10 @@ public abstract partial class GameRuleSystem<T>
             return false;
 
         if (TerminatingOrDeleted(target.Station) || !TryComp<MapGridComponent>(target.Grid, out var grid))
+        {
+            WgMissed(_wgStartingRule!.Value, target);
             return true;
+        }
 
         targetStation = target.Station;
         targetGrid = target.Grid;
@@ -76,6 +81,20 @@ public abstract partial class GameRuleSystem<T>
             break;
         }
 
+        if (!found)
+            WgMissed(_wgStartingRule!.Value, target);
+
         return true;
+    }
+
+    /// <summary>Tells whoever aimed the rule, once, that it found nothing on its target.</summary>
+    private void WgMissed(EntityUid rule, WGEventTargetComponent target)
+    {
+        if (target.Missed)
+            return;
+
+        target.Missed = true;
+        var ev = new WGEventTargetMissedEvent();
+        RaiseLocalEvent(rule, ref ev);
     }
 }

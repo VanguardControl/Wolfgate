@@ -13,6 +13,9 @@ namespace Content.Shared._WG.ShipAdmin;
 public static class WGShipAdminCommands
 {
     public const string Panel = "shipmaster";
+
+    /// <summary>The argument that opens the panel on its spawn page.</summary>
+    public const string SpawnArg = "spawn";
 }
 
 /// <summary>Raised by the action staff get while they are over a ship: opens Shipmaster on it.</summary>
@@ -258,7 +261,7 @@ public enum WGShipAdminFixParts : ushort
     /// <summary>Mops up every puddle on the floor.</summary>
     Puddles = 1 << 9,
 
-    /// <summary>Puts a working bulb in every light fitting and switches them on.</summary>
+    /// <summary>Puts a working lamp in every empty, broken or burned light fitting; switches are left as they are.</summary>
     Lights = 1 << 10,
 
     All = Structures | Hull | Air | Fires | Power | Fuel | Bolts | Consoles | Trash | Puddles | Lights,
@@ -287,6 +290,9 @@ public sealed class WGShipAdminEuiState : EuiStateBase
     public string Result = string.Empty;
     public bool ResultError;
     public int ResultSeq;
+
+    /// <summary>A counter that changes each time the panel is asked to show its spawn page.</summary>
+    public int SpawnPageSeq;
 }
 
 /// <summary>Selects a ship, or none.</summary>
@@ -509,8 +515,11 @@ public sealed class WGShipAdminDock
     public NetEntity Dock;
     public string Name = string.Empty;
 
-    /// <summary>The grid docked to it, or empty when it is free.</summary>
+    /// <summary>The name of the grid docked to it, or empty when it is free; for display.</summary>
     public string DockedWith = string.Empty;
+
+    /// <summary>The grid docked to it, or null when it is free.</summary>
+    public NetEntity? DockedWithGrid;
 }
 
 /// <summary>The docks of the grid the dock picker asked about.</summary>

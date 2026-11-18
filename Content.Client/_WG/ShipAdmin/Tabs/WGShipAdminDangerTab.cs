@@ -34,7 +34,10 @@ public sealed class WGShipAdminDangerTab : WGShipAdminTab
             _eventIds.Add(choice.Id);
         }
 
-        _events.SelectId(Math.Max(0, picked == null ? 0 : _eventIds.IndexOf(picked)));
+        var index = picked == null ? -1 : _eventIds.IndexOf(picked);
+        _events.SelectId(Math.Max(0, index));
+        if (picked != null && index < 0)
+            _startEvent.WgCancel();
     }
 
     public override string Title => Loc.GetString("wg-ship-admin-tab-danger");
@@ -48,6 +51,9 @@ public sealed class WGShipAdminDangerTab : WGShipAdminTab
         Body.AddChild(Note(Loc.GetString("wg-ship-admin-danger-event-note")));
         _events = Dropdown(300);
         _startEvent = Confirm("wg-ship-admin-danger-event-start");
+
+        // A press confirms the event picked at the first press, never another one picked between them.
+        _events.OnItemSelected += _ => _startEvent.WgCancel();
         _startEvent.OnPressed += _ =>
         {
             var index = _events.SelectedId;

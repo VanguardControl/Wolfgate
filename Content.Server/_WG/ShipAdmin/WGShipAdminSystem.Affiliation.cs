@@ -40,9 +40,15 @@ public sealed partial class WGShipAdminSystem
 
         var before = CurrentFaction(grid);
         if (TryComp<WGCompanyShipComponent>(grid, out var flown))
-            flown.PreviousFaction = picked?.Id;
+        {
+            // Empty, not null, records a faction staff cleared: null means none was set aside yet, and the
+            // company sync would then set aside whatever the hull still carries.
+            flown.PreviousFaction = picked?.Id ?? string.Empty;
+        }
         else
+        {
             SetFaction(grid, picked);
+        }
 
         if (TryComp<WGShipAccessComponent>(grid, out var access)
             && access.Mode == WGShipAccessMode.Faction
@@ -74,16 +80,20 @@ public sealed partial class WGShipAdminSystem
 
         var after = CompOrNull<WGCompanyShipComponent>(grid)?.Name;
         Audit(admin, LogImpact.Medium, grid, $"set its player company from '{before}' to '{after}'");
-        result = Loc.GetString("wg-ship-admin-result-company",
-            ("ship", Name(grid)), ("company", after ?? Loc.GetString("wg-ship-admin-none")));
+        result = after == null
+            ? Loc.GetString("wg-ship-admin-result-company-cleared", ("ship", Name(grid)))
+            : Loc.GetString("wg-ship-admin-result-company", ("ship", Name(grid)), ("company", after));
         return true;
     }
 
-    /// <summary>The hull's faction: its own, or the one a company ship set aside.</summary>
+    /// <summary>
+    /// The hull's faction: its own, or the one a company ship set aside. Until the company sync has set it aside,
+    /// the hull still carries it.
+    /// </summary>
     private string CurrentFaction(EntityUid grid)
     {
-        if (TryComp<WGCompanyShipComponent>(grid, out var flown))
-            return flown.PreviousFaction ?? string.Empty;
+        if (CompOrNull<WGCompanyShipComponent>(grid)?.PreviousFaction is { } setAside)
+            return setAside == "None" ? string.Empty : setAside;
 
         return TryComp<CompanyComponent>(grid, out var hull) && hull.CompanyName.Id is { Length: > 0 } id && id != "None"
             ? id

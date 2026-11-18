@@ -1,6 +1,7 @@
 #nullable enable
 using System.Linq;
 using System.Numerics;
+using Content.Client._WG.ShipAdmin;
 using Content.IntegrationTests.Tests._WG.Drydock;
 using Content.Server._Mono.FireControl;
 using Content.Server._WG.Administration.Systems;
@@ -42,22 +43,24 @@ public sealed class ShipAdminRescueTest
     [Test]
     public async Task HardpointLaidUnderGunLinksAndRelinks()
     {
-        await using var pair = await PoolManager.GetServerClient();
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
         var server = pair.Server;
         var em = server.EntMan;
         var map = await pair.CreateTestMap();
         var grid = map.Grid.Owner;
+        var session = server.PlayerMan.GetSessionById(pair.Client.Session!.UserId);
+        EntityUid gun = default, serverUid = default;
 
         await server.WaitAssertion(() =>
         {
             DrydockTest.SetFloor(pair, grid, 5);
-            var serverUid = em.SpawnEntity(null, map.GridCoords);
+            serverUid = em.SpawnEntity(null, map.GridCoords);
             var fireServer = em.AddComponent<FireControlServerComponent>(serverUid);
             fireServer.ConnectedGrid = grid;
             fireServer.ProcessingPower = 100;
             em.EnsureComponent<FireControlGridComponent>(grid).ControllingServer = serverUid;
 
-            var gun = DrydockTest.SpawnAnchored(pair, grid, "WeaponTurretSunder", new Vector2i(2, 2));
+            gun = DrydockTest.SpawnAnchored(pair, grid, "WeaponTurretSunder", new Vector2i(2, 2));
             Assert.That(em.GetComponent<HardpointAnchorableOnlyComponent>(gun).anchoredTo, Is.Null, "Precondition: no hardpoint yet.");
 
             var hardpoint = DrydockTest.SpawnAnchored(pair, grid, "HardpointEnergyHeavy", new Vector2i(2, 2));
@@ -67,9 +70,102 @@ public sealed class ShipAdminRescueTest
                 Assert.That(em.GetComponent<HardpointAnchorableOnlyComponent>(gun).anchoredTo, Is.EqualTo(hardpoint));
             });
 
-            server.System<FireControlSystem>().WgRelinkGrid(grid);
+            Assert.That(em.GetComponent<FireControllableComponent>(gun).ControllingServer, Is.Null,
+                "Precondition: linking alone doesn't put the gun on gunnery.");
+
+            // Through the panel's own entry point: a fix of the consoles relinks gunnery a tick later.
+            Assert.That(em.System<WGShipAdminSystem>().StartFix(session, grid, WGShipAdminFixParts.Consoles, out var result), Is.True, result);
+        });
+
+        await pair.RunTicksSync(3);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.GetComponent<FireControllableComponent>(gun).ControllingServer, Is.EqualTo(serverUid),
+                "The fix did not put the gun on gunnery.");
+
+            // And the helper on its own, for a gun dropped from the server since.
+            em.GetComponent<FireControllableComponent>(gun).ControllingServer = null;
+            Assert.That(server.System<FireControlSystem>().WgRelinkGrid(grid), Is.True, "The ship's server was not reported up.");
             Assert.That(em.GetComponent<FireControllableComponent>(gun).ControllingServer, Is.EqualTo(serverUid),
                 "The relink did not put the gun on gunnery.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// The old Spawn Vessel window is Shipmaster's spawn page: <c>shipmaster spawn</c> opens the panel on it, and a
+    /// ship the admin spawns is selected in their panel.
+    /// </summary>
+    [Test]
+    public async Task SpawnPageOpensAndSelectsTheSpawnedShip()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var ships = em.System<WGShipAdminSystem>();
+        var admins = server.ResolveDependency<IAdminManager>();
+        var map = await pair.CreateTestMap();
+        var session = server.PlayerMan.GetSessionById(pair.Client.Session!.UserId);
+        WGShipAdminEuiState state = default!;
+        EntityUid body = default;
+        var wasAdmin = false;
+
+        await server.WaitAssertion(() =>
+        {
+            wasAdmin = admins.IsAdmin(session);
+            if (!wasAdmin)
+                admins.PromoteHost(session);
+
+            body = em.SpawnEntity("MobHuman", new MapCoordinates(new Vector2(-60, 0), map.MapId));
+            server.PlayerMan.SetAttachedEntity(session, body);
+            server.ConsoleHost.ExecuteCommand(session, $"{WGShipAdminCommands.Panel} {WGShipAdminCommands.SpawnArg}");
+        });
+
+        await pair.RunTicksSync(5);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(ships.Panels, Has.Count.EqualTo(1), "shipmaster spawn did not open the panel.");
+            var panel = ships.Panels.Single();
+            Assert.That(((WGShipAdminEuiState) panel.GetNewState()).SpawnPageSeq, Is.GreaterThan(0), "The panel was not opened on its spawn page.");
+
+            server.ConsoleHost.ExecuteCommand(session, $"spawnvessel {VesselProto}");
+            Assert.That(panel.Selected, Is.Not.Null, "The spawned ship was not selected.");
+            Assert.Multiple(() =>
+            {
+                Assert.That(em.HasComponent<MapGridComponent>(panel.Selected!.Value), Is.True);
+                Assert.That(panel.Selected, Is.Not.EqualTo(map.Grid.Owner), "The test map's own grid was selected, not the new ship.");
+            });
+            state = (WGShipAdminEuiState) panel.GetNewState();
+        });
+
+        await pair.Client.WaitAssertion(() =>
+        {
+            var window = new WGShipAdminWindow();
+            window.OpenCentered();
+            Assert.That(window.SpawnPage.Visible, Is.False, "The panel opens on its ships page by default.");
+            window.UpdateState(state);
+            Assert.Multiple(() =>
+            {
+                Assert.That(window.SpawnPage.Visible, Is.True, "The spawn page was not brought to the front.");
+                Assert.That(window.SpawnPageButton.Pressed, Is.True);
+            });
+
+            window.ShowPage(false);
+            Assert.That(window.SpawnPage.Visible, Is.False);
+            window.Close();
+        });
+
+        await server.WaitAssertion(() =>
+        {
+            if (ships.Panels.FirstOrDefault()?.Selected is { } spawned)
+                em.DeleteEntity(spawned);
+
+            em.DeleteEntity(body);
+            if (!wasAdmin)
+                admins.DeAdmin(session);
         });
 
         await pair.CleanReturnAsync();
@@ -163,8 +259,13 @@ public sealed class ShipAdminRescueTest
             Assert.That(bodyXform.GridUid, Is.EqualTo(grid), "The jump did not land aboard.");
             var gridComp = em.GetComponent<MapGridComponent>(grid);
             var tile = em.System<SharedMapSystem>().GetTileRef(grid, gridComp, bodyXform.Coordinates);
-            Assert.That(em.System<TurfSystem>().IsTileBlocked(tile, Content.Shared.Physics.CollisionGroup.Impassable), Is.False,
-                "The jump landed in a wall.");
+            var turfs = em.System<TurfSystem>();
+            Assert.Multiple(() =>
+            {
+                Assert.That(turfs.IsSpace(tile), Is.False, "The jump landed off the floor.");
+                Assert.That(turfs.IsTileBlocked(tile, Content.Shared.Physics.CollisionGroup.Impassable | Content.Shared.Physics.CollisionGroup.MidImpassable),
+                    Is.False, "The jump landed in a wall.");
+            });
             em.DeleteEntity(body);
 
             before = xforms.GetWorldPosition(grid);

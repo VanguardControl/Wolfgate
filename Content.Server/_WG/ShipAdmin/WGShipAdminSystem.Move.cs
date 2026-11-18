@@ -98,8 +98,14 @@ public sealed partial class WGShipAdminSystem
             var name = dock.Comp.Name is { } label
                 ? Loc.GetString(label)
                 : Loc.GetString("wg-ship-admin-dock-unnamed", ("number", unnamed));
-            var with = dock.Comp.DockedWith is { } other && Transform(other).GridUid is { } otherGrid ? Name(otherGrid) : string.Empty;
-            docks.Add(new WGShipAdminDock { Dock = GetNetEntity(dock), Name = name, DockedWith = with });
+            var holder = dock.Comp.DockedWith is { } other ? Transform(other).GridUid : null;
+            docks.Add(new WGShipAdminDock
+            {
+                Dock = GetNetEntity(dock),
+                Name = name,
+                DockedWith = holder is { } held ? Name(held) : string.Empty,
+                DockedWithGrid = holder is { } heldGrid ? GetNetEntity(heldGrid) : null,
+            });
         }
 
         docks.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCultureIgnoreCase));
@@ -131,7 +137,15 @@ public sealed partial class WGShipAdminSystem
             return false;
         }
 
-        // Undocked first, so the ship's own docks and the grid it hangs on don't stand in the way.
+        // Undocked first, so the ship's own docks and the grid it hangs on don't stand in the way. The berth is
+        // remembered, and the ship goes back into it when nothing fits.
+        var berth = new List<(Entity<DockingComponent> Own, Entity<DockingComponent> Other)>();
+        foreach (var own in _docking.GetDocks(grid))
+        {
+            if (own.Comp.DockedWith is { } other && TryComp<DockingComponent>(other, out var otherDock))
+                berth.Add((own, (other, otherDock)));
+        }
+
         _docking.UndockDocks(grid);
         DockingConfig? config = null;
         foreach (var own in _docking.GetDocks(grid))
@@ -143,6 +157,12 @@ public sealed partial class WGShipAdminSystem
 
         if (config == null)
         {
+            foreach (var (own, other) in berth)
+            {
+                if (!TerminatingOrDeleted(own) && !TerminatingOrDeleted(other) && !own.Comp.Docked && !other.Comp.Docked)
+                    _docking.Dock(own, other);
+            }
+
             result = Loc.GetString("wg-ship-admin-result-dock-no-fit", ("dock", DockName(dock.Value, targetDock)), ("ship", Name(grid)));
             return false;
         }
@@ -262,6 +282,13 @@ public sealed partial class WGShipAdminSystem
         if (TryComp<FTLComponent>(grid, out var ftl) && ftl.State != FTLState.Cooldown)
         {
             result = Loc.GetString("wg-ship-admin-result-ftl-jumping");
+            return false;
+        }
+
+        // A hop to or from a planet lands the ship at its own recorded spot, whatever is done to it meanwhile.
+        if (_hop.IsHopping(grid))
+        {
+            result = Loc.GetString("wg-ship-admin-result-hopping");
             return false;
         }
 

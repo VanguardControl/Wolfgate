@@ -6,8 +6,13 @@ category) on a grid or anything standing on one, or from the Shipmaster action s
 over a ship. The verb and the action open it on that ship; opened with no ship named, it starts on the ship the
 admin is over.
 
-The left side lists ships. Ships and ports lists grids with a deed, an owner, ship access or a vessel design, plus
-the ports and bases they dock at (`IsPort`: trade stations and outposts, planet cargo hubs, station grids that
+A switch at the top shows the ships page or the spawn page. The spawn page is the old Spawn Vessel window
+(`Spawn/WGShipAdminSpawnPanel`): vessels by category with a preview, an owner and a name, spawned through
+`spawnvessel`. `shipmaster spawn`, which the Wolfgate admin tab's Spawn Vessel button runs, opens the panel on it,
+and a ship the admin spawns is selected on the ships page. Spawning needs the Spawn flag as before.
+
+The left side of the ships page lists ships. Ships and ports lists grids with a deed, an owner, ship access or a
+vessel design, then the ports and bases they dock at (`IsPort`: trade stations and outposts, planet cargo hubs, station grids that
 aren't a ship's own). All grids lists every grid (the first 500). A note under the filter says so, since the Move
 tab's lists follow it. The list is sorted on the client, nearest first by default: the ship the viewer is on,
 then ships on their map by distance, then the rest; name, owner and most aboard are the other sorts. Each row has
@@ -42,8 +47,11 @@ The event list is the station events that happen aboard and pick their target th
 (`AboardEvents`), plus every station event that loads ships. An aboard event gets `WGEventTargetComponent` before
 it starts; `GameRuleSystem.WGEventTarget.cs` marks the rule whose start is running, and `TryGetRandomStation(s)`
 and `TryFindRandomTile` then return that station and a tile on that grid, or nothing: an aimed event never falls
-back to another station. It needs the ship to have a station, which bought ships do. An arrival event's ships load
-when it is added and are moved beside the target before it starts.
+back to another station. It needs the ship to have a station, which bought ships do; the aim is that station, which
+for a ship is the ship alone, and a grid whose station has other grids is refused, since vents, critters and
+sentience pick across the whole station. Most station events wait out a warning delay, so the panel says the event is queued,
+and if it then finds nothing aboard the pickers raise `WGEventTargetMissedEvent` and the admin is told. An arrival
+event's ships load when it is added and are moved beside the target before it starts.
 
 ## Gunnery after a rebuild
 
@@ -52,7 +60,7 @@ hardpoint. A hardpoint rebuilt or wrenched down under a gun that was already the
 (`SharedHardpointSystem.WGRelink.cs`), and a gun whose hardpoint died drops the dead link. The fix's Consoles part
 and a restore mount every unlinked gun aboard, then relink gunnery a tick later (`FireControlSystem.WgRelinkGrid`,
 which does what each gunnery console's Refresh button does) instead of waiting up to a minute for the hardpoint
-refresh.
+refresh. A ship whose gunnery server isn't up yet is tried again each second for half a minute.
 
 The Admin flag opens the panel and runs every action; the ones that are hard to undo ask for a second press.
 `WGShipAdminPermissions` is the one table: the server checks it on every message and the window greys what the
@@ -143,6 +151,8 @@ Entry points: `WGShipAdminSystem` (`Open`, `BuildList`, `BuildDetail`, and one p
 ### Client
 
 - [`Content.Client/_WG/ShipAdmin/ConfirmButton.WGShipAdmin.cs`](../../../Content.Client/_WG/ShipAdmin/ConfirmButton.WGShipAdmin.cs)
+- [`Content.Client/_WG/ShipAdmin/Spawn/WGShipAdminSpawnPanel.xaml`](../../../Content.Client/_WG/ShipAdmin/Spawn/WGShipAdminSpawnPanel.xaml)
+- [`Content.Client/_WG/ShipAdmin/Spawn/WGShipAdminSpawnPanel.xaml.cs`](../../../Content.Client/_WG/ShipAdmin/Spawn/WGShipAdminSpawnPanel.xaml.cs)
 - [`Content.Client/_WG/ShipAdmin/Tabs/WGShipAdminAccessTab.cs`](../../../Content.Client/_WG/ShipAdmin/Tabs/WGShipAdminAccessTab.cs)
 - [`Content.Client/_WG/ShipAdmin/Tabs/WGShipAdminDangerTab.cs`](../../../Content.Client/_WG/ShipAdmin/Tabs/WGShipAdminDangerTab.cs)
 - [`Content.Client/_WG/ShipAdmin/Tabs/WGShipAdminMoveTab.cs`](../../../Content.Client/_WG/ShipAdmin/Tabs/WGShipAdminMoveTab.cs)

@@ -42,6 +42,8 @@ public sealed class WGShipAdminOwnershipTab : WGShipAdminTab
     private NetEntity _shown;
     private string? _shownFaction;
     private int? _shownCompany;
+    private bool _companyEdited;
+    private bool _companyPickGone;
 
     public override string Title => Loc.GetString("wg-ship-admin-tab-ownership");
 
@@ -91,6 +93,13 @@ public sealed class WGShipAdminOwnershipTab : WGShipAdminTab
             var picked = _companies.SelectedId;
             if (picked >= 0 && picked < _companyIds.Count)
                 Send(new WGShipAdminCompanyMessage(Grid, _companyIds[picked]));
+        };
+        // A pick by staff is kept through list refreshes; until then the picker follows the ship's company.
+        _companies.OnItemSelected += _ =>
+        {
+            _companyEdited = true;
+            _companyPickGone = false;
+            GateCompany();
         };
         Body.AddChild(Row(_companies, _setCompany));
         SetCompanies(new List<WGShipAdminCompany>());
@@ -177,16 +186,18 @@ public sealed class WGShipAdminOwnershipTab : WGShipAdminTab
 
         Gate(_release, WGShipAdminAction.Release, flags);
         Gate(_setFaction, WGShipAdminAction.SetFaction, flags);
-        Gate(_setCompany, WGShipAdminAction.SetCompany, flags, _companyIds.Count > 1);
         if (_shown != detail.Grid || _shownFaction != detail.Faction || _shownCompany != detail.CompanyId)
         {
             _shown = detail.Grid;
             _shownFaction = detail.Faction;
             _shownCompany = detail.CompanyId;
             _factions.SelectId(Math.Max(0, _factionIds.IndexOf(detail.Faction)));
+            _companyEdited = false;
+            _companyPickGone = false;
             _companies.SelectId(Math.Max(0, _companyIds.IndexOf(detail.CompanyId)));
         }
 
+        GateCompany();
         UpdateButtons();
     }
 
@@ -204,7 +215,25 @@ public sealed class WGShipAdminOwnershipTab : WGShipAdminTab
             _companyIds.Add(company.Id);
         }
 
-        _companies.SelectId(Math.Max(0, _companyIds.IndexOf(selected)));
+        // Staff's own pick, or the ship's company, which may only now have arrived in the list.
+        var wanted = _companyEdited ? selected : _shownCompany;
+        var index = _companyIds.IndexOf(wanted);
+        _companies.SelectId(Math.Max(0, index));
+
+        // A company staff picked was disbanded: Set must not quietly send None instead.
+        if (_companyEdited && wanted != null && index < 0)
+            _companyPickGone = true;
+
+        GateCompany();
+    }
+
+    private void GateCompany()
+    {
+        Gate(_setCompany, WGShipAdminAction.SetCompany, _flags, (_companyIds.Count > 1 || _shownCompany != null) && !_companyPickGone);
+        if (_companyPickGone)
+            _setCompany.ToolTip = Loc.GetString("wg-ship-admin-ownership-company-gone");
+        else if (WGShipAdminPermissions.Allowed(_flags, WGShipAdminAction.SetCompany))
+            _setCompany.ToolTip = Loc.GetString("wg-ship-admin-ownership-set-company-tooltip");
     }
 
     private Control OwnerRow(WGShipAdminOwner owner, AdminFlags flags, bool removable)

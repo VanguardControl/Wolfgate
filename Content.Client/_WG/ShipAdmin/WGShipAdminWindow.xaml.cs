@@ -48,6 +48,7 @@ public sealed partial class WGShipAdminWindow : DefaultWindow
     private WGShipAdminSort _sort = WGShipAdminSort.Nearest;
     private NetEntity? _selected;
     private int _resultSeq = -1;
+    private int _spawnPageSeq;
     private float _compassTimer;
     private int _headerShown = Unset;
     private SharedTransformSystem? _xforms;
@@ -55,6 +56,7 @@ public sealed partial class WGShipAdminWindow : DefaultWindow
     private const int Unset = -3;
     private const int Blank = -2;
     private const int Here = -1;
+    private const int OtherMap = -4;
 
     /// <summary>The overview tab, for tests.</summary>
     public readonly WGShipAdminOverviewTab Overview = new();
@@ -103,6 +105,10 @@ public sealed partial class WGShipAdminWindow : DefaultWindow
 
         SearchBar.OnTextChanged += _ => Populate();
         RefreshButton.OnPressed += _ => OnMessage?.Invoke(new WGShipAdminListMessage(_filter));
+        ShipsPageButton.OnPressed += _ => ShowPage(false);
+        SpawnPageButton.OnPressed += _ => ShowPage(true);
+        OnClose += SpawnPage.Release;
+
         HeaderJump.ToolTip = Loc.GetString("wg-ship-admin-jump-tooltip");
         HeaderJump.OnPressed += _ =>
         {
@@ -116,6 +122,15 @@ public sealed partial class WGShipAdminWindow : DefaultWindow
     }
 
     private SharedTransformSystem Xforms => _xforms ??= _entMan.System<SharedTransformSystem>();
+
+    /// <summary>Shows the spawn page, or the ships list and tabs.</summary>
+    public void ShowPage(bool spawn)
+    {
+        SpawnPage.Visible = spawn;
+        ShipsPage.Visible = !spawn;
+        SpawnPageButton.Pressed = spawn;
+        ShipsPageButton.Pressed = !spawn;
+    }
 
     private void AddTab(WGShipAdminTab tab)
     {
@@ -169,6 +184,13 @@ public sealed partial class WGShipAdminWindow : DefaultWindow
 
             foreach (var tab in _tabs)
                 tab.Update(detail, state.ViewerFlags);
+        }
+
+        // Opened or reopened on the spawn page, as the admin tab's Spawn Vessel button does.
+        if (state.SpawnPageSeq != _spawnPageSeq)
+        {
+            _spawnPageSeq = state.SpawnPageSeq;
+            ShowPage(true);
         }
 
         if (state.ResultSeq != _resultSeq)
@@ -363,8 +385,9 @@ public sealed partial class WGShipAdminWindow : DefaultWindow
             var (shipMap, shipPosition) = Locate(grid, listedMap, listedPosition);
             if (shipMap != map)
             {
+                // No arrow points to another map, so the label says the jump is still there.
                 compass.Clear();
-                now = Blank;
+                now = OtherMap;
             }
             else
             {
@@ -380,6 +403,7 @@ public sealed partial class WGShipAdminWindow : DefaultWindow
         {
             Blank => string.Empty,
             Here => Loc.GetString("wg-ship-admin-compass-here"),
+            OtherMap => Loc.GetString("wg-ship-admin-compass-other-map"),
             _ => Loc.GetString("wg-ship-admin-compass-distance", ("distance", now)),
         };
         return now;

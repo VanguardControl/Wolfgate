@@ -31,11 +31,22 @@ public sealed partial class WGShipAdminEui : BaseEui
     public WGShipAdminFilter Filter { get; private set; }
     public EntityUid? Selected { get; private set; }
 
-    public WGShipAdminEui(EntityUid? selected = null)
+    private int _spawnPageSeq;
+
+    public WGShipAdminEui(EntityUid? selected = null, bool spawnPage = false)
     {
         IoCManager.InjectDependencies(this);
         _ships = _systems.GetEntitySystem<WGShipAdminSystem>();
         Selected = selected;
+        if (spawnPage)
+            _spawnPageSeq++;
+    }
+
+    /// <summary>Brings the spawn page to the front.</summary>
+    public void ShowSpawnPage()
+    {
+        _spawnPageSeq++;
+        StateDirty();
     }
 
     public override void Opened()
@@ -60,6 +71,7 @@ public sealed partial class WGShipAdminEui : BaseEui
             Result = _result,
             ResultError = _resultError,
             ResultSeq = _resultSeq,
+            SpawnPageSeq = _spawnPageSeq,
         };
 
         if (_sendList)

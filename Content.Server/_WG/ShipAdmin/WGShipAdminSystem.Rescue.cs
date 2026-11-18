@@ -38,13 +38,15 @@ public sealed partial class WGShipAdminSystem
             return false;
         }
 
-        ReleaseBindings(grid);
-        Stop(grid);
         if (!_hop.TryStart((grid, shuttle), network.Comp.OrbitMap, _transform.GetWorldPosition(grid), network.Comp.Planet, true, out var reason))
         {
             result = Loc.GetString("wg-ship-admin-result-orbit-refused", ("ship", Name(grid)), ("reason", reason));
             return false;
         }
+
+        // Only once the hop is accepted: a refused one leaves the ship tethered and moving as it was.
+        ReleaseBindings(grid);
+        Stop(grid);
 
         Audit(admin, LogImpact.Medium, grid, "sent it back to orbit");
         result = Loc.GetString("wg-ship-admin-result-orbit", ("ship", Name(grid)));

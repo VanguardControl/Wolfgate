@@ -77,8 +77,8 @@ public sealed partial class WGShipAdminSystem
             return true;
         }
 
-        // No open floor at all: the middle is still the ship.
-        return true;
+        // No open floor: a body would land in a wall or in space, so it stays where it is.
+        return false;
     }
 
     private static Vector2 TileCentre(TileRef tile, MapGridComponent grid)

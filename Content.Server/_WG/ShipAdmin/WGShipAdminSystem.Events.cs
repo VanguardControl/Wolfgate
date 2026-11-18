@@ -1,9 +1,11 @@
 using System.Linq;
 using Content.Server.GameTicking;
 using Content.Server.GameTicking.Rules.Components;
+using Content.Shared.Station.Components;
 using Content.Server.StationEvents.Components;
 using Content.Shared._WG.ShipAdmin;
 using Content.Shared.Database;
+using Content.Shared.GameTicking.Components;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
@@ -75,6 +77,13 @@ public sealed partial class WGShipAdminSystem
             return false;
         }
 
+        // Checked before the rule is added, so a refused event leaves nothing behind.
+        if (Transform(grid).MapUid == null)
+        {
+            result = Loc.GetString("wg-ship-admin-result-event-no-map", ("ship", Name(grid)));
+            return false;
+        }
+
         var station = _station.GetOwningStation(grid);
         if (!choice.Arrival && station == null)
         {
@@ -82,31 +91,83 @@ public sealed partial class WGShipAdminSystem
             return false;
         }
 
+        // Aboard events pick by station, and several of them (vents, critters, sentience) then reach every grid the
+        // station has. A ship's station is the ship alone; one with more grids would spill onto the others.
+        if (!choice.Arrival && CompOrNull<StationDataComponent>(station)?.Grids.Count > 1)
+        {
+            result = Loc.GetString("wg-ship-admin-result-event-shared-station", ("ship", Name(grid)), ("station", Name(station!.Value)));
+            return false;
+        }
+
         var ruleEntity = _ticker.AddGameRule(rule);
+        int arrived = 0, loaded = 0;
+        WGEventTargetComponent? target = null;
         if (choice.Arrival)
         {
             // The ships load when the rule is added; bring each beside the target before the rule starts.
-            if (TryComp<RuleGridsComponent>(ruleEntity, out var loaded))
+            if (TryComp<RuleGridsComponent>(ruleEntity, out var grids))
             {
-                foreach (var arrived in loaded.MapGrids)
+                foreach (var ship in grids.MapGrids)
                 {
-                    if (HasComp<MapGridComponent>(arrived))
-                        _shuttle.TryFTLProximity(arrived, grid);
+                    if (!HasComp<MapGridComponent>(ship))
+                        continue;
+
+                    loaded++;
+                    if (_shuttle.TryFTLProximity(ship, grid))
+                        arrived++;
                 }
             }
         }
         else
         {
-            var target = EnsureComp<WGEventTargetComponent>(ruleEntity);
+            target = EnsureComp<WGEventTargetComponent>(ruleEntity);
             target.Station = station!.Value;
             target.Grid = grid;
+            target.Admin = admin;
         }
 
-        _ticker.StartGameRule(ruleEntity);
-        Audit(admin, LogImpact.High, grid, $"started the event {rule} aimed at it");
-        result = Loc.GetString(choice.Arrival ? "wg-ship-admin-result-event-arrival" : "wg-ship-admin-result-event",
+        // A rule whose ships failed to load has ended already, and an ended rule doesn't start.
+        if (!_ticker.StartGameRule(ruleEntity))
+        {
+            Audit(admin, LogImpact.Medium, grid, $"tried to start the event {rule} aimed at it, which refused to start");
+            result = Loc.GetString("wg-ship-admin-result-event-refused", ("event", choice.Name));
+            return false;
+        }
+
+        var queued = HasComp<DelayedStartRuleComponent>(ruleEntity);
+        Audit(admin, LogImpact.High, grid, $"{(queued ? "queued" : "started")} the event {rule} aimed at it");
+
+        // An event that started at once and found nothing aboard has been reported to the panel already.
+        if (target is { Missed: true })
+        {
+            result = Loc.GetString("wg-ship-admin-result-event-missed", ("event", choice.Name), ("ship", Name(grid)));
+            return false;
+        }
+
+        if (choice.Arrival)
+        {
+            result = Loc.GetString(arrived == loaded ? "wg-ship-admin-result-event-arrival" : "wg-ship-admin-result-event-arrival-partial",
+                ("event", choice.Name), ("ship", Name(grid)), ("arrived", arrived), ("loaded", loaded));
+            return arrived == loaded;
+        }
+
+        result = Loc.GetString(queued ? "wg-ship-admin-result-event-queued" : "wg-ship-admin-result-event",
             ("event", choice.Name), ("ship", Name(grid)));
         return true;
+    }
+
+    /// <summary>Tells the admin who aimed an event that it found nothing it could use aboard, once it tried.</summary>
+    private void OnEventTargetMissed(Entity<WGEventTargetComponent> rule, ref WGEventTargetMissedEvent args)
+    {
+        var name = MetaData(rule).EntityPrototype?.ID ?? Name(rule);
+        if (rule.Comp.Admin is { } admin)
+            Audit(admin, LogImpact.Medium, rule.Comp.Grid, $"the event {name} aimed at it found no target aboard");
+
+        if (rule.Comp.Admin is { } told && _panels.TryGetValue(told, out var panel))
+        {
+            var ship = TerminatingOrDeleted(rule.Comp.Grid) ? Loc.GetString("wg-ship-admin-gone-ship") : Name(rule.Comp.Grid);
+            panel.SetResult(Loc.GetString("wg-ship-admin-result-event-missed", ("event", name), ("ship", ship)), true);
+        }
     }
 
     private static string EventName(EntityPrototype proto)

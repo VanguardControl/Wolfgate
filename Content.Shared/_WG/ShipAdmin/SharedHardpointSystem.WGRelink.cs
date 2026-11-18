@@ -29,9 +29,13 @@ public partial class SharedHardpointSystem
             if (!TryComp<HardpointAnchorableOnlyComponent>(entity, out var gun) || WgIsMounted(gun))
                 continue;
 
+            // This hardpoint takes the gun, not whichever free one on the tile the gun's own search would find first.
+            if ((hardpoint.Comp.CompatibleTypes & gun.CompatibleTypes) == 0 || hardpoint.Comp.CompatibleSizes < gun.CompatibleSizes)
+                continue;
+
             gun.anchoredTo = null;
-            if (TryAnchorToHardpoint(entity, gun))
-                return;
+            AnchorEntityToHardpoint(entity, hardpoint, gun, hardpoint.Comp, gridUid);
+            return;
         }
     }
 

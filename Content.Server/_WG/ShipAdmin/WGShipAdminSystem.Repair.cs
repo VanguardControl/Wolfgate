@@ -42,8 +42,14 @@ public sealed partial class WGShipAdminSystem
 
     private readonly Dictionary<EntityUid, FixJob> _fixes = new();
 
+    /// <summary>How many times, a second apart, a ship's gunnery relink is tried while its server isn't up.</summary>
+    private const int GunneryRelinkTries = 30;
+
     /// <summary>Ships whose gunnery is relinked once the tick they were queued in is over.</summary>
-    private readonly Dictionary<EntityUid, GameTick> _gunneryRelinks = new();
+    private readonly Dictionary<EntityUid, GunneryRelink> _gunneryRelinks = new();
+
+    /// <summary>A queued gunnery relink: the tick it was queued in, when to try next, and how often it has.</summary>
+    private readonly record struct GunneryRelink(GameTick Queued, TimeSpan Next, int Tries);
 
     /// <summary>A fix under way on one ship: the hull and damage work still queued, then the parts that take one call each.</summary>
     private sealed class FixJob
@@ -355,6 +361,13 @@ public sealed partial class WGShipAdminSystem
     /// </summary>
     private void QueueGunneryRelink(EntityUid grid)
     {
+        MountUnlinkedGuns(grid);
+        _gunneryRelinks[grid] = new GunneryRelink(_timing.CurTick, TimeSpan.Zero, 0);
+    }
+
+    /// <summary>Mounts every anchored gun aboard that isn't on a live hardpoint on the hardpoint under it.</summary>
+    private void MountUnlinkedGuns(EntityUid grid)
+    {
         var guns = EntityQueryEnumerator<HardpointAnchorableOnlyComponent, TransformComponent>();
         while (guns.MoveNext(out var uid, out var gun, out var xform))
         {
@@ -364,32 +377,48 @@ public sealed partial class WGShipAdminSystem
             gun.anchoredTo = null;
             _hardpoints.TryAnchorToHardpoint(uid, gun);
         }
-
-        _gunneryRelinks[grid] = _timing.CurTick;
     }
 
-    /// <summary>Relinks the gunnery of ships queued in an earlier tick.</summary>
+    /// <summary>
+    /// Relinks the gunnery of ships queued in an earlier tick, once the parts a fix or restore replaced are gone. Guns
+    /// are mounted again first, as a replaced gun's hardpoint was still held by the original when it was queued. A
+    /// ship whose gunnery server isn't up yet is tried again each second for a while.
+    /// </summary>
     private void UpdateGunneryRelinks()
     {
         if (_gunneryRelinks.Count == 0)
             return;
 
         List<EntityUid>? done = null;
-        foreach (var (grid, queued) in _gunneryRelinks)
+        List<(EntityUid, GunneryRelink)>? retry = null;
+        foreach (var (grid, relink) in _gunneryRelinks)
         {
-            if (queued >= _timing.CurTick)
+            if (relink.Queued >= _timing.CurTick || relink.Next > _timing.CurTime)
                 continue;
 
+            var connected = false;
             if (!TerminatingOrDeleted(grid))
-                _fireControl.WgRelinkGrid(grid);
+            {
+                MountUnlinkedGuns(grid);
+                connected = _fireControl.WgRelinkGrid(grid);
+            }
 
-            (done ??= new List<EntityUid>()).Add(grid);
+            if (connected || TerminatingOrDeleted(grid) || relink.Tries + 1 >= GunneryRelinkTries)
+                (done ??= new List<EntityUid>()).Add(grid);
+            else
+                (retry ??= new List<(EntityUid, GunneryRelink)>()).Add((grid, relink with { Next = _timing.CurTime + TimeSpan.FromSeconds(1), Tries = relink.Tries + 1 }));
         }
 
-        if (done == null)
-            return;
+        if (done != null)
+        {
+            foreach (var grid in done)
+                _gunneryRelinks.Remove(grid);
+        }
 
-        foreach (var grid in done)
-            _gunneryRelinks.Remove(grid);
+        if (retry != null)
+        {
+            foreach (var (grid, relink) in retry)
+                _gunneryRelinks[grid] = relink;
+        }
     }
 }

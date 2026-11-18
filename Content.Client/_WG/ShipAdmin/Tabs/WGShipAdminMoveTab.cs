@@ -36,6 +36,9 @@ public sealed class WGShipAdminMoveTab : WGShipAdminTab
 
     /// <summary>The grid the dock list was asked for; the reply for any other is stale.</summary>
     private NetEntity? _docksFor;
+
+    /// <summary>The ship the dock list was last built for.</summary>
+    private NetEntity _docksBuiltFor;
     private bool _ftlLocked;
     private AdminFlags _flags;
     private WGShipAdminDetail? _detail;
@@ -69,7 +72,7 @@ public sealed class WGShipAdminMoveTab : WGShipAdminTab
         Body.AddChild(Heading(Loc.GetString("wg-ship-admin-move-to-grid-heading")));
         Body.AddChild(Note(Loc.GetString("wg-ship-admin-move-to-grid-note")));
         _targets = Dropdown();
-        _targets.OnItemSelected += _ => RequestDocks();
+        _targets.OnItemSelected += _ => RequestDocks(true);
         _nextTo = Confirm("wg-ship-admin-move-next-to");
         _nextTo.OnPressed += _ => SendMove(WGShipAdminMoveKind.NextTo, Target(), Vector2.Zero);
         Body.AddChild(Row(_targets, _nextTo));
@@ -81,9 +84,13 @@ public sealed class WGShipAdminMoveTab : WGShipAdminTab
             if (Target() is { } target)
                 Send(new WGShipAdminDockMessage(Grid, target, PickedDock()));
         };
-        _docks.OnItemSelected += _ => GateDock();
+        _docks.OnItemSelected += _ =>
+        {
+            _dockAt.WgCancel();
+            GateDock();
+        };
         Body.AddChild(Row(_docks, _dockAt));
-        SetDocks(null, new List<WGShipAdminDock>());
+        _docks.AddItem(Loc.GetString("wg-ship-admin-move-dock-any"), 0);
 
         Body.AddChild(Heading(Loc.GetString("wg-ship-admin-move-free-heading")));
         _unstick = Confirm("wg-ship-admin-move-unstick");
@@ -107,53 +114,64 @@ public sealed class WGShipAdminMoveTab : WGShipAdminTab
     public override void SetShips(List<WGShipAdminRow> ships)
     {
         // The list is sent again every few seconds; an open dropdown is only rebuilt when a ship came, went or was renamed.
-        if (SameTargets(ships))
-            return;
-
-        var selected = Target();
-        _targets.Clear();
-        _targetGrids.Clear();
-        _targetNames.Clear();
-        foreach (var ship in ships)
+        if (!SameTargets(ships))
         {
-            _targets.AddItem(ship.Name, _targetGrids.Count);
-            if (ship.Grid == selected)
-                _targets.SelectId(_targetGrids.Count);
+            var selected = Target();
+            _targets.Clear();
+            _targetGrids.Clear();
+            _targetNames.Clear();
+            foreach (var ship in ships)
+            {
+                _targets.AddItem(ship.Name, _targetGrids.Count);
+                if (ship.Grid == selected)
+                    _targets.SelectId(_targetGrids.Count);
 
-            _targetGrids.Add(ship.Grid);
-            _targetNames.Add(ship.Name);
+                _targetGrids.Add(ship.Grid);
+                _targetNames.Add(ship.Name);
+            }
         }
 
-        if (Target() != _docksFor)
-            RequestDocks();
+        // Each list, sent on Refresh and every few seconds, also asks again which docks are in use.
+        RequestDocks(Target() != _docksFor);
     }
 
-    /// <summary>Fills the dock dropdown with a grid's docks, marking those in use.</summary>
+    /// <summary>Fills the dock dropdown with a grid's docks, marking those in use. Unchanged docks leave it alone.</summary>
     public void SetDocks(NetEntity? target, List<WGShipAdminDock> docks)
     {
-        if (target != _docksFor)
+        // Which docks are pickable depends on the ship being moved, so a new ship rebuilds the list too.
+        if (target != _docksFor || SameDocks(docks) && _docksBuiltFor == Grid)
             return;
 
+        _docksBuiltFor = Grid;
+
         var picked = PickedDock();
+        var stillPickable = picked == null;
         _docks.Clear();
         _dockList.Clear();
         _docks.AddItem(Loc.GetString("wg-ship-admin-move-dock-any"), 0);
         foreach (var dock in docks)
         {
             var id = _dockList.Count + 1;
-            var free = dock.DockedWith.Length == 0;
+            var free = dock.DockedWithGrid == null;
             _docks.AddItem(free
                 ? Loc.GetString("wg-ship-admin-move-dock-free", ("dock", dock.Name))
                 : Loc.GetString("wg-ship-admin-move-dock-used", ("dock", dock.Name), ("with", dock.DockedWith)), id);
 
-            // A dock this ship holds can be picked again; one another ship holds can't.
-            var ours = _detail != null && _detail.DockedTo.Contains(dock.DockedWith);
-            _docks.SetItemDisabled(_docks.GetIdx(id), !free && !ours);
-            if (dock.Dock == picked)
+            // A dock this ship holds can be picked again; one another grid holds can't.
+            var pickable = free || dock.DockedWithGrid == Grid;
+            _docks.SetItemDisabled(_docks.GetIdx(id), !pickable);
+            if (dock.Dock == picked && pickable)
+            {
                 _docks.SelectId(id);
+                stillPickable = true;
+            }
 
             _dockList.Add(dock);
         }
+
+        // The dock picked at the first press is gone or taken: the second press must not dock anywhere else.
+        if (!stillPickable)
+            _dockAt.WgCancel();
 
         GateDock();
     }
@@ -161,12 +179,39 @@ public sealed class WGShipAdminMoveTab : WGShipAdminTab
     /// <summary>The docks in the dropdown, for tests.</summary>
     public IReadOnlyList<WGShipAdminDock> Docks => _dockList;
 
-    private void RequestDocks()
+    /// <summary>
+    /// Asks for the target's docks. A new target empties the dropdown and drops a pending Dock at; the same target
+    /// keeps the dropdown, and its pick, until the reply.
+    /// </summary>
+    private void RequestDocks(bool newTarget)
     {
-        _docksFor = Target();
-        SetDocks(_docksFor, new List<WGShipAdminDock>());
+        if (newTarget)
+        {
+            _docksFor = Target();
+            _dockList.Clear();
+            _docks.Clear();
+            _docks.AddItem(Loc.GetString("wg-ship-admin-move-dock-any"), 0);
+            _dockAt.WgCancel();
+            _nextTo.WgCancel();
+            GateDock();
+        }
+
         if (_docksFor is { } target)
             Send(new WGShipAdminDocksRequestMessage(target));
+    }
+
+    private bool SameDocks(List<WGShipAdminDock> docks)
+    {
+        if (docks.Count != _dockList.Count)
+            return false;
+
+        for (var i = 0; i < docks.Count; i++)
+        {
+            if (docks[i].Dock != _dockList[i].Dock || docks[i].Name != _dockList[i].Name || docks[i].DockedWithGrid != _dockList[i].DockedWithGrid)
+                return false;
+        }
+
+        return true;
     }
 
     private NetEntity? PickedDock()
@@ -195,7 +240,7 @@ public sealed class WGShipAdminMoveTab : WGShipAdminTab
         var redock = _detail == null || _detail.Grid != detail.Grid || !_detail.DockedTo.SequenceEqual(detail.DockedTo);
         _detail = detail;
         if (redock && _docksFor != null)
-            RequestDocks();
+            RequestDocks(false);
 
         _flags = flags;
         _ftlLocked = detail.FtlLock;

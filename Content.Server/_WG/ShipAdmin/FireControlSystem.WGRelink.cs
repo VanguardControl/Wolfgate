@@ -9,7 +9,8 @@ public sealed partial class FireControlSystem
     /// with no console, its servers reconnect and its guns re-register. Upstream a rebuilt gun waited up to a
     /// minute for the hardpoint refresh, and a rebuilt server left the consoles with none.
     /// </summary>
-    public void WgRelinkGrid(EntityUid grid)
+    /// <returns>Whether the ship has a gunnery server now, so a caller knows to try again once one powers up.</returns>
+    public bool WgRelinkGrid(EntityUid grid)
     {
         var refreshed = false;
         var consoles = EntityQueryEnumerator<FireControlConsoleComponent, TransformComponent>();
@@ -22,12 +23,14 @@ public sealed partial class FireControlSystem
             refreshed = true;
         }
 
-        if (refreshed)
-            return;
+        if (!refreshed)
+        {
+            CleanupInvalidServerReferences();
+            ForceServerReconnectionOnGrid(grid);
+            if (TryComp<FireControlGridComponent>(grid, out var gunnery))
+                RefreshControllables(grid, gunnery);
+        }
 
-        CleanupInvalidServerReferences();
-        ForceServerReconnectionOnGrid(grid);
-        if (TryComp<FireControlGridComponent>(grid, out var gunnery))
-            RefreshControllables(grid, gunnery);
+        return CompOrNull<FireControlGridComponent>(grid)?.ControllingServer is { } server && Exists(server);
     }
 }

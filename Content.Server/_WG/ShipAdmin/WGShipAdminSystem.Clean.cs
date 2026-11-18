@@ -2,6 +2,7 @@ using Content.Server.Light.EntitySystems;
 using Content.Shared.Fluids.Components;
 using Content.Shared.Light.Components;
 using Content.Shared.Tag;
+using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._WG.ShipAdmin;
@@ -50,7 +51,10 @@ public sealed partial class WGShipAdminSystem
         return count;
     }
 
-    /// <summary>Puts a new bulb in every light fitting on the ship that has none, or a broken or burned one.</summary>
+    /// <summary>
+    /// Puts a working lamp in every light fitting on the ship that has none, or a broken or burned one. Switches are
+    /// left as they are: a fitting someone turned off stays off with its new lamp.
+    /// </summary>
     private int FixLights(EntityUid grid)
     {
         var count = 0;
@@ -60,16 +64,17 @@ public sealed partial class WGShipAdminSystem
             if (xform.GridUid != grid)
                 continue;
 
-            if (_lights.GetBulb(uid, light) is { } bulb)
-            {
-                if (CompOrNull<LightBulbComponent>(bulb)?.State is LightBulbState.Normal)
-                    continue;
+            var bulb = _lights.GetBulb(uid, light);
+            if (bulb != null && CompOrNull<LightBulbComponent>(bulb)?.State is LightBulbState.Normal)
+                continue;
 
-                if (_lights.EjectBulb(uid, null, light) is { } old)
-                    QueueDel(old);
-            }
+            // The working lamp is in hand before the old one comes out, so a fitting is never left emptier.
+            if (WorkingLamp(light, xform.Coordinates) is not { } spare)
+                continue;
 
-            var spare = Spawn(light.HasLampOnSpawn ?? (light.BulbType == LightBulbType.Bulb ? SpareBulb : SpareTube), xform.Coordinates);
+            if (bulb != null && _lights.EjectBulb(uid, null, light) is { } old)
+                QueueDel(old);
+
             if (_lights.InsertBulb(uid, spare, light))
                 count++;
             else
@@ -77,5 +82,24 @@ public sealed partial class WGShipAdminSystem
         }
 
         return count;
+    }
+
+    /// <summary>
+    /// A lamp that fits and works: the fitting's own kind, unless that comes broken (as a broken-tube variant does),
+    /// then a plain bulb or tube. Null when neither fits.
+    /// </summary>
+    private EntityUid? WorkingLamp(PoweredLightComponent light, EntityCoordinates at)
+    {
+        var plain = light.BulbType == LightBulbType.Bulb ? SpareBulb : SpareTube;
+        foreach (var proto in new[] { light.HasLampOnSpawn ?? plain, plain })
+        {
+            var lamp = Spawn(proto, at);
+            if (TryComp<LightBulbComponent>(lamp, out var comp) && comp.Type == light.BulbType && comp.State == LightBulbState.Normal)
+                return lamp;
+
+            QueueDel(lamp);
+        }
+
+        return null;
     }
 }

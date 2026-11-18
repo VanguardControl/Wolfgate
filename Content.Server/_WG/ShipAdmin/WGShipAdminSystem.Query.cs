@@ -76,16 +76,41 @@ public sealed partial class WGShipAdminSystem
         var aboard = CountAboard();
         var holders = DeedHolders();
 
+        var cut = false;
+
+        // Ships fill the cap before ports, so a port never pushes a player's ship off the list.
+        var ports = new List<(EntityUid Uid, TransformComponent Xform)>();
         var grids = AllEntityQuery<MapGridComponent, TransformComponent>();
         while (grids.MoveNext(out var uid, out _, out var xform))
         {
-            if (filter == WGShipAdminFilter.PlayerShips && !IsPlayerShip(uid) && !IsPort(uid))
-                continue;
+            if (filter == WGShipAdminFilter.PlayerShips && !IsPlayerShip(uid))
+            {
+                if (IsPort(uid))
+                    ports.Add((uid, xform));
 
+                continue;
+            }
+
+            if (!AddRow(uid, xform))
+                break;
+        }
+
+        foreach (var (uid, xform) in ports)
+        {
+            if (!AddRow(uid, xform))
+                break;
+        }
+
+        rows.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCultureIgnoreCase));
+        truncated = cut;
+        return rows;
+
+        bool AddRow(EntityUid uid, TransformComponent xform)
+        {
             if (rows.Count >= MaxRows)
             {
-                truncated = true;
-                break;
+                cut = true;
+                return false;
             }
 
             holders.TryGetValue(uid, out var cards);
@@ -102,10 +127,8 @@ public sealed partial class WGShipAdminSystem
                 MapId = xform.MapID,
                 Position = _transform.GetWorldPosition(xform),
             });
+            return true;
         }
-
-        rows.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCultureIgnoreCase));
-        return rows;
     }
 
     /// <summary>Everything the panel shows about one ship; null when it is gone.</summary>
