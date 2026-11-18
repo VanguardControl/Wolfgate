@@ -1,0 +1,228 @@
+# The Bluespace and Subspace Technician's worn gear. The art of the uniforms, jackets, visors, masks, gauntlets and
+# shield projector is the MeridianClothing port's; behaviour goes on these children, never in its generated files.
+# Each piece gives its wearer one power while worn and takes it back when it comes off.
+
+- type: entity
+  abstract: true
+  id: WGAdminTechGearBase
+  components:
+  - type: WGAdminGear
+
+# Uniform: marks the wearer as staff.
+- type: entity
+  parent: [ WGAdminTechGearBase, WGMeridianClothingUnderAdmin ]
+  id: WGAdminTechUniformBluespace
+  components:
+  - type: WGStaffUniform
+
+- type: entity
+  parent: [ WGAdminTechGearBase, WGMeridianClothingUnderAdminSubspace ]
+  id: WGAdminTechUniformSubspace
+  components:
+  - type: WGStaffUniform
+
+- type: entity
+  parent: [ WGAdminTechGearBase, WGMeridianClothingSuitAdmin ]
+  id: WGAdminTechJacketBluespace
+
+- type: entity
+  parent: [ WGAdminTechGearBase, WGMeridianClothingSuitAdminSubspace ]
+  id: WGAdminTechJacketSubspace
+
+# Visor: hides who is under it, reads every HUD and speaks every language.
+- type: entity
+  abstract: true
+  parent: [ WGAdminTechGearBase, ShowSecurityIcons, ShowMedicalIcons ]
+  id: WGAdminTechVisorBase
+  components:
+  - type: IdentityBlocker
+  - type: ClothingGrantComponent
+    component:
+    - type: UniversalLanguageSpeaker
+    - type: ShowAntagIcons
+    - type: ShowSyndicateIcons
+
+- type: entity
+  parent: [ WGAdminTechVisorBase, WGMeridianClothingHeadHelmetPerceptomatrixAdmin ]
+  id: WGAdminTechVisorBluespace
+
+- type: entity
+  parent: [ WGAdminTechVisorBase, WGMeridianClothingHeadHelmetPerceptomatrixAdminSubspace ]
+  id: WGAdminTechVisorSubspace
+
+# Mask: no air needed.
+- type: entity
+  abstract: true
+  parent: WGAdminTechGearBase
+  id: WGAdminTechMaskBase
+  components:
+  - type: ClothingGrantComponent
+    component:
+    - type: BreathingImmunity
+    - type: PressureImmunity
+
+- type: entity
+  parent: [ WGAdminTechMaskBase, WGMeridianClothingMaskGasAtmosAdmin ]
+  id: WGAdminTechMaskBluespace
+
+- type: entity
+  parent: [ WGAdminTechMaskBase, WGMeridianClothingMaskGasAtmosAdminSubspace ]
+  id: WGAdminTechMaskSubspace
+
+# Gauntlets: reach anything, and do it at once. Both share the one sprite Meridian Rift has for them.
+- type: entity
+  parent: [ WGAdminTechGearBase, WGMeridianClothingGlovesTacklerAdmin ]
+  id: WGAdminTechGauntletsBluespace
+  components:
+  - type: ClothingGrantComponent
+    component:
+    - type: BypassInteractionChecks
+    - type: IgnoreUIRange
+  - type: WGGrantTags
+    tags:
+    - BypassInteractionRangeChecks
+    - InstantDoAfters
+
+- type: entity
+  parent: WGAdminTechGauntletsBluespace
+  id: WGAdminTechGauntletsSubspace
+
+# Magboots: the advanced magboots in the technician's colours.
+- type: entity
+  parent: [ WGAdminTechGearBase, ClothingShoesBootsMagAdv ]
+  id: WGAdminTechMagbootsBluespace
+  components:
+  - type: Sprite
+    sprite: _WG/AdminTech/magboots_bluespace.rsi
+  - type: Clothing
+    sprite: _WG/AdminTech/magboots_bluespace.rsi
+
+- type: entity
+  parent: [ WGAdminTechGearBase, ClothingShoesBootsMagAdv ]
+  id: WGAdminTechMagbootsSubspace
+  components:
+  - type: Sprite
+    sprite: _WG/AdminTech/magboots_subspace.rsi
+  - type: Clothing
+    sprite: _WG/AdminTech/magboots_subspace.rsi
+
+# Headset: every channel.
+- type: entity
+  abstract: true
+  parent: [ WGAdminTechGearBase, ClothingHeadsetAltCentCom ]
+  id: WGAdminTechHeadsetBase
+  components:
+  - type: EncryptionKeyHolder
+    keySlots: 12
+  - type: ContainerFill
+    containers:
+      key_slots:
+      - EncryptionKeyCentCom
+      - EncryptionKeyStationMaster
+      - EncryptionKeyCommon
+      - EncryptionKeyNfsd
+      - EncryptionKeyTraffic
+      - EncryptionKeyFreelance
+      - EncryptionKeySyndie
+
+- type: entity
+  parent: WGAdminTechHeadsetBase
+  id: WGAdminTechHeadsetBluespace
+  components:
+  - type: Sprite
+    sprite: _WG/AdminTech/headset_bluespace.rsi
+  - type: Clothing
+    sprite: _WG/AdminTech/headset_bluespace.rsi
+
+- type: entity
+  parent: WGAdminTechHeadsetBase
+  id: WGAdminTechHeadsetSubspace
+  components:
+  - type: Sprite
+    sprite: _WG/AdminTech/headset_subspace.rsi
+  - type: Clothing
+    sprite: _WG/AdminTech/headset_subspace.rsi
+
+# Contacts: nothing to see when worn. The HUDs are on the visor.
+- type: entity
+  parent: [ WGAdminTechGearBase, ClothingEyesBase ]
+  id: WGAdminTechContacts
+  components:
+  - type: Sprite
+    sprite: _WG/AdminTech/contacts.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WG/AdminTech/contacts.rsi
+
+# Shield projector, on the neck: nothing hurts the wearer.
+- type: entity
+  parent: [ WGAdminTechGearBase, WGMeridianClothingAccessoryEnergyShieldAdmin ]
+  id: WGAdminTechShieldProjectorBluespace
+  components:
+  - type: ClothingGrantComponent
+    component:
+    - type: Godmode
+
+- type: entity
+  parent: WGAdminTechShieldProjectorBluespace
+  id: WGAdminTechShieldProjectorSubspace
+
+# Cytotheca: storage worn on the neck, beside the shield projector.
+- type: entity
+  parent: [ WGAdminTechGearBase, ClothingNeckBase ]
+  id: WGAdminTechCytothecaBluespace
+  components:
+  - type: Sprite
+    sprite: _WG/AdminTech/cytotheca.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WG/AdminTech/cytotheca.rsi
+  - type: Item
+    size: Normal
+  - type: Storage
+    maxItemSize: Normal
+    grid:
+    - 0,0,7,3
+  - type: ContainerContainer
+    containers:
+      storagebase: !type:Container
+        ents: []
+  - type: UserInterface
+    interfaces:
+      enum.StorageUiKey.Key:
+        type: StorageBoundUserInterface
+
+- type: entity
+  parent: WGAdminTechCytothecaBluespace
+  id: WGAdminTechCytothecaSubspace
+  components:
+  - type: Item
+    size: Large
+  - type: Storage
+    maxItemSize: Large
+    grid:
+    - 0,0,9,5
+
+# ID cards: every access.
+- type: entity
+  parent: [ WGAdminTechGearBase, UniversalIDCard ]
+  id: WGAdminTechIdAdmin
+  suffix: Admin Tech
+
+- type: entity
+  parent: WGAdminTechIdAdmin
+  id: WGAdminTechIdBluespace
+  components:
+  - type: IdCard
+    jobTitle: wg-observer-preset-stock-bluespace
+
+- type: entity
+  parent: WGAdminTechIdAdmin
+  id: WGAdminTechIdSubspace
+  components:
+  - type: IdCard
+    jobTitle: wg-observer-preset-stock-subspace
+
+- type: entity
+  parent: WGAdminTechIdAdmin
+  id: WGAdminTechIdCentCom

@@ -1,0 +1,380 @@
+# The technician's tools and storage. Each is an existing item with a few fields changed; names and descriptions
+# come from Fluent.
+
+# Tools.
+- type: entity
+  parent: Multitool
+  id: WGAdminTechMultitool
+  components:
+  - type: Sprite
+    sprite: _WG/AdminTech/multitool.rsi
+    layers:
+    - state: icon
+  - type: WGWireLegend
+
+- type: entity
+  parent: HandheldHealthAnalyzer
+  id: WGAdminTechHealthAnalyzer
+  suffix: Admin Tech
+
+- type: entity
+  parent: RPED
+  id: WGAdminTechRped
+  components:
+  - type: Storage
+    grid:
+    - 0,0,9,5
+  - type: StorageFill
+    contents:
+    - id: CapacitorStockPart
+      amount: 4
+    - id: MatterBinStockPart
+      amount: 4
+    - id: MicroManipulatorStockPart
+      amount: 4
+
+- type: entity
+  parent: WeaponEnergyGunMultiphase
+  id: WGAdminTechCarbine
+  components:
+  - type: BatterySelfRecharger
+    autoRecharge: true
+    autoRechargeRate: 400
+
+# Storage. The belt satchels come filled; the rest are empty.
+- type: entity
+  abstract: true
+  parent: [ WGAdminTechGearBase, ClothingBeltStorageBase ]
+  id: WGAdminTechSatchelBase
+  components:
+  - type: Sprite
+    sprite: _WG/AdminTech/satchel.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WG/AdminTech/satchel.rsi
+  - type: Storage
+    maxItemSize: Huge
+    grid:
+    - 0,0,11,5
+
+- type: entity
+  parent: WGAdminTechSatchelBase
+  id: WGAdminTechSatchelBluespace
+  components:
+  - type: StorageFill
+    contents:
+    - id: Omnitool
+    - id: JawsOfLife
+    - id: WelderExperimental
+    - id: Multitool
+    - id: DoorRemoteAll
+    - id: RCDExperimental
+    - id: HolofanProjector
+    - id: LightReplacer
+    - id: WGAdminTechHealthAnalyzer
+
+- type: entity
+  parent: WGAdminTechSatchelBase
+  id: WGAdminTechSatchelSubspace
+  components:
+  - type: StorageFill
+    contents:
+    - id: Omnitool
+    - id: JawsOfLife
+    - id: WelderExperimental
+    - id: WGAdminTechMultitool
+    - id: DoorRemoteAll
+    - id: RCDExperimental
+    - id: HolofanProjector
+    - id: HoloprojectorField
+    - id: LightReplacer
+    - id: WGAdminTechHealthAnalyzer
+    - id: WGAdminTechRped
+    - id: EmagUnlimited
+    - id: AccessBreakerUnlimited
+    - id: PinpointerUniversalDebug
+    - id: AdminHypo
+
+- type: entity
+  abstract: true
+  parent: BaseStorageItem
+  id: WGAdminTechPocketBase
+  components:
+  # A container holds nothing bigger than itself (StorageSizeArbitrageTest), and a pocket takes nothing over Small.
+  - type: Item
+    size: Small
+  - type: Storage
+    maxItemSize: Small
+    grid:
+    - 0,0,5,3
+
+- type: entity
+  parent: WGAdminTechPocketBase
+  id: WGAdminTechPocketBluespace
+  components:
+  - type: Sprite
+    sprite: _WG/AdminTech/pocket_bluespace.rsi
+    state: icon
+
+- type: entity
+  parent: WGAdminTechPocketBase
+  id: WGAdminTechPocketSubspace
+  components:
+  - type: Sprite
+    sprite: _WG/AdminTech/pocket_subspace.rsi
+    state: icon
+  - type: Storage
+    maxItemSize: Small
+    grid:
+    - 0,0,7,5
+
+# The pouch the kit's categories are sorted into.
+- type: entity
+  parent: WGAdminTechPocketBase
+  id: WGAdminTechPouch
+  components:
+  - type: Sprite
+    sprite: _WG/AdminTech/pocket_subspace.rsi
+    state: icon
+  # Large, so it holds most tools, and drawn small in a bag's grid.
+  - type: Item
+    size: Large
+    shape:
+    - 0,0,1,1
+  - type: Storage
+    maxItemSize: Large
+    grid:
+    - 0,0,7,3
+
+- type: entity
+  parent: WGAdminTechPocketBase
+  id: WGAdminTechConstructionBagBluespace
+  components:
+  - type: Sprite
+    sprite: _WG/AdminTech/construction_bag_bluespace.rsi
+    state: icon
+  - type: Item
+    size: Large
+    shape:
+    - 0,0,1,1
+  - type: Storage
+    maxItemSize: Large
+    grid:
+    - 0,0,7,5
+
+- type: entity
+  parent: WGAdminTechConstructionBagBluespace
+  id: WGAdminTechConstructionBagSubspace
+  components:
+  - type: Sprite
+    sprite: _WG/AdminTech/construction_bag_subspace.rsi
+    state: icon
+  - type: Storage
+    maxItemSize: Large
+    grid:
+    - 0,0,11,7
+
+- type: entity
+  parent: BoxBase
+  id: WGAdminTechBox
+  components:
+  - type: Sprite
+    state: box
+  - type: Storage
+    maxItemSize: Large
+    grid:
+    - 0,0,9,7
+
+# Tanks: seven times a standard tank, in the hand. Wolfgate has no pluoxium, healium, nitrium, halon, BZ or helium,
+# so the pluoxium tank and the three mixes of the original are not here.
+- type: entity
+  abstract: true
+  parent: GasTankBase
+  id: WGAdminTechTankBase
+  components:
+  - type: Sprite
+    sprite: _WG/AdminTech/tank.rsi
+    state: icon
+  - type: Item
+    size: Small
+    sprite: _WG/AdminTech/tank.rsi
+  - type: Clothing
+    sprite: _WG/AdminTech/tank.rsi
+    slots:
+    - Belt
+    - suitStorage
+
+- type: entity
+  parent: WGAdminTechTankBase
+  id: WGAdminTechTankOxygen
+  components:
+  - type: GasTank
+    outputPressure: 21.3
+    air:
+      volume: 70
+      moles:
+        Oxygen: 28.7
+      temperature: 293.15
+
+- type: entity
+  parent: WGAdminTechTankBase
+  id: WGAdminTechTankNitrogen
+  components:
+  - type: GasTank
+    outputPressure: 21.3
+    air:
+      volume: 70
+      moles:
+        Nitrogen: 28.7
+      temperature: 293.15
+
+- type: entity
+  parent: WGAdminTechTankBase
+  id: WGAdminTechTankPlasma
+  components:
+  - type: GasTank
+    outputPressure: 101.3
+    air:
+      volume: 70
+      moles:
+        Plasma: 28.7
+      temperature: 293.15
+
+- type: entity
+  parent: WGAdminTechTankBase
+  id: WGAdminTechTankTritium
+  components:
+  - type: GasTank
+    outputPressure: 101.3
+    air:
+      volume: 70
+      moles:
+        Tritium: 28.7
+      temperature: 293.15
+
+- type: entity
+  parent: WGAdminTechTankBase
+  id: WGAdminTechTankFrezon
+  components:
+  - type: GasTank
+    outputPressure: 101.3
+    air:
+      volume: 70
+      moles:
+        Frezon: 28.7
+      temperature: 293.15
+
+# Beakers.
+- type: entity
+  parent: BluespaceBeaker
+  id: WGAdminTechBeakerSmall
+  components:
+  - type: Item
+    size: Tiny
+  - type: Sprite
+    sprite: _WG/AdminTech/beaker.rsi
+    layers:
+    - state: icon
+
+- type: entity
+  parent: BluespaceBeaker
+  id: WGAdminTechBeakerStasis
+  components:
+  - type: Sprite
+    sprite: _WG/AdminTech/beaker_stasis.rsi
+    layers:
+    - state: icon
+  - type: SolutionContainerManager
+    solutions:
+      beaker:
+        maxVol: 1000
+        canReact: false
+
+- type: entity
+  parent: WGAdminTechBeakerStasis
+  id: WGAdminTechBeakerSmallStasis
+  components:
+  - type: Item
+    size: Tiny
+
+# Subspace condensate and what carries it.
+- type: reagent
+  id: WGSubspaceCondensate
+  name: reagent-name-wg-subspace-condensate
+  group: Medicine
+  desc: reagent-desc-wg-subspace-condensate
+  physicalDesc: reagent-physical-desc-wg-subspace-condensate
+  flavor: medicine
+  color: "#7a3fc4"
+  metabolisms:
+    Medicine:
+      effects:
+      - !type:EvenHealthChange
+        damage:
+          Burn: -10
+          Toxin: -10
+          Airloss: -10
+          Brute: -10
+
+- type: entity
+  parent: BaseMedicalPatch
+  id: WGAdminTechPatch
+  components:
+  - type: SolutionContainerManager
+    solutions:
+      drink:
+        maxVol: 20
+        reagents:
+        - ReagentId: WGSubspaceCondensate
+          Quantity: 20
+
+- type: entity
+  parent: WGAdminTechPatch
+  id: WGAdminTechPatchInstant
+  components:
+  - type: Sticky
+    stickDelay: 0
+
+- type: entity
+  parent: Pill
+  id: WGAdminTechShard
+  components:
+  - type: Pill
+    pillType: 9
+  - type: Sprite
+    state: pill10
+  - type: SolutionContainerManager
+    solutions:
+      food:
+        maxVol: 20
+        reagents:
+        - ReagentId: WGSubspaceCondensate
+          Quantity: 20
+
+- type: entity
+  parent: WGAdminTechShard
+  id: WGAdminTechShardGel
+  components:
+  - type: Pill
+    pillType: 12
+  - type: Sprite
+    state: pill13
+
+- type: entity
+  parent: Medkit
+  id: WGAdminTechSurgeryTray
+  components:
+  - type: Storage
+    maxItemSize: Normal
+    grid:
+    - 0,0,7,3
+  - type: StorageFill
+    contents:
+    - id: EnergyScalpel
+    - id: AdvancedRetractor
+    - id: EnergyCautery
+    - id: SawAdvanced
+    - id: Hemostat
+    - id: Bonesetter
+    - id: BoneGel
+    - id: Drill

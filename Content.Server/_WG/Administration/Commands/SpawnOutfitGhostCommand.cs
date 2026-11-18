@@ -5,6 +5,7 @@ using Content.Server.Administration.Logs;
 using Content.Server.Mind;
 using Content.Server.Preferences.Managers;
 using Content.Server.Station.Systems;
+using Content.Server._WG.AdminTech;
 using Content.Shared._WG.Administration;
 using Content.Shared.Administration;
 using Content.Shared.Database;
@@ -33,7 +34,9 @@ public sealed partial class SpawnOutfitGhostCommand : LocalizedEntityCommands
 
     public override void Execute(IConsoleShell shell, string argStr, string[] args)
     {
-        if (args.Length != 2)
+        // The optional third argument gives the player Return, the action that deletes the body and frees them.
+        var grantReturn = false;
+        if (args.Length is < 2 or > 3 || args.Length == 3 && !bool.TryParse(args[2], out grantReturn))
         {
             shell.WriteError(Loc.GetString("cmd-spawnoutfitghost-invalid-args"));
             shell.WriteLine(Help);
@@ -69,9 +72,11 @@ public sealed partial class SpawnOutfitGhostCommand : LocalizedEntityCommands
         var mob = _stationSpawning.SpawnPlayerMob(ghostXform.Coordinates, null, profile, null);
         SetOutfitCommand.SetOutfit(mob, gear.ID, EntityManager);
         _mind.ControlMob(player.UserId, mob);
+        if (grantReturn)
+            EntityManager.System<WGReturnSystem>().Grant(mob, null);
 
         _adminLogger.Add(LogType.EntitySpawn, LogImpact.High,
-            $"{shell.Player?.Name ?? "Server"} spawned {player.Name} as {EntityManager.ToPrettyString(mob):mob} wearing {gear.ID} at {EntityManager.ToPrettyString(ghost.Value):ghost}");
+            $"{shell.Player?.Name ?? "Server"} spawned {player.Name} as {EntityManager.ToPrettyString(mob):mob} wearing {gear.ID} at {EntityManager.ToPrettyString(ghost.Value):ghost}{(grantReturn ? " with Return" : string.Empty)}");
         shell.WriteLine(Loc.GetString("cmd-spawnoutfitghost-success",
             ("player", player.Name), ("mob", EntityManager.ToPrettyString(mob)), ("gear", gear.ID)));
     }

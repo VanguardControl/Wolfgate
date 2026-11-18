@@ -1,0 +1,20 @@
+# The technician's medical supplies and subspace condensate.
+ent-WGAdminTechBeakerSmall = fun sized subspace beaker
+    .desc = Tilting this little thing from side to side is like looking into a tear in reality. It looks like it could hold an incredible amount of fluid. It might fill you with fear, but awwwwh look at it, its so cute! Imagine doing shots with this.
+ent-WGAdminTechBeakerSmallStasis = fun sized stasis subspace beaker
+    .desc = A statis variant of the adorably sized version of the bottomless beaker.
+ent-WGAdminTechBeakerStasis = stasis subspace beaker
+    .desc = A reactionless version of the bottomless beaker.
+ent-WGAdminTechPatch = subspace patch
+    .desc = A chemical patch for touch based applications. The material feels gooey and elastic in your hand.
+ent-WGAdminTechPatchInstant = subspace patch - instant
+    .desc = A chemical patch for touch based applications. The material feels gooey and elastic in your hand. You can't quite explain it, but you can just tell this stuff moves oddly
+ent-WGAdminTechShard = subspace shard
+    .desc = A small pill shaped shard of stabilized and crystallized subspace. Its texture is like porous volcanic rock, even though you can't see any of that porosity visibly. You feel compelled to swallow it.
+ent-WGAdminTechShardGel = gel encapsulated subspace shard
+    .desc = A slightly smaller pill shaped shard of stabilized and crystallized subspace. This one feels pliable, like putty, but there is a foreign grit that leaves you feeling uneasy. You feel compelled to swallow it.
+ent-WGAdminTechSurgeryTray = technician's surgery tray
+    .desc = Full of things that you will probably want to do surgery with. Objectively a better user experience than the omnitool, which is atrociously out of date.
+reagent-name-wg-subspace-condensate = subspace condensate
+reagent-desc-wg-subspace-condensate = What the fuck is this goo? It smells like the fourth wall.
+reagent-physical-desc-wg-subspace-condensate = ban-worthy

@@ -42,13 +42,13 @@ public sealed class AvatarBodyTest
         var session = await AdminKitFixture.Admin(pair);
         var observer = await AdminKitFixture.Enter(pair, session, map.GridCoords);
 
-        // A new admin starts with the plain ghost and their own character.
+        // A new admin starts with the plain ghost, their own character, and that character as either technician.
         EntityUid body = default;
         var character = string.Empty;
         await server.WaitAssertion(() =>
         {
             var stock = store.Get(session)!.Presets;
-            Assert.That(stock, Has.Count.EqualTo(2));
+            Assert.That(stock, Has.Count.EqualTo(4), "Ghost, My character and the two technicians.");
             Assert.That(stock[1].Kind, Is.EqualTo(WGAvatarKind.Character));
 
             var profile = (HumanoidCharacterProfile) server.ResolveDependency<IServerPreferencesManager>()

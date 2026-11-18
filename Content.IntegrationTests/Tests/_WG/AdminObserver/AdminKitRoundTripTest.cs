@@ -6,6 +6,7 @@ using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Inventory;
 using Content.Shared.Roles;
 using Content.Shared.Storage;
+using Content.Shared.Storage.Components;
 using Content.Shared.Storage.EntitySystems;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Maths;
@@ -41,7 +42,16 @@ public sealed class AdminKitRoundTripTest
         {
             Assert.That(entMan.GetComponent<WGAdminObserverComponent>(first).KitApplied);
             var carried = AdminKitFixture.Prototypes(kit.Snapshot(first, false));
-            var wanted = gear.Equipment.Values.Concat(gear.Storage.Values.SelectMany(s => s)).Select(p => p.Id);
+            var wanted = gear.Equipment.Values.Concat(gear.Storage.Values.SelectMany(s => s)).Select(p => p.Id).ToList();
+
+            // The kit is sorted into pouches, and a pouch brings what it is filled with.
+            foreach (var id in wanted.ToList())
+            {
+                if (server.ProtoMan.Index<EntityPrototype>(id).TryComp<StorageFillComponent>(out var fill, entMan.ComponentFactory))
+                    wanted.AddRange(fill.Contents.SelectMany(c => Enumerable.Repeat(c.PrototypeId!.Value.Id, c.Amount)));
+            }
+
+            Assert.That(wanted, Has.Count.GreaterThan(30), "The pouches should come filled.");
             Assert.That(carried, Is.EquivalentTo(wanted), "The default kit should all fit.");
 
             // Rearrange: one item to a pocket, one to a hand, one moved and turned inside the bag.

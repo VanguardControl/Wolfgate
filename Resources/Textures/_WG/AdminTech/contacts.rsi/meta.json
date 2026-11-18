@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "license": "CC-BY-SA-3.0",
+  "copyright": "Taken from Meridian Rift at https://github.com/Aphelion-Moon/Meridian-Rift/tree/f94f863e966a89366c8c72d1d05902c38847cbbe (modular_aphelion/modules/admin_tech/icons/admin_items.dmi), from its admin_tech module by moonridden, with sprites by moonridden, plejek and realwinterfrost. Converted for Wolfgate by Tools/_WG/AdminTech/art.py.",
+  "size": {
+    "x": 32,
+    "y": 32
+  },
+  "states": [
+    {
+      "name": "icon"
+    }
+  ]
+}

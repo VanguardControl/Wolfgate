@@ -6,6 +6,7 @@ using Content.Server.Administration.Managers;
 using Content.Server.Mind;
 using Content.Server.Preferences.Managers;
 using Content.Server.Station.Systems;
+using Content.Server._WG.AdminTech;
 using Content.Shared._WG.Administration;
 using Content.Shared.Administration;
 using Content.Shared.Database;
@@ -86,7 +87,13 @@ public sealed partial class SpawnOutfitCommand : LocalizedEntityCommands
         SetOutfitCommand.SetOutfit(mob, gear.ID, EntityManager);
 
         if (control)
+        {
+            // The admin can always leave the body again: Return takes them back to where they were.
+            var returns = EntityManager.System<WGReturnSystem>();
+            var earlier = returns.EarlierBody(player);
             _mind.ControlMob(player.UserId, mob);
+            returns.Grant(mob, earlier);
+        }
 
         _adminLogger.Add(LogType.EntitySpawn, LogImpact.Medium,
             $"{player.Name} spawned {EntityManager.ToPrettyString(mob):mob} ({body} body) wearing {gear.ID} at {EntityManager.ToPrettyString(target.Value):target}{(control ? " and took control" : "")}");

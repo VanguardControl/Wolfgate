@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using Content.Client._WG.AdminTech;
 using Content.Shared._WG.Administration;
 using Content.Shared.Preferences.Loadouts;
 using Content.Shared.Roles;
@@ -55,6 +56,15 @@ public sealed partial class SpawnOutfitMenu : DefaultWindow
     };
 
     private static readonly SpawnOutfitBody[] Bodies = { SpawnOutfitBody.Random, SpawnOutfitBody.Default, SpawnOutfitBody.Own };
+
+    /// <summary>
+    /// The staff outfits and the names they are listed under, first in the list.
+    /// </summary>
+    private static readonly Dictionary<string, string> StaffGear = new()
+    {
+        { "WGAdminTechBluespace", "wg-observer-preset-stock-bluespace" },
+        { "WGAdminTechSubspace", "wg-observer-preset-stock-subspace" },
+    };
 
     private readonly OutfitMenuMode _mode;
     private readonly SpriteSystem _sprites;
@@ -146,9 +156,9 @@ public sealed partial class SpawnOutfitMenu : DefaultWindow
     /// <summary>
     /// One selectable outfit: the gear plus the job it belongs to, if any.
     /// </summary>
-    private sealed record OutfitEntry(StartingGearPrototype Gear, JobPrototype? Job, OutfitCategory Category)
+    private sealed record OutfitEntry(StartingGearPrototype Gear, JobPrototype? Job, OutfitCategory Category, string? Title = null)
     {
-        public string Name => Job?.LocalizedName ?? Gear.ID;
+        public string Name => Title ?? Job?.LocalizedName ?? Gear.ID;
     }
 
     /// <summary>
@@ -198,14 +208,21 @@ public sealed partial class SpawnOutfitMenu : DefaultWindow
         var antagonists = new OutfitCategory("Antagonists", Loc.GetString("wg-spawn-outfit-category-antagonists"), Color.FromHex("#C83737"), order++);
         var other = new OutfitCategory("Other", Loc.GetString("wg-spawn-outfit-category-other"), Color.FromHex("#7A7A7A"), order++);
 
+        // The technician outfits (AdminTech module) lead the list, under their own heading.
+        var staff = new OutfitCategory("Staff", Loc.GetString("wg-staff-marker-label-staff"), Color.FromHex("#b3357d"), -1);
+
         foreach (var gear in gears.Values)
         {
-            if (claimed.TryGetValue(gear.ID, out var owner))
+            if (StaffGear.TryGetValue(gear.ID, out var title))
+                _entries.Add(new OutfitEntry(gear, null, staff, Loc.GetString(title)));
+            else if (claimed.TryGetValue(gear.ID, out var owner))
                 _entries.Add(new OutfitEntry(gear, owner.Job, owner.Category));
             else
                 _entries.Add(new OutfitEntry(gear, null, IsAntagGear(gear.ID) ? antagonists : other));
         }
 
+        if (_entries.Any(entry => entry.Category == staff))
+            _categories.Insert(0, staff);
         if (_entries.Any(entry => entry.Category == antagonists))
             _categories.Add(antagonists);
         if (_entries.Any(entry => entry.Category == other))
@@ -436,7 +453,12 @@ public sealed partial class SpawnOutfitMenu : DefaultWindow
         switch (_mode)
         {
             case OutfitMenuMode.Ghost:
-                _consoleHost.ExecuteCommand($"{WolfgateAdminCommands.SpawnOutfitGhost} {target} \"{gear}\"");
+                // Return lets the player delete the body and leave, so the admin decides whether they get it.
+                var player = _entityManager.TryGetEntity(target, out var ghost)
+                    ? _entityManager.GetComponent<MetaDataComponent>(ghost.Value).EntityName
+                    : target.ToString();
+                new WGReturnPromptWindow(player, give =>
+                    _consoleHost.ExecuteCommand($"{WolfgateAdminCommands.SpawnOutfitGhost} {target} \"{gear}\" {give}")).OpenCentered();
                 break;
             case OutfitMenuMode.Set:
                 _consoleHost.ExecuteCommand($"setoutfit {target} \"{gear}\"");

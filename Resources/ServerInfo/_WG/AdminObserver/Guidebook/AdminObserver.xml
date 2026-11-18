@@ -1,0 +1,31 @@
+<Document>
+  # Admin Observer
+
+  ## The admin observer
+
+  The admin observer is the ghost you get from aghost. It flies, passes through walls, has every access and carries a kit. Shift+F5 runs aghost: from a body it puts you in a new observer, and from that observer it takes you back to the same body. With no body to go back to, the key says so and does nothing. Rebind it under Options > Controls. Everything on this page needs the Admin flag.
+
+  ## Manifesting and hiding
+
+  A new observer is always hidden, just like a normal ghost. Manifest shows it to living players as one of your avatars, and using the action again hides you. Manifest from the action on your bar, from the observer panel, with the manifest command and an avatar's name, or with a key you bind. While manifested you speak, whisper, emote and use the radio in character, under the avatar's name. Dead chat still works when you pick that channel. Hiding reverts all of this instantly.
+
+  ## Avatars
+
+  An avatar is what players see. The Ghost is the observer's own sprite. Object and Mob take the look of any item, structure or creature; they copy the default look and do not animate or change state. Character is one of your saved characters, in an outfit you pick, or one you dress by hand with Dress avatar and keep with Save outfit. Create and select avatars on the Presence tab of the observer panel. These are saved to your account and are there next round. 'Make default' chooses the one a plain Manifest uses.
+
+  ## The staff marker
+
+  Players are always told that a manifested admin is staff. Two things cannot be switched off: a line on examine, and a tag in front of your name in chat and on the radio. You choose the wording: your rank, Staff, your account name, or rank and name. You choose the visuals, and at least one stays on: nameplate, sigil, aura, shield, hologram, glyph and ground ring. An object or mob avatar always has something drawn on it, the hologram and the ring unless you pick another.
+
+  ## The kit
+
+  Each observer carries a kit, a nested satchel with a pouch for each kind of tool. The Kit window, from adminkit or the Kit tab of the panel, lists everything you can take. 'Give' provides you an item, 'Put away' removes the kit item you are holding, and 'Save layout' stores where everything sits. Your layout is also saved when you leave the observer and put back when you enter a new one. Only kit items are saved, so what you pick up in a round is not carried into the next. If you have the Spawn flag, everything is saved.
+
+  ## Technicians and Return
+
+  When you need a proper body for whatever reason, spawn as a Bluespace or Subspace Technician. 'Spawn as Outfit', on the right-click menu and on the People tab of the panel, lists both first. The equipment provided gives your body its powers: reach at any range, instant actions, every access, no need for air, no damage, every language and the HUDs. It cannot be stripped, and the uniform items all carry the staff marker. The Return action deletes your body and puts you back where you were previously stored at; in your earlier body, observing from the same spot, or in a new observer. When you spawn another player this way, you are asked whether they get the Return action. You typically do not want to give that out, since players can evaporate themselves with it accidentally.
+
+  ## Manifested admins are still technically ghosts
+
+  A manifested admin is still a ghost. Players can see it, examine it, hear it and talk to it. They cannot hit, pull, cuff or strip it, and they walk through it. This has niche code limitations, so it can't solve every problem.
+</Document>

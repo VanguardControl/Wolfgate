@@ -575,7 +575,7 @@ public abstract partial class InventorySystem
         RaiseLocalEvent(itemUid, itemAttemptEvent, true);
         if (itemAttemptEvent.Cancelled)
         {
-            reason = attemptEvent.Reason ?? reason;
+            reason = itemAttemptEvent.Reason ?? attemptEvent.Reason ?? reason; // WOLFGATE(AdminTech): the item's own reason was dropped; upstream read the earlier event's
             return false;
         }
 

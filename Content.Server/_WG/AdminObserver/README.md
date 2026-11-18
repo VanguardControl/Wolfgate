@@ -213,12 +213,14 @@ and `WGAdminKitControl` (client).
 ### Prototypes
 
 - [`Resources/Prototypes/_WG/AdminObserver/actions.yml`](../../../Resources/Prototypes/_WG/AdminObserver/actions.yml)
+- [`Resources/Prototypes/_WG/AdminObserver/guidebook.yml`](../../../Resources/Prototypes/_WG/AdminObserver/guidebook.yml)
 - [`Resources/Prototypes/_WG/AdminObserver/kit.yml`](../../../Resources/Prototypes/_WG/AdminObserver/kit.yml)
 - [`Resources/Prototypes/_WG/AdminObserver/marker.yml`](../../../Resources/Prototypes/_WG/AdminObserver/marker.yml)
 
 ### Localization
 
 - [`Resources/Locale/en-US/_WG/AdminObserver/avatars.ftl`](../../../Resources/Locale/en-US/_WG/AdminObserver/avatars.ftl)
+- [`Resources/Locale/en-US/_WG/AdminObserver/guidebook.ftl`](../../../Resources/Locale/en-US/_WG/AdminObserver/guidebook.ftl)
 - [`Resources/Locale/en-US/_WG/AdminObserver/hotkeys.ftl`](../../../Resources/Locale/en-US/_WG/AdminObserver/hotkeys.ftl)
 - [`Resources/Locale/en-US/_WG/AdminObserver/kit.ftl`](../../../Resources/Locale/en-US/_WG/AdminObserver/kit.ftl)
 - [`Resources/Locale/en-US/_WG/AdminObserver/manifest.ftl`](../../../Resources/Locale/en-US/_WG/AdminObserver/manifest.ftl)
@@ -228,6 +230,10 @@ and `WGAdminKitControl` (client).
 ### Textures
 
 - [`Resources/Textures/_WG/AdminObserver/Shaders/staff_tint.swsl`](../../../Resources/Textures/_WG/AdminObserver/Shaders/staff_tint.swsl)
+
+### Guidebook
+
+- [`Resources/ServerInfo/_WG/AdminObserver/Guidebook/AdminObserver.xml`](../../../Resources/ServerInfo/_WG/AdminObserver/Guidebook/AdminObserver.xml)
 
 ## Non-modular edits
 

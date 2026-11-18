@@ -167,7 +167,10 @@ public sealed partial class WGAdminObserverStore : EntitySystem
         Loaded?.Invoke(session);
     }
 
-    /// <summary>A new admin's document: the plain ghost, and their selected character in what it would spawn in.</summary>
+    /// <summary>
+    /// A new admin's document: the plain ghost, their selected character in what it would spawn in, and that
+    /// character as a Bluespace and a Subspace Technician (the AdminTech module's outfits).
+    /// </summary>
     private WGAdminObserverData Stock()
     {
         var data = new WGAdminObserverData();
@@ -176,6 +179,18 @@ public sealed partial class WGAdminObserverStore : EntitySystem
         {
             Name = Loc.GetString("wg-observer-preset-stock-own"),
             Kind = WGAvatarKind.Character,
+        });
+        data.Presets.Add(new WGAvatarPreset
+        {
+            Name = Loc.GetString("wg-observer-preset-stock-bluespace"),
+            Kind = WGAvatarKind.Character,
+            Outfit = "WGAdminTechBluespace",
+        });
+        data.Presets.Add(new WGAvatarPreset
+        {
+            Name = Loc.GetString("wg-observer-preset-stock-subspace"),
+            Kind = WGAvatarKind.Character,
+            Outfit = "WGAdminTechSubspace",
         });
         return data;
     }

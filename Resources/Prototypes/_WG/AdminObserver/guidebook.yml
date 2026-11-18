@@ -1,0 +1,6 @@
+# The admin's page on the observer, manifesting, the kit and technicians.
+- type: guideEntry
+  id: WGAdminObserver
+  name: guide-entry-wg-admin-observer
+  text: "/ServerInfo/_WG/AdminObserver/Guidebook/AdminObserver.xml"
+  priority: 20
