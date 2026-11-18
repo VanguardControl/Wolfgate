@@ -313,6 +313,7 @@ Standalone edits outside `_WG` that serve no module: files with an untagged `WOL
 - [`Content.Shared/_Mono/Detection/DetectionSystem.cs`](../../Content.Shared/_Mono/Detection/DetectionSystem.cs): a NaN or infinite heat made a grid undetectable, so radar dropped its hull
 - [`Content.Shared/_Mono/Economy/SharedCreditReceiverSystem.cs`](../../Content.Shared/_Mono/Economy/SharedCreditReceiverSystem.cs): _log was never assigned, so every log line in TryCashPayment threw a NullReferenceException
 - [`Content.Shared/_Mono/ShipGuns/ShipGunClassComponent.cs`](../../Content.Shared/_Mono/ShipGuns/ShipGunClassComponent.cs): restore the licence header removed by Kill Spdx
+- [`Content.Shared/_Mono/ShipRepair/SharedShipRepairSystem.cs`](../../Content.Shared/_Mono/ShipRepair/SharedShipRepairSystem.cs): a hull mod's replaced fittings are still queued on the tick it snapshots
 - [`Content.Shared/_Mono/Traits/Physical/BionicLegsComponent.cs`](../../Content.Shared/_Mono/Traits/Physical/BionicLegsComponent.cs): restore the licence header removed by Kill Spdx
 - [`Content.Shared/_Mono/Traits/Physical/GlassJawComponent.cs`](../../Content.Shared/_Mono/Traits/Physical/GlassJawComponent.cs): restore the licence header removed by Kill Spdx
 - [`Content.Shared/_Mono/Traits/Physical/HemophiliaComponent.cs`](../../Content.Shared/_Mono/Traits/Physical/HemophiliaComponent.cs): restore the licence header removed by Kill Spdx
@@ -488,6 +489,9 @@ Standalone edits outside `_WG` that serve no module: files with an untagged `WOL
 - [`Resources/Prototypes/_Mono/Catalogs/VendingMachines/Inventories/ussp.yml`](../../Resources/Prototypes/_Mono/Catalogs/VendingMachines/Inventories/ussp.yml): the loaded magazine is class-3 contraband worth 10 FMC since Monolith#4816
 - [`Resources/Prototypes/_Mono/Claws/reptilian.yml`](../../Resources/Prototypes/_Mono/Claws/reptilian.yml): huge claws never stop a lizard shooting; they take the worst spread instead
 - [`Resources/Prototypes/_Mono/disciplines.yml`](../../Resources/Prototypes/_Mono/disciplines.yml): Caelestinus Expansion I (#675) reverted
+- [`Resources/Prototypes/_Mono/Entities/Clothing/Ears/headsets.yml`](../../Resources/Prototypes/_Mono/Entities/Clothing/Ears/headsets.yml)
+  - command staff get shortband
+  - the company key goes first so it is the default channel, not broadband
 - [`Resources/Prototypes/_Mono/Entities/Mobs/NPCs/mothroaches.yml`](../../Resources/Prototypes/_Mono/Entities/Mobs/NPCs/mothroaches.yml): OwO accent removed
 - [`Resources/Prototypes/_Mono/Entities/Objects/Devices/Circuitboards/Machine/turrets.yml`](../../Resources/Prototypes/_Mono/Entities/Objects/Devices/Circuitboards/Machine/turrets.yml): restore the licence header removed by Kill Spdx
 - [`Resources/Prototypes/_Mono/Entities/Objects/Devices/flatpack.yml`](../../Resources/Prototypes/_Mono/Entities/Objects/Devices/flatpack.yml): restore the licence header removed by Kill Spdx
@@ -551,6 +555,9 @@ Standalone edits outside `_WG` that serve no module: files with an untagged `WOL
 - [`Resources/Prototypes/_Mono/Roles/Jobs/TSFMC/civilian.yml`](../../Resources/Prototypes/_Mono/Roles/Jobs/TSFMC/civilian.yml): TSF contractors speak and understand Sol Common
 - [`Resources/Prototypes/_Mono/Traits/physical.yml`](../../Resources/Prototypes/_Mono/Traits/physical.yml): restore the licence header removed by Kill Spdx
 - [`Resources/Prototypes/_Mono/Turf/plating.yml`](../../Resources/Prototypes/_Mono/Turf/plating.yml): restore the licence header removed by Kill Spdx
+- [`Resources/Prototypes/_NF/bounty_contract_collections.yml`](../../Resources/Prototypes/_NF/bounty_contract_collections.yml)
+  - Caelestinus command, such as the Overseer, posts command bounties
+  - and removes them
 - [`Resources/Prototypes/_NF/Catalog/Fills/Lockers/heads.yml`](../../Resources/Prototypes/_NF/Catalog/Fills/Lockers/heads.yml): Caelestinus Expansion I (#675) reverted
 - [`Resources/Prototypes/_NF/Catalog/VendingMachines/Inventories/engivend.yml`](../../Resources/Prototypes/_NF/Catalog/VendingMachines/Inventories/engivend.yml): radiation suits buyable from the EngiVend
 - [`Resources/Prototypes/_NF/Entities/Objects/Consumable/Food/meals.yml`](../../Resources/Prototypes/_NF/Entities/Objects/Consumable/Food/meals.yml): OwO accent removed
@@ -591,6 +598,7 @@ Standalone edits outside `_WG` that serve no module: files with an untagged `WOL
 - [`Resources/Prototypes/Entities/Objects/Consumable/Food/Baked/cake.yml`](../../Resources/Prototypes/Entities/Objects/Consumable/Food/Baked/cake.yml): OwO accent removed
 - [`Resources/Prototypes/Entities/Objects/Devices/pda.yml`](../../Resources/Prototypes/Entities/Objects/Devices/pda.yml): E and Z open the PDA instead of searching for a player to control it
 - [`Resources/Prototypes/Entities/Objects/Misc/identification_cards.yml`](../../Resources/Prototypes/Entities/Objects/Misc/identification_cards.yml): the universal card opens the Underground Black Market too
+- [`Resources/Prototypes/Entities/Objects/Misc/paper.yml`](../../Resources/Prototypes/Entities/Objects/Misc/paper.yml): leave the use for the paper's own window to open
 - [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Turrets/turrets_ballistic.yml`](../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Turrets/turrets_ballistic.yml)
   - parented to BaseWeaponTurret instead of BaseWeaponBallisticTurret so it has one ammo provider.
   - ammo container copied from BaseWeaponBallisticTurret.
@@ -599,6 +607,7 @@ Standalone edits outside `_WG` that serve no module: files with an untagged `WOL
 - [`Resources/Prototypes/Entities/Structures/catwalk.yml`](../../Resources/Prototypes/Entities/Structures/catwalk.yml): restore the licence header removed by Kill Spdx
 - [`Resources/Prototypes/Entities/Structures/Lighting/base_lighting.yml`](../../Resources/Prototypes/Entities/Structures/Lighting/base_lighting.yml): draw over posters at the same depth instead of flickering with them
 - [`Resources/Prototypes/Entities/Structures/Lighting/strobe_lighting.yml`](../../Resources/Prototypes/Entities/Structures/Lighting/strobe_lighting.yml): draw over posters at the same depth instead of flickering with them
+- [`Resources/Prototypes/Entities/Structures/Machines/chemistry.yml`](../../Resources/Prototypes/Entities/Structures/Machines/chemistry.yml): a tabletop machine's fixture, so it anchors on tables and counters like the grinder
 - [`Resources/Prototypes/Entities/Structures/Machines/Computers/computers.yml`](../../Resources/Prototypes/Entities/Structures/Machines/Computers/computers.yml): restore the licence header removed by Kill Spdx
 - [`Resources/Prototypes/Entities/Structures/Specific/Atmospherics/vox.yml`](../../Resources/Prototypes/Entities/Structures/Specific/Atmospherics/vox.yml): a gas missing from this list crashed the air alarm UI
 - [`Resources/Prototypes/GameRules/pests.yml`](../../Resources/Prototypes/GameRules/pests.yml)
