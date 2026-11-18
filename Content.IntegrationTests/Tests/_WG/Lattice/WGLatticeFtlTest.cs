@@ -4,6 +4,7 @@ using Content.Server._WG.Lattice;
 using Content.Server.Shuttles.Systems;
 using Content.Shared._WG.DroneRings;
 using Content.Shared._WG.Lattice;
+using Content.Shared._WG.ShipCommand;
 using Content.Shared._WG.Shuttles;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
@@ -40,6 +41,12 @@ public sealed class WGLatticeFtlTest
             var drift = entities.EnsureComponent<WGDriftComponent>(map.Grid);
             drift.NoFtl = true;
             Assert.That(shuttles.GetFtlDriveStatus(map.Grid), Is.AnyOf(WGFtlDriveStatus.Missing, WGFtlDriveStatus.Unmoored));
+
+            // An admin vessel's unrestricted FTL jumps out of the outer bands (the Lupercal, v0.30).
+            entities.AddComponent<WGFtlUnrestrictedComponent>(map.Grid);
+            Assert.That(lattice.IgnoresLattice(map.Grid), Is.True);
+            Assert.That(shuttles.CanFTL(map.Grid, out var unrestricted), Is.True, $"an unrestricted ship was refused: {unrestricted}");
+            Assert.That(shuttles.GetFtlDriveStatus(map.Grid), Is.Not.EqualTo(WGFtlDriveStatus.Unmoored));
         });
 
         await pair.CleanReturnAsync();
