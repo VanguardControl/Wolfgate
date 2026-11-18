@@ -24,20 +24,33 @@ public sealed class CombatFacingTest : InteractionTest
         await SetCombat(false);
         Assert.That(FacesCursor(), Is.False);
 
-        await SetOption(false);
-        await SetCombat(true);
-        Assert.That(FacesCursor(), Is.False, "The server ignored the player's option.");
-        Assert.That(SEntMan.HasComponent<NoRotateOnMoveComponent>(SPlayer), Is.False);
+        try
+        {
+            await SetOption(false);
+            await SetCombat(true);
+            Assert.That(SEntMan.System<SharedCombatModeSystem>().IsInCombatMode(SPlayer), Is.True,
+                "With the option off, the mob should still enter combat mode.");
+            Assert.That(FacesCursor(), Is.False, "The server ignored the player's option.");
+            Assert.That(SEntMan.HasComponent<NoRotateOnMoveComponent>(SPlayer), Is.False);
 
-        await SetKey(EngineKeyFunctions.MoveLeft, BoundKeyState.Down);
-        await RunTicks(10);
-        await SetKey(EngineKeyFunctions.MoveLeft, BoundKeyState.Up);
-        await RunTicks(5);
-        Assert.That(Transform.GetWorldRotation(SPlayer).GetCardinalDir(), Is.EqualTo(Direction.West),
-            "With the option off, moving should still turn the mob in combat mode.");
+            await Server.WaitPost(() => Transform.SetWorldRotation(SPlayer, Angle.Zero));
+            await RunTicks(5);
+            Assert.That(Transform.GetWorldRotation(SPlayer).GetCardinalDir(), Is.Not.EqualTo(Direction.West));
 
-        await SetCombat(false);
-        await SetOption(true);
+            await SetKey(EngineKeyFunctions.MoveLeft, BoundKeyState.Down);
+            await RunTicks(10);
+            await SetKey(EngineKeyFunctions.MoveLeft, BoundKeyState.Up);
+            await RunTicks(5);
+            Assert.That(Transform.GetWorldRotation(SPlayer).GetCardinalDir(), Is.EqualTo(Direction.West),
+                "With the option off, moving should still turn the mob in combat mode.");
+
+            await SetCombat(false);
+        }
+        finally
+        {
+            // The client is pooled.
+            await SetOption(true);
+        }
     }
 
     [Test]
@@ -46,18 +59,34 @@ public sealed class CombatFacingTest : InteractionTest
         await SetCombat(true);
         Assert.That(FacesCursor(), Is.True);
 
-        await SetOption(false);
-        Assert.That(FacesCursor(), Is.False, "Turning the option off mid-fight left the rotator on.");
-        Assert.That(SEntMan.HasComponent<NoRotateOnMoveComponent>(SPlayer), Is.False);
+        try
+        {
+            await SetOption(false);
+            Assert.That(FacesCursor(), Is.False, "Turning the option off mid-fight left the rotator on.");
+            Assert.That(SEntMan.HasComponent<NoRotateOnMoveComponent>(SPlayer), Is.False);
+            Assert.That(ClientFacesCursor(), Is.False, "The client kept the rotator.");
+            Assert.That(CEntMan.HasComponent<NoRotateOnMoveComponent>(CPlayer), Is.False);
+        }
+        finally
+        {
+            // The client is pooled.
+            await SetOption(true);
+        }
 
-        await SetOption(true);
         Assert.That(FacesCursor(), Is.True, "Turning the option back on mid-fight didn't face the cursor.");
+        Assert.That(SEntMan.HasComponent<NoRotateOnMoveComponent>(SPlayer), Is.True);
+        Assert.That(ClientFacesCursor(), Is.True, "The client never got the rotator back.");
+        Assert.That(CEntMan.HasComponent<NoRotateOnMoveComponent>(CPlayer), Is.True);
 
         await SetCombat(false);
         Assert.That(FacesCursor(), Is.False);
+        Assert.That(SEntMan.HasComponent<NoRotateOnMoveComponent>(SPlayer), Is.False,
+            "Leaving combat left the mob unable to turn by moving.");
     }
 
     private bool FacesCursor() => SEntMan.HasComponent<MouseRotatorComponent>(SPlayer);
+
+    private bool ClientFacesCursor() => CEntMan.HasComponent<MouseRotatorComponent>(CPlayer);
 
     private async Task SetCombat(bool on)
     {

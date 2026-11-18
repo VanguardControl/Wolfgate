@@ -29,7 +29,10 @@ public sealed class WGTurnInPlaceSystem : EntitySystem
         CommandBinds.Unregister<WGTurnInPlaceSystem>();
     }
 
-    /// <summary>Holds or releases the turn key for an entity. Holding it stops the mob where it stands.</summary>
+    /// <summary>
+    /// Holds or releases the turn key for an entity. Holding it stops the mob where it stands, unless the mob can't
+    /// turn by moving anyway.
+    /// </summary>
     public void SetHeld(EntityUid uid, bool held, ushort subTick = 0)
     {
         if (!held)
@@ -42,7 +45,8 @@ public sealed class WGTurnInPlaceSystem : EntitySystem
             return;
 
         AddComp<WGTurnInPlaceComponent>(uid);
-        _mover.WgReleaseDirections(uid, subTick);
+        if (!_mover.WgFacingLocked(uid))
+            _mover.WgReleaseDirections(uid, subTick);
     }
 
     private sealed class TurnInPlaceInputCmdHandler(WGTurnInPlaceSystem system) : InputCmdHandler

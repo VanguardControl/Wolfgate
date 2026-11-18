@@ -7,8 +7,12 @@ key held, while the mob can move; turning in place doesn't count). All three sta
 the Controls tab. The SS13 preset puts shift on B and tilt on V; B is also Resist there, and the shift binding gets a
 higher priority so both fire.
 
+Pressing either key stops a walking mob, and it stays stopped after the key is let go until a movement key is pressed
+again, like the turn-in-place key. Ghosts and anything else without a mob state ignore the keys and keep moving.
+
 Limits are server cvars: `wg.pixel_shift_max_offset` (16 px per axis, half a tile) and `wg.pixel_shift_max_tilt`
-(45 degrees). Restrained, stunned, critical, dead or asleep mobs can't adjust it (`ActionBlockerSystem.CanInteract`).
+(45 degrees). Lowering one pulls existing shifts back inside it. Restrained, stunned, critical, dead or asleep mobs
+can't adjust it (`ActionBlockerSystem.CanInteract`), and holding a key still keeps them from walking.
 
 `WGPixelShiftComponent` holds the shift and is networked, so everyone sees it. The server adds it on the first tap;
 `SharedMoverController.WgTryPixelShift`, from a marked edit in `HandleDirChange`, hands key presses to

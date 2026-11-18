@@ -14,10 +14,15 @@ public abstract partial class SharedMoverController
         if (!state || !HasComp<WGTurnInPlaceComponent>(entity))
             return false;
 
-        var target = WgMoverTarget(entity);
+        if (WgMoverTarget(entity) is not { } target)
+            return true;
+
+        // Facing the cursor in combat holds the facing, so the key is inert and the press moves as usual.
+        if (NoRotateQuery.HasComp(target))
+            return false;
+
         if (!MoverQuery.TryComp(target, out var mover)
             || !mover.CanMove
-            || NoRotateQuery.HasComp(target)
             || _container.IsEntityInContainer(target)
             || !XformQuery.TryComp(target, out var xform))
         {
@@ -31,19 +36,30 @@ public abstract partial class SharedMoverController
         return true;
     }
 
+    /// <summary>Whether the mob an entity steers can't turn by moving, as while combat mode faces the cursor.</summary>
+    public bool WgFacingLocked(EntityUid entity)
+    {
+        return WgMoverTarget(entity) is { } target && NoRotateQuery.HasComp(target);
+    }
+
     /// <summary>Releases the direction keys of the mob an entity steers, so a held turn or shift key stops it.</summary>
     public void WgReleaseDirections(EntityUid entity, ushort subTick)
     {
-        var target = WgMoverTarget(entity);
-        if (MoverQuery.TryComp(target, out var mover))
+        if (WgMoverTarget(entity) is { } target && MoverQuery.TryComp(target, out var mover))
             SetMoveInput((target, mover), subTick, false, MoveButtons.AnyDirection);
     }
 
-    /// <summary>The mob an entity's movement keys steer, following movement relays.</summary>
-    private EntityUid WgMoverTarget(EntityUid entity)
+    /// <summary>
+    /// The mob an entity's movement keys steer, following movement relays. Null when a relaying mob is incapacitated,
+    /// since <see cref="HandleDirChange"/> doesn't pass its keys on either.
+    /// </summary>
+    private EntityUid? WgMoverTarget(EntityUid entity)
     {
         for (var i = 0; i < 4 && RelayQuery.TryComp(entity, out var relay); i++)
         {
+            if (_mobState.IsIncapacitated(entity))
+                return null;
+
             entity = relay.RelayEntity;
         }
 

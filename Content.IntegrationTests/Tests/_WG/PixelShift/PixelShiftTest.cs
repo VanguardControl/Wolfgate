@@ -140,7 +140,43 @@ public sealed class PixelShiftTest : InteractionTest
     }
 
     [Test]
-    public async Task RestrainedOrDeadCantShift()
+    public async Task LoweringALimitClampsExistingShifts()
+    {
+        await SetKey(WGPixelShiftKeys.WGPixelShift, BoundKeyState.Down);
+        await Tap(EngineKeyFunctions.MoveRight, 3);
+        await SetKey(WGPixelShiftKeys.WGPixelShift, BoundKeyState.Up);
+        await SetKey(WGPixelShiftKeys.WGPixelTilt, BoundKeyState.Down);
+        await Tap(EngineKeyFunctions.MoveLeft, 2);
+        await SetKey(WGPixelShiftKeys.WGPixelTilt, BoundKeyState.Up);
+
+        var cfg = Server.ResolveDependency<IConfigurationManager>();
+        try
+        {
+            await Server.WaitPost(() =>
+            {
+                cfg.SetCVar(WGPixelShiftCVars.MaxOffset, 1);
+                cfg.SetCVar(WGPixelShiftCVars.MaxTilt, 0);
+            });
+            await RunTicks(5);
+
+            var shift = SEntMan.GetComponent<WGPixelShiftComponent>(SPlayer);
+            Assert.That(shift.Offset, Is.EqualTo(new Vector2i(1, 0)), "Lowering the limit left the shift past it.");
+            Assert.That(shift.Tilt, Is.Zero, "Lowering the limit left the tilt past it.");
+            Assert.That(CEntMan.GetComponent<WGPixelShiftComponent>(CPlayer).Offset, Is.EqualTo(new Vector2i(1, 0)),
+                "The client never got the clamped shift.");
+        }
+        finally
+        {
+            await Server.WaitPost(() =>
+            {
+                cfg.SetCVar(WGPixelShiftCVars.MaxOffset, WGPixelShiftCVars.MaxOffset.DefaultValue);
+                cfg.SetCVar(WGPixelShiftCVars.MaxTilt, WGPixelShiftCVars.MaxTilt.DefaultValue);
+            });
+        }
+    }
+
+    [Test]
+    public async Task RestrainedCantShift()
     {
         await SetKey(WGPixelShiftKeys.WGPixelShift, BoundKeyState.Down);
         await Tap(EngineKeyFunctions.MoveRight);
@@ -154,6 +190,15 @@ public sealed class PixelShiftTest : InteractionTest
         await RunTicks(5);
         await Tap(EngineKeyFunctions.MoveRight);
         Assert.That(Offset(), Is.EqualTo(new Vector2i(1, 0)), "A cuffed mob shifted its sprite.");
+        await SetKey(WGPixelShiftKeys.WGPixelShift, BoundKeyState.Up);
+    }
+
+    [Test]
+    public async Task DeadCantShift()
+    {
+        await SetKey(WGPixelShiftKeys.WGPixelShift, BoundKeyState.Down);
+        await Tap(EngineKeyFunctions.MoveRight);
+        Assert.That(Offset(), Is.EqualTo(new Vector2i(1, 0)));
 
         await Server.WaitPost(() => SEntMan.System<MobStateSystem>().ChangeMobState(SPlayer, MobState.Dead));
         await RunTicks(5);

@@ -1,4 +1,5 @@
 using Content.Shared.ActionBlocker;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Movement.Systems;
 using Robust.Shared.Configuration;
 using Robust.Shared.Input;
@@ -29,8 +30,16 @@ public sealed class WGPixelShiftSystem : EntitySystem
     {
         base.Initialize();
 
-        Subs.CVar(_cfg, WGPixelShiftCVars.MaxOffset, v => _maxOffset = Math.Max(0, v), true);
-        Subs.CVar(_cfg, WGPixelShiftCVars.MaxTilt, v => _maxTilt = Math.Clamp(v, 0, 180), true);
+        Subs.CVar(_cfg, WGPixelShiftCVars.MaxOffset, v =>
+        {
+            _maxOffset = Math.Max(0, v);
+            ClampAll();
+        }, true);
+        Subs.CVar(_cfg, WGPixelShiftCVars.MaxTilt, v =>
+        {
+            _maxTilt = Math.Clamp(v, 0, 180);
+            ClampAll();
+        }, true);
 
         CommandBinds.Builder
             .Bind(WGPixelShiftKeys.WGPixelShift, new HoldInputCmdHandler(this, WGPixelShiftMode.Shift))
@@ -52,9 +61,15 @@ public sealed class WGPixelShiftSystem : EntitySystem
         CommandBinds.Unregister<WGPixelShiftSystem>();
     }
 
-    /// <summary>Holds or releases a pixel shift key. Holding one stops the mob where it stands.</summary>
+    /// <summary>
+    /// Holds or releases a pixel shift key. Holding one stops the mob where it stands. Ghosts and other entities without
+    /// a mob state never shift, so the key leaves them alone.
+    /// </summary>
     public void SetHeld(EntityUid uid, WGPixelShiftMode mode, bool held, ushort subTick = 0)
     {
+        if (held && !HasComp<MobStateComponent>(uid))
+            return;
+
         if (!held)
         {
             if (!TryComp<WGPixelShiftHeldComponent>(uid, out var current))
@@ -129,6 +144,28 @@ public sealed class WGPixelShiftSystem : EntitySystem
     {
         if (HasComp<WGPixelShiftComponent>(uid) && _blocker.CanMove(uid))
             Reset(uid);
+    }
+
+    /// <summary>Pulls every shift and tilt back inside the limits, after a limit is lowered.</summary>
+    private void ClampAll()
+    {
+        if (!_net.IsServer)
+            return;
+
+        var query = EntityQueryEnumerator<WGPixelShiftComponent>();
+        while (query.MoveNext(out var uid, out var shift))
+        {
+            var offset = new Vector2i(
+                Math.Clamp(shift.Offset.X, -_maxOffset, _maxOffset),
+                Math.Clamp(shift.Offset.Y, -_maxOffset, _maxOffset));
+            var tilt = Math.Clamp(shift.Tilt, -_maxTilt, _maxTilt);
+            if (offset == shift.Offset && tilt == shift.Tilt)
+                continue;
+
+            shift.Offset = offset;
+            shift.Tilt = tilt;
+            Dirty(uid, shift);
+        }
     }
 
     /// <summary>Clears the shift and tilt.</summary>

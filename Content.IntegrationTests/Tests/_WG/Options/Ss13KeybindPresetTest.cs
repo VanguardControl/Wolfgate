@@ -61,9 +61,18 @@ public sealed class Ss13KeybindPresetTest
 
                     foreach (var (first, then) in Ss13KeybindPreset.SharedKeys)
                     {
-                        Assert.That(input.GetKeyBindings(first).Min(b => b.Priority),
-                            Is.GreaterThan(input.GetKeyBindings(then).Max(b => b.Priority)),
-                            $"{first.FunctionName} must run before {then.FunctionName}");
+                        var chords = input.GetKeyBindings(first)
+                            .SelectMany(a => input.GetKeyBindings(then)
+                                .Where(b => (a.BaseKey, a.Mod1, a.Mod2, a.Mod3) == (b.BaseKey, b.Mod1, b.Mod2, b.Mod3))
+                                .Select(b => (First: a, Then: b)))
+                            .ToArray();
+                        Assert.That(chords, Is.Not.Empty, $"{first.FunctionName} and {then.FunctionName} don't share a key");
+
+                        foreach (var chord in chords)
+                        {
+                            Assert.That(chord.First.Priority, Is.GreaterThan(chord.Then.Priority),
+                                $"{first.FunctionName} must run before {then.FunctionName} on {chord.First.BaseKey}");
+                        }
                     }
 
                     Assert.That(input.IsKeyFunctionModified(EngineKeyFunctions.Use), Is.False);

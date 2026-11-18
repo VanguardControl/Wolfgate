@@ -1,12 +1,14 @@
 # TurnInPlace
 
 SS13's hold-to-face key. While **Turn in place** (`WGTurnInPlace`) is held, a movement key turns the mob to face that
-way and doesn't move it; pressing the key also stops a mob that was walking. The key starts unbound; it sits under
-Movement on the Controls tab, and "Set to SS13 default" binds it to Ctrl.
+way and doesn't move it; pressing the key also stops a mob that was walking, and it stays stopped after the key is let
+go until a movement key is pressed again. The key starts unbound; it sits under Movement on the Controls tab, and "Set
+to SS13 default" binds it to Ctrl.
 
 A turn isn't movement: the direction bit is never set, so pulls, ghillie hiding, playing dead and the like don't
-break. It follows movement relays (mechs and similar), needs the mob to be able to move, and does nothing while
-combat mode faces the cursor.
+break. It follows movement relays (mechs and similar) unless the relaying mob is incapacitated, and needs the mob to be
+able to move. While the mob can't turn by moving (`NoRotateOnMoveComponent`, as when combat mode faces the cursor) the
+key does nothing: it neither stops the mob nor holds back movement keys.
 
 Entry points: `WGTurnInPlaceSystem` binds the key and adds the unnetworked `WGTurnInPlaceComponent` while it is held,
 on the server and the predicting client alike. `SharedMoverController.WgTryTurnInPlace` is called from a marked edit at
