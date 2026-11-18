@@ -6,6 +6,7 @@ using Robust.Shared.Input;
 using Robust.Shared.Input.Binding;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Shared._WG.PixelShift;
 
@@ -19,9 +20,18 @@ public sealed class WGPixelShiftSystem : EntitySystem
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private SharedMoverController _mover = default!;
     [Dependency] private INetManager _net = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     /// <summary>Degrees one tap of the tilt key turns the sprite.</summary>
     public const int TiltStep = 5;
+
+    /// <summary>How long a held movement key waits before it starts repeating its nudge.</summary>
+    public static readonly TimeSpan RepeatDelay = TimeSpan.FromSeconds(0.3);
+
+    /// <summary>How often a held movement key repeats its nudge after that.</summary>
+    public static readonly TimeSpan RepeatInterval = TimeSpan.FromSeconds(0.1);
+
+    private static readonly Direction[] Cardinals = { Direction.North, Direction.South, Direction.East, Direction.West };
 
     private int _maxOffset;
     private int _maxTilt;
@@ -99,30 +109,71 @@ public sealed class WGPixelShiftSystem : EntitySystem
             keys.Tilt = down;
     }
 
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        // The server repeats held movement keys; clients get the result with the networked shift.
+        if (!_net.IsServer)
+            return;
+
+        var now = _timing.CurTime;
+        var query = EntityQueryEnumerator<WGPixelShiftHeldComponent>();
+        while (query.MoveNext(out var uid, out var held))
+        {
+            if (held.Directions == DirectionFlag.None || now < held.NextRepeat)
+                continue;
+
+            held.NextRepeat = now + RepeatInterval;
+            foreach (var dir in Cardinals)
+            {
+                if ((held.Directions & dir.AsFlag()) != 0)
+                    Nudge(uid, held, dir);
+            }
+        }
+    }
+
     /// <summary>
-    /// Nudges the sprite for a movement key pressed while a pixel shift key is held. False when no key is held, so the
-    /// key moves the mob as usual.
+    /// Nudges the sprite for a movement key pressed while a pixel shift key is held, and keeps nudging while the key
+    /// stays down. False when no key is held, so the key moves the mob as usual.
     /// </summary>
     public bool TryNudge(EntityUid uid, Direction dir)
     {
         if (!TryComp<WGPixelShiftHeldComponent>(uid, out var held))
             return false;
 
+        held.Directions |= dir.AsFlag();
+        held.NextRepeat = _timing.CurTime + RepeatDelay;
+        Nudge(uid, held, dir);
+        return true;
+    }
+
+    /// <summary>Stops a let-go movement key repeating its nudge.</summary>
+    public void ReleaseDirection(EntityUid uid, Direction dir)
+    {
+        if (TryComp<WGPixelShiftHeldComponent>(uid, out var held))
+            held.Directions &= ~dir.AsFlag();
+    }
+
+    private void Nudge(EntityUid uid, WGPixelShiftHeldComponent held, Direction dir)
+    {
         if (!_blocker.CanInteract(uid, null))
-            return true;
+            return;
 
         WGPixelShiftComponent? shift;
         if (_net.IsServer)
             shift = EnsureComp<WGPixelShiftComponent>(uid);
         else if (!TryComp(uid, out shift))
-            return true; // The server adds it; prediction starts from the next tap.
+            return; // The server adds it; prediction starts from the next tap.
 
+        var offset = shift.Offset;
+        var tilt = shift.Tilt;
         if (held.Mode == WGPixelShiftMode.Shift)
         {
             var step = dir.ToIntVec();
-            shift.Offset = new Vector2i(
-                Math.Clamp(shift.Offset.X + step.X, -_maxOffset, _maxOffset),
-                Math.Clamp(shift.Offset.Y + step.Y, -_maxOffset, _maxOffset));
+            offset = new Vector2i(
+                Math.Clamp(offset.X + step.X, -_maxOffset, _maxOffset),
+                Math.Clamp(offset.Y + step.Y, -_maxOffset, _maxOffset));
         }
         else
         {
@@ -132,11 +183,15 @@ public sealed class WGPixelShiftSystem : EntitySystem
                 Direction.East => -TiltStep,
                 _ => 0,
             };
-            shift.Tilt = Math.Clamp(shift.Tilt + step, -_maxTilt, _maxTilt);
+            tilt = Math.Clamp(tilt + step, -_maxTilt, _maxTilt);
         }
 
+        if (offset == shift.Offset && tilt == shift.Tilt)
+            return;
+
+        shift.Offset = offset;
+        shift.Tilt = tilt;
         Dirty(uid, shift);
-        return true;
     }
 
     /// <summary>Clears the shift and tilt when the mob steps off, as long as it can walk.</summary>

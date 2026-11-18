@@ -6,6 +6,8 @@ using Content.Server.Cuffs;
 using Content.Shared._WG.PixelShift;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Rotation;
+using Content.Shared.Standing;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Shared.Configuration;
@@ -49,12 +51,11 @@ public sealed class PixelShiftTest : InteractionTest
         Assert.That(clientShift.Offset, Is.EqualTo(new Vector2i(3, 1)), "The client never got the shift.");
         await Client.WaitPost(() =>
         {
-            // The client may already have run its frame passes; start from the restored sprite either way.
-            CEntMan.System<WGPixelShiftRestoreSystem>().FrameUpdate(0f);
-            CEntMan.System<WGPixelShiftVisualsSystem>().FrameUpdate(0f);
-            var sprite = CEntMan.GetComponent<SpriteComponent>(CPlayer);
+            var sprite = Settle();
             Assert.That(sprite.Offset.X, Is.EqualTo(3f / EyeManager.PixelsPerMeter).Within(0.001f));
             Assert.That(sprite.Rotation.Degrees, Is.EqualTo(WGPixelShiftSystem.TiltStep).Within(0.001));
+            Assert.That(CEntMan.System<WGPixelShiftVisualsSystem>().UnshiftedOffset(CPlayer, sprite).X,
+                Is.EqualTo(0f).Within(0.001f), "Status icons would follow the shift.");
             CEntMan.System<WGPixelShiftRestoreSystem>().FrameUpdate(0f);
             Assert.That(sprite.Offset.X, Is.EqualTo(0f).Within(0.001f), "The restore pass left the shift on.");
         });
@@ -103,6 +104,57 @@ public sealed class PixelShiftTest : InteractionTest
         Assert.That(shift.Tilt, Is.Zero, "Walking left the tilt on.");
         Assert.That(CEntMan.GetComponent<WGPixelShiftComponent>(CPlayer).Offset, Is.EqualTo(Vector2i.Zero),
             "The client kept the shift.");
+    }
+
+    [Test]
+    public async Task HoldingAMoveKeyKeepsShifting()
+    {
+        await SetKey(WGPixelShiftKeys.WGPixelShift, BoundKeyState.Down);
+        await SetKey(EngineKeyFunctions.MoveRight, BoundKeyState.Down);
+        await RunSeconds(1f);
+        await SetKey(EngineKeyFunctions.MoveRight, BoundKeyState.Up);
+        await RunTicks(5);
+        var held = Offset().X;
+        await RunSeconds(0.5f);
+        await SetKey(WGPixelShiftKeys.WGPixelShift, BoundKeyState.Up);
+
+        Assert.That(held, Is.GreaterThanOrEqualTo(5), "Holding the move key nudged only once.");
+        Assert.That(Offset().X, Is.EqualTo(held), "The nudge kept repeating after the move key was let go.");
+    }
+
+    [Test]
+    public async Task LyingDownAndStandingKeepTheOrientation()
+    {
+        await SetKey(WGPixelShiftKeys.WGPixelTilt, BoundKeyState.Down);
+        await Tap(EngineKeyFunctions.MoveLeft, 2);
+        await SetKey(WGPixelShiftKeys.WGPixelTilt, BoundKeyState.Up);
+        await SetKey(WGPixelShiftKeys.WGPixelShift, BoundKeyState.Down);
+        await Tap(EngineKeyFunctions.MoveRight);
+        await SetKey(WGPixelShiftKeys.WGPixelShift, BoundKeyState.Up);
+
+        var standing = SEntMan.System<StandingStateSystem>();
+        await Server.WaitPost(() => Assert.That(standing.Down(SPlayer), Is.True));
+        await RunTicks(30);
+        await Client.WaitPost(() =>
+        {
+            var sprite = Settle();
+            var lying = CEntMan.GetComponent<RotationVisualsComponent>(CPlayer).HorizontalRotation;
+            Assert.That(sprite.Rotation.Degrees, Is.EqualTo(lying.Degrees).Within(0.001),
+                "The tilt stacked on the lying-down rotation.");
+            Assert.That(sprite.Offset.X, Is.EqualTo(1f / EyeManager.PixelsPerMeter).Within(0.001f),
+                "Lying down dropped the shift.");
+        });
+
+        await Server.WaitPost(() => Assert.That(standing.Stand(SPlayer, force: true), Is.True));
+        await RunTicks(30);
+        await Client.WaitPost(() =>
+        {
+            var sprite = Settle();
+            Assert.That(sprite.Rotation.Degrees, Is.EqualTo(2 * WGPixelShiftSystem.TiltStep).Within(0.001),
+                "Standing up didn't come back upright with the tilt.");
+            CEntMan.System<WGPixelShiftRestoreSystem>().FrameUpdate(0f);
+            Assert.That(sprite.Rotation.Degrees, Is.EqualTo(0).Within(0.001), "The restore pass left the tilt on.");
+        });
     }
 
     [Test]
@@ -205,6 +257,14 @@ public sealed class PixelShiftTest : InteractionTest
         await Tap(EngineKeyFunctions.MoveRight);
         Assert.That(Offset(), Is.EqualTo(new Vector2i(1, 0)), "A dead mob shifted its sprite.");
         await SetKey(WGPixelShiftKeys.WGPixelShift, BoundKeyState.Up);
+    }
+
+    /// <summary>Takes off whatever the client's frames applied, then lets the glide reach the set shift in one frame.</summary>
+    private SpriteComponent Settle()
+    {
+        CEntMan.System<WGPixelShiftRestoreSystem>().FrameUpdate(0f);
+        CEntMan.System<WGPixelShiftVisualsSystem>().FrameUpdate(1f);
+        return CEntMan.GetComponent<SpriteComponent>(CPlayer);
     }
 
     private Vector2i Offset()

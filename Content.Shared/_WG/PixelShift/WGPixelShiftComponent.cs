@@ -15,6 +15,14 @@ public sealed partial class WGPixelShiftComponent : Component
     [DataField, AutoNetworkedField]
     public int Tilt;
 
+    /// <summary>Client: the shift shown, in pixels, gliding toward <see cref="Offset"/>.</summary>
+    [ViewVariables]
+    public Vector2 ShownOffset;
+
+    /// <summary>Client: the tilt shown, in degrees, gliding toward <see cref="Tilt"/>.</summary>
+    [ViewVariables]
+    public float ShownTilt;
+
     /// <summary>Client: the shift added to the sprite this frame.</summary>
     [ViewVariables]
     public Vector2 AppliedOffset;
@@ -45,6 +53,14 @@ public sealed partial class WGPixelShiftHeldComponent : Component
     /// <summary>What movement keys do: the latest of the held keys.</summary>
     [ViewVariables]
     public WGPixelShiftMode Mode;
+
+    /// <summary>Movement keys pressed while a shift key is held and not yet let go; they repeat their nudge.</summary>
+    [ViewVariables]
+    public DirectionFlag Directions;
+
+    /// <summary>When the held movement keys next repeat their nudge.</summary>
+    [ViewVariables]
+    public TimeSpan NextRepeat;
 }
 
 public enum WGPixelShiftMode : byte
