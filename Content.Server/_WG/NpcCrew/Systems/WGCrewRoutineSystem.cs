@@ -58,7 +58,8 @@ public sealed partial class WGCrewRoutineSystem : EntitySystem
 
     /// <summary>
     /// Where a guard walks next: along his standing route, staying put with none, or else a deck post away from here.
-    /// A point another crewman stands on or is heading for is passed over, so guards don't crowd one spot.
+    /// A point another crewman stands on or is heading for is passed over while a free one is left, so guards don't
+    /// crowd one spot.
     /// </summary>
     public EntityCoordinates? NextPatrolPoint(EntityUid uid, EntityUid grid, TransformComponent xform)
     {
@@ -68,15 +69,21 @@ public sealed partial class WGCrewRoutineSystem : EntitySystem
             if (orders.Route.Count == 0)
                 return null;
 
+            orders.Next %= orders.Route.Count;
+            var start = orders.Next;
             for (var i = 0; i < orders.Route.Count; i++)
             {
-                orders.Next %= orders.Route.Count;
-                var point = orders.Route[orders.Next++];
-                if (!IsTaken(point, taken))
-                    return point;
+                var index = (start + i) % orders.Route.Count;
+                if (IsTaken(orders.Route[index], taken))
+                    continue;
+
+                orders.Next = index + 1;
+                return orders.Route[index];
             }
 
-            return null;
+            // Every point is held: the round still turns.
+            orders.Next = start + 1;
+            return orders.Route[start];
         }
 
         var posts = _planner.DeckPosts(grid)
