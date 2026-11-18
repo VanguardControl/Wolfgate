@@ -62,6 +62,9 @@ public sealed partial class WGCrewSystem : EntitySystem
     /// <summary>Blackboard key holding how close to the post counts as being there.</summary>
     public const string PostRangeKey = "WGCrewPostRange";
 
+    /// <summary>Blackboard key holding how far from the post a crewman strays before he walks back to it.</summary>
+    public const string PostLeaveRangeKey = "WGCrewPostLeaveRange";
+
     public override void Initialize()
     {
         base.Initialize();
@@ -503,6 +506,7 @@ public sealed partial class WGCrewSystem : EntitySystem
             _npc.SetBlackboard(uid, "NavShove", true, htn);
             _npc.SetBlackboard(uid, DutyKey, crew.Duty, htn);
             _npc.SetBlackboard(uid, PostRangeKey, crew.PostRange, htn);
+            _npc.SetBlackboard(uid, PostLeaveRangeKey, Math.Max(crew.PostLeaveRange, crew.PostRange), htn);
             if (crew.Post is { } post)
                 _npc.SetBlackboard(uid, PostKey, post, htn);
             else

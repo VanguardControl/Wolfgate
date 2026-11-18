@@ -94,6 +94,13 @@ public sealed partial class WGCrewComponent : Component
     [DataField]
     public float PostRange = 1.5f;
 
+    /// <summary>
+    /// How far from the post a crewman who has reached it must stray before he walks back: wider than
+    /// <see cref="PostRange"/>, so a nudge from a crewmate doesn't send him back and forth.
+    /// </summary>
+    [DataField]
+    public float PostLeaveRange = 2.5f;
+
     /// <summary>The ship whose allow list holds this crewman's card, so deleting him revokes it.</summary>
     [ViewVariables]
     public EntityUid? AccessShip;

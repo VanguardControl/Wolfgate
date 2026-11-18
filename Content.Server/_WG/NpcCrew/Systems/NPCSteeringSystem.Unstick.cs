@@ -1,0 +1,105 @@
+using System.Numerics;
+using Content.Server._WG.NpcCrew.Components;
+using Content.Server.NPC.Components;
+using Content.Shared.Mobs;
+using Content.Shared.Mobs.Components;
+using Content.Shared.NPC;
+using Content.Shared.Physics;
+using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
+
+namespace Content.Server.NPC.Systems;
+
+/// <summary>
+/// NPC crew who are stuck stop short of a goal someone already stands on, or step aside off the line they were
+/// stuck on, since repathing from the same spot returns the same route into the same body.
+/// </summary>
+public sealed partial class NPCSteeringSystem
+{
+    /// <summary>How near a goal counts as there when someone else is standing on it.</summary>
+    private const float CrewStopShort = 1.5f;
+
+    /// <summary>Sidesteps allowed in <see cref="CrewUnstickWindow"/> before the crewman gives up on the move.</summary>
+    private const int CrewUnstickLimit = 3;
+
+    private static readonly TimeSpan CrewUnstickWindow = TimeSpan.FromSeconds(10);
+
+    private readonly Dictionary<EntityUid, (TimeSpan Since, int Count)> _crewUnsticks = new();
+    private readonly HashSet<Entity<MobStateComponent>> _crewUnstickMobs = new();
+
+    /// <summary>Settles or sidesteps a stuck crewman; false leaves him to the usual repath and give-up.</summary>
+    private bool TryUnstickCrew(EntityUid uid, NPCSteeringComponent steering, TransformComponent xform, Vector2 direction,
+        float targetDistance)
+    {
+        if (steering.DirectMove || !HasComp<WGCrewComponent>(uid)
+            || HasComp<NPCMeleeCombatComponent>(uid) || HasComp<NPCRangedCombatComponent>(uid))
+            return false;
+
+        // A crewman already holding the spot: the goal is a post or patrol point, not the patient or quarry under him.
+        if (targetDistance <= steering.Range + CrewStopShort && IsMobAt(uid, steering.Coordinates, crewOnly: true))
+        {
+            steering.Status = SteeringStatus.InRange;
+            ResetStuck(steering, xform.Coordinates);
+            return true;
+        }
+
+        var now = _timing.CurTime;
+        if (_crewUnsticks.TryGetValue(uid, out var tries) && now - tries.Since < CrewUnstickWindow)
+        {
+            if (tries.Count >= CrewUnstickLimit)
+                return false;
+        }
+        else
+        {
+            tries = (now, 0);
+        }
+
+        if (xform.GridUid is not { } grid || !TryComp<MapGridComponent>(grid, out var gridComp)
+            || direction.LengthSquared() < 0.0001f)
+            return false;
+
+        // The direction is a world one; tiles are counted in the grid's own frame.
+        var ahead = Vector2.Normalize((-_transform.GetWorldRotation(grid)).RotateVec(direction));
+        var right = new Vector2(ahead.Y, -ahead.X);
+        var mine = _mapSystem.TileIndicesFor(grid, gridComp, xform.Coordinates);
+        foreach (var step in new[] { right, -right, right - ahead, -right - ahead, -ahead })
+        {
+            var offset = new Vector2i((int) MathF.Round(step.X), (int) MathF.Round(step.Y));
+            if (offset == Vector2i.Zero)
+                continue;
+
+            var tile = mine + offset;
+            if (!_mapSystem.TryGetTileRef(grid, gridComp, tile, out var turf) || turf.Tile.IsEmpty
+                || _crewTurf.IsTileBlocked(grid, tile, CollisionGroup.MobMask, gridComp))
+                continue;
+
+            var centre = _mapSystem.GridTileToLocal(grid, gridComp, tile);
+            if (IsMobAt(uid, centre) || _pathfindingSystem.GetPoly(centre) is not { } poly)
+                continue;
+
+            steering.CurrentPath.Clear();
+            steering.CurrentPath.Enqueue(poly);
+            ResetStuck(steering, xform.Coordinates);
+            if (_crewUnsticks.Count > 256)
+                _crewUnsticks.Clear();
+            _crewUnsticks[uid] = (tries.Since, tries.Count + 1);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>Whether another mob stands at a spot; with <paramref name="crewOnly"/>, a crewman on his feet.</summary>
+    private bool IsMobAt(EntityUid uid, EntityCoordinates coordinates, bool crewOnly = false)
+    {
+        _crewUnstickMobs.Clear();
+        _lookup.GetEntitiesInRange(coordinates, 0.6f, _crewUnstickMobs);
+        foreach (var mob in _crewUnstickMobs)
+        {
+            if (mob.Owner != uid && (!crewOnly || HasComp<WGCrewComponent>(mob) && mob.Comp.CurrentState == MobState.Alive))
+                return true;
+        }
+
+        return false;
+    }
+}
