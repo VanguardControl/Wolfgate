@@ -48,7 +48,7 @@ public sealed class ScreentipTest : InteractionTest
         }
         finally
         {
-            await Client.WaitPost(() => cfg.SetCVar(ScreentipCVars.Mode, (int) ScreentipMode.Off));
+            await Client.WaitPost(() => cfg.SetCVar(ScreentipCVars.Mode, ScreentipCVars.Mode.DefaultValue));
         }
     }
 }

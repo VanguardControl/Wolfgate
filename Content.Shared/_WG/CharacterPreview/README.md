@@ -3,7 +3,7 @@
 Comforts for the character editor's preview:
 
 - drag across the preview to turn the character, one quarter turn per 48 UI units, the same direction as the ◀/▶
-  buttons;
+  buttons. The frame holds mouse focus while the button is down, so the drag carries on past the box until release;
 - scroll over it to zoom from 1× to 3×, clipped to the box so a zoomed or wide sprite can't stretch the pane;
 - a "Floor:" button under the rotate buttons cycles a floor tile behind the character (none, steel, white, dark,
   plating, wood, linoleum, cafeteria, grass). The choice is saved in `wg.preview_background`.

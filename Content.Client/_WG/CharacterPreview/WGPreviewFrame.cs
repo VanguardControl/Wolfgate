@@ -106,19 +106,25 @@ public sealed class WGPreviewFrame : Control
         _dragging = true;
         _dragAccumulated = 0;
         _lastMouseX = args.RelativePosition.X;
+        // Hold mouse focus so the drag keeps getting moves after the cursor leaves the box.
+        UserInterfaceManager.ControlFocused = this;
         args.Handle();
     }
 
     protected override void KeyBindUp(GUIBoundKeyEventArgs args)
     {
         base.KeyBindUp(args);
-        if (args.Function == EngineKeyFunctions.UIClick)
-            _dragging = false;
+        if (args.Function != EngineKeyFunctions.UIClick)
+            return;
+
+        _dragging = false;
+        if (UserInterfaceManager.ControlFocused == this)
+            UserInterfaceManager.ControlFocused = null;
     }
 
-    protected override void MouseExited()
+    protected override void ControlFocusExited()
     {
-        base.MouseExited();
+        base.ControlFocusExited();
         _dragging = false;
     }
 

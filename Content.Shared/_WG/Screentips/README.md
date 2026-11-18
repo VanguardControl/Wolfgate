@@ -1,7 +1,7 @@
 # Screentips
 
 The name of whatever is under the cursor in the game view, as in SS13. It is set in Game Options > Misc > Cursor:
-"Show the name of what's under the cursor" can be off (the default), at the top of the view, or next to the cursor,
+"Show the name of what's under the cursor" can be off, at the top of the view, or next to the cursor (the default),
 and there's a text colour slider (`wg.screentips`, `wg.screentip_color`). The name respects identity, so a masked
 person shows as they would on examine.
 
