@@ -533,8 +533,12 @@ public sealed partial class WGCrewSystem : EntitySystem
             _npc.SetBlackboard(uid, "NavShove", true, htn);
             _npc.SetBlackboard(uid, DutyKey, crew.Duty, htn);
             _npc.SetBlackboard(uid, PostRangeKey, crew.PostRange, htn);
-            if (crew.Post is { } post)
-                SetPost(uid, crew, htn, post);
+            // The same post again (an engagement change re-applies it) keeps whether he has reached it.
+            if (crew.Post is { } post && crew.PostReached
+                && htn.Blackboard.TryGetValue<EntityCoordinates>(PostKey, out var current, EntityManager) && current.Equals(post))
+                _npc.SetBlackboard(uid, PostLeaveRangeKey, Math.Max(crew.PostLeaveRange, crew.PostRange), htn);
+            else if (crew.Post is { } newPost)
+                SetPost(uid, crew, htn, newPost);
             else
                 htn.Blackboard.Remove<EntityCoordinates>(PostKey);
 

@@ -126,6 +126,12 @@ public sealed partial class NPCSteeringSystem
         _crewSidesteps[uid] = waypoint;
     }
 
+    /// <summary>Drops a crewman's sidestep waypoint (for tests, which leave the table as they found it).</summary>
+    internal void ForgetCrewSidestep(EntityUid uid)
+    {
+        _crewSidesteps.Remove(uid);
+    }
+
     /// <summary>Whether a crewman's sidestep waypoint is still kept (for tests).</summary>
     internal bool HasCrewSidestep(EntityUid uid)
     {
@@ -144,7 +150,9 @@ public sealed partial class NPCSteeringSystem
         if (!_crewSidesteps.TryGetValue(uid, out var poly))
             return false;
 
-        if (steering.CurrentPath.Count > 0 && steering.CurrentPath.Peek() == poly)
+        // A fight takes over his steering: the waypoint no longer holds his path back.
+        if (steering.CurrentPath.Count > 0 && steering.CurrentPath.Peek() == poly
+            && !HasComp<NPCRangedCombatComponent>(uid) && !HasComp<NPCMeleeCombatComponent>(uid))
             return true;
 
         _crewSidesteps.Remove(uid);

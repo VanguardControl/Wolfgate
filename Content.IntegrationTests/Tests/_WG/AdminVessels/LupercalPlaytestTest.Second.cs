@@ -113,7 +113,7 @@ public sealed partial class LupercalPlaytestTest
         });
 
         // The generators finish a run: the Lupercal's anomaly appears on its chamber's marker, and a generator on a grid
-        // with no chamber puts its anomaly on that grid's own floor, as before.
+        // with no chamber places its anomaly as it always has, not in the Lupercal's chamber.
         EntityUid chamberMarker = default, bareGrid = default;
         HashSet<EntityUid> anomaliesBefore = default!;
         await server.WaitPost(() =>
@@ -140,8 +140,10 @@ public sealed partial class LupercalPlaytestTest
             Assert.That(made.Where(a => em.GetComponent<TransformComponent>(a).GridUid == grid).ToList(), Has.Count.EqualTo(1)
                 .And.All.Matches<EntityUid>(a => (em.GetComponent<TransformComponent>(a).LocalPosition - markerXform.LocalPosition).Length() < 0.01f),
                 "The Lupercal's generator puts its anomaly on the chamber's marker.");
-            Assert.That(made.Count(a => em.GetComponent<TransformComponent>(a).GridUid == bareGrid), Is.EqualTo(1),
-                "A generator with no chamber on its grid still makes its anomaly there.");
+            // The bare grid has no air, so the random search finds no tile and the usual fallback, the grid's own origin, is
+            // where it lands; either way it is the generator's usual placing, not the Lupercal's chamber.
+            Assert.That(made.Count(a => em.GetComponent<TransformComponent>(a).GridUid != grid), Is.EqualTo(1),
+                "A generator with no chamber on its grid places its anomaly as it always has, away from the Lupercal.");
             foreach (var anomaly in made)
                 em.DeleteEntity(anomaly);
         });

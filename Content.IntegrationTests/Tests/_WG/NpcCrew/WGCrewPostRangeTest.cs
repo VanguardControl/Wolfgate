@@ -13,7 +13,8 @@ namespace Content.IntegrationTests.Tests._WG.NpcCrew;
 
 /// <summary>
 /// A crewman walks to a new post from anywhere past his arrival range, and only once he has reached it does the wider
-/// leave range keep a crewmate's nudge from sending him back; a new patrol point starts over.
+/// leave range keep a crewmate's nudge from sending him back, also when his orders are re-applied; a new patrol point
+/// starts over.
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WGCrewSystem))]
@@ -46,6 +47,7 @@ public sealed class WGCrewPostRangeTest
 
             // A post two tiles off: past the arrival range, inside the leave range. He must still walk there.
             var post = new EntityCoordinates(map.Grid.Owner, new Vector2(2.5f, 0.5f));
+            crew.Post = post;
             crewSystem.SetPost(crewman, crew, htn, post);
             Assert.That(crew.PostReached, Is.False);
             Assert.That(LeaveRange(), Is.EqualTo(crew.PostRange), "Until he arrives, the arrival range decides.");
@@ -57,6 +59,13 @@ public sealed class WGCrewPostRangeTest
             crewSystem.MarkPostReached(crewman, crew, htn, xform);
             Assert.That(crew.PostReached, Is.True);
             Assert.That(LeaveRange(), Is.EqualTo(crew.PostLeaveRange), "Once there, a nudge doesn't send him back.");
+
+            // Nudged two tiles off, then his orders re-applied with the same post (an engagement change): he keeps
+            // having arrived, so the nudge still doesn't send him back.
+            transform.SetCoordinates(crewman, new EntityCoordinates(map.Grid.Owner, new Vector2(0.5f, 0.5f)));
+            crewSystem.SetEngagement((crewman, crew), WGCrewEngagement.WhenAttacked);
+            Assert.That(crew.PostReached, Is.True, "Re-applying the same post keeps his arrival.");
+            Assert.That(LeaveRange(), Is.EqualTo(crew.PostLeaveRange));
 
             // A new patrol point starts over with the arrival range.
             crewSystem.SetPost(crewman, crew, htn, new EntityCoordinates(map.Grid.Owner, new Vector2(4.5f, 0.5f)));

@@ -69,7 +69,8 @@ public sealed class WGCrewSidestepPruneTest
                 stale.Add(uid);
             }
 
-            Assert.That(steering.CrewSidestepCount, Is.EqualTo(65), "Precondition: past the 64 that start a prune.");
+            // (A pooled server may hold entries from earlier tests: the checks look only at this test's own.)
+            Assert.That(steering.CrewSidestepCount, Is.GreaterThan(64), "Precondition: past the 64 that start a prune.");
             steering.PruneCrewUnsticks(now);
 
             using var scope = Assert.EnterMultipleScope();
@@ -77,13 +78,19 @@ public sealed class WGCrewSidestepPruneTest
                 Assert.That(steering.HasCrewSidestep(uid), Is.True, "A crewman still heading for his waypoint keeps it.");
             foreach (var uid in stale)
                 Assert.That(steering.HasCrewSidestep(uid), Is.False, "A stale waypoint is dropped.");
-            Assert.That(steering.CrewSidestepCount, Is.EqualTo(active.Count));
 
-            // Below the threshold nothing is pruned: stale entries wait for the table to grow or their owner's next look.
+            // Below the threshold (only live waypoints are left) nothing is pruned: stale entries wait for the table to
+            // grow or their owner's next look.
+            Assert.That(steering.CrewSidestepCount, Is.LessThanOrEqualTo(64));
             var lone = Walker();
             steering.TrackCrewSidestep(lone, Waypoint(200));
             steering.PruneCrewUnsticks(now);
             Assert.That(steering.HasCrewSidestep(lone), Is.True);
+
+            // Leave the table as it was found.
+            foreach (var uid in active)
+                steering.ForgetCrewSidestep(uid);
+            steering.ForgetCrewSidestep(lone);
         });
 
         await pair.CleanReturnAsync();
