@@ -165,8 +165,11 @@ public sealed class WGObserverPresenceTab : BoxContainer
 
         _presets.OnItemSelected += args =>
         {
-            _selected = _presets[args.ItemIndex].Metadata as string;
-            RefreshEditor();
+            // Redrawing the list selects the same item again; only picking another one reloads the text fields.
+            var picked = _presets[args.ItemIndex].Metadata as string;
+            var switched = picked != _selected;
+            _selected = picked;
+            RefreshEditor(switched);
         };
         _edit.OnToggled += _ => RefreshEditor();
         _makeDefault.OnPressed += _ =>
@@ -235,8 +238,9 @@ public sealed class WGObserverPresenceTab : BoxContainer
                 ConfirmText = Loc.GetString("wg-observer-preset-pick-outfit-confirm"),
             };
 
-            // A chosen outfit replaces one dressed by hand.
-            menu.OnPicked += gear => Change(p =>
+            // A chosen outfit replaces one dressed by hand, on the preset the menu was opened for.
+            var target = _selected;
+            menu.OnPicked += gear => Change(target, p =>
             {
                 p.Outfit = gear;
                 p.OutfitLayout = null;
@@ -340,7 +344,13 @@ public sealed class WGObserverPresenceTab : BoxContainer
     /// <summary>Sends the selected preset with one thing changed. The server's answer redraws the tab.</summary>
     private void Change(Action<WGAvatarPreset> change)
     {
-        if (Selected() is not { } preset)
+        Change(_selected, change);
+    }
+
+    /// <summary>Sends a preset with one thing changed. The server's answer redraws the tab.</summary>
+    private void Change(string? name, Action<WGAvatarPreset> change)
+    {
+        if (name == null || _data.Data?.Presets.FirstOrDefault(p => p.Name == name) is not { } preset)
             return;
 
         var copy = new WGAvatarPreset
@@ -366,22 +376,26 @@ public sealed class WGObserverPresenceTab : BoxContainer
             return;
         }
 
-        // The server names a preset after what players will see, so follow the name it is about to take.
+        // The server names a preset after what players will see where that name is free, so a selected preset
+        // follows the name it is about to take, by the server's rules.
         var original = preset.Name;
-        if (copy.DisplayName.Length > 0 && _data.Data!.Presets.All(p => p == preset || p.Name != copy.DisplayName))
-            _selected = copy.DisplayName.Length > WGAdminObserverData.MaxNameLength ? copy.DisplayName[..WGAdminObserverData.MaxNameLength] : copy.DisplayName;
+        var shown = WGAdminObserverData.PresetName(copy.DisplayName);
+        if (_selected == original && shown.Length > 0 && _data.Data!.Presets.All(p => p == preset || p.Name != shown))
+            _selected = shown;
 
         _panel.SavePreset(original, copy);
     }
 
     private void PickPrototype()
     {
+        // The pick goes to the preset the picker was opened for, whatever is selected by then.
+        var target = _selected;
+        var kind = _pendingKind;
         var picker = new WGAvatarPickerWindow();
         picker.OnPicked += id =>
         {
-            var kind = _pendingKind;
             _pendingKind = null;
-            Change(p =>
+            Change(target, p =>
             {
                 p.Prototype = id;
                 if (kind != null)
@@ -490,7 +504,11 @@ public sealed class WGObserverPresenceTab : BoxContainer
         }
     }
 
-    private void RefreshEditor()
+    /// <summary>
+    /// Fills the editor from the selected preset. A text field being typed in keeps its text, unless
+    /// <paramref name="reloadText"/> says another preset was picked.
+    /// </summary>
+    private void RefreshEditor(bool reloadText = false)
     {
         var preset = Selected();
         _edit.Disabled = _makeDefault.Disabled = _delete.Disabled = preset == null;
@@ -499,8 +517,10 @@ public sealed class WGObserverPresenceTab : BoxContainer
             return;
 
         _kind.SelectId((int) (_pendingKind ?? preset.Kind));
-        _name.Text = preset.DisplayName;
-        _description.Text = preset.Description;
+        if (reloadText || !_name.HasKeyboardFocus())
+            _name.Text = preset.DisplayName;
+        if (reloadText || !_description.HasKeyboardFocus())
+            _description.Text = preset.Description;
         _entry.SelectId((int) preset.EntryStyle);
 
         var thing = preset.Kind is WGAvatarKind.Object or WGAvatarKind.Mob;

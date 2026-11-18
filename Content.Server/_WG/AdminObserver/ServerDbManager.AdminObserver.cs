@@ -1,7 +1,9 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Content.Server._WG.ProfileSaves;
 using Microsoft.EntityFrameworkCore;
+using Robust.Shared.Network;
 
 namespace Content.Server.Database;
 
@@ -16,6 +18,9 @@ public partial interface IServerDbManager
 
 public sealed partial class ServerDbManager
 {
+    /// <summary>Keeps one admin's observer writes in order, so an older document never lands after a newer one.</summary>
+    private readonly WGUserWriteQueue _wgObserverWrites = new();
+
     public Task<string?> GetAdminObserverDataAsync(Guid userId, CancellationToken cancel = default)
     {
         DbReadOpsMetric.Inc();
@@ -25,7 +30,7 @@ public sealed partial class ServerDbManager
     public Task SaveAdminObserverDataAsync(Guid userId, string data, CancellationToken cancel = default)
     {
         DbWriteOpsMetric.Inc();
-        return RunDbCommand(() => _db.SaveAdminObserverDataAsync(userId, data, cancel));
+        return _wgObserverWrites.Run(new NetUserId(userId), () => RunDbCommand(() => _db.SaveAdminObserverDataAsync(userId, data, cancel)));
     }
 }
 

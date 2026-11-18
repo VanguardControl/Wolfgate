@@ -29,6 +29,9 @@ public sealed partial class WGAdminObserverStore : EntitySystem
     /// <summary>How long after the last change a document is written.</summary>
     public static readonly TimeSpan SaveDelay = TimeSpan.FromSeconds(2);
 
+    /// <summary>How long after a failed write it is tried again.</summary>
+    public static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(30);
+
     /// <summary>Raised when an admin's document has come into memory.</summary>
     public event Action<ICommonSession>? Loaded;
 
@@ -109,11 +112,11 @@ public sealed partial class WGAdminObserverStore : EntitySystem
         return true;
     }
 
-    /// <summary>Writes a document now if a save is waiting.</summary>
-    public Task FlushAsync(NetUserId user)
+    /// <summary>Writes a document now if a save is waiting. False when the write failed; it is then tried again later.</summary>
+    public Task<bool> FlushAsync(NetUserId user)
     {
         if (!_pending.Remove(user, out var cancel))
-            return Task.CompletedTask;
+            return Task.FromResult(true);
 
         cancel.Cancel();
         return SaveAsync(user);
@@ -136,6 +139,7 @@ public sealed partial class WGAdminObserverStore : EntitySystem
             return;
 
         string? json = null;
+        var failed = false;
         try
         {
             json = await _db.GetAdminObserverDataAsync(user.UserId);
@@ -143,13 +147,15 @@ public sealed partial class WGAdminObserverStore : EntitySystem
         catch (Exception e)
         {
             Log.Error($"Could not load the admin observer document of {session.Name}: {e}");
+            failed = true;
         }
         finally
         {
             _loading.Remove(user);
         }
 
-        if (session.Status == SessionStatus.Disconnected || _data.ContainsKey(user))
+        // A failed read stays unloaded, so a new document never overwrites the saved one; the next request reads again.
+        if (failed || session.Status == SessionStatus.Disconnected || _data.ContainsKey(user))
             return;
 
         var data = json == null ? null : WGAdminObserverSerializer.Deserialize(json);
@@ -202,32 +208,38 @@ public sealed partial class WGAdminObserverStore : EntitySystem
         RaiseNetworkEvent(new WGAdminObserverDataEvent { Data = Get(session) }, session);
     }
 
-    private void ScheduleSave(NetUserId user)
+    private void ScheduleSave(NetUserId user, TimeSpan? delay = null)
     {
         if (_pending.Remove(user, out var old))
             old.Cancel();
 
         var cancel = new CancellationTokenSource();
         _pending[user] = cancel;
-        Timer.Spawn(SaveDelay, () =>
+        Timer.Spawn(delay ?? SaveDelay, () =>
         {
             if (_pending.TryGetValue(user, out var current) && current == cancel)
-                _ = FlushAsync(user);
+                _ = SettleAsync(user);
         }, cancel.Token);
     }
 
-    private async Task SaveAsync(NetUserId user)
+    /// <summary>Writes a document. False when the write failed; it is then pending again, unless a newer save is.</summary>
+    private async Task<bool> SaveAsync(NetUserId user)
     {
         if (!_data.TryGetValue(user, out var data) || !WGAdminObserverSerializer.TrySerialize(data, out var json))
-            return;
+            return true;
 
         try
         {
             await _db.SaveAdminObserverDataAsync(user.UserId, json);
+            return true;
         }
         catch (Exception e)
         {
             Log.Error($"Could not save the admin observer document of {user}: {e}");
+            if (!_pending.ContainsKey(user) && _data.ContainsKey(user))
+                ScheduleSave(user, RetryDelay);
+
+            return false;
         }
     }
 
@@ -246,16 +258,9 @@ public sealed partial class WGAdminObserverStore : EntitySystem
             case SessionStatus.Disconnected:
                 // A frame later, so the observer the player is leaving can still save its kit.
                 var user = args.Session.UserId;
-                Timer.Spawn(TimeSpan.Zero, () => _ = UnloadAsync(user));
+                Timer.Spawn(TimeSpan.Zero, () => _ = SettleAsync(user));
                 break;
         }
-    }
-
-    private async Task UnloadAsync(NetUserId user)
-    {
-        await FlushAsync(user);
-        if (!_players.TryGetSessionById(user, out var session) || session.Status == SessionStatus.Disconnected)
-            _data.Remove(user);
     }
 
     private void OnPermsChanged(AdminPermsChangedEventArgs args)
@@ -267,14 +272,23 @@ public sealed partial class WGAdminObserverStore : EntitySystem
         }
 
         RaiseNetworkEvent(new WGAdminObserverDataEvent(), args.Player);
-        _ = DropAsync(args.Player);
+        _ = SettleAsync(args.Player.UserId);
     }
 
-    /// <summary>Writes and forgets the document of a player who lost the flag.</summary>
-    private async Task DropAsync(ICommonSession session)
+    /// <summary>
+    /// Writes a waiting save, then forgets the document if its admin has left or lost the flag. A document whose
+    /// write failed, or that changed meanwhile, stays until a later save succeeds.
+    /// </summary>
+    private async Task SettleAsync(NetUserId user)
     {
-        await FlushAsync(session.UserId);
-        if (!IsAllowed(session))
-            _data.Remove(session.UserId);
+        if (!await FlushAsync(user) || _pending.ContainsKey(user))
+            return;
+
+        if (!_players.TryGetSessionById(user, out var session)
+            || session.Status == SessionStatus.Disconnected
+            || !IsAllowed(session))
+        {
+            _data.Remove(user);
+        }
     }
 }

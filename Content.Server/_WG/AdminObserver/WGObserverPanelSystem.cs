@@ -88,10 +88,7 @@ public sealed partial class WGObserverPanelSystem : EntitySystem
 
         bool Taken(string name) => data.Presets.Any(p => p != existing && p.Name == name);
 
-        var shown = preset.DisplayName.Trim();
-        if (shown.Length > WGAdminObserverData.MaxNameLength)
-            shown = shown[..WGAdminObserverData.MaxNameLength];
-
+        var shown = WGAdminObserverData.PresetName(preset.DisplayName);
         if (shown.Length > 0 && !Taken(shown))
         {
             preset.Name = shown;

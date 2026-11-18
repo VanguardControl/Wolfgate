@@ -79,8 +79,18 @@ public sealed partial class WGAvatarBodySystem : EntitySystem
         var built = Built(preset, profile);
         if (observer.Comp.AvatarBody is { } old && !TerminatingOrDeleted(old))
         {
-            if (TryComp<WGAvatarBodyComponent>(old, out var carried) && carried.Built == built)
+            // An edited character is rebuilt; a bank balance moving changes nothing drawn.
+            if (TryComp<WGAvatarBodyComponent>(old, out var carried)
+                && carried.Built == built
+                && carried.Profile is { } was
+                && was.WithBankBalance(profile.BankBalance).MemberwiseEquals(profile))
+            {
                 return old;
+            }
+
+            // An observer shown as this body hides first, rather than be left drawn as nothing.
+            if (TryComp<WGManifestedComponent>(observer.Owner, out var manifested) && manifested.Body == old)
+                _manifest.Unmanifest(observer.Owner, effects: false);
 
             Del(old);
         }
@@ -98,6 +108,7 @@ public sealed partial class WGAvatarBodySystem : EntitySystem
         var comp = EnsureComp<WGAvatarBodyComponent>(body);
         comp.Observer = observer;
         comp.Built = built;
+        comp.Profile = profile;
         _godmode.EnableGodmode(body);
 
         var worn = _inventory.GetSlotEnumerator(body);

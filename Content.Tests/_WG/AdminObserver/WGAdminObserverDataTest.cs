@@ -187,6 +187,19 @@ public sealed class WGAdminObserverDataTest
         Assert.That(WGAdminObserverSerializer.TrySerialize(Clean(data), out _), Is.False);
     }
 
+    [Test]
+    public void PresetNameIsTrimmedAndCut()
+    {
+        var max = WGAdminObserverData.MaxNameLength;
+        var cut = new string('a', max - 1) + " b";
+        Assert.Multiple(() =>
+        {
+            Assert.That(WGAdminObserverData.PresetName("  Dog  "), Is.EqualTo("Dog"));
+            Assert.That(WGAdminObserverData.PresetName(new string('a', max + 5)), Is.EqualTo(new string('a', max)));
+            Assert.That(WGAdminObserverData.PresetName(cut), Is.EqualTo(new string('a', max - 1)), "A cut that ends in a space is trimmed again.");
+        });
+    }
+
     private static int Count(WGKitLayout layout)
     {
         return layout.Slots.Values.Concat(layout.Hands.Values).Sum(Count);

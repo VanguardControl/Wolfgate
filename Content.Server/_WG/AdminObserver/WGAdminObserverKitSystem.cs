@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Server.Administration;
 using Content.Server.Administration.Managers;
 using Content.Server.Station.Systems;
 using Content.Shared._WG.AdminObserver;
@@ -46,12 +47,29 @@ public sealed partial class WGAdminObserverKitSystem : EntitySystem
         SubscribeLocalEvent<WGAdminObserverComponent, EntityTerminatingEvent>(OnTerminating);
         SubscribeNetworkEvent<WGAdminKitSaveRequestEvent>(OnSaveRequest);
         _store.Loaded += OnStoreLoaded;
+        _admin.OnPermsChanged += OnPermsChanged;
     }
 
     public override void Shutdown()
     {
         base.Shutdown();
         _store.Loaded -= OnStoreLoaded;
+        _admin.OnPermsChanged -= OnPermsChanged;
+    }
+
+    /// <summary>
+    /// Keeps <see cref="WGAdminObserverComponent.SavesAnything"/> in step with the owner's Spawn flag, so an observer
+    /// left after losing it saves only the catalogue.
+    /// </summary>
+    private void OnPermsChanged(AdminPermsChangedEventArgs args)
+    {
+        var spawn = _admin.HasAdminFlag(args.Player, AdminFlags.Spawn);
+        var query = EntityQueryEnumerator<WGAdminObserverComponent>();
+        while (query.MoveNext(out _, out var comp))
+        {
+            if (comp.Owner == args.Player.UserId)
+                comp.SavesAnything = spawn;
+        }
     }
 
     private void OnPlayerAttached(Entity<WGAdminObserverComponent> ent, ref PlayerAttachedEvent args)
