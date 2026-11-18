@@ -1,4 +1,6 @@
 #nullable enable
+using Content.Client._Scp.Shaders.Bloom;
+using Content.Client._WG.DisplayOptions;
 using Content.Client.Options.UI;
 using Content.Client.Options.UI.Tabs;
 using Content.IntegrationTests.Tests._WG.EngineCompat;
@@ -10,6 +12,7 @@ using Content.Shared._WG.HideTyping;
 using Content.Shared._WG.Notifications;
 using Content.Shared._WG.SpeechBubbles;
 using Content.Shared.CCVar;
+using Robust.Client.Graphics;
 using Robust.Shared.Configuration;
 
 namespace Content.IntegrationTests.Tests._WG.DisplayOptions;
@@ -77,6 +80,47 @@ public sealed class DisplayOptionsTabTest
                 menu.Teardown();
             }
         });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// The bloom toggle puts up the Wolfgate bloom overlay with the chosen strength, and never the SCP lamp overlays.
+    /// </summary>
+    [Test]
+    public async Task BloomToggleUsesWolfgateOverlay()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var client = pair.Client;
+        var config = client.ResolveDependency<IConfigurationManager>();
+        var overlays = client.ResolveDependency<IOverlayManager>();
+
+        try
+        {
+            await client.WaitPost(() =>
+            {
+                config.SetCVar(ScpCCVars.LightBloomStrength, 0.5f);
+                config.SetCVar(ScpCCVars.LightBloomEnable, true);
+            });
+            await client.WaitAssertion(() =>
+            {
+                Assert.That(overlays.TryGetOverlay<WGBloomOverlay>(out var bloom), Is.True);
+                Assert.That(bloom!.Strength, Is.EqualTo(0.5f));
+                Assert.That(overlays.HasOverlay<PointLightingOverlay>(), Is.False);
+                Assert.That(overlays.HasOverlay<ConeLightingOverlay>(), Is.False);
+            });
+
+            await client.WaitPost(() => config.SetCVar(ScpCCVars.LightBloomEnable, false));
+            await client.WaitAssertion(() => Assert.That(overlays.HasOverlay<WGBloomOverlay>(), Is.False));
+        }
+        finally
+        {
+            await client.WaitPost(() =>
+            {
+                config.SetCVar(ScpCCVars.LightBloomEnable, ScpCCVars.LightBloomEnable.DefaultValue);
+                config.SetCVar(ScpCCVars.LightBloomStrength, ScpCCVars.LightBloomStrength.DefaultValue);
+            });
+        }
 
         await pair.CleanReturnAsync();
     }
