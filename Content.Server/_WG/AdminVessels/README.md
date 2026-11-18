@@ -87,8 +87,8 @@ thruster and gyroscope Lupercal ids, so a mapchecker run needn't whitelist debug
 - [`Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalBerthJobTest.cs`](../../../Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalBerthJobTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalContentTest.cs`](../../../Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalContentTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalFlightTest.cs`](../../../Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalFlightTest.cs)
-- [`Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalPlaytest2Test.cs`](../../../Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalPlaytest2Test.cs)
 - [`Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalPlaytestTest.cs`](../../../Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalPlaytestTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalPlaytestTest.Second.cs`](../../../Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalPlaytestTest.Second.cs)
 
 ### Prototypes
 

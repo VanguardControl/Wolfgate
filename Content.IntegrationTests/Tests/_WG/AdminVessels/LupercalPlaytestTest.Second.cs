@@ -13,18 +13,20 @@ using Content.Server.Salvage.Magnet;
 using Content.Server.Station.Systems;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WG.ShipCommand;
+using Content.IntegrationTests.Pair;
 using Content.Shared.Doors.Components;
+using Content.Shared.Mobs.Systems;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Maths;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
+using Robust.UnitTesting.Pool;
 
 namespace Content.IntegrationTests.Tests._WG.AdminVessels;
 
-/// <summary>The fixes from the Lupercal's second playtest (v0.30), on a freshly spawned ship.</summary>
-[TestFixture]
-public sealed class LupercalPlaytest2Test
+/// <summary>The fixes from the Lupercal's second playtest (v0.30), checked on the first fixture's ship.</summary>
+public sealed partial class LupercalPlaytestTest
 {
     [TestPrototypes]
     private const string Prototypes = @"
@@ -36,24 +38,12 @@ public sealed class LupercalPlaytest2Test
     spawnerPrototype: AnomalyIce
 ";
 
-    [Test]
-    public async Task SecondPlaytestFixes()
+    private static async Task SecondPlaytest(TestPair pair, TestMapData map, EntityUid grid)
     {
-        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
         var server = pair.Server;
         var em = server.EntMan;
-        var protos = server.ResolveDependency<IPrototypeManager>();
-        var map = await pair.CreateTestMap();
-        EntityUid grid = default;
-
-        await server.WaitPost(() =>
-        {
-            var vessel = protos.Index<VesselPrototype>("WGLupercal");
-            Assert.That(server.System<AdminVesselSpawnSystem>().TrySpawnVessel(vessel, map.MapId, new Vector2(120, 0), null, out var spawned, createStation: true), Is.True);
-            grid = spawned!.Value;
-        });
-        // Long enough for every door's auto-close and the crew's first rounds.
-        await pair.RunTicksSync(300);
+        // Ten seconds in all since the spawn: long enough for every door's auto-close and the crew's first rounds.
+        await pair.RunTicksSync(240);
 
         await server.WaitAssertion(() =>
         {
@@ -110,7 +100,8 @@ public sealed class LupercalPlaytest2Test
             // The counter traders are the ship's own: the crew let them be in the locked-down docks.
             var command = server.System<WGShipCommandSystem>();
             var roster = em.GetComponent<WGShipRosterComponent>(grid);
-            var marine = roster.Slots.Values.First(s => s.Role.Id == "WGCrewMarine" && s.Occupant != null).Occupant!.Value;
+            var mobs = server.System<MobStateSystem>();
+            var marine = roster.Slots.Values.First(s => s.Role.Id == "WGCrewMarine" && s.Occupant is { } o && mobs.IsAlive(o)).Occupant!.Value;
             var shipCommand = (grid, em.GetComponent<WGShipCommandComponent>(grid));
             foreach (var counter in roster.Slots.Values.Where(s => s.Kind == WGShipRosterKind.Counter && s.Occupant != null))
                 Assert.That(command.Welcome(shipCommand, marine, counter.Occupant!.Value, out _), Is.True, $"{counter.What} is welcome at its counter.");
@@ -168,33 +159,6 @@ public sealed class LupercalPlaytest2Test
             em.DeleteEntity(patient);
         });
 
-        await pair.CleanReturnAsync();
-    }
-
-    private static List<Entity<T>> OnGrid<T>(IEntityManager em, EntityUid grid) where T : IComponent
-    {
-        var found = new List<Entity<T>>();
-        var query = em.EntityQueryEnumerator<T, TransformComponent>();
-        while (query.MoveNext(out var uid, out var comp, out var xform))
-        {
-            if (xform.GridUid == grid)
-                found.Add((uid, comp));
-        }
-
-        return found;
-    }
-
-    private static List<EntityUid> OfProto(IEntityManager em, EntityUid grid, string proto)
-    {
-        var found = new List<EntityUid>();
-        var query = em.EntityQueryEnumerator<MetaDataComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out var meta, out var xform))
-        {
-            if (xform.GridUid == grid && meta.EntityPrototype?.ID == proto)
-                found.Add(uid);
-        }
-
-        return found;
     }
 
     private static List<EntityUid> Anomalies(IEntityManager em)
@@ -206,6 +170,4 @@ public sealed class LupercalPlaytest2Test
 
         return found;
     }
-
-    private static string? Proto(IEntityManager em, EntityUid uid) => em.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID;
 }
