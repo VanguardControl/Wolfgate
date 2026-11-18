@@ -56,6 +56,9 @@ public sealed class WGJudgeLineUiState : BoundUserInterfaceState
 
     /// <summary>The latest line from the responder.</summary>
     public string? Status;
+
+    /// <summary>Whether the responder is out of FTL but not yet with the caller.</summary>
+    public bool Inbound;
 }
 
 /// <summary>Places a call of a kind from the Judge Line app.</summary>

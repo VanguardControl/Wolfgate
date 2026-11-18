@@ -18,6 +18,7 @@ using Content.Shared.Roles;
 using Content.Shared.Roles.Jobs;
 using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Localization;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
 
@@ -125,7 +126,8 @@ public sealed partial class WGEncounterTest
             var strikes = 0;
             await Server.WaitAssertion(() =>
             {
-                Assert.That(line.Refusal(SPlayer), Is.Not.Null, "Someone with no job is no vagrant.");
+                Assert.That(line.IsVagrant(SPlayer), Is.False, "Someone with no job is no vagrant.");
+                Assert.That(line.Refusal(SPlayer), Is.EqualTo(Server.ResolveDependency<ILocalizationManager>().GetString("wg-judgeline-refuse-not-vagrant")));
                 strikes = line.Strikes(SEntMan.GetComponent<ActorComponent>(SPlayer).PlayerSession.UserId);
                 var caller = ClampDeck(at).Grid;
                 SEntMan.GetComponent<ShuttleComponent>(caller).LinearThrust[0] = 1000f;

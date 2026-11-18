@@ -2,8 +2,6 @@
 - type: entity
   parent: NFBasePDACartridge
   id: WGJudgeLineCartridge
-  name: judge line cartridge
-  description: A PDA program that calls the Caelestinus judges to an emergency, for a fee.
   components:
   - type: Sprite
     sprite: Objects/Devices/cartridge.rsi
@@ -25,8 +23,6 @@
 - type: entity
   parent: CrateEngineering
   id: WGJudgeLineReliefCrate
-  name: judge relief crate
-  description: Fuel, plating and air, courtesy of the Caelestinus judges.
   components:
   - type: StorageFill
     contents:

@@ -20,10 +20,12 @@ wg-judgeline-app-cancel = Cancel call
 wg-judgeline-app-queued = Waiting for a free ship (place {$place})
 wg-judgeline-app-dispatched = Judges arriving in {$seconds}s
 wg-judgeline-app-on-scene = Judges on scene
+wg-judgeline-app-inbound = Judge ship inbound
 wg-judgeline-app-open = [bold]{$kind}[/bold]: {$phase}
     {$status}
 
 wg-judgeline-refuse-offline = The Judge Line is closed.
+wg-judgeline-refuse-kind = That's not an emergency the judges handle.
 wg-judgeline-refuse-not-vagrant = The Judge Line only takes calls from vagrants.
 wg-judgeline-refuse-open = You already have a call open.
 wg-judgeline-refuse-sector = The judges only answer in the Colossus sector.
@@ -50,7 +52,9 @@ wg-judgeline-status-betrayed = Your ship fired on the judges. The call is void.
 wg-judgeline-status-cancelled = Call cancelled.
 wg-judgeline-status-left = You left the sector. The call is void.
 wg-judgeline-status-lost = The judge ship was lost.
-wg-judgeline-status-unavailable = No judge ship could reach you. Your fee is refunded.
+wg-judgeline-status-unavailable = No judge ship could reach you.
+wg-judgeline-status-refunded = Your {$fee} spesos are refunded.
+wg-judgeline-status-refund-failed = Your {$fee} spesos couldn't be refunded. Ask an admin.
 
 wg-judgeline-radio-inbound = Judge responder out of FTL, inbound to your position.
 wg-judgeline-radio-underfire = Judges on scene. Hostile ship, break off now or be fired on.
@@ -73,3 +77,8 @@ cmd-wg_judgeline-no-call = No such call.
 cmd-wg_judgeline-bad-kind = Kinds: UnderFire, Boarded, Medical, Stranded, Adrift, Assault.
 cmd-wg_judgeline-no-caller = No caller: attach to an entity or name a player.
 cmd-wg_judgeline-placed = Placed call #{$id}.
+
+ent-WGJudgeLineCartridge = judge line cartridge
+    .desc = A PDA program that calls the Caelestinus judges to an emergency, for a fee.
+ent-WGJudgeLineReliefCrate = judge relief crate
+    .desc = Fuel, plating and air, courtesy of the Caelestinus judges.

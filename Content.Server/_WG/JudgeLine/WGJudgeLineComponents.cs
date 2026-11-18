@@ -77,6 +77,15 @@ public sealed class WGJudgeLineCall
     /// <summary>Whether the judges have filled the stranded ship's plant themselves.</summary>
     public bool Refuelled;
 
+    /// <summary>Whether the judges ran out of time on the emergency rather than seeing it through.</summary>
+    public bool GaveUp;
+
+    /// <summary>The grid the responder's orders send it to, or null when it was sent to pick the caller up.</summary>
+    public EntityUid? OrderedTo;
+
+    /// <summary>Where the responder was sent to pick the caller up.</summary>
+    public System.Numerics.Vector2 Waypoint;
+
     /// <summary>The latest line from the responder, shown in the app.</summary>
     public string? Status;
 }

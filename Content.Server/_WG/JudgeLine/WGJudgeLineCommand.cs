@@ -43,7 +43,7 @@ public sealed partial class WGJudgeLineCommand : LocalizedEntityCommands
 
     private void Call(IConsoleShell shell, string[] args)
     {
-        if (!Enum.TryParse<WGJudgeLineKind>(args[1], true, out var kind))
+        if (!Enum.TryParse<WGJudgeLineKind>(args[1], true, out var kind) || !Enum.IsDefined(kind))
         {
             shell.WriteError(Loc.GetString("cmd-wg_judgeline-bad-kind"));
             return;

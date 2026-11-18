@@ -98,6 +98,7 @@ public sealed partial class WGJudgeLineSystem
             state.Phase = call.Phase;
             state.Kind = call.Kind;
             state.Status = call.Status;
+            state.Inbound = call.Phase == WGJudgeLinePhase.OnScene && call.Arrived == null;
             state.Eta = call.Phase == WGJudgeLinePhase.Dispatched
                 ? Math.Max(0, (int) Math.Ceiling((call.DueAt - _timing.CurTime).TotalSeconds))
                 : 0;

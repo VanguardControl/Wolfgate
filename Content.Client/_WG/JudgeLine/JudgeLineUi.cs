@@ -95,7 +95,7 @@ public sealed class WGJudgeLinePanel : BoxContainer
     {
         var open = state.Phase != WGJudgeLinePhase.None;
         _buttons.Visible = !open;
-        _cancel.Visible = open && state.Phase is WGJudgeLinePhase.Queued or WGJudgeLinePhase.Dispatched;
+        _cancel.Visible = open && state.Phase is WGJudgeLinePhase.Queued or WGJudgeLinePhase.Dispatched or WGJudgeLinePhase.OnScene;
         foreach (var row in _buttons.Children)
         {
             if (row.ChildCount > 0 && row.GetChild(0) is Button button)
@@ -116,6 +116,7 @@ public sealed class WGJudgeLinePanel : BoxContainer
         {
             WGJudgeLinePhase.Queued => Loc.GetString("wg-judgeline-app-queued", ("place", state.Queue)),
             WGJudgeLinePhase.Dispatched => Loc.GetString("wg-judgeline-app-dispatched", ("seconds", state.Eta)),
+            WGJudgeLinePhase.OnScene when state.Inbound => Loc.GetString("wg-judgeline-app-inbound"),
             _ => Loc.GetString("wg-judgeline-app-on-scene"),
         };
         var kind = Loc.GetString($"wg-judgeline-kind-{state.Kind.ToString().ToLowerInvariant()}");

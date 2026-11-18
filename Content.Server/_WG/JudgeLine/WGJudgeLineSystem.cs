@@ -92,6 +92,10 @@ public sealed partial class WGJudgeLineSystem : EntitySystem
         SubscribeLocalEvent<WGCrewHullHitEvent>(OnHullHit);
         SubscribeLocalEvent<WGShipShieldAttackedEvent>(OnShieldHit);
         SubscribeLocalEvent<WGJudgeLineCallerComponent, DamageChangedEvent>(OnCallerDamaged);
+        // Before the damage lands: Wolfmed routes a body's damage through its parts, and the body's own
+        // DamageChangedEvent then has no origin.
+        SubscribeLocalEvent<WGJudgeLineCallerComponent, BeforeDamageChangedEvent>(OnCallerHit,
+            before: [typeof(Content.Shared._Onyx.Wounds.WoundDamageRoutingSystem)]);
         InitializeUi();
     }
 
@@ -124,6 +128,15 @@ public sealed partial class WGJudgeLineSystem : EntitySystem
         ent.Comp.LastHurt = now;
         if (args.Origin is { } origin && origin != ent.Owner)
             ent.Comp.Assailants[origin] = now;
+    }
+
+    /// <summary>Notes who hits the caller, while the hit still carries its origin.</summary>
+    private void OnCallerHit(Entity<WGJudgeLineCallerComponent> ent, ref BeforeDamageChangedEvent args)
+    {
+        if (args.Cancelled || !args.Damage.AnyPositive() || args.Origin is not { } origin || origin == ent.Owner)
+            return;
+
+        ent.Comp.Assailants[origin] = _timing.CurTime;
     }
 
     /// <summary>Whether someone is a vagrant: in the overflow job and in no company.</summary>
@@ -179,7 +192,7 @@ public sealed partial class WGJudgeLineSystem : EntitySystem
     /// <summary>Takes the fee and places a call, or says why not.</summary>
     public bool TryCall(EntityUid caller, WGJudgeLineKind kind, out string? refusal)
     {
-        refusal = Refusal(caller);
+        refusal = Enum.IsDefined(kind) ? Refusal(caller) : Loc.GetString("wg-judgeline-refuse-kind");
         if (refusal != null)
             return false;
 
@@ -264,11 +277,12 @@ public sealed partial class WGJudgeLineSystem : EntitySystem
         RefreshOpen();
     }
 
-    /// <summary>Gives queued calls a responder while fewer than the limit are flying.</summary>
+    /// <summary>Gives queued calls a responder while fewer than the limit are flying, a departing hull counting until it is gone.</summary>
     private void Dispatch()
     {
         var limit = _config.GetCVar(JudgeLineCVars.Responders);
-        var flying = _calls.Count(call => call.Phase is WGJudgeLinePhase.Dispatched or WGJudgeLinePhase.OnScene);
+        var flying = _calls.Count(call => call.Phase is WGJudgeLinePhase.Dispatched or WGJudgeLinePhase.OnScene
+            || call.Phase == WGJudgeLinePhase.Leaving && Ship(call) != null);
         foreach (var call in _calls.Where(c => c.Phase == WGJudgeLinePhase.Queued).OrderBy(c => c.Placed).ToList())
         {
             if (flying >= limit)
@@ -380,11 +394,21 @@ public sealed partial class WGJudgeLineSystem : EntitySystem
     /// </summary>
     private void Close(WGJudgeLineCall call, string? message, bool refund, TimeSpan? cooldown = null)
     {
+        if (refund && call.Fee > 0)
+        {
+            var refunded = !TerminatingOrDeleted(call.Caller) && _bank.TryBankDeposit(call.Caller, call.Fee, tax: false);
+            if (!refunded)
+            {
+                _adminLog.Add(LogType.Action, LogImpact.High,
+                    $"Judge Line call {call.Id} by {call.User} could not refund its fee of {call.Fee}");
+            }
+
+            var line = Loc.GetString(refunded ? "wg-judgeline-status-refunded" : "wg-judgeline-status-refund-failed", ("fee", call.Fee));
+            message = message == null ? line : $"{message} {line}";
+        }
+
         if (message != null)
             Notify(call, message);
-
-        if (refund && call.Fee > 0 && !TerminatingOrDeleted(call.Caller))
-            _bank.TryBankDeposit(call.Caller, call.Fee, tax: false);
 
         if (call.User is { } user)
         {

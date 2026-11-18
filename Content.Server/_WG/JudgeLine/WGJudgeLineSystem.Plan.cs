@@ -176,7 +176,7 @@ public sealed partial class WGJudgeLineSystem
             WGJudgeLineKind.UnderFire => target is { } grid && Attackers(grid, HitMemory).Count > 0,
             WGJudgeLineKind.Boarded => target is { } grid && Hostiles(call, grid).Count > 0,
             WGJudgeLineKind.Medical => Patients(call, target).Count > 0,
-            WGJudgeLineKind.Stranded => target is { } grid && (!HasThrust(grid) || _work.PlantDry(grid)),
+            WGJudgeLineKind.Stranded => target is { } grid && (!HasThrust(grid) || _work.PlantOut(grid)),
             WGJudgeLineKind.Adrift => Transform(call.Caller).GridUid == null,
             WGJudgeLineKind.Assault => Assailants(call).Count > 0,
             _ => false,
@@ -186,9 +186,13 @@ public sealed partial class WGJudgeLineSystem
     /// <summary>Sets the responder to work on the call's emergency.</summary>
     private void Begin(WGJudgeLineCall call, WGEncounterShipState ship)
     {
-        var target = TargetGrid(call);
+        var target = call.Kind == WGJudgeLineKind.Adrift ? null : TargetGrid(call);
+        if (call.OrderedTo is { } old && old != target && !TerminatingOrDeleted(old))
+            _escorts.RemoveAlly(ship.Grid, old);
+        call.OrderedTo = target;
+        call.Waypoint = call.Position.Position;
         var queue = new List<WGCrewObjective>();
-        if (target is { } grid && call.Kind != WGJudgeLineKind.Adrift)
+        if (target is { } grid)
         {
             _escorts.AddAlly(ship.Grid, grid);
             if (call.Kind == WGJudgeLineKind.UnderFire)
@@ -214,6 +218,15 @@ public sealed partial class WGJudgeLineSystem
             _encounters.SetOrders(encounter, ShipKey, queue);
     }
 
+    /// <summary>Sends the responder on again when the caller moved to another ship, or drifted away from the pickup point.</summary>
+    private void Retarget(WGJudgeLineCall call, WGEncounterShipState ship)
+    {
+        var target = call.Kind == WGJudgeLineKind.Adrift ? null : TargetGrid(call);
+        if (target != call.OrderedTo
+            || target == null && Vector2.Distance(call.Position.Position, call.Waypoint) > PickupRange)
+            Begin(call, ship);
+    }
+
     /// <summary>Works a call on scene: takes stock on arrival, then deals with the emergency until it is over.</summary>
     private void Run(WGJudgeLineCall call, WGEncounterShipState ship)
     {
@@ -225,6 +238,9 @@ public sealed partial class WGJudgeLineSystem
             Close(call, Loc.GetString("wg-judgeline-status-betrayed"), refund: false);
             return;
         }
+
+        if (!call.Aboard)
+            Retarget(call, ship);
 
         if (call.Arrived == null)
         {
@@ -253,6 +269,11 @@ public sealed partial class WGJudgeLineSystem
 
         if (Work(call, ship))
             call.LastTrouble = now;
+        else if (call.GaveUp)
+        {
+            Close(call, Loc.GetString("wg-judgeline-status-timeout"), refund: false);
+            return;
+        }
 
         var spell = call.Kind is WGJudgeLineKind.UnderFire or WGJudgeLineKind.Boarded or WGJudgeLineKind.Assault
             ? FightQuietSpell
@@ -303,7 +324,7 @@ public sealed partial class WGJudgeLineSystem
                 if (!DockedWith(ship.Grid, grid))
                     return true;
                 call.Docked ??= now;
-                return now - call.Docked < MedicalLimit && Patients(call, grid).Count > 0;
+                return Within(call, MedicalLimit, Patients(call, grid).Count > 0);
 
             case WGJudgeLineKind.Stranded when target is { } grid:
                 if (!DockedWith(ship.Grid, grid))
@@ -315,20 +336,32 @@ public sealed partial class WGJudgeLineSystem
                     SendEngineer(call, ship, grid);
                 }
 
-                var dry = _work.PlantDry(grid);
+                var dry = _work.PlantOut(grid);
                 if (dry && !call.Refuelled && now - call.Docked >= RefuelGrace)
                 {
                     call.Refuelled = true;
                     _work.Refuel(grid);
                     Notify(call, Loc.GetString("wg-judgeline-status-refuelled"));
-                    dry = _work.PlantDry(grid);
+                    dry = _work.PlantOut(grid);
                 }
 
-                return now - call.Docked < StrandedLimit && (dry || !HasThrust(grid));
+                return Within(call, StrandedLimit, dry || !HasThrust(grid));
 
             default:
                 return Pickup(call, ship);
         }
+    }
+
+    /// <summary>Whether docked work goes on: the trouble is still there and time is left. Out of time, the judges give up.</summary>
+    private bool Within(WGJudgeLineCall call, TimeSpan limit, bool trouble)
+    {
+        if (!trouble)
+            return false;
+        if (_timing.CurTime - call.Docked < limit)
+            return true;
+
+        call.GaveUp = true;
+        return false;
     }
 
     /// <summary>
@@ -588,7 +621,7 @@ public sealed partial class WGJudgeLineSystem
         return false;
     }
 
-    /// <summary>The station nearest a grid on its map.</summary>
+    /// <summary>The public station nearest a grid on its map.</summary>
     private EntityUid? NearestStation(EntityUid grid)
     {
         var here = _transform.GetMapCoordinates(grid);
@@ -597,7 +630,7 @@ public sealed partial class WGJudgeLineSystem
         var query = EntityQueryEnumerator<StationMemberComponent, MapGridComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out _, out _, out var xform))
         {
-            if (xform.MapID != here.MapId || !IsStation(uid) || _docking.GetDocks(uid).Count == 0)
+            if (xform.MapID != here.MapId || !IsStation(uid) || _scheduler.IsHidden(uid) || _docking.GetDocks(uid).Count == 0)
                 continue;
 
             var distance = (_transform.GetWorldPosition(xform) - here.Position).LengthSquared();
