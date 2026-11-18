@@ -85,16 +85,39 @@ public sealed partial class NPCSteeringSystem
             steering.CurrentPath.Clear();
             steering.CurrentPath.Enqueue(poly);
             ResetStuck(steering, xform.Coordinates);
-            if (_crewUnsticks.Count > 256)
-                _crewUnsticks.Clear();
+            PruneCrewUnsticks(now);
             _crewUnsticks[uid] = (tries.Since, tries.Count + 1);
-            if (_crewSidesteps.Count > 256)
-                _crewSidesteps.Clear();
             _crewSidesteps[uid] = poly;
             return true;
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Drops what no longer counts, once the tables grow: unstick tallies past their window, and sidesteps whose crewman
+    /// is gone or no longer heading for that tile. A crewman still on his way keeps his waypoint.
+    /// </summary>
+    private void PruneCrewUnsticks(TimeSpan now)
+    {
+        if (_crewUnsticks.Count > 64)
+        {
+            foreach (var (other, tally) in _crewUnsticks)
+            {
+                if (now - tally.Since >= CrewUnstickWindow)
+                    _crewUnsticks.Remove(other);
+            }
+        }
+
+        if (_crewSidesteps.Count <= 64)
+            return;
+
+        foreach (var (other, waypoint) in _crewSidesteps)
+        {
+            if (!TryComp<NPCSteeringComponent>(other, out var steering) || steering.CurrentPath.Count == 0
+                || steering.CurrentPath.Peek() != waypoint)
+                _crewSidesteps.Remove(other);
+        }
     }
 
     /// <summary>

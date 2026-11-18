@@ -6,6 +6,8 @@ using Content.Server._WG.Administration.Systems;
 using Content.Server._WG.NpcCrew.Systems;
 using Content.Server._WG.ShipCommand;
 using Content.Server.Anomaly;
+using Content.Server.Anomaly.Components;
+using Content.Shared.Anomaly.Components;
 using Content.Server.Carrying;
 using Content.Server.Salvage.Magnet;
 using Content.Server.Station.Systems;
@@ -24,6 +26,16 @@ namespace Content.IntegrationTests.Tests._WG.AdminVessels;
 [TestFixture]
 public sealed class LupercalPlaytest2Test
 {
+    [TestPrototypes]
+    private const string Prototypes = @"
+- type: entity
+  id: WGTestAnomalyGenerator
+  parent: MachineAnomalyGenerator
+  components:
+  - type: AnomalyGenerator
+    spawnerPrototype: AnomalyIce
+";
+
     [Test]
     public async Task SecondPlaytestFixes()
     {
@@ -109,6 +121,40 @@ public sealed class LupercalPlaytest2Test
             Assert.That(friendlyFire.Protected(marine, wall), Is.False, "A marine's bullet passes through a wall.");
         });
 
+        // The generators finish a run: the Lupercal's anomaly appears on its chamber's marker, and a generator on a grid
+        // with no chamber puts its anomaly on that grid's own floor, as before.
+        EntityUid chamberMarker = default, bareGrid = default;
+        HashSet<EntityUid> anomaliesBefore = default!;
+        await server.WaitPost(() =>
+        {
+            var maps = server.System<SharedMapSystem>();
+            chamberMarker = OfProto(em, grid, "WGAnomalyChamberMarker").Single();
+            var bare = maps.CreateGridEntity(map.MapId);
+            bareGrid = bare.Owner;
+            server.System<SharedTransformSystem>().SetWorldPosition(bareGrid, new Vector2(-500f, 0f));
+            maps.SetTile(bare.Owner, bare.Comp, Vector2i.Zero, map.Tile.Tile);
+            // Generators that make one plain anomaly, placed exactly: the usual spawner offsets it a little and may roll a
+            // trap. Each is set generating with its run already over, so the next update finishes it.
+            anomaliesBefore = Anomalies(em).ToHashSet();
+            var shipGenerator = em.SpawnEntity("WGTestAnomalyGenerator", em.GetComponent<TransformComponent>(chamberMarker).Coordinates);
+            var bareGenerator = em.SpawnEntity("WGTestAnomalyGenerator", new EntityCoordinates(bareGrid, new Vector2(0.5f, 0.5f)));
+            em.EnsureComponent<GeneratingAnomalyGeneratorComponent>(shipGenerator);
+            em.EnsureComponent<GeneratingAnomalyGeneratorComponent>(bareGenerator);
+        });
+        await pair.RunTicksSync(5);
+        await server.WaitAssertion(() =>
+        {
+            var made = Anomalies(em).Where(a => !anomaliesBefore.Contains(a)).ToList();
+            var markerXform = em.GetComponent<TransformComponent>(chamberMarker);
+            Assert.That(made.Where(a => em.GetComponent<TransformComponent>(a).GridUid == grid).ToList(), Has.Count.EqualTo(1)
+                .And.All.Matches<EntityUid>(a => (em.GetComponent<TransformComponent>(a).LocalPosition - markerXform.LocalPosition).Length() < 0.01f),
+                "The Lupercal's generator puts its anomaly on the chamber's marker.");
+            Assert.That(made.Count(a => em.GetComponent<TransformComponent>(a).GridUid == bareGrid), Is.EqualTo(1),
+                "A generator with no chamber on its grid still makes its anomaly there.");
+            foreach (var anomaly in made)
+                em.DeleteEntity(anomaly);
+        });
+
         // A paramedic carries a patient rather than dragging them.
         await server.WaitAssertion(() =>
         {
@@ -147,6 +193,16 @@ public sealed class LupercalPlaytest2Test
             if (xform.GridUid == grid && meta.EntityPrototype?.ID == proto)
                 found.Add(uid);
         }
+
+        return found;
+    }
+
+    private static List<EntityUid> Anomalies(IEntityManager em)
+    {
+        var found = new List<EntityUid>();
+        var query = em.EntityQueryEnumerator<AnomalyComponent>();
+        while (query.MoveNext(out var uid, out _))
+            found.Add(uid);
 
         return found;
     }
