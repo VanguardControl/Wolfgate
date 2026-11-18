@@ -1,8 +1,17 @@
 using System.Numerics;
+using Content.Client.StatusIcon;
+using Content.Shared._WG.Wilderness;
+using Content.Shared.CCVar;
+using Content.Shared.StatusIcon;
+using Content.Shared.StatusIcon.Components;
+using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
+using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
+using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Client._WG.Wilderness;
 
@@ -48,6 +57,72 @@ public sealed class WGZoneBorderOverlay : Overlay
             handle.DrawRect(new UIBox2(outer.Left, outer.Top + band, outer.Left + band, outer.Bottom - band), color);
             handle.DrawRect(new UIBox2(outer.Right - band, outer.Top + band, outer.Right, outer.Bottom - band), color);
         }
+    }
+}
+
+/// <summary>
+/// The skull over every marked person, centred above their sprite at the size of the other status icons. It honours
+/// the status-icon settings and hides where they hide, as in a locker or under stealth.
+/// </summary>
+public sealed class WGSkullOverlay : Overlay
+{
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IEntityManager _entity = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private IGameTiming _timing = default!;
+
+    private static readonly ProtoId<FactionIconPrototype> SkullIcon = "WGSkullIcon";
+
+    private readonly SpriteSystem _sprite;
+    private readonly TransformSystem _transform;
+    private readonly StatusIconSystem _statusIcon;
+    private readonly ShaderInstance _unshaded;
+
+    public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
+
+    public WGSkullOverlay()
+    {
+        IoCManager.InjectDependencies(this);
+        _sprite = _entity.System<SpriteSystem>();
+        _transform = _entity.System<TransformSystem>();
+        _statusIcon = _entity.System<StatusIconSystem>();
+        _unshaded = _proto.Index<ShaderPrototype>("unshaded").Instance();
+    }
+
+    protected override bool BeforeDraw(in OverlayDrawArgs args)
+    {
+        return _cfg.GetCVar(CCVars.LocalStatusIconsEnabled) && _cfg.GetCVar(CCVars.GlobalStatusIconsEnabled);
+    }
+
+    protected override void Draw(in OverlayDrawArgs args)
+    {
+        if (!_proto.TryIndex(SkullIcon, out var icon))
+            return;
+
+        var handle = args.WorldHandle;
+        var rotation = Matrix3Helpers.CreateRotation(-(args.Viewport.Eye?.Rotation ?? default));
+        var texture = _sprite.GetFrame(icon.Icon, _timing.RealTime);
+        var left = -texture.Width / 2f / EyeManager.PixelsPerMeter;
+
+        handle.UseShader(_unshaded);
+        var query = _entity.AllEntityQueryEnumerator<WGSkullComponent, SpriteComponent, TransformComponent, MetaDataComponent>();
+        while (query.MoveNext(out var uid, out _, out var sprite, out var xform, out var meta))
+        {
+            if (xform.MapID != args.MapId || !sprite.Visible || !_statusIcon.IsVisible((uid, meta), icon))
+                continue;
+
+            var bounds = _entity.GetComponentOrNull<StatusIconComponent>(uid)?.Bounds ?? sprite.Bounds;
+            var world = _transform.GetWorldPosition(xform);
+            if (!bounds.Translated(world).Intersects(args.WorldAABB))
+                continue;
+
+            // Turned with the eye, like the status icons, so it stays upright on screen.
+            handle.SetTransform(Matrix3x2.Multiply(rotation, Matrix3Helpers.CreateTranslation(world)));
+            handle.DrawTexture(texture, new Vector2(left, (bounds.Height + sprite.Offset.Y) / 2f));
+        }
+
+        handle.UseShader(null);
+        handle.SetTransform(Matrix3x2.Identity);
     }
 }
 

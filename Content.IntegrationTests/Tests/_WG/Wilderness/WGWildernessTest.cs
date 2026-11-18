@@ -1,11 +1,18 @@
 #nullable enable
 using System.Numerics;
+using Content.IntegrationTests.Pair;
 using Content.Server._Mono.GridClaimer;
+using Content.Server._WG.NpcCrew;
 using Content.Server._WG.Wilderness;
+using Content.Server.Atmos.Components;
+using Content.Server.Body.Components;
+using Content.Server.Shuttles.Components;
+using Content.Server.Shuttles.Systems;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._WG.Wilderness;
 using Content.Shared.Mind;
 using Content.Shared.Players;
+using Content.Shared.Shuttles.Components;
 using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
@@ -211,6 +218,183 @@ public sealed class WGWildernessTest
         });
 
         await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task APilotAndTheShipTheyFlyShareAMark()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = false });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var cfg = server.ResolveDependency<IConfigurationManager>();
+        var map = await pair.CreateTestMap();
+        var zones = server.System<WGZoneSystem>();
+        EntityUid markedPilot = default, freshShip = default, markedShip = default, freshPilot = default, passenger = default;
+
+        await server.WaitPost(() =>
+        {
+            cfg.SetCVar(WildernessCVars.DwellSeconds, 60f);
+
+            // A marked pilot takes the helm of an unmarked ship.
+            freshShip = Ship(em, map, new Vector2(2000f, 0f));
+            markedPilot = Crewman(em, freshShip);
+            Helm(em, freshShip, markedPilot);
+            zones.Mark(markedPilot);
+
+            // An unmarked pilot takes the helm of a marked ship, with someone else aboard.
+            markedShip = Ship(em, map, new Vector2(4000f, 0f));
+            freshPilot = Crewman(em, markedShip);
+            Helm(em, markedShip, freshPilot);
+            passenger = Crewman(em, markedShip);
+            zones.Mark(markedShip);
+        });
+        await pair.RunSeconds(2f);
+
+        await server.WaitAssertion(() =>
+        {
+            var pilotMark = em.GetComponent<WGSkullComponent>(markedPilot);
+            Assert.That(em.TryGetComponent<WGSkullComponent>(freshShip, out var shipMark), Is.True, "a marked pilot didn't mark the ship they fly.");
+            Assert.That(shipMark!.ExpiresAt, Is.Not.Null.And.EqualTo(pilotMark.ExpiresAt), "the ship didn't take the pilot's time left.");
+
+            var markedShipMark = em.GetComponent<WGSkullComponent>(markedShip);
+            Assert.That(em.TryGetComponent<WGSkullComponent>(freshPilot, out var inherited), Is.True, "a pilot taking the helm of a marked ship wasn't marked.");
+            Assert.That(inherited!.ExpiresAt, Is.Not.Null.And.EqualTo(markedShipMark.ExpiresAt), "the pilot didn't take the ship's time left.");
+            Assert.That(em.HasComponent<WGSkullComponent>(passenger), Is.False, "a ship's mark spread to someone aboard who isn't flying it.");
+            Reset(cfg);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task ACrewmanIsMarkedApartFromTheirShip()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var cfg = server.ResolveDependency<IConfigurationManager>();
+        var map = await pair.CreateTestMap();
+        EntityUid ship = default, mob = default;
+
+        await server.WaitPost(() =>
+        {
+            cfg.SetCVar(WildernessCVars.DwellSeconds, 1f);
+            cfg.SetCVar(WildernessCVars.SkullOnFoot, true);
+            Source(em, map.Grid.Owner, "WGWilderness", 50f);
+            ship = Ship(em, map, new Vector2(20f, 0f));
+            mob = Player(pair, em, new EntityCoordinates(ship, 0.5f, 0.5f));
+        });
+        await pair.RunSeconds(3f);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.TryGetComponent<WGInZoneComponent>(mob, out var inZone) && inZone.Zone.Id == "WGWilderness", Is.True,
+                "a player aboard a ship in a Wilderness wasn't told they're in one.");
+            Assert.That(em.TryGetComponent<WGSkullComponent>(ship, out var skull) && skull.ExpiresAt == null, Is.True, "a ship that stayed in the Wilderness wasn't marked.");
+            Assert.That(em.HasComponent<WGSkullComponent>(mob), Is.False, "a crewman aboard was marked for the ship's stay without flying it.");
+            Assert.That(em.HasComponent<WGWildernessDwellComponent>(mob), Is.False, "a crewman aboard a ship is counting towards a mark of their own.");
+            Helm(em, ship, mob);
+        });
+        await pair.RunSeconds(2f);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.TryGetComponent<WGSkullComponent>(mob, out var skull), Is.True, "taking the helm of a marked ship didn't mark the pilot.");
+            Assert.That(skull!.ExpiresAt, Is.Null, "a mark taken in the Wilderness should hold there, as the ship's does.");
+            Reset(cfg);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task AttackingIntoAWildernessFromOutsideMarksTheGunnerAndTheirShip()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var cfg = server.ResolveDependency<IConfigurationManager>();
+        var map = await pair.CreateTestMap();
+        var zones = server.System<WGZoneSystem>();
+        EntityUid target = default, inside = default, attacker = default, far = default, farAttacker = default, mob = default;
+
+        await server.WaitPost(() =>
+        {
+            cfg.SetCVar(WildernessCVars.DwellSeconds, 60f);
+            Source(em, map.Grid.Owner, "WGWilderness", 50f);
+            target = Ship(em, map, new Vector2(20f, 0f));
+            inside = Ship(em, map, new Vector2(30f, 0f));
+            attacker = Ship(em, map, new Vector2(2000f, 0f));
+            far = Ship(em, map, new Vector2(3000f, 0f));
+            farAttacker = Ship(em, map, new Vector2(3500f, 0f));
+            mob = Player(pair, em, new EntityCoordinates(attacker, 0.5f, 0.5f));
+        });
+        await pair.RunSeconds(2f);
+
+        await server.WaitAssertion(() =>
+        {
+            zones.NoteGunner(attacker, mob);
+            Hit(em, target, inside);
+            Hit(em, far, farAttacker);
+            Assert.That(em.HasComponent<WGSkullComponent>(inside), Is.False, "fighting inside the Wilderness marked at once, without the stay.");
+            Assert.That(em.HasComponent<WGSkullComponent>(farAttacker), Is.False, "a fight outside every Wilderness marked the attacker.");
+
+            Hit(em, target, attacker);
+            Assert.That(em.TryGetComponent<WGSkullComponent>(attacker, out var shipMark), Is.True, "a ship attacking into a Wilderness from outside wasn't marked.");
+            Assert.That(shipMark!.ExpiresAt, Is.Not.Null, "the attacker's mark should run down, as it is outside the Wilderness.");
+            Assert.That(em.TryGetComponent<WGSkullComponent>(mob, out var gunnerMark), Is.True, "the gunner attacking into a Wilderness wasn't marked.");
+            Assert.That(gunnerMark!.ExpiresAt, Is.Not.Null);
+            Assert.That(em.HasComponent<WGSkullComponent>(target), Is.False, "the ship attacked was marked for it.");
+            Reset(cfg);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A bought ship of one tile.</summary>
+    private static EntityUid Ship(IEntityManager em, TestMapData map, Vector2 at)
+    {
+        var ship = Grid(em, map.MapId, map.Tile.Tile, at);
+        em.EnsureComponent<ShuttleDeedComponent>(ship);
+        return ship;
+    }
+
+    /// <summary>Someone aboard a ship, kept conscious in its vacuum.</summary>
+    private static EntityUid Crewman(IEntityManager em, EntityUid ship)
+    {
+        var mob = em.SpawnEntity("MobHuman", new EntityCoordinates(ship, 0.5f, 0.5f));
+        em.RemoveComponent<BarotraumaComponent>(mob);
+        em.RemoveComponent<RespiratorComponent>(mob);
+        return mob;
+    }
+
+    /// <summary>Puts someone at a new helm on a ship.</summary>
+    private static void Helm(IEntityManager em, EntityUid ship, EntityUid pilot)
+    {
+        var console = em.SpawnEntity("ComputerShuttle", new EntityCoordinates(ship, 0.5f, 0.5f));
+        em.EnsureComponent<PilotComponent>(pilot);
+        em.System<ShuttleConsoleSystem>().AddPilot(console, pilot, em.GetComponent<ShuttleConsoleComponent>(console));
+    }
+
+    /// <summary>The test client's player, in a new body.</summary>
+    private static EntityUid Player(TestPair pair, IEntityManager em, EntityCoordinates at)
+    {
+        var server = pair.Server;
+        var session = server.PlayerMan.GetSessionById(pair.Client.Session!.UserId);
+        var minds = server.System<SharedMindSystem>();
+        minds.WipeMind(session.ContentData()?.Mind);
+        var mob = em.SpawnEntity("MobHuman", at);
+        em.RemoveComponent<BarotraumaComponent>(mob);
+        em.RemoveComponent<RespiratorComponent>(mob);
+        minds.TransferTo(minds.CreateMind(session.UserId).Owner, mob);
+        return mob;
+    }
+
+    /// <summary>Reports a ship weapon hit on one ship from another, as the ship guns do.</summary>
+    private static void Hit(IEntityManager em, EntityUid target, EntityUid attacker)
+    {
+        var ev = new WGCrewHullHitEvent(target, attacker);
+        em.EventBus.RaiseEvent(EventSource.Local, ref ev);
     }
 
     private static void Reset(IConfigurationManager cfg)

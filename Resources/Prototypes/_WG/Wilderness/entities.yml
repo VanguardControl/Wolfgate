@@ -6,10 +6,10 @@
   components:
   - type: Transform
 
+# The skull over a marked person. WGSkullOverlay draws it centred above the sprite, apart from the status icon rows,
+# and hides it where they hide.
 - type: factionIcon
   id: WGSkullIcon
-  priority: 1
-  locationPreference: Right
   icon:
     sprite: /Textures/_WG/Wilderness/skull_icon.rsi
     state: skull

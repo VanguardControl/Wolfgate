@@ -4,23 +4,36 @@ Shows players where the rules protect them, and marks those who stay where they 
 of zone (Safe Zone, Wilderness, faction outpost, not a safe zone) with its banner text, colour, icon, alert and the
 rule it links to. A `WGZoneSource` on a grid, or a `WGZoneMarker` point on a planet, centres one: the Safe Zone on
 Caelestinus Central (256 m), a Wilderness on every bluespace event site, PDV drop pod, Monolithic Fragment and
-planetary vault (512 m), outposts on Halcyon and Helios (256 m), not-safe on Camelot, Underground and the Jupiter
-(aboard only).
+planetary vault (512 m), outposts on Halcyon and Helios (256 m), not-safe on Camelot, the Underground Black Market and
+the Jupiter (aboard, or aboard a ship docked there).
 
 `WGZoneSystem` works out each player's zone once a second (the ship they're aboard, edge to edge, or them on foot),
-sets `WGInZoneComponent` for their client, shows the alert and says it in chat. A ship, or a person not aboard one,
-that stays `wg.wilderness.dwell_seconds` (15) in a Wilderness gets `WGSkullComponent`: held while there, running out
-`wg.wilderness.skull_minutes` (10) after leaving, whether or not its player is connected. A marked ship has no
-protection anywhere, Safe Zone included.
-`wg.wilderness.open_to_all` says whether anyone or only TSF and PDV may fight there; `wg.wilderness.skull_on_foot`
-whether people on foot are marked. The guidebook's `<WGWildernessRule/>` writes both into the rules.
+sets `WGInZoneComponent` for their client, shows the alert and says it in chat.
+
+Ships and people carry their own Wilderness mark, `WGSkullComponent`:
+
+- **Staying.** A ship, or a person not aboard one, that stays `wg.wilderness.dwell_seconds` (15) in a Wilderness is
+  marked. People aboard a ship don't count towards a mark of their own; the ship does. `wg.wilderness.skull_on_foot`
+  turns staying on foot off.
+- **Holding and running out.** Any mark holds at full while its carrier is in a Wilderness (a person by the ship
+  they're aboard) and runs out `wg.wilderness.skull_minutes` (10) after leaving, whether or not its player is connected.
+- **Pilots.** A pilot (`PilotComponent` at a shuttle console) and the ship that console is on share a mark: an
+  unmarked ship flown by a marked pilot takes the pilot's mark and time left, and an unmarked pilot of a marked ship
+  takes the ship's. Crew who aren't flying keep their own.
+- **Attacks.** A ship weapon hit (`WGCrewHullHitEvent`, raised by ship rounds, ship beams and ramming) on a ship in a
+  Wilderness from a ship outside one marks the attacking ship and every player who fired its guns from a gunnery
+  console in the last minute (`FireControlSystem` reports them through `NoteGunner`), for the full time, at once.
+
+A marked ship or person has no protection anywhere, Safe Zone included. `wg.wilderness.open_to_all` says whether anyone
+or only TSF and PDV may fight there. The guidebook's `<WGWildernessRule/>` writes the settings into the rules.
 
 The client (`WGZoneHudSystem`) shows a one-line pill under the top menu (zone, place, mark state) that opens to explain
 the zone for a few seconds after a change or under the cursor, and opens the rule when clicked; a title on crossing in or
-out; a pulsing border in a Wilderness or while marked; and a skull over marked people. The player gets one zone alert:
-the zone's, with a sweep counting down to the mark in a Wilderness, or the mark's, counting down once out. Radars draw
-each zone's edge and a skull by every marked ship (`ShuttleNavControl.Wilderness.cs`). Admins can check and set the
-mark with `wg_zone info|mark|clear`.
+out; and a pulsing border in a Wilderness or while marked. It shows the player's own mark, or else their ship's. The
+player gets one zone alert: the zone's, with a sweep counting down to the mark in a Wilderness, or the mark's, counting
+down once out. `WGSkullOverlay` draws an 8 px skull centred over each marked person, like the status icons, and hidden
+where they are. Radars draw each zone's edge and a skull by every marked ship (`ShuttleNavControl.Wilderness.cs`).
+Admins can check and set the marks on themselves and their ship with `wg_zone info|mark|clear [ship]`.
 
 The zone icons are built by `Tools/_WG/Wilderness/make_icons.py` from the radar marker glyphs.
 
@@ -32,6 +45,7 @@ The zone icons are built by `Tools/_WG/Wilderness/make_icons.py` from the radar 
 ### Server
 
 - [`Content.Server/_WG/Wilderness/WGZoneCommand.cs`](WGZoneCommand.cs)
+- [`Content.Server/_WG/Wilderness/WGZoneSystem.Attacks.cs`](WGZoneSystem.Attacks.cs)
 - [`Content.Server/_WG/Wilderness/WGZoneSystem.cs`](WGZoneSystem.cs)
 - [`Content.Server/_WG/Wilderness/WGZoneSystem.Skull.cs`](WGZoneSystem.Skull.cs)
 
@@ -87,6 +101,7 @@ The zone icons are built by `Tools/_WG/Wilderness/make_icons.py` from the radar 
   - the edges of Safe Zones, Wildernesses and outposts.
   - a marked ship's name shows red
   - a skull by a marked ship's blip and name
+- [`Content.Server/_Mono/FireControl/FireControlSystem.Console.cs`](../../_Mono/FireControl/FireControlSystem.Console.cs): who fired, for attacks into a Wilderness
 - [`Content.Server/_NF/Smuggling/DeadDropSystem.cs`](../../_NF/Smuggling/DeadDropSystem.cs): a drop pod is a Wilderness, its edge kept off radars like its name
 - [`Resources/Prototypes/_Mono/GameRules/monolithic.yml`](../../../Resources/Prototypes/_Mono/GameRules/monolithic.yml): Monolithic Fragments are Wildernesses
 - [`Resources/Prototypes/_Mono/Guidebook/rules.yml`](../../../Resources/Prototypes/_Mono/Guidebook/rules.yml): the zones page sits with the conflict rules

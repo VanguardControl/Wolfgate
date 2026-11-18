@@ -10,13 +10,13 @@ Caelestinus Central and everything within 256 m of it. Policy protects everyone 
 Everything within 512 m of an event site: bluespace vaults and weapons caches, wrecks and other bluespace events, planetary vaults and Monolithic Fragments. A salvage wreck someone has claimed is their ship and no longer a Wilderness; claiming a vault, cache or fragment changes nothing. Red banner with hazard stripes, and a red border round the screen.
 <WGWildernessRule/>
 
-While you are being marked, the banner counts down. Once marked, it shows how long the mark has left, and your ship's name shows red with a skull on everyone's radar. See [textlink="Random deathmatch" link="MonolithRuleConflictOneRandomDeathmatch"].
+While you are being marked, the banner counts down. Once marked, it shows how long your mark, or your ship's, has left. A marked ship's name shows red with a skull on everyone's radar, and a marked person has a skull over their head. See [textlink="Random deathmatch" link="MonolithRuleConflictOneRandomDeathmatch"].
 
 ## [color=#d68c14]Faction outposts[/color]
 Within 256 m of a faction outpost such as Halcyon. While the war is COLD, the outpost and ships near it are protected from port strikes; while it is HOT, they may be struck. The banner changes with the war level. See [textlink="Port striking" link="MonolithRuleConflictFourPortStriking"].
 
 ## [color=#9aa4ad]Not a Safe Zone[/color]
-Aboard a station named as not a Safe Zone, such as Camelot or Underground, or a mobile base such as the Jupiter. Ordinary rules and escalation apply. Grey banner.
+Aboard, or docked at, a station named as not a Safe Zone, such as Camelot or the Underground Black Market, or a mobile base such as the Jupiter. Ordinary rules and escalation apply. Grey banner.
 
 ## Settings
 The screen border and the radar rings can be turned off under Options, Extra, Zones. The banner and the alert always show.

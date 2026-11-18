@@ -27,6 +27,11 @@ public sealed class WGWildernessRule : RichTextLabel, IDocumentTag
             ("seconds", cfg.GetCVar(WildernessCVars.DwellSeconds)),
             ("minutes", cfg.GetCVar(WildernessCVars.SkullMinutes)),
             ("onfoot", cfg.GetCVar(WildernessCVars.SkullOnFoot) ? "yes" : "no")));
+        message.PushNewline();
+        message.AddMarkupPermissive(Loc.GetString("wg-wilderness-rule-pilot"));
+        message.PushNewline();
+        message.AddMarkupPermissive(Loc.GetString("wg-wilderness-rule-attack",
+            ("minutes", cfg.GetCVar(WildernessCVars.SkullMinutes))));
         SetMessage(message);
         control = this;
         return true;

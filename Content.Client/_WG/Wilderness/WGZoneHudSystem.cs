@@ -4,8 +4,6 @@ using Content.Client.UserInterface.Systems.Guidebook;
 using Content.Shared._WG.Vehicles.Core;
 using Content.Shared._WG.Wilderness;
 using Content.Shared.CCVar;
-using Content.Shared.StatusIcon;
-using Content.Shared.StatusIcon.Components;
 using Robust.Client.Audio;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
@@ -14,6 +12,7 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Audio;
 using Robust.Shared.Configuration;
+using Robust.Shared.Map.Components;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
@@ -38,7 +37,6 @@ public sealed class WGZoneHudSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IUserInterfaceManager _ui = default!;
 
-    private static readonly ProtoId<FactionIconPrototype> SkullIcon = "WGSkullIcon";
     private static readonly Color MarkColor = Color.FromHex("#ff3b30");
     private static readonly SoundSpecifier MarkedSound = new SoundPathSpecifier("/Audio/Effects/alert.ogg");
     private static readonly SpriteSpecifier MarkedIcon = new SpriteSpecifier.Rsi(new ResPath("/Textures/_WG/Wilderness/zones.rsi"), "marked");
@@ -52,6 +50,7 @@ public sealed class WGZoneHudSystem : EntitySystem
     private WGZoneBanner? _banner;
     private readonly WGZoneBorderOverlay _border = new();
     private WGZoneTitleOverlay? _title;
+    private WGSkullOverlay? _skulls;
 
     private float _titleAge = float.MaxValue;
     private bool _seen;
@@ -65,8 +64,9 @@ public sealed class WGZoneHudSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<WGSkullComponent, GetStatusIconsEvent>(OnStatusIcons);
         SubscribeLocalEvent<LocalPlayerDetachedEvent>(_ => Forget());
+        _skulls = new WGSkullOverlay();
+        _overlays.AddOverlay(_skulls);
     }
 
     public override void Shutdown()
@@ -77,12 +77,8 @@ public sealed class WGZoneHudSystem : EntitySystem
         _overlays.RemoveOverlay(_border);
         if (_title != null)
             _overlays.RemoveOverlay(_title);
-    }
-
-    private void OnStatusIcons(Entity<WGSkullComponent> ent, ref GetStatusIconsEvent args)
-    {
-        if (_proto.TryIndex(SkullIcon, out var icon))
-            args.StatusIcons.Add(icon);
+        if (_skulls != null)
+            _overlays.RemoveOverlay(_skulls);
     }
 
     private void Forget()
@@ -108,9 +104,16 @@ public sealed class WGZoneHudSystem : EntitySystem
         if (inZone != null)
             _proto.TryIndex(inZone.Zone, out zone);
 
-        var carrier = Carrier(mob, out var ship);
-        TryComp<WGSkullComponent>(carrier, out var skull);
-        TryComp<WGWildernessDwellComponent>(carrier, out var dwell);
+        // The player's own mark first, else the mark of the ship they're aboard.
+        var vessel = Vessel(mob);
+        var ship = false;
+        TryComp<WGSkullComponent>(mob, out var skull);
+        if (skull == null && vessel is { } aboard && TryComp(aboard, out skull))
+            ship = HasComp<MapGridComponent>(aboard);
+
+        WGWildernessDwellComponent? dwell = null;
+        if (skull == null && !TryComp(mob, out dwell) && vessel is { } staying && TryComp(staying, out dwell))
+            ship = HasComp<MapGridComponent>(staying);
 
         var reduced = _cfg.GetCVar(CCVars.ReducedMotion);
         _pulse += frameTime;
@@ -122,24 +125,21 @@ public sealed class WGZoneHudSystem : EntitySystem
         UpdateTitle(frameTime);
     }
 
-    /// <summary>The ship the player is aboard, or the player: whatever would carry their mark.</summary>
-    private EntityUid Carrier(EntityUid mob, out bool ship)
+    /// <summary>What the player is aboard that carries a mark of its own: a ship marked or being marked, or a vehicle.</summary>
+    private EntityUid? Vessel(EntityUid mob)
     {
         var xform = Transform(mob);
+        EntityUid? vehicle = null;
         if (TryComp<VehicleInteriorLinkComponent>(xform.MapUid, out var link) && link.Vehicle != mob && Exists(link.Vehicle))
         {
-            mob = link.Vehicle;
-            xform = Transform(mob);
+            vehicle = link.Vehicle;
+            xform = Transform(link.Vehicle);
         }
 
         if (xform.GridUid is { } grid && (HasComp<WGSkullComponent>(grid) || HasComp<WGWildernessDwellComponent>(grid)))
-        {
-            ship = true;
             return grid;
-        }
 
-        ship = false;
-        return mob;
+        return vehicle;
     }
 
     /// <summary>The title and sound on crossing into or out of a zone, and on being marked.</summary>

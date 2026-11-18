@@ -8,7 +8,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client.Shuttles.UI;
 
-/// <summary>Zone edges on the scope, and a skull by every ship marked for staying in a Wilderness.</summary>
+/// <summary>Zone edges on the scope, and a skull by every ship with a Wilderness mark.</summary>
 public partial class ShuttleNavControl
 {
     private static readonly Color WgMarkedColor = Color.FromHex("#ff3b30");

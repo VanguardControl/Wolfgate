@@ -66,6 +66,29 @@ def badge(name, fill, ink, stripes) -> Image.Image:
     return image
 
 
+# The skull over a marked person, at the 8 px of the other status icons: K outline, R bone.
+OVERHEAD_SKULL = [
+    ".KKKKKK.",
+    "KRRRRRRK",
+    "KRKRRKRK",
+    "KRKRRKRK",
+    "KRRKKRRK",
+    ".KRRRRK.",
+    ".KRKKRK.",
+    "..KKKK..",
+]
+
+
+def overhead_skull() -> Image.Image:
+    colours = {"K": (20, 20, 20, 255), "R": (255, 59, 48, 255)}
+    image = Image.new("RGBA", (8, 8))
+    for y, row in enumerate(OVERHEAD_SKULL):
+        for x, cell in enumerate(row):
+            if cell in colours:
+                image.putpixel((x, y), colours[cell])
+    return image
+
+
 def write_rsi(path: Path, size: int, states: dict, copyright: str):
     path.mkdir(parents=True, exist_ok=True)
     for state, image in states.items():
@@ -84,11 +107,8 @@ def main():
     badges = {state: badge(*spec) for state, spec in BADGES.items()}
     write_rsi(OUT / "zones.rsi", 32, badges,
               "Built by Tools/_WG/Wilderness/make_icons.py from the Wolfgate radar marker glyphs.")
-    skull = outlined(glyph("skull", (255, 59, 48), 1))
-    overhead = Image.new("RGBA", (16, 16))
-    overhead.alpha_composite(skull, ((16 - skull.width) // 2, (16 - skull.height) // 2))
-    write_rsi(OUT / "skull_icon.rsi", 16, {"skull": overhead},
-              "Built by Tools/_WG/Wilderness/make_icons.py from the Wolfgate radar marker glyphs.")
+    write_rsi(OUT / "skull_icon.rsi", 8, {"skull": overhead_skull()},
+              "Built by Tools/_WG/Wilderness/make_icons.py, after the Wolfgate radar marker skull.")
 
 
 if __name__ == "__main__":

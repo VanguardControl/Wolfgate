@@ -4,6 +4,7 @@ using Content.Server._Mono.AlertLevel;
 using Content.Server._Mono.GridClaimer;
 using Content.Server._NF.SectorServices;
 using Content.Server.Chat.Managers;
+using Content.Server.Shuttles.Systems;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._WG.Vehicles.Core;
 using Content.Shared._WG.Wilderness;
@@ -30,6 +31,7 @@ public sealed partial class WGZoneSystem : EntitySystem
     [Dependency] private AlertsSystem _alerts = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IChatManager _chat = default!;
+    [Dependency] private DockingSystem _docking = default!;
     [Dependency] private MetaDataSystem _metaData = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IPrototypeManager _proto = default!;
@@ -72,6 +74,7 @@ public sealed partial class WGZoneSystem : EntitySystem
         GatherSources();
         UpdatePlayers();
         UpdateSkulls(now);
+        UpdateGunners(now);
         UpdateAlerts();
 
         if (now < _nextRings)
@@ -141,12 +144,16 @@ public sealed partial class WGZoneSystem : EntitySystem
     }
 
     /// <summary>
-    /// The one zone alert a player sees: the mark, running down its time once out of the Wilderness, over the
-    /// zone's own, which in a Wilderness counts down to the mark.
+    /// The one zone alert a player sees: a mark, their own over their ship's, running down its time once out of the
+    /// Wilderness, over the zone's own, which in a Wilderness counts down to the mark.
     /// </summary>
     private void UpdateAlert(EntityUid mob, EntityUid subject, WGZonePrototype? zone)
     {
-        if (TryComp<WGSkullComponent>(subject, out var skull))
+        var skull = CompOrNull<WGSkullComponent>(mob);
+        if (skull == null && subject != mob)
+            skull = CompOrNull<WGSkullComponent>(subject);
+
+        if (skull != null)
         {
             (TimeSpan, TimeSpan)? left = skull.ExpiresAt is { } expires ? (expires - _skullLength, expires) : null;
             _alerts.ShowAlert(mob, MarkedAlert, cooldown: left);
@@ -159,7 +166,11 @@ public sealed partial class WGZoneSystem : EntitySystem
             return;
         }
 
-        (TimeSpan, TimeSpan)? marking = zone.Skulls && TryComp<WGWildernessDwellComponent>(subject, out var dwell)
+        var dwell = CompOrNull<WGWildernessDwellComponent>(mob);
+        if (dwell == null && subject != mob)
+            dwell = CompOrNull<WGWildernessDwellComponent>(subject);
+
+        (TimeSpan, TimeSpan)? marking = zone.Skulls && dwell != null
             ? (dwell.Since, dwell.Since + _dwell)
             : null;
         _alerts.ShowAlert(mob, alert, cooldown: marking);
@@ -218,11 +229,14 @@ public sealed partial class WGZoneSystem : EntitySystem
     {
         var xform = Transform(subject);
         var (centre, size) = Bounds(subject, xform);
-        return FindZone(xform.MapID, centre, size, Transform(mob).GridUid);
+        return FindZone(xform.MapID, centre, size, Transform(mob).GridUid, HasComp<MapGridComponent>(subject) ? subject : null);
     }
 
-    /// <summary>The highest-priority zone reaching a circle on a map, nearest first among equals.</summary>
-    private Source? FindZone(MapId map, Vector2 centre, float size, EntityUid? standingOn)
+    /// <summary>
+    /// The highest-priority zone reaching a circle on a map, nearest first among equals. A ship docked at a station
+    /// whose zone is aboard only is in that zone too.
+    /// </summary>
+    private Source? FindZone(MapId map, Vector2 centre, float size, EntityUid? standingOn, EntityUid? ship = null)
     {
         Source? best = null;
         var bestGap = float.MaxValue;
@@ -232,7 +246,8 @@ public sealed partial class WGZoneSystem : EntitySystem
                 continue;
 
             float gap;
-            if (source.Uid == standingOn)
+            if (source.Uid == standingOn
+                || source.Reach <= 0f && ship is { } docker && docker != source.Uid && _docking.AreGridsDocked(docker, source.Uid))
                 gap = -1f;
             else if (source.Reach <= 0f)
                 continue; // Aboard only.
@@ -252,8 +267,12 @@ public sealed partial class WGZoneSystem : EntitySystem
         return best;
     }
 
-    /// <summary>The ship a person is aboard, or the person, whichever would carry a Wilderness mark.</summary>
-    public EntityUid CarrierOf(EntityUid mob) => Subject(mob);
+    /// <summary>The ship or vehicle a person is aboard, which carries a Wilderness mark of its own, if any.</summary>
+    public EntityUid? ShipOf(EntityUid mob)
+    {
+        var subject = Subject(mob);
+        return subject == mob ? null : subject;
+    }
 
     /// <summary>
     /// What carries a person through zones: the ship they're aboard, or themselves on foot, on a station or on a
