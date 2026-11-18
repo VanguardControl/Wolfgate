@@ -6,7 +6,7 @@ namespace Content.Server.Anomaly;
 public sealed partial class AnomalySystem
 {
     /// <summary>Spawns a generated anomaly on a test chamber marker of the grid, if it has one. False when none.</summary>
-    private bool WgSpawnInChamber(EntityUid grid, string toSpawn)
+    public bool TrySpawnInChamber(EntityUid grid, string toSpawn)
     {
         var chambers = new List<EntityUid>();
         var query = EntityQueryEnumerator<WGAnomalyChamberComponent, TransformComponent>();

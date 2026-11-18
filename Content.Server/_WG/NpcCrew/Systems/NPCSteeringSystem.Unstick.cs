@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Server._WG.NpcCrew.Components;
 using Content.Server.NPC.Components;
+using Content.Server.NPC.Pathfinding;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.NPC;
@@ -26,6 +27,9 @@ public sealed partial class NPCSteeringSystem
 
     private readonly Dictionary<EntityUid, (TimeSpan Since, int Count)> _crewUnsticks = new();
     private readonly HashSet<Entity<MobStateComponent>> _crewUnstickMobs = new();
+
+    /// <summary>The tile each sidestepping crewman is headed for.</summary>
+    private readonly Dictionary<EntityUid, PathPoly> _crewSidesteps = new();
 
     /// <summary>Settles or sidesteps a stuck crewman; false leaves him to the usual repath and give-up.</summary>
     private bool TryUnstickCrew(EntityUid uid, NPCSteeringComponent steering, TransformComponent xform, Vector2 direction,
@@ -54,7 +58,8 @@ public sealed partial class NPCSteeringSystem
             tries = (now, 0);
         }
 
-        if (xform.GridUid is not { } grid || !TryComp<MapGridComponent>(grid, out var gridComp)
+        // A path already on its way would land over the sidestep.
+        if (steering.Pathfind || xform.GridUid is not { } grid || !TryComp<MapGridComponent>(grid, out var gridComp)
             || direction.LengthSquared() < 0.0001f)
             return false;
 
@@ -83,9 +88,28 @@ public sealed partial class NPCSteeringSystem
             if (_crewUnsticks.Count > 256)
                 _crewUnsticks.Clear();
             _crewUnsticks[uid] = (tries.Since, tries.Count + 1);
+            if (_crewSidesteps.Count > 256)
+                _crewSidesteps.Clear();
+            _crewSidesteps[uid] = poly;
             return true;
         }
 
+        return false;
+    }
+
+    /// <summary>
+    /// Whether a crewman is still on his way to the tile he stepped aside to: until he reaches it, no new path is
+    /// asked for, as one from where he stands would run back into the body he stepped round.
+    /// </summary>
+    private bool IsCrewSidestepping(EntityUid uid, NPCSteeringComponent steering)
+    {
+        if (!_crewSidesteps.TryGetValue(uid, out var poly))
+            return false;
+
+        if (steering.CurrentPath.Count > 0 && steering.CurrentPath.Peek() == poly)
+            return true;
+
+        _crewSidesteps.Remove(uid);
         return false;
     }
 

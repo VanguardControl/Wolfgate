@@ -165,7 +165,7 @@ public sealed partial class AnomalySystem
         if (xform.GridUid == null)
             return;
 
-        if (!WgSpawnInChamber(xform.GridUid.Value, component.SpawnerPrototype)) // WOLFGATE(AdminVessels): a grid's test chamber takes the anomaly
+        if (!TrySpawnInChamber(xform.GridUid.Value, component.SpawnerPrototype)) // WOLFGATE(AdminVessels): a grid's test chamber takes the anomaly
             SpawnOnRandomGridLocation(xform.GridUid.Value, component.SpawnerPrototype);
         RemComp<GeneratingAnomalyGeneratorComponent>(uid);
         Appearance.SetData(uid, AnomalyGeneratorVisuals.Generating, false);

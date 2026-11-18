@@ -5,6 +5,7 @@ using System.Numerics;
 using Content.Server._WG.Administration.Systems;
 using Content.Server._WG.NpcCrew.Systems;
 using Content.Server._WG.ShipCommand;
+using Content.Server.Anomaly;
 using Content.Server.Carrying;
 using Content.Server.Salvage.Magnet;
 using Content.Server.Station.Systems;
@@ -76,9 +77,19 @@ public sealed class LupercalPlaytest2Test
             // Directional fans hold the air at the doors to space and the core's gates.
             Assert.That(OfProto(em, grid, "AtmosDeviceFanDirectional"), Has.Count.GreaterThanOrEqualTo(12));
 
-            // Science has its anomaly generator, whose anomalies come in on the chamber's marker.
+            // Science has its anomaly generator, whose anomalies come in on the chamber's marker: that grid's own, never
+            // one on another grid, and a grid with none falls back to a random tile.
             Assert.That(OfProto(em, grid, "MachineAnomalyGenerator"), Has.Count.EqualTo(1));
-            Assert.That(OfProto(em, grid, "WGAnomalyChamberMarker"), Has.Count.EqualTo(1));
+            var marker = OfProto(em, grid, "WGAnomalyChamberMarker").Single();
+            em.SpawnEntity("WGAnomalyChamberMarker", map.GridCoords);
+            var anomalies = server.System<AnomalySystem>();
+            var before = OfProto(em, grid, "Paper").ToHashSet();
+            Assert.That(anomalies.TrySpawnInChamber(grid, "Paper"), Is.True, "The Lupercal's chamber takes the anomaly.");
+            var spawned = OfProto(em, grid, "Paper").Single(p => !before.Contains(p));
+            Assert.That(em.GetComponent<TransformComponent>(spawned).Coordinates.Position,
+                Is.EqualTo(em.GetComponent<TransformComponent>(marker).Coordinates.Position), "It lands on the Lupercal's marker.");
+            var bare = server.System<SharedMapSystem>().CreateGridEntity(map.MapId);
+            Assert.That(anomalies.TrySpawnInChamber(bare, "Paper"), Is.False, "A grid with no chamber falls back.");
 
             // The janitor's closet has its vendor; Medical has its defibrillators.
             Assert.That(OfProto(em, grid, "VendingMachineJaniDrobe"), Is.Not.Empty);

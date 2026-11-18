@@ -466,6 +466,9 @@ public sealed partial class NPCSteeringSystem
             return;
         }
 
+        if (IsCrewSidestepping(uid, steering)) // WOLFGATE(NpcCrew): a crewman stepping aside reaches that tile before a repath
+            return;
+
         if (!needsPath && steering.CurrentPath.Count > 0)
         {
             needsPath = steering.CurrentPath.Count > 0 && (steering.CurrentPath.Peek().Data.Flags & PathfindingBreadcrumbFlag.Invalid) != 0x0;

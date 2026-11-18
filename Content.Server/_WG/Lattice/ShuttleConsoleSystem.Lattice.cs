@@ -12,11 +12,9 @@ public sealed partial class ShuttleConsoleSystem
     /// <summary>Refuses a jump whose destination lies where FTL drives die, and tells the pilot.</summary>
     private bool WgRefuseLatticeTarget(EntityCoordinates target, EntityUid console, EntityUid actor)
     {
-        if (Transform(console).GridUid is { } own && _wgLattice.IgnoresLattice(own))
-            return false;
-
         var point = _transform.ToMapCoordinates(target);
-        var ftlWorks = _wgLattice.FtlWorksAt(point);
+        // An admin vessel's drive works anywhere; a Scion aboard still keeps it out of a sealed hex.
+        var ftlWorks = Transform(console).GridUid is { } own && _wgLattice.IgnoresLattice(own) || _wgLattice.FtlWorksAt(point);
         var scionAllowed = Transform(console).GridUid is not { } ship || _wgLattice.ScionMayJumpTo(ship, point);
         if (ftlWorks && scionAllowed)
             return false;

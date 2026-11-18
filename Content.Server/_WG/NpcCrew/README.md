@@ -645,6 +645,7 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
   - crew out of a fight hold short of a burning tile rather than walk through the fire
   - stop blended input while access-aware crew settle at an obstacle.
   - stuck crew stop short of a held spot or step aside, as a repath runs back into the same body
+  - a crewman stepping aside reaches that tile before a repath
 - [`Content.Server/NPC/Systems/NPCSteeringSystem.cs`](../../NPC/Systems/NPCSteeringSystem.cs)
   - crew may have been walking past a puddle
   - crew walk past a slippery puddle instead of running into it

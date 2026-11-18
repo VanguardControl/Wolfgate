@@ -42,6 +42,7 @@ public sealed partial class WGCrewSystem : EntitySystem
     [Dependency] private MobStateSystem _mobs = default!;
     [Dependency] private SuitSensorSystem _suitSensors = default!;
     [Dependency] private InventorySystem _inventory = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     private readonly List<EntityUid> _expired = new();
     private readonly List<EntityUid> _kept = new();
@@ -64,6 +65,28 @@ public sealed partial class WGCrewSystem : EntitySystem
 
     /// <summary>Blackboard key holding how far from the post a crewman strays before he walks back to it.</summary>
     public const string PostLeaveRangeKey = "WGCrewPostLeaveRange";
+
+    /// <summary>
+    /// Gives a crewman a new post or patrol point. Until he reaches it he walks there from anywhere past
+    /// <see cref="WGCrewComponent.PostRange"/>; <see cref="MarkPostReached"/> then widens that to the leave range.
+    /// </summary>
+    public void SetPost(EntityUid uid, WGCrewComponent crew, HTNComponent htn, EntityCoordinates post)
+    {
+        crew.PostReached = false;
+        _npc.SetBlackboard(uid, PostLeaveRangeKey, crew.PostRange, htn);
+        _npc.SetBlackboard(uid, PostKey, post, htn);
+    }
+
+    /// <summary>Marks the crewman's post reached once he stands within its range, so small nudges no longer send him back.</summary>
+    public void MarkPostReached(EntityUid uid, WGCrewComponent crew, HTNComponent htn, TransformComponent xform)
+    {
+        if (crew.PostReached || !htn.Blackboard.TryGetValue<EntityCoordinates>(PostKey, out var post, EntityManager)
+            || !_transform.InRange(post, xform.Coordinates, crew.PostRange))
+            return;
+
+        crew.PostReached = true;
+        _npc.SetBlackboard(uid, PostLeaveRangeKey, Math.Max(crew.PostLeaveRange, crew.PostRange), htn);
+    }
 
     public override void Initialize()
     {
@@ -510,9 +533,8 @@ public sealed partial class WGCrewSystem : EntitySystem
             _npc.SetBlackboard(uid, "NavShove", true, htn);
             _npc.SetBlackboard(uid, DutyKey, crew.Duty, htn);
             _npc.SetBlackboard(uid, PostRangeKey, crew.PostRange, htn);
-            _npc.SetBlackboard(uid, PostLeaveRangeKey, Math.Max(crew.PostLeaveRange, crew.PostRange), htn);
             if (crew.Post is { } post)
-                _npc.SetBlackboard(uid, PostKey, post, htn);
+                SetPost(uid, crew, htn, post);
             else
                 htn.Blackboard.Remove<EntityCoordinates>(PostKey);
 

@@ -19,6 +19,7 @@ public sealed partial class WGCrewRoutineSystem : EntitySystem
 {
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private WGCrewPlannerSystem _planner = default!;
+    [Dependency] private WGCrewSystem _crew = default!;
     [Dependency] private WGCrewWeaponSystem _weapons = default!;
     [Dependency] private WGCrewWorkSystem _work = default!;
     [Dependency] private MobStateSystem _mobs = default!;
@@ -40,6 +41,7 @@ public sealed partial class WGCrewRoutineSystem : EntitySystem
                 Face(uid, helm);
             if (TryComp<WGGunnerDutyComponent>(uid, out var gunner) && gunner.AtConsole && gunner.Console is { } console)
                 Face(uid, console);
+            _crew.MarkPostReached(uid, crew, htn, xform);
             if (crew.NextPatrol == TimeSpan.Zero)
                 crew.NextPatrol = _timing.CurTime + TimeSpan.FromSeconds(_random.Next(45, 91));
             if (_timing.CurTime < crew.NextPatrol || crew.Duty != WGCrewDuties.Guard
@@ -50,7 +52,7 @@ public sealed partial class WGCrewRoutineSystem : EntitySystem
             crew.NextPatrol = _timing.CurTime + TimeSpan.FromSeconds(_random.Next(45, 91));
             if (NextPatrolPoint(uid, grid, xform) is not { } point)
                 continue;
-            htn.Blackboard.SetValue(WGCrewSystem.PostKey, point);
+            _crew.SetPost(uid, crew, htn, point);
             EntityManager.System<WGCrewSpeechSystem>().Say(uid, "patrol");
             EntityManager.System<HTNSystem>().Replan(htn);
         }

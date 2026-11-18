@@ -101,6 +101,13 @@ public sealed partial class WGCrewComponent : Component
     [DataField]
     public float PostLeaveRange = 2.5f;
 
+    /// <summary>
+    /// Whether he has reached his current post since it was set: until then <see cref="PostRange"/> decides when he
+    /// walks to it, afterwards <see cref="PostLeaveRange"/>.
+    /// </summary>
+    [ViewVariables]
+    public bool PostReached;
+
     /// <summary>The ship whose allow list holds this crewman's card, so deleting him revokes it.</summary>
     [ViewVariables]
     public EntityUid? AccessShip;
