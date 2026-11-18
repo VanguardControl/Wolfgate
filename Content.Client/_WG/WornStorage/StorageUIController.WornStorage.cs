@@ -56,12 +56,12 @@ public sealed partial class StorageUIController
     public void TakeOutStoredItem(EntityUid item, EntityUid storage, string? handName = null)
     {
         var handsSystem = EntityManager.System<HandsSystem>();
-        if (!handsSystem.TryGetPlayerHands(out var hands))
+        if (_player.LocalEntity is not { } player || !handsSystem.TryGetPlayerHands(out var hands))
             return;
 
         if (handName != null)
         {
-            if (!hands.Hands.TryGetValue(handName, out var hand) || hand.HeldEntity != null)
+            if (!handsSystem.TryGetHand(player, handName, out var hand, hands) || hand.HeldEntity != null)
                 return;
 
             // Make the target hand active so the item lands in it.
