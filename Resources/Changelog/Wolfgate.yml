@@ -7800,3 +7800,161 @@ Entries:
   id: 100493
   time: '2026-11-16T13:30:03.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/695
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: >-
+        The SRD and drydocks now rebuild a destroyed mobile drydock crane bolted
+        down and bonded to its ship.
+  id: 100494
+  time: '2026-11-16T14:22:59.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/697
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: >-
+        Ships from a faction voucher can no longer be broken at a drydock or
+        chop shop by their own faction.
+  id: 100495
+  time: '2026-11-16T14:24:11.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/687
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        The ghost warp menu can be sorted by faction or by place, with players
+        and ships listed under the faction they fly for or the world they're on.
+    - type: Tweak
+      message: >-
+        The nuke and its disk only show in the ghost warp menu while something
+        is happening with them.
+    - type: Remove
+      message: Encounter ships are no longer listed in the ghost warp menu.
+  id: 100496
+  time: '2026-11-16T20:38:14.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/707
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        Shields, drives and other fittings taken off NPC ships can now be bolted
+        down on your own ship.
+  id: 100497
+  time: '2026-11-16T20:40:00.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/703
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Radar option to show only contact icons, with names hidden until you
+        hover over a contact.
+    - type: Add
+      message: Radar option to turn off revealing names by hovering.
+  id: 100498
+  time: '2026-11-16T20:40:13.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/708
+- author: Balls2zawall
+  changes:
+    - type: Add
+      message: >-
+        Added the Despot, Ketch, Huolian, Jackal, Molly, Pibb, and Renegade to
+        the reavers ship roster.
+  id: 100499
+  time: '2026-11-16T20:42:03.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/709
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Ship gun rounds and shells no longer pass through standing walls and
+        windows to hit people or explode inside.
+    - type: Fix
+      message: Flak shrapnel no longer cuts people behind a hull.
+    - type: Fix
+      message: A deflector shield no longer lets shells land inside the ship.
+    - type: Fix
+      message: >-
+        NPC ship guns no longer shoot people through the walls of a ship they
+        treat as friendly.
+  id: 100500
+  time: '2026-11-17T07:42:55.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/710
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        Wolfgate content now uses the WG prefix. Some saved Wolfgate settings
+        reset once.
+  id: 100501
+  time: '2026-11-17T13:22:37.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/715
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Narcotics buyers remember who sells to them. Sell too much at once and
+        the price drops, and the buyer's manner hints at how close you are.
+    - type: Add
+      message: >-
+        Narcotics and smuggling sales tip off Caelestinus Security, the TSF and
+        the PDV. Heavy sellers get described, and customs puts a paying warrant
+        on the heaviest.
+    - type: Add
+      message: A large narcotics stockpile aboard a ship shows on radar.
+    - type: Tweak
+      message: >-
+        Smuggling crates sell for 30,000 thlr, up from 20,000, and draw the same
+        heat as narcotics.
+    - type: Tweak
+      message: Narcotics hand in at a contraband pallet for more the more they hold.
+    - type: Remove
+      message: Customs no longer flags smuggling crate sales at random.
+  id: 100502
+  time: '2026-11-18T09:32:24.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/721
+- author: ImogenOC
+  changes:
+    - type: Tweak
+      message: >-
+        Status alerts move to the left of the chat box when it is expanded, so
+        they never get pushed off screen.
+  id: 100503
+  time: '2026-11-18T11:03:48.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/712
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Added ThalerLink, a PDA banking app: withdraw, transfer and deposit
+        thalers using the ID card in your PDA, with a per-round withdrawal
+        allowance.
+  id: 100504
+  time: '2026-11-18T14:07:59.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/661
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Boarders who down an NPC ship's crew now hijack it on the spot, and
+        every ship of that faction nearby treats it as an enemy.
+    - type: Add
+      message: >-
+        The ADS pulls ships off patrol to destroy a hijacked ADS ship, and to
+        hunt down anyone who attacks, boards or tampers with one.
+    - type: Tweak
+      message: NPC crews turn on anyone who damages, cuts into or unbolts their ship.
+    - type: Tweak
+      message: >-
+        NPC pilots and gunners leave their stations to fight whoever is downing
+        their crewmates.
+    - type: Tweak
+      message: NPC crews open fire the moment their gun is drawn.
+    - type: Add
+      message: >-
+        Reaver and ADS campaigns send ships after their stolen vessels until
+        they are destroyed or taken back.
+    - type: Tweak
+      message: A Reaver patrol whose lead ship is lost carries on under its wing.
+  id: 100505
+  time: '2026-11-18T14:11:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/723
