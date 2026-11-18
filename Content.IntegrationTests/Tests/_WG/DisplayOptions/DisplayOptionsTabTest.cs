@@ -90,7 +90,8 @@ public sealed class DisplayOptionsTabTest
     [Test]
     public async Task BloomToggleUsesWolfgateOverlay()
     {
-        await using var pair = await PoolManager.GetServerClient();
+        // Connected, so the client's entity systems, WGBloomSystem among them, are running.
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
         var client = pair.Client;
         var config = client.ResolveDependency<IConfigurationManager>();
         var overlays = client.ResolveDependency<IOverlayManager>();
