@@ -99,6 +99,7 @@ public sealed class WGZoneHudSystem : EntitySystem
         if (_player.LocalEntity is not { } mob)
         {
             Hide();
+            ClearTitle();
             return;
         }
 
@@ -198,6 +199,14 @@ public sealed class WGZoneHudSystem : EntitySystem
 
         _titleAge += frameTime;
         _title.Alpha = _titleAge < TitleHold ? 1f : Math.Clamp(1f - (_titleAge - TitleHold) / TitleFade, 0f, 1f);
+    }
+
+    /// <summary>Takes the title down at once, as when there is no body to show it for.</summary>
+    private void ClearTitle()
+    {
+        _titleAge = float.MaxValue;
+        if (_title != null)
+            _title.Alpha = 0f;
     }
 
     private void UpdateBanner(WGZonePrototype? zone, WGInZoneComponent? inZone, WGSkullComponent? skull, WGWildernessDwellComponent? dwell,

@@ -48,6 +48,7 @@ public sealed partial class WGZoneSystem : EntitySystem
     private readonly List<Source> _sources = new();
     private readonly Dictionary<EntityUid, List<ICommonSession>> _aboard = new();
     private readonly Dictionary<EntityUid, List<WGZoneRing>> _rings = new();
+    private readonly List<(EntityUid Mob, EntityUid Subject, WGZonePrototype? Zone)> _alertsDue = new();
 
     /// <summary>A zone's centre this tick: where it is, how wide its source is, and how far past that it reaches.</summary>
     private readonly record struct Source(EntityUid Uid, MapId Map, Vector2 Centre, float Size, float Reach, WGZonePrototype Zone, bool Rings);
@@ -71,6 +72,7 @@ public sealed partial class WGZoneSystem : EntitySystem
         GatherSources();
         UpdatePlayers();
         UpdateSkulls(now);
+        UpdateAlerts();
 
         if (now < _nextRings)
             return;
@@ -122,8 +124,20 @@ public sealed partial class WGZoneSystem : EntitySystem
 
             var found = FindZone(mob, subject);
             Apply(session, mob, found, hot);
-            UpdateAlert(mob, subject, found?.Zone);
+            _alertsDue.Add((mob, subject, found?.Zone));
         }
+    }
+
+    /// <summary>Shows each player's zone alert, after the marks have been updated so it matches them.</summary>
+    private void UpdateAlerts()
+    {
+        foreach (var (mob, subject, zone) in _alertsDue)
+        {
+            if (!TerminatingOrDeleted(mob))
+                UpdateAlert(mob, subject, zone);
+        }
+
+        _alertsDue.Clear();
     }
 
     /// <summary>

@@ -12,6 +12,7 @@ using Content.Server.Station.Systems;
 using Content.Server.StationEvents.Events;
 using Content.Shared._NF.CCVar;
 using Content.Shared._NF.Smuggling.Prototypes;
+using Content.Shared._WG.Wilderness; // WOLFGATE(Wilderness)
 using Content.Shared.Database;
 using Content.Shared.GameTicking;
 using Content.Shared.Hands.Components;
@@ -457,6 +458,12 @@ public sealed partial class DeadDropSystem : EntitySystem
         //setup the radar properties
         _shuttle.SetIFFColor(grid, component.Color);
         _shuttle.AddIFFFlag(grid, IFFFlags.HideLabel);
+
+        // WOLFGATE(Wilderness) START: a drop pod is a Wilderness, its edge kept off radars like its name
+        var zone = EnsureComp<WGZoneSourceComponent>(grid);
+        zone.Zone = "WGWilderness";
+        zone.Rings = false;
+        // WOLFGATE END
 
         //this is where we set up all the information that FTL is going to need, including a new null entity as a destination target because FTL needs it for reasons?
         //dont ask me im just fulfilling FTL requirements.

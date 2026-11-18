@@ -57,6 +57,15 @@ public sealed partial class WGZoneSystem
                 if (InWilderness(subject, Transform(subject)))
                     _inWild.Add(subject);
             }
+
+            // People already dwelling or marked whose player is away: a disconnect neither clears nor pauses the mark.
+            var marked = EntityQueryEnumerator<WGSkullComponent>();
+            while (marked.MoveNext(out var uid, out _))
+                AddOnFoot(uid);
+
+            var waiting = EntityQueryEnumerator<WGWildernessDwellComponent>();
+            while (waiting.MoveNext(out var uid, out _))
+                AddOnFoot(uid);
         }
 
         foreach (var carrier in _inWild)
@@ -124,6 +133,20 @@ public sealed partial class WGZoneSystem
             RemComp<WGSkullComponent>(uid);
             TellAboard(uid, "wg-zone-skull-expired");
         }
+    }
+
+    /// <summary>Counts a person, not aboard a ship, as in the Wilderness if they are.</summary>
+    private void AddOnFoot(EntityUid uid)
+    {
+        if (_inWild.Contains(uid)
+            || HasComp<MapGridComponent>(uid)
+            || HasComp<GhostComponent>(uid)
+            || TerminatingOrDeleted(uid)
+            || Subject(uid) != uid)
+            return;
+
+        if (InWilderness(uid, Transform(uid)))
+            _inWild.Add(uid);
     }
 
     /// <summary>Whether a ship or person is in a Wilderness, and not in something that outranks it there.</summary>

@@ -48,8 +48,8 @@ public partial class ShuttleNavControl
     }
 
     /// <summary>
-    /// For a marked ship: a skull after its name in the current tag, and one over its blip at <paramref name="blip"/>
-    /// whether its name shows or not.
+    /// For a marked ship with a tag: a skull after its name in the tag, and one over its blip at
+    /// <paramref name="blip"/> even while the tag layout keeps the name for the cursor.
     /// </summary>
     private void WgTagSkull(DrawingHandleScreen handle, EntityUid grid, Vector2 blip, string name)
     {

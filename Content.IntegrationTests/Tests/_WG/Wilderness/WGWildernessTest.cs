@@ -1,6 +1,7 @@
 #nullable enable
 using System.Numerics;
 using Content.Server._Mono.GridClaimer;
+using Content.Server._WG.Wilderness;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._WG.Wilderness;
 using Content.Shared.Mind;
@@ -10,6 +11,7 @@ using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
+using Robust.Shared.Timing;
 
 namespace Content.IntegrationTests.Tests._WG.Wilderness;
 
@@ -169,6 +171,42 @@ public sealed class WGWildernessTest
             Assert.That(em.HasComponent<WGInZoneComponent>(mob), Is.False, "a player far from every zone is still shown one.");
             Assert.That(em.TryGetComponent<WGSkullComponent>(mob, out var skull) && skull.ExpiresAt != null, Is.True,
                 "the mark should run down after leaving, not vanish.");
+            Reset(cfg);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task AMarkHoldsOnAPersonWhosePlayerIsAway()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = false });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var cfg = server.ResolveDependency<IConfigurationManager>();
+        var timing = server.ResolveDependency<IGameTiming>();
+        var map = await pair.CreateTestMap();
+        EntityUid marked = default, waiting = default;
+
+        await server.WaitPost(() =>
+        {
+            cfg.SetCVar(WildernessCVars.DwellSeconds, 1f);
+            cfg.SetCVar(WildernessCVars.SkullOnFoot, true);
+            Source(em, map.Grid.Owner, "WGWilderness", 50f);
+
+            // Bodies with no player attached, as a disconnect leaves them.
+            marked = em.SpawnEntity("MobHuman", map.GridCoords);
+            server.System<WGZoneSystem>().Mark(marked);
+            waiting = em.SpawnEntity("MobHuman", map.GridCoords);
+            em.EnsureComponent<WGWildernessDwellComponent>(waiting).Since = timing.CurTime;
+        });
+        await pair.RunSeconds(3f);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.TryGetComponent<WGSkullComponent>(marked, out var skull), Is.True, "a disconnect cleared the mark.");
+            Assert.That(skull!.ExpiresAt, Is.Null, "the mark ran down on a person still in the Wilderness because no player was attached.");
+            Assert.That(em.HasComponent<WGSkullComponent>(waiting), Is.True, "a disconnect dropped the time counted towards the mark.");
             Reset(cfg);
         });
 

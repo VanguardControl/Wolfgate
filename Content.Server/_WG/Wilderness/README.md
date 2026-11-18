@@ -3,13 +3,15 @@
 Shows players where the rules protect them, and marks those who stay where they don't. A `wgZone` prototype is a kind
 of zone (Safe Zone, Wilderness, faction outpost, not a safe zone) with its banner text, colour, icon, alert and the
 rule it links to. A `WGZoneSource` on a grid, or a `WGZoneMarker` point on a planet, centres one: the Safe Zone on
-Caelestinus Central (256 m), a Wilderness on every bluespace event site, Monolithic Fragment and planetary vault
-(512 m), outposts on Halcyon and Helios (256 m), not-safe on Camelot, Underground and the Jupiter (aboard only).
+Caelestinus Central (256 m), a Wilderness on every bluespace event site, PDV drop pod, Monolithic Fragment and
+planetary vault (512 m), outposts on Halcyon and Helios (256 m), not-safe on Camelot, Underground and the Jupiter
+(aboard only).
 
 `WGZoneSystem` works out each player's zone once a second (the ship they're aboard, edge to edge, or them on foot),
 sets `WGInZoneComponent` for their client, shows the alert and says it in chat. A ship, or a person not aboard one,
 that stays `wg.wilderness.dwell_seconds` (15) in a Wilderness gets `WGSkullComponent`: held while there, running out
-`wg.wilderness.skull_minutes` (10) after leaving. A marked ship has no protection anywhere, Safe Zone included.
+`wg.wilderness.skull_minutes` (10) after leaving, whether or not its player is connected. A marked ship has no
+protection anywhere, Safe Zone included.
 `wg.wilderness.open_to_all` says whether anyone or only TSF and PDV may fight there; `wg.wilderness.skull_on_foot`
 whether people on foot are marked. The guidebook's `<WGWildernessRule/>` writes both into the rules.
 
@@ -85,6 +87,7 @@ The zone icons are built by `Tools/_WG/Wilderness/make_icons.py` from the radar 
   - the edges of Safe Zones, Wildernesses and outposts.
   - a marked ship's name shows red
   - a skull by a marked ship's blip and name
+- [`Content.Server/_NF/Smuggling/DeadDropSystem.cs`](../../_NF/Smuggling/DeadDropSystem.cs): a drop pod is a Wilderness, its edge kept off radars like its name
 - [`Resources/Prototypes/_Mono/GameRules/monolithic.yml`](../../../Resources/Prototypes/_Mono/GameRules/monolithic.yml): Monolithic Fragments are Wildernesses
 - [`Resources/Prototypes/_Mono/Guidebook/rules.yml`](../../../Resources/Prototypes/_Mono/Guidebook/rules.yml): the zones page sits with the conflict rules
 - [`Resources/Prototypes/_Mono/Outpost/caelestinus.yml`](../../../Resources/Prototypes/_Mono/Outpost/caelestinus.yml): the Safe Zone round Central
