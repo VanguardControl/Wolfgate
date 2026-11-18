@@ -7921,3 +7921,13 @@ Entries:
   id: 100503
   time: '2026-11-18T11:03:48.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/712
+- author: ImogenOC
+  changes:
+    - type: Add
+      message: >-
+        Admin Tech gear is in: Bluespace and Subspace Technician outfits with a
+        Return action, and a key for aghost and back to your body.
+        SS13-originating admins rejoice.
+  id: 100504
+  time: '2026-11-18T23:19:21.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/713
