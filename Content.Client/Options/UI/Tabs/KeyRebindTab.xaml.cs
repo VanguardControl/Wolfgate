@@ -2,7 +2,6 @@ using System.Numerics;
 using Content.Client._WG.Options; // WOLFGATE(Options)
 using Content.Shared._WG.RMCCore.Input; // WOLFGATE(Xenonids)
 using Content.Shared._WG.LandingGuide; // WOLFGATE(LandingGuide)
-using Content.Shared._WG.WornStorage; // WOLFGATE(WornStorage)
 using Content.Client.Stylesheets;
 using Content.Shared.CCVar;
 using Content.Shared.Input;
@@ -174,7 +173,7 @@ namespace Content.Client.Options.UI.Tabs
 
             AddHeader("ui-options-header-general");
             AddCheckBox("ui-options-hotkey-keymap", _cfg.GetCVar(CVars.DisplayUSQWERTYHotkeys), HandleToggleUSQWERTYCheckbox);
-            AddCheckBox("ui-options-wg-worn-storage-click-opens", _cfg.GetCVar(WornStorageCVars.ClickOpens), HandleToggleWornStorageClick); // WOLFGATE(WornStorage): SS13 worn storage click
+            AddCheckBox("ui-options-wg-worn-storage-click-opens", _cfg.GetCVar(Content.Shared._WG.WornStorage.WornStorageCVars.ClickOpens), HandleToggleWornStorageClick); // WOLFGATE(WornStorage): SS13 worn storage click
 
             AddHeader("ui-options-header-movement");
             AddButton(EngineKeyFunctions.MoveUp);
