@@ -2,7 +2,6 @@ using System.Numerics;
 using Content.Client._WG.Options; // WOLFGATE(Options)
 using Content.Shared._WG.RMCCore.Input; // WOLFGATE(Xenonids)
 using Content.Shared._WG.LandingGuide; // WOLFGATE(LandingGuide)
-using Content.Shared._WG.AdminObserver; // WOLFGATE(AdminObserver)
 using Content.Client.Stylesheets;
 using Content.Shared.CCVar;
 using Content.Shared.Input;
@@ -279,9 +278,9 @@ namespace Content.Client.Options.UI.Tabs
             AddButton(ContentKeyFunctions.OpenDecalSpawnWindow);
             AddButton(ContentKeyFunctions.OpenAdminMenu);
             // WOLFGATE(AdminObserver) START: admin ghost, manifest and observer panel keys
-            AddButton(WGAdminObserverKeys.WGToggleAghost);
-            AddButton(WGAdminObserverKeys.WGToggleManifest);
-            AddButton(WGAdminObserverKeys.WGOpenObserverPanel);
+            AddButton(Content.Shared._WG.AdminObserver.WGAdminObserverKeys.WGToggleAghost);
+            AddButton(Content.Shared._WG.AdminObserver.WGAdminObserverKeys.WGToggleManifest);
+            AddButton(Content.Shared._WG.AdminObserver.WGAdminObserverKeys.WGOpenObserverPanel);
             // WOLFGATE END
             AddButton(EngineKeyFunctions.WindowCloseAll);
             AddButton(EngineKeyFunctions.WindowCloseRecent);
