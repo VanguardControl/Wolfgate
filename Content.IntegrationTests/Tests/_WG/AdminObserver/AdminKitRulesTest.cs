@@ -2,6 +2,7 @@
 using System.Linq;
 using Content.Server._WG.AdminObserver;
 using Content.Server.Administration.Managers;
+using Content.Shared._WG.AdminObserver;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Inventory;
 using Content.Shared.Storage.EntitySystems;
@@ -83,7 +84,10 @@ public sealed class AdminKitRulesTest
                 entMan.GetComponent<MetaDataComponent>(e).EntityPrototype?.ID), Does.Contain(Outsider));
         });
 
-        // Without the flag the observer is not theirs to equip, and the command is not theirs to run.
+        // Without the flag the observer is not theirs to equip, the command is not theirs to run, and leaving it
+        // saves the catalogue only.
+        await server.WaitAssertion(() =>
+            Assert.That(entMan.GetComponent<WGAdminObserverComponent>(observer).SavesAnything, "A Host saves everything."));
         await server.WaitPost(() => admins.DeAdmin(session));
         await pair.RunTicksSync(2);
         await server.WaitAssertion(() =>
@@ -92,6 +96,8 @@ public sealed class AdminKitRulesTest
             {
                 Assert.That(kit.TryGetObserver(session, out _), Is.False);
                 Assert.That(server.ResolveDependency<IConGroupController>().CanCommand(session, "adminkit"), Is.False);
+                Assert.That(entMan.GetComponent<WGAdminObserverComponent>(observer).SavesAnything, Is.False,
+                    "Losing the Spawn flag should stop the observer saving non-catalogue items.");
             });
         });
 

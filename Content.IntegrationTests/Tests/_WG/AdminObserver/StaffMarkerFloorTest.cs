@@ -48,6 +48,11 @@ public sealed class StaffMarkerFloorTest
                 Assert.That(comp.Color, Is.EqualTo(WGStaffMarkerComponent.StaffColor));
                 Assert.That(marker.Mark(marked, settings, "Host", "moon", host: true).Color, Is.EqualTo(Color.FromHex("#00ff00")));
                 Assert.That(WGStaffMarkerSystem.MarkerColor(null, true), Is.EqualTo(WGStaffMarkerComponent.HostColor));
+                Assert.That(WGStaffMarkerSystem.MarkerColor("#00ff0000", true), Is.EqualTo(WGStaffMarkerComponent.HostColor),
+                    "A fully transparent colour would hide the marker.");
+                Assert.That(WGStaffMarkerSystem.VisualsFor(WGAvatarKind.Character, WGMarkerVisuals.Sigil),
+                    Is.EqualTo(WGMarkerVisuals.Sigil | WGStaffMarkerSystem.ObjectDefault),
+                    "A character with only a sigil beside it could pass for a player.");
             });
 
             marker.Mark(marked, settings, "Head Admin", "moon", host: false);

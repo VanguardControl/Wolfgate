@@ -46,7 +46,7 @@ public sealed partial class WGStaffMarkerSystem : EntitySystem
     public const WGMarkerVisuals OnAvatar = WGMarkerVisuals.Aura | WGMarkerVisuals.Shield | WGMarkerVisuals.Hologram
                                             | WGMarkerVisuals.Glyph | WGMarkerVisuals.Ring;
 
-    /// <summary>What an object or mob avatar gets when the admin chose nothing drawn on the avatar itself.</summary>
+    /// <summary>What an object, mob or character avatar gets when the admin chose nothing drawn on the avatar itself.</summary>
     public const WGMarkerVisuals ObjectDefault = WGMarkerVisuals.Hologram | WGMarkerVisuals.Ring;
 
     /// <summary>Marks an entity as this admin, by their saved choices, rank and flags.</summary>
@@ -85,14 +85,14 @@ public sealed partial class WGStaffMarkerSystem : EntitySystem
     }
 
     /// <summary>
-    /// The visuals an avatar is marked with: the chosen ones, never none. An object or mob could pass for the real
-    /// thing with a plate beside it and nothing else, so it also gets <see cref="ObjectDefault"/> unless the admin
-    /// chose something drawn on the avatar.
+    /// The visuals an avatar is marked with: the chosen ones, never none. An object, mob or character could pass for
+    /// the real thing with a plate or sigil beside it and nothing else, so it also gets <see cref="ObjectDefault"/>
+    /// unless the admin chose something drawn on the avatar.
     /// </summary>
     public static WGMarkerVisuals VisualsFor(WGAvatarKind kind, WGMarkerVisuals chosen)
     {
         var visuals = chosen & Supported;
-        if (kind is WGAvatarKind.Object or WGAvatarKind.Mob && (visuals & OnAvatar) == 0)
+        if (kind is WGAvatarKind.Object or WGAvatarKind.Mob or WGAvatarKind.Character && (visuals & OnAvatar) == 0)
             visuals |= ObjectDefault;
 
         return visuals == WGMarkerVisuals.None ? WGMarkerVisuals.Nameplate : visuals;
@@ -128,12 +128,15 @@ public sealed partial class WGStaffMarkerSystem : EntitySystem
         };
     }
 
-    /// <summary>The marker colour: fixed for staff, the saved one for a holder of the Host flag.</summary>
+    /// <summary>
+    /// The marker colour: fixed for staff, the saved one for a holder of the Host flag unless it is fully
+    /// transparent, which would hide the marker.
+    /// </summary>
     public static Color MarkerColor(string? saved, bool host)
     {
         if (!host)
             return WGStaffMarkerComponent.StaffColor;
 
-        return saved != null && Color.TryFromHex(saved, out var color) ? color : WGStaffMarkerComponent.HostColor;
+        return saved != null && Color.TryFromHex(saved, out var color) && color.A > 0f ? color : WGStaffMarkerComponent.HostColor;
     }
 }

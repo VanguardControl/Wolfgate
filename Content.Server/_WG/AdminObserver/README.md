@@ -12,8 +12,9 @@ listed beside it and ship unbound.
 
 Each admin has one saved document (`WGAdminObserverData`: avatar presets, staff marker choices, kit layout), a JSON
 row in `wolfgate_admin_observer`. `WGAdminObserverStore` loads it when the admin joins or gains the flag, sends it to
-their client, and writes it two seconds after the last change and when they leave or lose the flag. A document is
-capped at 64 KB, and
+their client, and writes it two seconds after the last change and when they leave or lose the flag. One admin's
+writes run in order, a failed write is kept and tried again, and a failed read leaves the document unloaded rather
+than starting a new one over it. A document is capped at 64 KB, and
 anything in it that names a prototype which no longer exists is dropped on load.
 
 ## Kit
@@ -77,9 +78,9 @@ A preset has a kind. Ghost is the observer's own sprite.
 Object and Mob show an entity prototype: the server takes any that exists and can be spawned, the client refuses
 one with no sprite (`WGAvatarVisualsSystem.CanShow`; the server reads no sprites). The client copies the
 prototype's default sprite onto the observer and puts the observer's own back when it hides. It is the look as
-written in the prototype and does not animate with state. An object or mob with only a plate beside it could pass
-for the real thing, so one whose marker has nothing drawn on the avatar itself also gets the hologram and the
-ring. `WGAvatarPickerWindow` picks the prototype: the spawn menu, with picking in place of placing.
+written in the prototype and does not animate with state. An object, mob or character with only a plate or sigil
+beside it could pass for the real thing, so one whose marker has nothing drawn on the avatar itself also gets the
+hologram and the ring. `WGAvatarPickerWindow` picks the prototype: the spawn menu, with picking in place of placing.
 
 Character shows one of the admin's saved characters. `WGAvatarBodySystem` builds a real humanoid from the profile,
 so markings, colours, species and clothing are drawn by the code that draws anyone's, and each client copies its
@@ -87,7 +88,8 @@ sprite onto the observer twice a second. It wears the preset's saved layout, els
 loadout of the job the character most wants. The observer takes the character's name and speech sounds. The body
 has no mind, rides in a container on the observer, is deleted with it and is kept after hiding, so it can be
 dressed while hidden: `OpenDresser` opens its strip window and `SaveOutfit` writes what it wears into the preset,
-under the kit's save rules. The outfit menu's `Pick` mode picks a starting gear.
+under the kit's save rules. The outfit menu's `Pick` mode picks a starting gear. The body is rebuilt when its
+preset or character changes, and an observer shown as the old body hides first.
 
 The body must never count as a person:
 

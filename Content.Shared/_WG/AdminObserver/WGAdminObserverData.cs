@@ -39,6 +39,13 @@ public sealed class WGAdminObserverData
 
     /// <summary>What the observer carries, or null for the default kit.</summary>
     public WGKitLayout? Kit { get; set; }
+
+    /// <summary>The name a preset takes from the name players see: trimmed and cut to <see cref="MaxNameLength"/>.</summary>
+    public static string PresetName(string displayName)
+    {
+        var name = displayName.Trim();
+        return name.Length > MaxNameLength ? name[..MaxNameLength].TrimEnd() : name;
+    }
 }
 
 /// <summary>What a manifested observer looks like.</summary>

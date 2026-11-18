@@ -1,3 +1,5 @@
+using Content.Shared.Preferences;
+
 namespace Content.Shared._WG.AdminObserver;
 
 /// <summary>
@@ -14,4 +16,8 @@ public sealed partial class WGAvatarBodyComponent : Component
     /// <summary>What the body was built from: the preset's name, character and outfit. A different one means a rebuild.</summary>
     [ViewVariables]
     public string Built = string.Empty;
+
+    /// <summary>The character profile the body was built from. An edited one means a rebuild.</summary>
+    [ViewVariables]
+    public HumanoidCharacterProfile? Profile;
 }
