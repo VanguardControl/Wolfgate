@@ -432,7 +432,7 @@ public sealed partial class WGEncounterSystem
         foreach (var role in ship.Extra)
         {
             if (posts.Count > 0 && !posts.Any(post => post.Role == role.Id))
-                posts.Add(new WFCrewSetupPost { Role = role.Id, Position = posts[^1].Position });
+                posts.Add(new WGCrewSetupPost { Role = role.Id, Position = posts[^1].Position });
         }
 
         // An engineer keeps the plant fuelled from the stores, where the ship's roles allow one: posted beside the plant,

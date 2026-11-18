@@ -249,7 +249,7 @@ public sealed partial class WGEncounterShip
 
     /// <summary>Roles crewed even where the ship has no post for them, standing beside the last post.</summary>
     [DataField]
-    public List<ProtoId<WFCrewRolePrototype>> Extra = new();
+    public List<ProtoId<WGCrewRolePrototype>> Extra = new();
 
     /// <summary>Others aboard who are not crew, such as a trader, spawned in the hold.</summary>
     [DataField]

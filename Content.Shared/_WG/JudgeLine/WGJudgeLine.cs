@@ -1,11 +1,11 @@
 using Content.Shared.CartridgeLoader;
 using Robust.Shared.Serialization;
 
-namespace Content.Shared._WF.JudgeLine;
+namespace Content.Shared._WG.JudgeLine;
 
 /// <summary>The nature of an emergency a vagrant calls the judges to.</summary>
 [Serializable, NetSerializable]
-public enum WFJudgeLineKind : byte
+public enum WGJudgeLineKind : byte
 {
     /// <summary>The caller's ship is being shot at by another ship.</summary>
     UnderFire,
@@ -28,7 +28,7 @@ public enum WFJudgeLineKind : byte
 
 /// <summary>Where a call stands, as the caller sees it.</summary>
 [Serializable, NetSerializable]
-public enum WFJudgeLinePhase : byte
+public enum WGJudgeLinePhase : byte
 {
     None,
     Queued,
@@ -39,14 +39,14 @@ public enum WFJudgeLinePhase : byte
 
 /// <summary>What the Judge Line app shows its holder.</summary>
 [Serializable, NetSerializable]
-public sealed class WFJudgeLineUiState : BoundUserInterfaceState
+public sealed class WGJudgeLineUiState : BoundUserInterfaceState
 {
     /// <summary>Why the holder can't call now, or null if they can.</summary>
     public string? Refusal;
 
     public int Fee;
-    public WFJudgeLinePhase Phase;
-    public WFJudgeLineKind Kind;
+    public WGJudgeLinePhase Phase;
+    public WGJudgeLineKind Kind;
 
     /// <summary>Seconds until the responder arrives, while dispatched.</summary>
     public int Eta;
@@ -60,11 +60,11 @@ public sealed class WFJudgeLineUiState : BoundUserInterfaceState
 
 /// <summary>Places a call of a kind from the Judge Line app.</summary>
 [Serializable, NetSerializable]
-public sealed class WFJudgeLineCallMessage(WFJudgeLineKind kind) : CartridgeMessageEvent
+public sealed class WGJudgeLineCallMessage(WGJudgeLineKind kind) : CartridgeMessageEvent
 {
-    public readonly WFJudgeLineKind Kind = kind;
+    public readonly WGJudgeLineKind Kind = kind;
 }
 
 /// <summary>Cancels the holder's call from the Judge Line app.</summary>
 [Serializable, NetSerializable]
-public sealed class WFJudgeLineCancelMessage : CartridgeMessageEvent;
+public sealed class WGJudgeLineCancelMessage : CartridgeMessageEvent;

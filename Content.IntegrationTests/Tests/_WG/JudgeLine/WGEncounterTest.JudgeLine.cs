@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using Content.Server._WF.Encounters.Components;
-using Content.Server._WF.Encounters.Systems;
-using Content.Server._WF.JudgeLine;
-using Content.Server._WF.NpcCrew.Components;
-using Content.Server._WF.NpcCrew.Systems;
+using Content.Server._WG.Encounters.Components;
+using Content.Server._WG.Encounters.Systems;
+using Content.Server._WG.JudgeLine;
+using Content.Server._WG.NpcCrew.Components;
+using Content.Server._WG.NpcCrew.Systems;
 using Content.Server._NF.Bank;
 using Content.Server.Mind;
 using Content.Server.Shuttles.Components;
 using Content.Shared._NF.Bank.Components;
-using Content.Shared._WF.Encounters;
-using Content.Shared._WF.JudgeLine;
+using Content.Shared._WG.Encounters;
+using Content.Shared._WG.JudgeLine;
 using Content.Shared.GameTicking;
 using Content.Shared.Roles;
 using Content.Shared.Roles.Jobs;
@@ -21,13 +21,13 @@ using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
 
-namespace Content.IntegrationTests.Tests._WF.Encounters;
+namespace Content.IntegrationTests.Tests._WG.Encounters;
 
 /// <summary>
 /// The Judge Line: a call brings a judge responder to the caller, which deals with the real emergency, the chosen one or
 /// not, and counts a call with none as a hoax.
 /// </summary>
-public sealed partial class WFEncounterTest
+public sealed partial class WGEncounterTest
 {
     /// <summary>Runs a test with the responder dispatched at once and dropping out of FTL close by.</summary>
     private async Task WithQuickJudges(Func<Task> test)
@@ -46,12 +46,12 @@ public sealed partial class WFEncounterTest
         {
             await Server.WaitPost(() =>
             {
-                var line = Server.System<WFJudgeLineSystem>();
+                var line = Server.System<WGJudgeLineSystem>();
                 foreach (var call in line.Calls.Where(c => c.Caller == SPlayer).ToList())
                 {
                     line.Cancel(call);
                     if (call.Encounter is { } encounter && SEntMan.EntityExists(encounter))
-                        Server.System<WFEncounterSystem>().End(encounter);
+                        Server.System<WGEncounterSystem>().End(encounter);
                 }
 
                 line.Pardon(SEntMan.GetComponent<ActorComponent>(SPlayer).PlayerSession.UserId);
@@ -72,11 +72,11 @@ public sealed partial class WFEncounterTest
     {
         await WithQuickJudges(async () =>
         {
-            var line = Server.System<WFJudgeLineSystem>();
-            var alerts = Server.System<WFCrewAlertSystem>();
-            var escorts = Server.System<WFCrewEscortSystem>();
+            var line = Server.System<WGJudgeLineSystem>();
+            var alerts = Server.System<WGCrewAlertSystem>();
+            var escorts = Server.System<WGCrewEscortSystem>();
             var at = new Vector2(-90000, -90000);
-            WFJudgeLineCall call = default!;
+            WGJudgeLineCall call = default!;
             EntityUid caller = default, raider = default;
             await Server.WaitAssertion(() =>
             {
@@ -85,7 +85,7 @@ public sealed partial class WFEncounterTest
                 SEntMan.GetComponent<ShuttleComponent>(caller).LinearThrust[0] = 1000f;
                 Server.System<SharedTransformSystem>().SetCoordinates(SPlayer, new EntityCoordinates(caller, new Vector2(1.5f, 0.5f)));
                 line.RecordHit(caller, raider);
-                call = line.Place(SPlayer, WFJudgeLineKind.Medical);
+                call = line.Place(SPlayer, WGJudgeLineKind.Medical);
                 Assert.That(call.RealAtCall, Is.True, "A hit ship is a real emergency.");
             });
 
@@ -95,20 +95,20 @@ public sealed partial class WFEncounterTest
                 var ship = line.Ship(call);
                 Assert.That(ship, Is.Not.Null, $"The responder is out (phase {call.Phase}).");
                 Assert.That(call.Arrived, Is.Not.Null, "It has arrived.");
-                Assert.That(call.Kind, Is.EqualTo(WFJudgeLineKind.UnderFire), "It deals with the real emergency.");
+                Assert.That(call.Kind, Is.EqualTo(WGJudgeLineKind.UnderFire), "It deals with the real emergency.");
                 Assert.That(escorts.AreInFormation(ship!.Grid, caller), Is.True, "It sides with the caller's ship.");
                 Assert.That(alerts.IsHostileShip(ship.Grid, ship.Group, raider), Is.True, "It takes the attacker for hostile.");
                 var roles = new List<string>();
-                var crew = SEntMan.EntityQueryEnumerator<WFCrewComponent>();
+                var crew = SEntMan.EntityQueryEnumerator<WGCrewComponent>();
                 while (crew.MoveNext(out var member))
                 {
                     if (member.Group == ship.Group && member.Role is { } role)
                         roles.Add(role.Id);
                 }
 
-                Assert.That(roles.Count(role => role == "WFCrewMarine"), Is.EqualTo(2), $"Two guards aboard: {string.Join(", ", roles)}.");
-                Assert.That(roles, Does.Contain("WFCrewParamedic"), "A paramedic aboard.");
-                Server.System<WFEncounterSystem>().End(call.Encounter!.Value);
+                Assert.That(roles.Count(role => role == "WGCrewMarine"), Is.EqualTo(2), $"Two guards aboard: {string.Join(", ", roles)}.");
+                Assert.That(roles, Does.Contain("WGCrewParamedic"), "A paramedic aboard.");
+                Server.System<WGEncounterSystem>().End(call.Encounter!.Value);
             });
         });
     }
@@ -119,9 +119,9 @@ public sealed partial class WFEncounterTest
     {
         await WithQuickJudges(async () =>
         {
-            var line = Server.System<WFJudgeLineSystem>();
+            var line = Server.System<WGJudgeLineSystem>();
             var at = new Vector2(-90000, 90000);
-            WFJudgeLineCall call = default!;
+            WGJudgeLineCall call = default!;
             var strikes = 0;
             await Server.WaitAssertion(() =>
             {
@@ -130,20 +130,20 @@ public sealed partial class WFEncounterTest
                 var caller = ClampDeck(at).Grid;
                 SEntMan.GetComponent<ShuttleComponent>(caller).LinearThrust[0] = 1000f;
                 Server.System<SharedTransformSystem>().SetCoordinates(SPlayer, new EntityCoordinates(caller, new Vector2(1.5f, 0.5f)));
-                call = line.Place(SPlayer, WFJudgeLineKind.Boarded);
+                call = line.Place(SPlayer, WGJudgeLineKind.Boarded);
                 Assert.That(call.RealAtCall, Is.False);
             });
 
             await RunTicks(Ticks(4));
             await Server.WaitAssertion(() =>
             {
-                Assert.That(call.Phase, Is.EqualTo(WFJudgeLinePhase.Leaving), "The responder leaves.");
+                Assert.That(call.Phase, Is.EqualTo(WGJudgeLinePhase.Leaving), "The responder leaves.");
                 var user = SEntMan.GetComponent<ActorComponent>(SPlayer).PlayerSession.UserId;
                 Assert.That(line.Strikes(user), Is.EqualTo(strikes + 1), "The hoax counts against the caller.");
                 Assert.That(line.CallOf(SPlayer), Is.Null);
-                Assert.That(SEntMan.GetComponent<WFEncounterComponent>(call.Encounter!.Value).Resolution,
-                    Is.EqualTo(WFEncounterResolution.Completed));
-                Server.System<WFEncounterSystem>().End(call.Encounter!.Value);
+                Assert.That(SEntMan.GetComponent<WGEncounterComponent>(call.Encounter!.Value).Resolution,
+                    Is.EqualTo(WGEncounterResolution.Completed));
+                Server.System<WGEncounterSystem>().End(call.Encounter!.Value);
             });
         });
     }
@@ -157,7 +157,7 @@ public sealed partial class WFEncounterTest
     {
         await WithQuickJudges(async () =>
         {
-            var line = Server.System<WFJudgeLineSystem>();
+            var line = Server.System<WGJudgeLineSystem>();
             var bank = Server.System<BankSystem>();
             var config = Server.ResolveDependency<IConfigurationManager>();
             var fee = config.GetCVar(JudgeLineCVars.Fee);
@@ -181,10 +181,10 @@ public sealed partial class WFEncounterTest
                 bank.TryGetBalance(SPlayer, out var before);
 
                 config.SetCVar(JudgeLineCVars.Responders, 0);
-                Assert.That(line.TryCall(SPlayer, WFJudgeLineKind.Stranded, out var refusal), Is.True, refusal);
+                Assert.That(line.TryCall(SPlayer, WGJudgeLineKind.Stranded, out var refusal), Is.True, refusal);
                 bank.TryGetBalance(SPlayer, out var charged);
                 Assert.That(charged, Is.EqualTo(before - fee), "The call takes the fee.");
-                Assert.That(line.CallOf(SPlayer)!.Phase, Is.EqualTo(WFJudgeLinePhase.Queued), "No responder is free.");
+                Assert.That(line.CallOf(SPlayer)!.Phase, Is.EqualTo(WGJudgeLinePhase.Queued), "No responder is free.");
                 Assert.That(line.Refusal(SPlayer), Is.Not.Null, "One call at a time.");
 
                 Assert.That(line.Cancel(SPlayer), Is.True);
@@ -195,8 +195,8 @@ public sealed partial class WFEncounterTest
 
                 line.Pardon(SEntMan.GetComponent<ActorComponent>(SPlayer).PlayerSession.UserId);
                 config.SetCVar(JudgeLineCVars.Responders, 2);
-                Assert.That(line.TryCall(SPlayer, WFJudgeLineKind.Stranded, out refusal), Is.True, refusal);
-                Assert.That(line.CallOf(SPlayer)!.Phase, Is.EqualTo(WFJudgeLinePhase.Dispatched));
+                Assert.That(line.TryCall(SPlayer, WGJudgeLineKind.Stranded, out refusal), Is.True, refusal);
+                Assert.That(line.CallOf(SPlayer)!.Phase, Is.EqualTo(WGJudgeLinePhase.Dispatched));
                 Assert.That(line.Cancel(SPlayer), Is.True);
                 bank.TryGetBalance(SPlayer, out var kept);
                 Assert.That(kept, Is.EqualTo(before - fee), "A dispatched cancel keeps the fee.");
