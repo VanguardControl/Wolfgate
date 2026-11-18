@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Numerics;
 using Content.Server._WG.Encounters.Components;
+using Content.Server._WG.NpcCrew.Components;
 using Content.Server._WG.ReaverCampaign.Components;
 using Content.Shared._WG.NpcCrew;
 using Content.Shared._WG.ReaverCampaign;
@@ -188,6 +189,14 @@ public sealed partial class WGReaverCampaignSystem
                 continue;
             }
 
+            // A stolen hull is chased anywhere until it is broken or back in the campaign's hands.
+            if (comp.Recovering)
+            {
+                if (!HasComp<WGCrewSeizedHullComponent>(target))
+                    EndIntercept(patrol);
+                continue;
+            }
+
             if (comp.Sortie && StrongholdLead(comp.Stronghold) is { } hub
                 && Vector2.Distance(_transform.GetWorldPosition(lead.Grid), _transform.GetWorldPosition(hub)) > SortieLeash)
             {
@@ -230,6 +239,7 @@ public sealed partial class WGReaverCampaignSystem
             return;
 
         patrol.Intercepting = null;
+        patrol.Recovering = false;
         patrol.Resume = new List<Vector2>();
         patrol.TargetOutsideSince = null;
         patrol.TargetFarSince = null;

@@ -7921,3 +7921,40 @@ Entries:
   id: 100503
   time: '2026-11-18T11:03:48.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/712
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Added ThalerLink, a PDA banking app: withdraw, transfer and deposit
+        thalers using the ID card in your PDA, with a per-round withdrawal
+        allowance.
+  id: 100504
+  time: '2026-11-18T14:07:59.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/661
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Boarders who down an NPC ship's crew now hijack it on the spot, and
+        every ship of that faction nearby treats it as an enemy.
+    - type: Add
+      message: >-
+        The ADS pulls ships off patrol to destroy a hijacked ADS ship, and to
+        hunt down anyone who attacks, boards or tampers with one.
+    - type: Tweak
+      message: NPC crews turn on anyone who damages, cuts into or unbolts their ship.
+    - type: Tweak
+      message: >-
+        NPC pilots and gunners leave their stations to fight whoever is downing
+        their crewmates.
+    - type: Tweak
+      message: NPC crews open fire the moment their gun is drawn.
+    - type: Add
+      message: >-
+        Reaver and ADS campaigns send ships after their stolen vessels until
+        they are destroyed or taken back.
+    - type: Tweak
+      message: A Reaver patrol whose lead ship is lost carries on under its wing.
+  id: 100505
+  time: '2026-11-18T14:11:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/723

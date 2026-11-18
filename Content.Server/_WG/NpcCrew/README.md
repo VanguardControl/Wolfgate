@@ -234,10 +234,15 @@ holstered in favor of a loaded sidearm, melee weapon, or empty hands; no ammunit
 `InfiniteAmmo` (a commanded ship's roster sets it), when his magazine refills in place. Two-handed guns are wielded
 when drawn and after a reload, for their wielded spread.
 
+`WGCrewRallySystem` turns a whole crew on whoever downs one of them, and on the hostiles its alert knows aboard: every
+crewman who may fight, pilot and gunners included, leaves his station for it. A stranger aboard who damages, cuts into
+(a construction tool step) or unbolts any part of the ship is treated the same way, unless he is of the ship's crew or
+company or the ship forgives him, and `WGCrewShipTamperedEvent` tells the campaigns.
+
 Skill (`WGCrewSkills`) sets how crew fight as well as how well. The crew's skill is the baseline; a profile's
 `skillOffsets` raise or lower it per loadout (reaver hands a tier below, officers a tier above), clamped to
-Green..Elite. A crewman who regains sight of a target he saw within six seconds, or braced for, fires after his
-re-acquire delay instead of the full shoot delay (`NPCCombatSystem.Crew.cs`). From Regular up, a crewman who knows of
+Green..Elite. Every level fires the moment its gun is up: the shoot and re-acquire delays are zero, and a hit drops
+the crewman's cached threat check and replans him on the spot (`WGCrewSystem.OnBeforeCrewDamage`). From Regular up, a crewman who knows of
 a hostile aboard but may not hunt it braces: weapon drawn and loaded, facing its way, for up to 90 s without sight of
 it (`WGCrewWeaponSystem.Brace.cs`). Regulars and up also throw a grenade they carry (any slot item with a use timer;
 reaver riflemen carry one `ExGrenade`) at a known hostile out of sight for three seconds within nine tiles: shouted
@@ -437,6 +442,7 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewObjectiveSystem.cs`](Systems/WGCrewObjectiveSystem.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewObjectiveSystem.Virtual.cs`](Systems/WGCrewObjectiveSystem.Virtual.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewPlannerSystem.cs`](Systems/WGCrewPlannerSystem.cs)
+- [`Content.Server/_WG/NpcCrew/Systems/WGCrewRallySystem.cs`](Systems/WGCrewRallySystem.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewRammingSystem.cs`](Systems/WGCrewRammingSystem.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewRoutineSystem.cs`](Systems/WGCrewRoutineSystem.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewSecuritySystem.Challenge.cs`](Systems/WGCrewSecuritySystem.Challenge.cs)
