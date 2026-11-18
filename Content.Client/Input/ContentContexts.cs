@@ -1,6 +1,4 @@
 using Content.Shared._WG.RMCCore.Input; // WOLFGATE(Xenonids)
-using Content.Shared._WG.PixelShift; // WOLFGATE(PixelShift)
-using Content.Shared._WG.TurnInPlace; // WOLFGATE(TurnInPlace)
 using Content.Shared.Input;
 using Robust.Shared.Input;
 
@@ -63,11 +61,11 @@ namespace Content.Client.Input
             human.AddFunction(EngineKeyFunctions.MoveLeft);
             human.AddFunction(EngineKeyFunctions.MoveRight);
             human.AddFunction(EngineKeyFunctions.Walk);
-            human.AddFunction(WGTurnInPlaceKeys.WGTurnInPlace); // WOLFGATE(TurnInPlace): hold to turn without moving
+            human.AddFunction(Content.Shared._WG.TurnInPlace.WGTurnInPlaceKeys.WGTurnInPlace); // WOLFGATE(TurnInPlace): hold to turn without moving
             // WOLFGATE(PixelShift) START: hold to shift or tilt your sprite, and reset it
-            human.AddFunction(WGPixelShiftKeys.WGPixelShift);
-            human.AddFunction(WGPixelShiftKeys.WGPixelTilt);
-            human.AddFunction(WGPixelShiftKeys.WGPixelShiftReset);
+            human.AddFunction(Content.Shared._WG.PixelShift.WGPixelShiftKeys.WGPixelShift);
+            human.AddFunction(Content.Shared._WG.PixelShift.WGPixelShiftKeys.WGPixelTilt);
+            human.AddFunction(Content.Shared._WG.PixelShift.WGPixelShiftKeys.WGPixelShiftReset);
             // WOLFGATE END
             human.AddFunction(ContentKeyFunctions.ShuttleAscend); // Mono / PZN
             human.AddFunction(ContentKeyFunctions.ShuttleDescend);

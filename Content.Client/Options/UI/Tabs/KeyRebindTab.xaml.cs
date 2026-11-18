@@ -2,8 +2,6 @@ using System.Numerics;
 using Content.Client._WG.Options; // WOLFGATE(Options)
 using Content.Shared._WG.RMCCore.Input; // WOLFGATE(Xenonids)
 using Content.Shared._WG.LandingGuide; // WOLFGATE(LandingGuide)
-using Content.Shared._WG.PixelShift; // WOLFGATE(PixelShift)
-using Content.Shared._WG.TurnInPlace; // WOLFGATE(TurnInPlace)
 using Content.Client.Stylesheets;
 using Content.Shared.CCVar;
 using Content.Shared.Input;
@@ -185,11 +183,11 @@ namespace Content.Client.Options.UI.Tabs
             AddCheckBox("ui-options-hotkey-toggle-walk", _cfg.GetCVar(CCVars.ToggleWalk), HandleToggleWalk);
             AddButton(ContentKeyFunctions.ToggleStanding);
             AddCheckBox("ui-options-function-auto-get-up", _cfg.GetCVar(CCVars.AutoGetUp), HandleToggleAutoGetUp); // WD EDIT
-            AddButton(WGTurnInPlaceKeys.WGTurnInPlace); // WOLFGATE(TurnInPlace): hold to turn without moving
+            AddButton(Content.Shared._WG.TurnInPlace.WGTurnInPlaceKeys.WGTurnInPlace); // WOLFGATE(TurnInPlace): hold to turn without moving
             // WOLFGATE(PixelShift) START: hold keys that shift or tilt your sprite, and their reset
-            AddButton(WGPixelShiftKeys.WGPixelShift);
-            AddButton(WGPixelShiftKeys.WGPixelTilt);
-            AddButton(WGPixelShiftKeys.WGPixelShiftReset);
+            AddButton(Content.Shared._WG.PixelShift.WGPixelShiftKeys.WGPixelShift);
+            AddButton(Content.Shared._WG.PixelShift.WGPixelShiftKeys.WGPixelTilt);
+            AddButton(Content.Shared._WG.PixelShift.WGPixelShiftKeys.WGPixelShiftReset);
             // WOLFGATE END
             InitToggleWalk();
 
