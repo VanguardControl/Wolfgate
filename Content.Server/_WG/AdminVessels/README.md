@@ -32,7 +32,7 @@ fire alarms, cameras, signs and decals, PA speakers, extinguishers, lockers, rep
 gases mined in their own chambers (oxygen and nitrogen feed the air, the other seven fill canisters), a washroom off
 the lounge, planted gardens and glass observation wings either side of the north arm. Since v0.30: the core's south
 room is a sauna, directional fans hold the air at every door to space and each core gate's outer door, wall art and
-signs hang only on walls one space sees, and Science has an anomaly lab off the RD's office whose sealed chamber,
+signs hang only on walls one space sees, and Science has an anomaly lab in R&D's old north end whose sealed chamber,
 behind a blast door, takes what the generator makes: a `WGAnomalyChamberMarker` (`science.yml`; Shared
 `WGAnomalyChamberComponent`) on a grid makes the generator spawn anomalies there (`AnomalySystem.Chamber.cs`, one
 marked line in `AnomalySystem.Generator.cs`) rather than on a random tile of the ship. The salvage magnet faces space
