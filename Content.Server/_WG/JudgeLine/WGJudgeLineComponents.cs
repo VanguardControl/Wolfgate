@@ -68,6 +68,9 @@ public sealed class WGJudgeLineCall
     /// <summary>The station a picked-up caller is flown to.</summary>
     public EntityUid? Station;
 
+    /// <summary>Stations that turned the responder away this trip.</summary>
+    public readonly HashSet<EntityUid> Refused = new();
+
     /// <summary>Whether a picked-up caller has come aboard the responder.</summary>
     public bool Aboard;
 

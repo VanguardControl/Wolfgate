@@ -8,14 +8,19 @@ using Content.Server._WG.JudgeLine;
 using Content.Server._WG.NpcCrew.Components;
 using Content.Server._WG.NpcCrew.Systems;
 using Content.Server._NF.Bank;
+using Content.Server._WG.NpcCrew;
 using Content.Server.Mind;
 using Content.Server.Shuttles.Components;
 using Content.Shared._NF.Bank.Components;
 using Content.Shared._WG.Encounters;
 using Content.Shared._WG.JudgeLine;
+using Content.Shared.Damage.Systems;
+using Content.Shared.Mobs;
 using Content.Shared.GameTicking;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.Roles;
 using Content.Shared.Roles.Jobs;
+using Content.Shared.Station.Components;
 using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Localization;
@@ -205,6 +210,75 @@ public sealed partial class WGEncounterTest
 
                 Server.System<SharedRoleSystem>().MindRemoveRole<JobRoleComponent>(mindId);
             });
+        });
+    }
+
+    /// <summary>
+    /// A caller down in open space is pulled aboard once the judges are alongside and flown to the nearest station; a
+    /// station that turns the ship away is passed over for the next.
+    /// </summary>
+    [Test]
+    public async Task JudgeLineHaulsADownedCallerAndTriesTheNextStation()
+    {
+        await WithQuickJudges(async () =>
+        {
+            var line = Server.System<WGJudgeLineSystem>();
+            var transforms = Server.System<SharedTransformSystem>();
+            var at = new Vector2(90000, 90000);
+            WGJudgeLineCall call = default!;
+            EntityUid near = default, far = default, caller = default;
+            try
+            {
+                await Server.WaitAssertion(() =>
+                {
+                    near = ClampDeck(at + new Vector2(2000, 0)).Grid;
+                    far = ClampDeck(at + new Vector2(5000, 0)).Grid;
+                    SEntMan.EnsureComponent<StationMemberComponent>(near);
+                    SEntMan.EnsureComponent<StationMemberComponent>(far);
+                    caller = SEntMan.SpawnEntity("MobHuman", new MapCoordinates(at, MapData.MapId));
+                    // Down and kept so: open space would otherwise hurt them and their thresholds set them back on their feet.
+                    Server.System<SharedGodmodeSystem>().EnableGodmode(caller);
+                    Server.System<MobStateSystem>().ChangeMobState(caller, MobState.Critical);
+                    Assert.That(Server.System<MobStateSystem>().IsIncapacitated(caller), Is.True, "The caller is down.");
+                    call = line.Place(caller, WGJudgeLineKind.Adrift);
+                });
+
+                await RunTicks(Ticks(4));
+                await Server.WaitAssertion(() =>
+                {
+                    var ship = line.Ship(call);
+                    Assert.That(ship, Is.Not.Null, $"The responder is out (phase {call.Phase}).");
+                    transforms.SetWorldPosition(ship!.Grid, at + new Vector2(40, 0));
+                });
+
+                await RunTicks(Ticks(4));
+                await Server.WaitAssertion(() =>
+                {
+                    var ship = line.Ship(call)!;
+                    Assert.That(SEntMan.GetComponent<TransformComponent>(caller).GridUid, Is.EqualTo(ship.Grid), "The downed caller is pulled aboard.");
+                    Assert.That(call.Station, Is.EqualTo(near), "Flown to the nearest station.");
+                    var pilot = SEntMan.EntityQuery<WGCrewComponent>().First(crew => crew.Group == ship.Group).Owner;
+                    var failed = new WGPilotDockFailedEvent(pilot, ship.Grid, near);
+                    SEntMan.EventBus.RaiseEvent(EventSource.Local, ref failed);
+                });
+
+                await RunTicks(Ticks(4));
+                await Server.WaitAssertion(() =>
+                {
+                    Assert.That(call.Station, Is.EqualTo(far), "Turned away, it heads for the next one.");
+                    Server.System<WGEncounterSystem>().End(call.Encounter!.Value);
+                });
+            }
+            finally
+            {
+                await Server.WaitPost(() =>
+                {
+                    line.Cancel(call);
+                    SEntMan.DeleteEntity(caller);
+                    SEntMan.DeleteEntity(near);
+                    SEntMan.DeleteEntity(far);
+                });
+            }
         });
     }
 }

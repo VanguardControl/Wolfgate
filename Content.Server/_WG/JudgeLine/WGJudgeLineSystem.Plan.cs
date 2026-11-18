@@ -49,11 +49,14 @@ public sealed partial class WGJudgeLineSystem
     [Dependency] private NpcFactionSystem _factions = default!;
     [Dependency] private WGCrewAlertSystem _alerts = default!;
     [Dependency] private WGCrewEscortSystem _escorts = default!;
+    [Dependency] private WGCrewObjectiveSystem _objectives = default!;
+    [Dependency] private Robust.Shared.Physics.Systems.SharedPhysicsSystem _physics = default!;
     [Dependency] private WGCrewWorkSystem _work = default!;
     [Dependency] private WGShipAccessServerSystem _shipAccess = default!;
 
     private static readonly ProtoId<RadioChannelPrototype> Channel = "Common";
     private static readonly ProtoId<WGCrewRolePrototype> GuardRole = "WGCrewMarine";
+    private static readonly ProtoId<WGCrewRolePrototype> MedicRole = "WGCrewParamedic";
     public static readonly EntProtoId ReliefCrate = "WGJudgeLineReliefCrate";
 
     /// <summary>How long a hit on a ship counts as it being under fire.</summary>
@@ -92,6 +95,9 @@ public sealed partial class WGJudgeLineSystem
 
     private const float EscortRange = 250f;
     private const float PickupRange = 60f;
+
+    /// <summary>Within this of a caller who is down in open space the judges pull them aboard.</summary>
+    private const float HaulRange = 150f;
 
     /// <summary>Every ship weapon hit lately, by the ship hit and then by the attacking ship.</summary>
     private readonly Dictionary<EntityUid, Dictionary<EntityUid, TimeSpan>> _hits = new();
@@ -365,31 +371,37 @@ public sealed partial class WGJudgeLineSystem
     }
 
     /// <summary>
-    /// Picks up a caller with no ship to go to: waits alongside until they come aboard, flies them to the nearest
-    /// station and waits for them to disembark. A medical case is treated aboard on the way.
+    /// Picks up a caller with no ship to go to: waits alongside until they come aboard, or pulls them aboard if they are
+    /// down, flies them to the nearest station that takes the ship and waits for them to disembark. A medical case is
+    /// treated aboard on the way.
     /// </summary>
     private bool Pickup(WGJudgeLineCall call, WGEncounterShipState ship)
     {
         var aboard = Transform(call.Caller).GridUid == ship.Grid;
         if (!call.Aboard)
         {
-            if (!aboard)
+            if (!aboard && !TryHaul(call, ship))
                 return true;
 
             call.Aboard = true;
-            call.Station = NearestStation(ship.Grid);
-            if (call.Station is { } station && call.Encounter is { } encounter)
-            {
-                _encounters.SetOrders(encounter, ShipKey,
-                    new List<WGCrewObjective> { new() { Kind = WGCrewObjectiveKind.Dock, Target = GetNetEntity(station) } });
-                Notify(call, Loc.GetString("wg-judgeline-status-aboard", ("station", Name(station))));
-            }
-
+            SendToStation(call, ship, null);
             return true;
         }
 
-        if (call.Station is not { } dropOff || !DockedWith(ship.Grid, dropOff))
+        if (call.Station is not { } dropOff)
             return aboard;
+
+        if (!DockedWith(ship.Grid, dropOff))
+        {
+            // Turned away, or the order ended without a berth: try the next station.
+            if (_objectives.QueueStatus(ship.Grid, ship.Group) is "dock-failed" or "target-lost" or "complete")
+            {
+                call.Refused.Add(dropOff);
+                SendToStation(call, ship, dropOff);
+            }
+
+            return aboard;
+        }
 
         if (call.Docked == null)
         {
@@ -398,6 +410,49 @@ public sealed partial class WGJudgeLineSystem
         }
 
         return aboard && _timing.CurTime - call.Docked < DisembarkLimit;
+    }
+
+    /// <summary>Pulls a caller who is down in open space aboard once the responder is alongside, beside its paramedic if it has one.</summary>
+    private bool TryHaul(WGJudgeLineCall call, WGEncounterShipState ship)
+    {
+        if (Transform(call.Caller).GridUid != null || !_mobState.IsIncapacitated(call.Caller)
+            || Distance(ship.Grid, call.Position) > HaulRange)
+            return false;
+
+        var aboard = Crew(ship).Where(member => Transform(member).GridUid == ship.Grid).ToList();
+        var beside = aboard.FirstOrDefault(member => member.Comp.Role == MedicRole);
+        if (beside.Owner == default && aboard.Count > 0)
+            beside = aboard[0];
+
+        var at = beside.Owner != default ? Transform(beside).Coordinates : new EntityCoordinates(ship.Grid, Vector2.Zero);
+        _transform.SetCoordinates(call.Caller, at);
+        _physics.SetLinearVelocity(call.Caller, Vector2.Zero);
+        Notify(call, Loc.GetString("wg-judgeline-status-hauled"));
+        return true;
+    }
+
+    /// <summary>
+    /// Orders the responder to the nearest public station that hasn't turned it away this trip; once every one has, they
+    /// are all tried again.
+    /// </summary>
+    private void SendToStation(WGJudgeLineCall call, WGEncounterShipState ship, EntityUid? refused)
+    {
+        var station = NearestStation(ship.Grid, call.Refused);
+        if (station == null && call.Refused.Count > 0)
+        {
+            call.Refused.Clear();
+            station = NearestStation(ship.Grid, call.Refused);
+        }
+
+        call.Station = station;
+        if (station is not { } next || call.Encounter is not { } encounter)
+            return;
+
+        _encounters.SetOrders(encounter, ShipKey,
+            new List<WGCrewObjective> { new() { Kind = WGCrewObjectiveKind.Dock, Target = GetNetEntity(next) } });
+        Notify(call, refused is { } turned && turned != next
+            ? Loc.GetString("wg-judgeline-status-diverted", ("refused", Name(turned)), ("station", Name(next)))
+            : Loc.GetString("wg-judgeline-status-aboard", ("station", Name(next))));
     }
 
     /// <summary>Has the responder's crew take every ship that hit the target lately for an attacker.</summary>
@@ -621,8 +676,8 @@ public sealed partial class WGJudgeLineSystem
         return false;
     }
 
-    /// <summary>The public station nearest a grid on its map.</summary>
-    private EntityUid? NearestStation(EntityUid grid)
+    /// <summary>The public station nearest a grid on its map, but for any skipped.</summary>
+    private EntityUid? NearestStation(EntityUid grid, HashSet<EntityUid>? skip = null)
     {
         var here = _transform.GetMapCoordinates(grid);
         EntityUid? best = null;
@@ -630,7 +685,8 @@ public sealed partial class WGJudgeLineSystem
         var query = EntityQueryEnumerator<StationMemberComponent, MapGridComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out _, out _, out var xform))
         {
-            if (xform.MapID != here.MapId || !IsStation(uid) || _scheduler.IsHidden(uid) || _docking.GetDocks(uid).Count == 0)
+            if (xform.MapID != here.MapId || !IsStation(uid) || _scheduler.IsHidden(uid) || skip?.Contains(uid) == true
+                || _docking.GetDocks(uid).Count == 0)
                 continue;
 
             var distance = (_transform.GetWorldPosition(xform) - here.Position).LengthSquared();
