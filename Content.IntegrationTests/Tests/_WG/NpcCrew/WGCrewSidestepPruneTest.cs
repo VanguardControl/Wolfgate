@@ -12,7 +12,8 @@ namespace Content.IntegrationTests.Tests._WG.NpcCrew;
 
 /// <summary>
 /// Stuck crew's sidestep waypoints are pruned once the table grows past 64: a crewman still heading for his waypoint
-/// keeps it, while waypoints of crewmen who are gone or have moved on to another path are dropped.
+/// keeps it, while waypoints of crewmen who are gone or have moved on to another path are dropped. The test works on
+/// tables of its own and gives the server's live ones back untouched, whatever earlier tests left in them.
 /// </summary>
 [TestFixture]
 [TestOf(typeof(NPCSteeringSystem))]
@@ -39,58 +40,68 @@ public sealed class WGCrewSidestepPruneTest
                 return uid;
             }
 
-            // Ten crewmen still heading for their waypoints.
-            var active = new List<EntityUid>();
-            for (var i = 0; i < 10; i++)
+            // Whatever earlier tests left in the live tables stays out of this one and comes back as it was.
+            var liveCount = steering.CrewSidestepCount;
+
+            var live = steering.IsolateCrewUnsticks();
+            try
             {
-                var uid = Walker();
-                var waypoint = Waypoint(i);
-                entMan.GetComponent<NPCSteeringComponent>(uid).CurrentPath.Enqueue(waypoint);
-                steering.TrackCrewSidestep(uid, waypoint);
-                active.Add(uid);
+                Assert.That(steering.CrewSidestepCount, Is.Zero, "Precondition: the test starts on empty tables.");
+
+                // Ten crewmen still heading for their waypoints.
+                var active = new List<EntityUid>();
+                for (var i = 0; i < 10; i++)
+                {
+                    var uid = Walker();
+                    var waypoint = Waypoint(i);
+                    entMan.GetComponent<NPCSteeringComponent>(uid).CurrentPath.Enqueue(waypoint);
+                    steering.TrackCrewSidestep(uid, waypoint);
+                    active.Add(uid);
+                }
+
+                // Fifty who moved on to another path or have none left, and five who are gone.
+                var stale = new List<EntityUid>();
+                for (var i = 0; i < 50; i++)
+                {
+                    var uid = Walker();
+                    if (i % 2 == 0)
+                        entMan.GetComponent<NPCSteeringComponent>(uid).CurrentPath.Enqueue(Waypoint(100 + i));
+                    steering.TrackCrewSidestep(uid, Waypoint(i));
+                    stale.Add(uid);
+                }
+
+                for (var i = 0; i < 5; i++)
+                {
+                    var uid = Walker();
+                    steering.TrackCrewSidestep(uid, Waypoint(i));
+                    entMan.DeleteEntity(uid);
+                    stale.Add(uid);
+                }
+
+                Assert.That(steering.CrewSidestepCount, Is.EqualTo(65), "Precondition: past the 64 that start a prune.");
+                steering.PruneCrewUnsticks(now);
+
+                using (Assert.EnterMultipleScope())
+                {
+                    foreach (var uid in active)
+                        Assert.That(steering.HasCrewSidestep(uid), Is.True, "A crewman still heading for his waypoint keeps it.");
+                    foreach (var uid in stale)
+                        Assert.That(steering.HasCrewSidestep(uid), Is.False, "A stale waypoint is dropped.");
+                    Assert.That(steering.CrewSidestepCount, Is.EqualTo(active.Count));
+                }
+
+                // Below the threshold nothing is pruned: stale entries wait for the table to grow or their owner's next look.
+                var lone = Walker();
+                steering.TrackCrewSidestep(lone, Waypoint(200));
+                steering.PruneCrewUnsticks(now);
+                Assert.That(steering.HasCrewSidestep(lone), Is.True);
+            }
+            finally
+            {
+                steering.RestoreCrewUnsticks(live);
             }
 
-            // Fifty who moved on to another path or have none left, and five who are gone.
-            var stale = new List<EntityUid>();
-            for (var i = 0; i < 50; i++)
-            {
-                var uid = Walker();
-                if (i % 2 == 0)
-                    entMan.GetComponent<NPCSteeringComponent>(uid).CurrentPath.Enqueue(Waypoint(100 + i));
-                steering.TrackCrewSidestep(uid, Waypoint(i));
-                stale.Add(uid);
-            }
-
-            for (var i = 0; i < 5; i++)
-            {
-                var uid = Walker();
-                steering.TrackCrewSidestep(uid, Waypoint(i));
-                entMan.DeleteEntity(uid);
-                stale.Add(uid);
-            }
-
-            // (A pooled server may hold entries from earlier tests: the checks look only at this test's own.)
-            Assert.That(steering.CrewSidestepCount, Is.GreaterThan(64), "Precondition: past the 64 that start a prune.");
-            steering.PruneCrewUnsticks(now);
-
-            using var scope = Assert.EnterMultipleScope();
-            foreach (var uid in active)
-                Assert.That(steering.HasCrewSidestep(uid), Is.True, "A crewman still heading for his waypoint keeps it.");
-            foreach (var uid in stale)
-                Assert.That(steering.HasCrewSidestep(uid), Is.False, "A stale waypoint is dropped.");
-
-            // Below the threshold (only live waypoints are left) nothing is pruned: stale entries wait for the table to
-            // grow or their owner's next look.
-            Assert.That(steering.CrewSidestepCount, Is.LessThanOrEqualTo(64));
-            var lone = Walker();
-            steering.TrackCrewSidestep(lone, Waypoint(200));
-            steering.PruneCrewUnsticks(now);
-            Assert.That(steering.HasCrewSidestep(lone), Is.True);
-
-            // Leave the table as it was found.
-            foreach (var uid in active)
-                steering.ForgetCrewSidestep(uid);
-            steering.ForgetCrewSidestep(lone);
+            Assert.That(steering.CrewSidestepCount, Is.EqualTo(liveCount), "The live tables come back as they were.");
         });
 
         await pair.CleanReturnAsync();

@@ -25,11 +25,11 @@ public sealed partial class NPCSteeringSystem
 
     private static readonly TimeSpan CrewUnstickWindow = TimeSpan.FromSeconds(10);
 
-    private readonly Dictionary<EntityUid, (TimeSpan Since, int Count)> _crewUnsticks = new();
+    private Dictionary<EntityUid, (TimeSpan Since, int Count)> _crewUnsticks = new();
     private readonly HashSet<Entity<MobStateComponent>> _crewUnstickMobs = new();
 
     /// <summary>The tile each sidestepping crewman is headed for.</summary>
-    private readonly Dictionary<EntityUid, PathPoly> _crewSidesteps = new();
+    private Dictionary<EntityUid, PathPoly> _crewSidesteps = new();
 
     /// <summary>Settles or sidesteps a stuck crewman; false leaves him to the usual repath and give-up.</summary>
     private bool TryUnstickCrew(EntityUid uid, NPCSteeringComponent steering, TransformComponent xform, Vector2 direction,
@@ -126,10 +126,25 @@ public sealed partial class NPCSteeringSystem
         _crewSidesteps[uid] = waypoint;
     }
 
-    /// <summary>Drops a crewman's sidestep waypoint (for tests, which leave the table as they found it).</summary>
-    internal void ForgetCrewSidestep(EntityUid uid)
+    /// <summary>
+    /// Swaps in empty unstick tables and hands back the live ones, for a test to work on tables of its own; it gives
+    /// them back with <see cref="RestoreCrewUnsticks"/>.
+    /// </summary>
+    internal (Dictionary<EntityUid, (TimeSpan Since, int Count)> Unsticks, Dictionary<EntityUid, PathPoly> Sidesteps)
+        IsolateCrewUnsticks()
     {
-        _crewSidesteps.Remove(uid);
+        var live = (_crewUnsticks, _crewSidesteps);
+        _crewUnsticks = new();
+        _crewSidesteps = new();
+        return live;
+    }
+
+    /// <summary>Puts back the tables <see cref="IsolateCrewUnsticks"/> took (for tests).</summary>
+    internal void RestoreCrewUnsticks(
+        (Dictionary<EntityUid, (TimeSpan Since, int Count)> Unsticks, Dictionary<EntityUid, PathPoly> Sidesteps) live)
+    {
+        _crewUnsticks = live.Unsticks;
+        _crewSidesteps = live.Sidesteps;
     }
 
     /// <summary>Whether a crewman's sidestep waypoint is still kept (for tests).</summary>
