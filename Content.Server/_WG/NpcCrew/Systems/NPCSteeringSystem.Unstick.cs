@@ -98,7 +98,7 @@ public sealed partial class NPCSteeringSystem
     /// Drops what no longer counts, once the tables grow: unstick tallies past their window, and sidesteps whose crewman
     /// is gone or no longer heading for that tile. A crewman still on his way keeps his waypoint.
     /// </summary>
-    private void PruneCrewUnsticks(TimeSpan now)
+    internal void PruneCrewUnsticks(TimeSpan now)
     {
         if (_crewUnsticks.Count > 64)
         {
@@ -119,6 +119,21 @@ public sealed partial class NPCSteeringSystem
                 _crewSidesteps.Remove(other);
         }
     }
+
+    /// <summary>Records a crewman's sidestep waypoint, as a sidestep does (for tests).</summary>
+    internal void TrackCrewSidestep(EntityUid uid, PathPoly waypoint)
+    {
+        _crewSidesteps[uid] = waypoint;
+    }
+
+    /// <summary>Whether a crewman's sidestep waypoint is still kept (for tests).</summary>
+    internal bool HasCrewSidestep(EntityUid uid)
+    {
+        return _crewSidesteps.ContainsKey(uid);
+    }
+
+    /// <summary>How many sidestep waypoints are kept (for tests).</summary>
+    internal int CrewSidestepCount => _crewSidesteps.Count;
 
     /// <summary>
     /// Whether a crewman is still on his way to the tile he stepped aside to: until he reaches it, no new path is

@@ -508,6 +508,7 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGBodyToolTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGBodyToolTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewMedicTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewMedicTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewPostRangeTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewPostRangeTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewSidestepPruneTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewSidestepPruneTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewSuitHelmetTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewSuitHelmetTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewSurgeonTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewSurgeonTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewTest.Arena.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewTest.Arena.cs)
