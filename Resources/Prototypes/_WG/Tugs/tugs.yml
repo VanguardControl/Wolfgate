@@ -82,12 +82,6 @@
   - type: VehicleFall
     bodyHealth: 300
   - type: VehicleSound
-    runningSound:
-      path: /Audio/_WG/Vehicles/box_van_driving.ogg
-      params:
-        volume: -10
-        pitch: 1.3
-    runningSoundCooldown: 2.3
     hornSound: /Audio/Effects/double_beep.ogg
     hornCooldown: 1
     mobCollisionSound:
@@ -95,6 +89,20 @@
       params:
         volume: -4
     collisionSoundCooldown: 1.5
+  # No ignition: the motor whines up when someone buckles in and winds down when they get off, and the drive loop
+  # follows the speed (WGVehicleAudioSystem). The whine is silent at rest, as an electric tug is.
+  - type: WGVehicleEngineAudio
+    startSound: /Audio/_WG/Tugs/motor_start.ogg
+    stopSound: /Audio/_WG/Tugs/motor_stop.ogg
+    driveLoop: /Audio/_WG/Tugs/motor_loop.ogg
+    drivePitch: 0.75, 1.25
+    tracksLoop: /Audio/_WG/Vehicles/RCSM/wheels/road.ogg
+    tracksPitch: 0.9, 1.2
+    startDelay: 0.6
+    throttleResponse: 4
+    loopParams:
+      volume: -6
+      maxDistance: 12
   - type: WGTug
 
 # A trolley that couples behind a tug and carries one strapped crate.

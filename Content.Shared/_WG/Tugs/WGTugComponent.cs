@@ -1,11 +1,12 @@
 using System.Numerics;
 using Robust.Shared.Containers;
+using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WG.Tugs;
 
 /// <summary>A sit-on luggage tug: whoever buckles into it drives it, and it tows a train of trolleys along its path.</summary>
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class WGTugComponent : Component
 {
     /// <summary>Most trolleys the tug can tow.</summary>
@@ -14,11 +15,11 @@ public sealed partial class WGTugComponent : Component
 
     /// <summary>Distance along the path from the tug's centre to the first trolley's.</summary>
     [DataField]
-    public float HitchDistance = 1f;
+    public float HitchDistance = 0.9f;
 
     /// <summary>Distance along the path between one trolley's centre and the next.</summary>
     [DataField]
-    public float TrolleySpacing = 1f;
+    public float TrolleySpacing = 0.9f;
 
     /// <summary>How far a trolley may stand from the back of the train to be coupled.</summary>
     [DataField]
@@ -33,12 +34,16 @@ public sealed partial class WGTugComponent : Component
     public float AccelerationPenaltyPerTrolley = 0.1f;
 
     /// <summary>Towed trolleys, nearest first.</summary>
-    [ViewVariables]
+    [AutoNetworkedField]
     public List<EntityUid> Trolleys = new();
 
-    /// <summary>The tug's past positions in its grid's frame, oldest first.</summary>
+    /// <summary>The tug's past positions in its grid's frame, oldest first (<see cref="WGTugTrail"/>). Each side keeps its own.</summary>
     [ViewVariables]
     public List<Vector2> Trail = new();
+
+    /// <summary>How many cars the trail was last laid through, so the client relays it when a car is coupled.</summary>
+    [ViewVariables]
+    public int TrailCars;
 
     /// <summary>The grid the trail is measured on.</summary>
     [ViewVariables]
@@ -64,7 +69,7 @@ public sealed partial class WGTugComponent : Component
 }
 
 /// <summary>A luggage trolley: couples behind a tug and carries one crate strapped to its bed.</summary>
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
 public sealed partial class WGTugTrolleyComponent : Component
 {
     [DataField]
@@ -79,7 +84,7 @@ public sealed partial class WGTugTrolleyComponent : Component
     public float CargoDelay = 1.5f;
 
     /// <summary>The tug towing this trolley.</summary>
-    [ViewVariables]
+    [AutoNetworkedField]
     public EntityUid? Tug;
 
     /// <summary>Set while towed and saved with the trolley, so one saved mid-tow gets its physics back on load.</summary>

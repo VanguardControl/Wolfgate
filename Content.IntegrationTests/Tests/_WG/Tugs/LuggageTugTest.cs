@@ -289,7 +289,7 @@ public sealed class LuggageTugTest
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(tug.Y, Is.GreaterThan(StartY + 1.5f), "The tug did not back up.");
-                Assert.That(car.Y - tug.Y, Is.EqualTo(1f).Within(0.15f), "Reversing moved the trolley off its spacing behind the tug.");
+                Assert.That(car.Y - tug.Y, Is.EqualTo(Tug(pair, rig).Comp.HitchDistance).Within(0.15f), "Reversing moved the trolley off its spacing behind the tug.");
                 Assert.That(car.X, Is.EqualTo(tug.X).Within(0.2f));
                 Assert.That(car.Y, Is.LessThan(StartY + 4.6f), "The trolley was pushed into the wall.");
                 Assert.That(Tug(pair, rig).Comp.Trolleys, Has.Count.EqualTo(1), "The train came apart while reversing.");
@@ -364,7 +364,7 @@ public sealed class LuggageTugTest
                 using (Assert.EnterMultipleScope())
                 {
                     Assert.That(car.X, Is.EqualTo(tug.X).Within(0.2f), $"Trolley {i + 1} left the path.");
-                    Assert.That(car.Y - tug.Y, Is.EqualTo(i + 1f).Within(0.15f), $"Trolley {i + 1} is not at its spacing.");
+                    Assert.That(car.Y - tug.Y, Is.EqualTo(WGTugTrail.Distance(Tug(pair, rig).Comp, i)).Within(0.15f), $"Trolley {i + 1} is not at its spacing.");
                 }
             }
         });

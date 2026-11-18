@@ -37,6 +37,7 @@ the rider on free floor beside the tug.
 - [`Content.Shared/_WG/Tugs/WGTugComponent.cs`](../../../Content.Shared/_WG/Tugs/WGTugComponent.cs)
 - [`Content.Shared/_WG/Tugs/WGTugEvents.cs`](../../../Content.Shared/_WG/Tugs/WGTugEvents.cs)
 - [`Content.Shared/_WG/Tugs/WGTugSeatSystem.cs`](../../../Content.Shared/_WG/Tugs/WGTugSeatSystem.cs)
+- [`Content.Shared/_WG/Tugs/WGTugTrail.cs`](../../../Content.Shared/_WG/Tugs/WGTugTrail.cs)
 
 ### Client
 
@@ -58,6 +59,13 @@ the rider on free floor beside the tug.
 
 - [`Resources/Textures/_WG/Tugs/trolley.rsi/`](../../../Resources/Textures/_WG/Tugs/trolley.rsi/)
 - [`Resources/Textures/_WG/Tugs/tug.rsi/`](../../../Resources/Textures/_WG/Tugs/tug.rsi/)
+
+### Audio
+
+- [`Resources/Audio/_WG/Tugs/attributions.yml`](../../../Resources/Audio/_WG/Tugs/attributions.yml)
+- [`Resources/Audio/_WG/Tugs/motor_loop.ogg`](../../../Resources/Audio/_WG/Tugs/motor_loop.ogg)
+- [`Resources/Audio/_WG/Tugs/motor_start.ogg`](../../../Resources/Audio/_WG/Tugs/motor_start.ogg)
+- [`Resources/Audio/_WG/Tugs/motor_stop.ogg`](../../../Resources/Audio/_WG/Tugs/motor_stop.ogg)
 
 ## Non-modular edits
 

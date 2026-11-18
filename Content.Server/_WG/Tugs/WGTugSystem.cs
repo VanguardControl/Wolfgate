@@ -35,12 +35,6 @@ public sealed partial class WGTugSystem : EntitySystem
     [Dependency] private SharedMapSystem _maps = default!;
     [Dependency] private TurfSystem _turf = default!;
 
-    /// <summary>The tug lays a trail point each time it has moved this far.</summary>
-    private const float TrailStep = 0.1f;
-
-    /// <summary>Trail kept past the last trolley, so a short reverse has path to push back along.</summary>
-    private const float TrailSlack = 1.5f;
-
     public override void Initialize()
     {
         SubscribeLocalEvent<WGTugComponent, MapInitEvent>(OnTugMapInit);
@@ -172,6 +166,8 @@ public sealed partial class WGTugSystem : EntitySystem
 
         tug.Comp.Trolleys.Add(trolley);
         trolley.Comp.Tug = tug;
+        Dirty(tug);
+        Dirty(trolley);
         SetTowedPhysics(trolley, true);
         RebuildTrail(tug, grid);
         RefreshSpeed(tug);
@@ -215,6 +211,7 @@ public sealed partial class WGTugSystem : EntitySystem
             if (TerminatingOrDeleted(car))
                 continue;
 
+            Dirty(car, trolley);
             SetTowedPhysics((car, trolley), false);
             SettleOnFreeTile(car);
         }
@@ -225,8 +222,11 @@ public sealed partial class WGTugSystem : EntitySystem
             tug.Comp.TrailGrid = null;
         }
 
-        if (!TerminatingOrDeleted(tug))
-            RefreshSpeed(tug);
+        if (TerminatingOrDeleted(tug))
+            return;
+
+        Dirty(tug);
+        RefreshSpeed(tug);
     }
 
     /// <summary>A released trolley that stands in a wall is moved to the nearest free tile before it collides again.</summary>
@@ -330,16 +330,15 @@ public sealed partial class WGTugSystem : EntitySystem
     /// <summary>Lays the trail through the cars where they stand, so a fresh coupling settles in place.</summary>
     private void RebuildTrail(Entity<WGTugComponent> tug, EntityUid grid)
     {
-        tug.Comp.Trail.Clear();
         tug.Comp.TrailGrid = grid;
-
-        for (var i = tug.Comp.Trolleys.Count - 1; i >= 0; i--)
+        var cars = new List<Vector2>(tug.Comp.Trolleys.Count);
+        foreach (var car in tug.Comp.Trolleys)
         {
-            tug.Comp.Trail.Add(Transform(tug.Comp.Trolleys[i]).LocalPosition);
+            cars.Add(Transform(car).LocalPosition);
         }
 
-        tug.Comp.Trail.Add(Transform(tug).LocalPosition);
-        tug.Comp.TailForward = Transform(tug).LocalRotation.ToWorldVec();
+        var xform = Transform(tug);
+        WGTugTrail.Rebuild(tug.Comp.Trail, xform.LocalPosition, xform.LocalRotation.ToWorldVec(), cars, out tug.Comp.TailForward);
     }
 
     public override void Update(float frameTime)
@@ -369,40 +368,15 @@ public sealed partial class WGTugSystem : EntitySystem
         var pos = xform.LocalPosition;
         var reversing = TryComp(tug, out GridVehicleMoverComponent? mover) && mover.CurrentSpeed < 0f;
 
-        // Backing up runs back along the trail.
-        while (trail.Count >= 2)
-        {
-            var last = trail[^1];
-            var prev = trail[^2];
-            var seg = last - prev;
-            if (Vector2.Dot(pos - prev, seg) >= seg.LengthSquared())
-                break;
-
-            tug.Comp.TailForward = Vector2.Normalize(seg);
-            trail.RemoveAt(trail.Count - 1);
-        }
-
-        if (trail.Count == 0)
-        {
-            trail.Add(pos);
-        }
-        else if (trail.Count == 1 && Vector2.Dot(pos - trail[0], tug.Comp.TailForward) < 0f)
-        {
-            // Backed up past the start of the trail: it goes on straight back, the way it ran.
-            trail[0] = pos - tug.Comp.TailForward * TrailStep;
-        }
-        else if ((pos - trail[^1]).Length() >= TrailStep)
-        {
-            trail.Add(pos);
-        }
+        WGTugTrail.Advance(trail, pos, ref tug.Comp.TailForward);
 
         var fallback = -xform.LocalRotation.ToWorldVec();
 
         // The train cannot back through a wall: a car about to enter one stops the tug.
         if (reversing && mover != null && TryComp(grid, out MapGridComponent? gridComp))
         {
-            var lastDistance = tug.Comp.HitchDistance + (tug.Comp.Trolleys.Count - 1) * tug.Comp.TrolleySpacing;
-            var (lastPoint, _) = SampleTrail(pos, trail, lastDistance, fallback);
+            var lastDistance = WGTugTrail.Distance(tug.Comp, tug.Comp.Trolleys.Count - 1);
+            var (lastPoint, _) = WGTugTrail.Sample(pos, trail, lastDistance, fallback);
             var tile = _maps.TileIndicesFor(grid, gridComp, new EntityCoordinates(grid, lastPoint));
             if (_turf.IsTileBlocked(grid, tile, CollisionGroup.Impassable, gridComp))
             {
@@ -419,7 +393,7 @@ public sealed partial class WGTugSystem : EntitySystem
         }
 
         tug.Comp.LastFreePosition = pos;
-        var needed = tug.Comp.HitchDistance + (tug.Comp.Trolleys.Count - 1) * tug.Comp.TrolleySpacing;
+        var needed = WGTugTrail.Distance(tug.Comp, tug.Comp.Trolleys.Count - 1);
 
         for (var i = 0; i < tug.Comp.Trolleys.Count; i++)
         {
@@ -430,61 +404,11 @@ public sealed partial class WGTugSystem : EntitySystem
                 return;
             }
 
-            var distance = tug.Comp.HitchDistance + i * tug.Comp.TrolleySpacing;
-            var (point, forward) = SampleTrail(pos, trail, distance, fallback);
+            var (point, forward) = WGTugTrail.Sample(pos, trail, WGTugTrail.Distance(tug.Comp, i), fallback);
             PlaceCar(car, grid, point, forward.ToWorldAngle());
         }
 
-        TrimTrail(tug, pos, trail, needed + TrailSlack);
-    }
-
-    /// <summary>The point that lies a distance back along the path from the tug, and the way the path runs forward there.</summary>
-    private static (Vector2 Point, Vector2 Forward) SampleTrail(Vector2 head, List<Vector2> trail, float distance, Vector2 fallback)
-    {
-        var front = head;
-        var remaining = distance;
-        var forward = -fallback;
-
-        for (var i = trail.Count - 1; i >= 0; i--)
-        {
-            var back = trail[i];
-            var seg = front - back;
-            var length = seg.Length();
-            if (length < 0.0001f)
-                continue;
-
-            forward = seg / length;
-            if (remaining <= length)
-                return (front - forward * remaining, forward);
-
-            remaining -= length;
-            front = back;
-        }
-
-        // Past the end of the trail the train runs straight on.
-        return (front - forward * remaining, forward);
-    }
-
-    private static void TrimTrail(Entity<WGTugComponent> tug, Vector2 head, List<Vector2> trail, float keep)
-    {
-        var front = head;
-        var total = 0f;
-        for (var i = trail.Count - 1; i >= 0; i--)
-        {
-            total += (front - trail[i]).Length();
-            front = trail[i];
-            if (total <= keep)
-                continue;
-
-            if (i > 0)
-            {
-                var tail = trail[i] - trail[i - 1];
-                if (tail.LengthSquared() > 0.0001f)
-                    tug.Comp.TailForward = Vector2.Normalize(tail);
-                trail.RemoveRange(0, i);
-            }
-            return;
-        }
+        WGTugTrail.Trim(trail, pos, needed + WGTugTrail.Slack, ref tug.Comp.TailForward);
     }
 
     private void PlaceCar(EntityUid car, EntityUid grid, Vector2 point, Angle rotation)
