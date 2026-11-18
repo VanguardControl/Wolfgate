@@ -2,7 +2,6 @@
 
 ## Admin menu tab
 admin-menu-wolfgate-tab = Wolfgate
-wg-admin-tab-spawn-vessel = Spawn Vessel
 
 ## Vessel spawn page, in Shipmaster
 wg-vessel-spawn-search = Search by name, ID or class...

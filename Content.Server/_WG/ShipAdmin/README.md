@@ -6,10 +6,10 @@ category) on a grid or anything standing on one, or from the Shipmaster action s
 over a ship. The verb and the action open it on that ship; opened with no ship named, it starts on the ship the
 admin is over.
 
-A switch at the top shows the ships page or the spawn page. The spawn page is the old Spawn Vessel window
-(`Spawn/WGShipAdminSpawnPanel`): vessels by category with a preview, an owner and a name, spawned through
-`spawnvessel`. `shipmaster spawn`, which the Wolfgate admin tab's Spawn Vessel button runs, opens the panel on it,
-and a ship the admin spawns is selected on the ships page. Spawning needs the Spawn flag as before.
+Two big page buttons along the bottom of the window switch between the ships page and the spawn page. The spawn
+page replaces the old Spawn Vessel window and its admin tab button (`Spawn/WGShipAdminSpawnPanel`): vessels by
+category with a preview, an owner and a name, spawned through `spawnvessel`. `shipmaster spawn` opens the panel
+on it, and a ship the admin spawns is selected on the ships page. Spawning needs the Spawn flag as before.
 
 The left side of the ships page lists ships. Ships and ports lists grids with a deed, an owner, ship access or a
 vessel design, then the ports and bases they dock at (`IsPort`: trade stations and outposts, planet cargo hubs, station grids that

@@ -186,7 +186,7 @@ public sealed partial class WGShipAdminWindow : DefaultWindow
                 tab.Update(detail, state.ViewerFlags);
         }
 
-        // Opened or reopened on the spawn page, as the admin tab's Spawn Vessel button does.
+        // Opened or reopened on the spawn page, as shipmaster spawn does.
         if (state.SpawnPageSeq != _spawnPageSeq)
         {
             _spawnPageSeq = state.SpawnPageSeq;

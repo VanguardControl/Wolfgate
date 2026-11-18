@@ -6,10 +6,6 @@
                MinSize="900 540"
                SetSize="1100 720">
     <BoxContainer Orientation="Vertical" SeparationOverride="4">
-        <BoxContainer Orientation="Horizontal" SeparationOverride="4">
-            <Button Name="ShipsPageButton" Access="Public" Text="{Loc wg-ship-admin-page-ships}" ToggleMode="True" Pressed="True" StyleClasses="OpenRight" MinWidth="140" />
-            <Button Name="SpawnPageButton" Access="Public" Text="{Loc wg-ship-admin-page-spawn}" ToggleMode="True" StyleClasses="OpenLeft" MinWidth="140" />
-        </BoxContainer>
         <spawn:WGShipAdminSpawnPanel Name="SpawnPage" Access="Public" Visible="False" VerticalExpand="True" />
         <BoxContainer Name="ShipsPage" Orientation="Horizontal" SeparationOverride="8" VerticalExpand="True">
             <BoxContainer Orientation="Vertical" SetWidth="340" SeparationOverride="4">
@@ -54,5 +50,16 @@
 
         <PanelContainer StyleClasses="LowDivider" />
         <ui:WGShipAdminText Name="ResultLabel" Access="Public" />
+
+        <!-- The window's two pages, as a full-width row of big joined buttons along the bottom. -->
+        <PanelContainer>
+            <PanelContainer.PanelOverride>
+                <gfx:StyleBoxFlat BackgroundColor="#141414" BorderColor="#333333" BorderThickness="1" />
+            </PanelContainer.PanelOverride>
+            <BoxContainer Orientation="Horizontal" SeparationOverride="2" Margin="4">
+                <Button Name="ShipsPageButton" Access="Public" Text="{Loc wg-ship-admin-page-ships}" ToggleMode="True" Pressed="True" StyleClasses="ButtonBig OpenRight" HorizontalExpand="True" MinHeight="38" />
+                <Button Name="SpawnPageButton" Access="Public" Text="{Loc wg-ship-admin-page-spawn}" ToggleMode="True" StyleClasses="ButtonBig OpenLeft" HorizontalExpand="True" MinHeight="38" />
+            </BoxContainer>
+        </PanelContainer>
     </BoxContainer>
 </DefaultWindow>

@@ -17,7 +17,7 @@ Offer Second Chance (right-click Admin verb on a body or a player's ghost, or `s
 body's player, wherever they are now, whether they want to come back. Yes puts them back in the body and rejuvenates
 it; no or closing the prompt leaves them as they are. Admins are told the answer.
 
-`spawnvessel <vessel> [owner or -] [name]` (or the spawn page of Shipmaster, which the Spawn Vessel button opens) gives the ship its late-join station and job
+`spawnvessel <vessel> [owner or -] [name]` (or the spawn page of Shipmaster) gives the ship its late-join station and job
 slots, as a shipyard purchase would, so players can join it as its jobs and get their faction specials. A later deed
 reuses that station. `renamevessel <grid> <name>` renames a ship's grid, station and any deeds.
 
