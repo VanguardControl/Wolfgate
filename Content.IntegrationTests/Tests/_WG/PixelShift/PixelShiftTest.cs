@@ -18,12 +18,19 @@ using Robust.Shared.Maths;
 namespace Content.IntegrationTests.Tests._WG.PixelShift;
 
 /// <summary>
-/// The pixel shift and tilt keys nudge the networked shift, which clamps, is blocked when helpless and clears on a reset
-/// or a step.
+/// The pixel shift and tilt keys nudge the networked shift, which moves on at the player's speed while a key is held,
+/// clamps, is blocked when helpless, stacks on lying down and clears on a reset or a step.
 /// </summary>
 public sealed class PixelShiftTest : InteractionTest
 {
     protected override string PlayerPrototype => "MobHuman";
+
+    public override async Task Setup()
+    {
+        await base.Setup();
+        // The slowest speeds, so each of the tests' short taps is exactly one step.
+        await SetSpeeds(WGPixelShiftSystem.MinShiftSpeed, WGPixelShiftSystem.MinTiltSpeed);
+    }
 
     [Test]
     public async Task ShiftAndTiltUntilReset()
@@ -106,24 +113,72 @@ public sealed class PixelShiftTest : InteractionTest
             "The client kept the shift.");
     }
 
-    [Test]
-    public async Task HoldingAMoveKeyKeepsShifting()
+    [TestCase(20, 100)]
+    [TestCase(40, 30)]
+    public async Task HeldKeysMoveAtTheChosenSpeed(int shiftSpeed, int tiltSpeed)
     {
+        const float hold = 0.25f;
+        await SetSpeeds(shiftSpeed, tiltSpeed);
+
         await SetKey(WGPixelShiftKeys.WGPixelShift, BoundKeyState.Down);
         await SetKey(EngineKeyFunctions.MoveRight, BoundKeyState.Down);
-        await RunSeconds(1f);
+        await RunSeconds(hold);
         await SetKey(EngineKeyFunctions.MoveRight, BoundKeyState.Up);
         await RunTicks(5);
-        var held = Offset().X;
+        var shifted = Offset().X;
         await RunSeconds(0.5f);
         await SetKey(WGPixelShiftKeys.WGPixelShift, BoundKeyState.Up);
 
-        Assert.That(held, Is.GreaterThanOrEqualTo(5), "Holding the move key nudged only once.");
-        Assert.That(Offset().X, Is.EqualTo(held), "The nudge kept repeating after the move key was let go.");
+        // The press is one step and the key carries on at the speed straight away; the old 0.3 s wait gave one step.
+        var expected = 1 + shiftSpeed * hold;
+        Assert.That((float) shifted, Is.InRange(expected - Slack(shiftSpeed), expected + Slack(shiftSpeed)),
+            "Holding the move key didn't shift at the chosen speed.");
+        Assert.That(Offset().X, Is.EqualTo(shifted), "The shift kept going after the move key was let go.");
+
+        await SetKey(WGPixelShiftKeys.WGPixelTilt, BoundKeyState.Down);
+        await SetKey(EngineKeyFunctions.MoveLeft, BoundKeyState.Down);
+        await RunSeconds(hold);
+        await SetKey(EngineKeyFunctions.MoveLeft, BoundKeyState.Up);
+        await RunTicks(5);
+        await SetKey(WGPixelShiftKeys.WGPixelTilt, BoundKeyState.Up);
+
+        var tilt = SEntMan.GetComponent<WGPixelShiftComponent>(SPlayer).Tilt;
+        expected = WGPixelShiftSystem.TiltStep + tiltSpeed * hold;
+        Assert.That((float) tilt, Is.InRange(expected - Slack(tiltSpeed), expected + Slack(tiltSpeed)),
+            "Holding the move key didn't tilt at the chosen speed.");
     }
 
     [Test]
-    public async Task LyingDownAndStandingKeepTheOrientation()
+    public async Task SpeedsAreClamped()
+    {
+        await SetSpeeds(10000, 0);
+
+        // Unclamped, a tenth of a second at 10000 px/s would run into the 16 px limit.
+        await SetKey(WGPixelShiftKeys.WGPixelShift, BoundKeyState.Down);
+        await SetKey(EngineKeyFunctions.MoveRight, BoundKeyState.Down);
+        await RunSeconds(0.1f);
+        await SetKey(EngineKeyFunctions.MoveRight, BoundKeyState.Up);
+        await RunTicks(5);
+        await SetKey(WGPixelShiftKeys.WGPixelShift, BoundKeyState.Up);
+        Assert.That(Offset().X, Is.InRange(2, WGPixelShiftCVars.MaxOffset.DefaultValue - 1),
+            "A huge shift speed wasn't held to the fastest.");
+
+        // Unclamped, a speed of 0 would stop at the first step.
+        const float hold = 1.5f;
+        await SetKey(WGPixelShiftKeys.WGPixelTilt, BoundKeyState.Down);
+        await SetKey(EngineKeyFunctions.MoveLeft, BoundKeyState.Down);
+        await RunSeconds(hold);
+        await SetKey(EngineKeyFunctions.MoveLeft, BoundKeyState.Up);
+        await RunTicks(5);
+        await SetKey(WGPixelShiftKeys.WGPixelTilt, BoundKeyState.Up);
+        var expected = WGPixelShiftSystem.TiltStep + WGPixelShiftSystem.MinTiltSpeed * hold;
+        var slack = Slack(WGPixelShiftSystem.MinTiltSpeed);
+        Assert.That((float) SEntMan.GetComponent<WGPixelShiftComponent>(SPlayer).Tilt,
+            Is.InRange(expected - slack, expected + slack), "A speed of 0 wasn't raised to the slowest.");
+    }
+
+    [Test]
+    public async Task TiltingWhileLyingDownAndStandingUp()
     {
         await SetKey(WGPixelShiftKeys.WGPixelTilt, BoundKeyState.Down);
         await Tap(EngineKeyFunctions.MoveLeft, 2);
@@ -139,10 +194,23 @@ public sealed class PixelShiftTest : InteractionTest
         {
             var sprite = Settle();
             var lying = CEntMan.GetComponent<RotationVisualsComponent>(CPlayer).HorizontalRotation;
-            Assert.That(sprite.Rotation.Degrees, Is.EqualTo(lying.Degrees).Within(0.001),
-                "The tilt stacked on the lying-down rotation.");
+            Assert.That(sprite.Rotation.Degrees, Is.EqualTo(lying.Degrees + 2 * WGPixelShiftSystem.TiltStep).Within(0.001),
+                "The tilt didn't stack on the lying-down rotation.");
             Assert.That(sprite.Offset.X, Is.EqualTo(1f / EyeManager.PixelsPerMeter).Within(0.001f),
                 "Lying down dropped the shift.");
+        });
+
+        await SetKey(WGPixelShiftKeys.WGPixelTilt, BoundKeyState.Down);
+        await Tap(EngineKeyFunctions.MoveLeft);
+        await SetKey(WGPixelShiftKeys.WGPixelTilt, BoundKeyState.Up);
+        Assert.That(SEntMan.GetComponent<WGPixelShiftComponent>(SPlayer).Tilt, Is.EqualTo(3 * WGPixelShiftSystem.TiltStep),
+            "Couldn't tilt while lying down.");
+        await Client.WaitPost(() =>
+        {
+            var sprite = Settle();
+            var lying = CEntMan.GetComponent<RotationVisualsComponent>(CPlayer).HorizontalRotation;
+            Assert.That(sprite.Rotation.Degrees, Is.EqualTo(lying.Degrees + 3 * WGPixelShiftSystem.TiltStep).Within(0.001),
+                "Tilting while lying down didn't show.");
         });
 
         await Server.WaitPost(() => Assert.That(standing.Stand(SPlayer, force: true), Is.True));
@@ -150,7 +218,7 @@ public sealed class PixelShiftTest : InteractionTest
         await Client.WaitPost(() =>
         {
             var sprite = Settle();
-            Assert.That(sprite.Rotation.Degrees, Is.EqualTo(2 * WGPixelShiftSystem.TiltStep).Within(0.001),
+            Assert.That(sprite.Rotation.Degrees, Is.EqualTo(3 * WGPixelShiftSystem.TiltStep).Within(0.001),
                 "Standing up didn't come back upright with the tilt.");
             CEntMan.System<WGPixelShiftRestoreSystem>().FrameUpdate(0f);
             Assert.That(sprite.Rotation.Degrees, Is.EqualTo(0).Within(0.001), "The restore pass left the tilt on.");
@@ -265,6 +333,24 @@ public sealed class PixelShiftTest : InteractionTest
         CEntMan.System<WGPixelShiftRestoreSystem>().FrameUpdate(0f);
         CEntMan.System<WGPixelShiftVisualsSystem>().FrameUpdate(1f);
         return CEntMan.GetComponent<SpriteComponent>(CPlayer);
+    }
+
+    /// <summary>Sets the client's speed options and lets them reach the server.</summary>
+    private async Task SetSpeeds(int shift, int tilt)
+    {
+        await Client.WaitPost(() =>
+        {
+            var cfg = Client.ResolveDependency<IConfigurationManager>();
+            cfg.SetCVar(WGPixelShiftCVars.ShiftSpeed, shift);
+            cfg.SetCVar(WGPixelShiftCVars.TiltSpeed, tilt);
+        });
+        await RunTicks(10);
+    }
+
+    /// <summary>How far a hold can land from its expected travel: a tick either way at each end, plus rounding down.</summary>
+    private float Slack(int speed)
+    {
+        return speed * 2f / STiming.TickRate + 1f;
     }
 
     private Vector2i Offset()

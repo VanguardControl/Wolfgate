@@ -54,13 +54,13 @@ public sealed partial class WGPixelShiftHeldComponent : Component
     [ViewVariables]
     public WGPixelShiftMode Mode;
 
-    /// <summary>Movement keys pressed while a shift key is held and not yet let go; they repeat their nudge.</summary>
+    /// <summary>Movement keys pressed while a shift key is held and not yet let go; they keep nudging.</summary>
     [ViewVariables]
     public DirectionFlag Directions;
 
-    /// <summary>When the held movement keys next repeat their nudge.</summary>
+    /// <summary>Server: the part of a pixel or degree the held movement keys have built up toward their next nudge.</summary>
     [ViewVariables]
-    public TimeSpan NextRepeat;
+    public float Progress;
 }
 
 public enum WGPixelShiftMode : byte

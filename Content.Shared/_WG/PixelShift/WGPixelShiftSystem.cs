@@ -6,7 +6,6 @@ using Robust.Shared.Input;
 using Robust.Shared.Input.Binding;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
-using Robust.Shared.Timing;
 
 namespace Content.Shared._WG.PixelShift;
 
@@ -20,16 +19,23 @@ public sealed class WGPixelShiftSystem : EntitySystem
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private SharedMoverController _mover = default!;
     [Dependency] private INetManager _net = default!;
-    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private INetConfigurationManager _netConfig = default!;
+    [Dependency] private ISharedPlayerManager _player = default!;
 
     /// <summary>Degrees one tap of the tilt key turns the sprite.</summary>
     public const int TiltStep = 5;
 
-    /// <summary>How long a held movement key waits before it starts repeating its nudge.</summary>
-    public static readonly TimeSpan RepeatDelay = TimeSpan.FromSeconds(0.3);
+    /// <summary>Slowest a held movement key shifts the sprite, in pixels per second.</summary>
+    public const int MinShiftSpeed = 1;
 
-    /// <summary>How often a held movement key repeats its nudge after that.</summary>
-    public static readonly TimeSpan RepeatInterval = TimeSpan.FromSeconds(0.1);
+    /// <summary>Fastest a held movement key shifts the sprite, in pixels per second.</summary>
+    public const int MaxShiftSpeed = 100;
+
+    /// <summary>Slowest a held movement key tilts the sprite, in degrees per second.</summary>
+    public const int MinTiltSpeed = 5;
+
+    /// <summary>Fastest a held movement key tilts the sprite, in degrees per second.</summary>
+    public const int MaxTiltSpeed = 360;
 
     private static readonly Direction[] Cardinals = { Direction.North, Direction.South, Direction.East, Direction.West };
 
@@ -113,49 +119,80 @@ public sealed class WGPixelShiftSystem : EntitySystem
     {
         base.Update(frameTime);
 
-        // The server repeats held movement keys; clients get the result with the networked shift.
+        // The server moves held movement keys on; clients get the result with the networked shift.
         if (!_net.IsServer)
             return;
 
-        var now = _timing.CurTime;
         var query = EntityQueryEnumerator<WGPixelShiftHeldComponent>();
         while (query.MoveNext(out var uid, out var held))
         {
-            if (held.Directions == DirectionFlag.None || now < held.NextRepeat)
+            if (held.Directions == DirectionFlag.None)
                 continue;
 
-            held.NextRepeat = now + RepeatInterval;
+            held.Progress += HeldSpeed(uid, held.Mode) * frameTime;
+            var amount = (int) held.Progress;
+            if (amount <= 0)
+                continue;
+
+            held.Progress -= amount;
             foreach (var dir in Cardinals)
             {
                 if ((held.Directions & dir.AsFlag()) != 0)
-                    Nudge(uid, held, dir);
+                    Nudge(uid, held, dir, amount);
             }
         }
     }
 
     /// <summary>
-    /// Nudges the sprite for a movement key pressed while a pixel shift key is held, and keeps nudging while the key
-    /// stays down. False when no key is held, so the key moves the mob as usual.
+    /// Nudges the sprite for a movement key pressed while a pixel shift key is held, and keeps nudging at the player's
+    /// speed while the key stays down. False when no key is held, so the key moves the mob as usual.
     /// </summary>
     public bool TryNudge(EntityUid uid, Direction dir)
     {
         if (!TryComp<WGPixelShiftHeldComponent>(uid, out var held))
             return false;
 
+        // The press is the first step; the next follows one step's time later, with no pause between.
+        if (held.Directions == DirectionFlag.None)
+            held.Progress = 0f;
+
         held.Directions |= dir.AsFlag();
-        held.NextRepeat = _timing.CurTime + RepeatDelay;
-        Nudge(uid, held, dir);
+        Nudge(uid, held, dir, held.Mode == WGPixelShiftMode.Shift ? 1 : TiltStep);
         return true;
     }
 
-    /// <summary>Stops a let-go movement key repeating its nudge.</summary>
+    /// <summary>How fast the entity's player moves the sprite with a held key, in pixels or degrees per second.</summary>
+    private float HeldSpeed(EntityUid uid, WGPixelShiftMode mode)
+    {
+        var cvar = mode == WGPixelShiftMode.Shift ? WGPixelShiftCVars.ShiftSpeed : WGPixelShiftCVars.TiltSpeed;
+        var speed = _player.TryGetSessionByEntity(uid, out var session)
+            ? _netConfig.GetClientCVar(session.Channel, cvar)
+            : cvar.DefaultValue;
+
+        return mode == WGPixelShiftMode.Shift ? ClampShiftSpeed(speed) : ClampTiltSpeed(speed);
+    }
+
+    /// <summary>A shift speed pulled inside <see cref="MinShiftSpeed"/> and <see cref="MaxShiftSpeed"/>.</summary>
+    public static int ClampShiftSpeed(int speed)
+    {
+        return Math.Clamp(speed, MinShiftSpeed, MaxShiftSpeed);
+    }
+
+    /// <summary>A tilt speed pulled inside <see cref="MinTiltSpeed"/> and <see cref="MaxTiltSpeed"/>.</summary>
+    public static int ClampTiltSpeed(int speed)
+    {
+        return Math.Clamp(speed, MinTiltSpeed, MaxTiltSpeed);
+    }
+
+    /// <summary>Stops a let-go movement key moving the sprite on.</summary>
     public void ReleaseDirection(EntityUid uid, Direction dir)
     {
         if (TryComp<WGPixelShiftHeldComponent>(uid, out var held))
             held.Directions &= ~dir.AsFlag();
     }
 
-    private void Nudge(EntityUid uid, WGPixelShiftHeldComponent held, Direction dir)
+    /// <summary>Moves the shift <paramref name="amount"/> pixels, or the tilt that many degrees, toward a direction.</summary>
+    private void Nudge(EntityUid uid, WGPixelShiftHeldComponent held, Direction dir, int amount)
     {
         if (!_blocker.CanInteract(uid, null))
             return;
@@ -170,7 +207,7 @@ public sealed class WGPixelShiftSystem : EntitySystem
         var tilt = shift.Tilt;
         if (held.Mode == WGPixelShiftMode.Shift)
         {
-            var step = dir.ToIntVec();
+            var step = dir.ToIntVec() * amount;
             offset = new Vector2i(
                 Math.Clamp(offset.X + step.X, -_maxOffset, _maxOffset),
                 Math.Clamp(offset.Y + step.Y, -_maxOffset, _maxOffset));
@@ -179,8 +216,8 @@ public sealed class WGPixelShiftSystem : EntitySystem
         {
             var step = dir switch
             {
-                Direction.West => TiltStep,
-                Direction.East => -TiltStep,
+                Direction.West => amount,
+                Direction.East => -amount,
                 _ => 0,
             };
             tilt = Math.Clamp(tilt + step, -_maxTilt, _maxTilt);
