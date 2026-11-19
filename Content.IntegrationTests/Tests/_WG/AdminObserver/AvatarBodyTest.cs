@@ -231,7 +231,14 @@ public sealed class AvatarBodyTest
             Assert.That(manifest.TryManifest(session, store.Get(session)!.Presets[1].Name, out var message), message));
         await pair.RunTicksSync(15);
         await client.WaitAssertion(() =>
-            Assert.That(client.EntMan.GetComponent<WGAvatarVisualsComponent>(client.EntMan.GetEntity(netObserver)).Replaced));
+        {
+            var sprite = client.EntMan.GetComponent<SpriteComponent>(client.EntMan.GetEntity(netObserver));
+            Assert.Multiple(() =>
+            {
+                Assert.That(sprite.LayerMapTryGet(HumanoidVisualLayers.Chest, out _), "Manifested, it is drawn as its character.");
+                Assert.That(sprite.LayerMapTryGet("ghostVariant", out _), Is.False);
+            });
+        });
 
         await server.WaitAssertion(() => Assert.That(manifest.TryUnmanifest(session, out var message), message));
         await pair.RunTicksSync(10);
