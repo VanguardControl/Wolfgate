@@ -13,7 +13,8 @@ People are counted, not named: a world's tag and list say how many player charac
 any layer, aboard a vessel or inside a vehicle on it), and only those carrying a medical tracking implant are listed by
 name, with how they are doing and where, and marked on the world's radars.
 
-Hidden IFF keeps a vessel off the list and a hidden label lists it as unknown. Radars whose clicks aim guns (fire
+Hidden IFF keeps a vessel off the list and a hidden label lists it as unknown. A vessel with a Wilderness mark
+(`Wilderness`) is marked red with a skull on the other layers' radars. Radars whose clicks aim guns (fire
 control, drones) never open the list. The orbit marker entity (`WGPoiSignal`) no longer carries an IFF of its own.
 
 <!-- WOLFGATE-GENERATED START -->

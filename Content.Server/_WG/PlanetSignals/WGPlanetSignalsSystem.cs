@@ -7,6 +7,7 @@ using Content.Server._WG.Planets;
 using Content.Shared._WG.Planets;
 using Content.Shared._WG.PlanetSignals;
 using Content.Shared._WG.Vehicles.Core;
+using Content.Shared._WG.Wilderness;
 using Content.Shared.Implants.Components;
 using Content.Shared.Mind;
 using Content.Shared.Mind.Components;
@@ -95,7 +96,8 @@ public sealed class WGPlanetSignalsSystem : EntitySystem
 
             var name = iff != null && (iff.Flags & IFFFlags.HideLabel) != 0 ? string.Empty : Name(grid);
             var centre = Vector2.Transform(gridComp.LocalAABB.Center, _transform.GetWorldMatrix(xform));
-            _found[at.Body].Add(new WGPlanetSignal(WGPlanetSignalKind.Vessel, name, centre.Floored(), GetNetEntity(map), at.Layer, null));
+            _found[at.Body].Add(new WGPlanetSignal(WGPlanetSignalKind.Vessel, name, centre.Floored(), GetNetEntity(map), at.Layer, null,
+                Marked: HasComp<WGSkullComponent>(grid)));
         }
 
         foreach (var (body, signals) in _found)

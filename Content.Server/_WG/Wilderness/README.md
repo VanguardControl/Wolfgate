@@ -32,7 +32,10 @@ the zone for a few seconds after a change or under the cursor, and opens the rul
 out; and a pulsing border in a Wilderness or while marked. It shows the player's own mark, or else their ship's. The
 player gets one zone alert: the zone's, with a sweep counting down to the mark in a Wilderness, or the mark's, counting
 down once out. `WGSkullOverlay` draws an 8 px skull centred over each marked person, like the status icons, and hidden
-where they are. Radars draw each zone's edge and a skull by every marked ship (`ShuttleNavControl.Wilderness.cs`).
+where they are. Every radar (helm, mass scanner, gunnery and drone consoles) draws each zone's edge, and a marked ship's
+name in red with a skull after it and one over its blip (`ShuttleNavControl.Wilderness.cs`): the scope's own ship too,
+which has no tag, and a ship past the range names show. A vessel on another layer of a world, whose grid the client
+doesn't have, is marked through its world's signal list (`WGPlanetSignal.Marked`).
 Admins can check and set the marks on themselves and their ship with `wg_zone info|mark|clear [ship]`.
 
 The zone icons are built by `Tools/_WG/Wilderness/make_icons.py` from the radar marker glyphs.
@@ -99,8 +102,10 @@ The zone icons are built by `Tools/_WG/Wilderness/make_icons.py` from the radar 
 
 - [`Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs)
   - the edges of Safe Zones, Wildernesses and outposts.
+  - skulls over marked ships, our own included, above the hulls
   - a marked ship's name shows red
   - a skull by a marked ship's blip and name
+  - a marked ship past name range keeps its skull
 - [`Content.Server/_Mono/FireControl/FireControlSystem.Console.cs`](../../_Mono/FireControl/FireControlSystem.Console.cs): who fired, for attacks into a Wilderness
 - [`Content.Server/_NF/Smuggling/DeadDropSystem.cs`](../../_NF/Smuggling/DeadDropSystem.cs): a drop pod is a Wilderness, its edge kept off radars like its name
 - [`Resources/Prototypes/_Mono/GameRules/monolithic.yml`](../../../Resources/Prototypes/_Mono/GameRules/monolithic.yml): Monolithic Fragments are Wildernesses

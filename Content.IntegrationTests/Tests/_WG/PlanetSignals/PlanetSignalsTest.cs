@@ -6,6 +6,7 @@ using Content.IntegrationTests.Tests._WG.Planets;
 using Content.Server._WG.PlanetPois;
 using Content.Server._WG.Planets;
 using Content.Server._WG.PlanetSignals;
+using Content.Server._WG.Wilderness;
 using Content.Shared.Players;
 using Content.Server.Station.Systems;
 using Content.Shared._WG.CCVar;
@@ -108,6 +109,10 @@ public sealed class PlanetSignalsTest
             var hidden = Hull("WG Test Ghost", new Vector2i(-20, -20));
             server.System<SharedShuttleSystem>().AddIFFFlag(hidden, IFFFlags.Hide);
 
+            // A ship with a Wilderness mark, which radars on the other layers can't see on its grid.
+            var raider = Hull("WG Test Raider", new Vector2i(-20, 10));
+            server.System<WGZoneSystem>().Mark(raider);
+
             // The first site is identified and has the hauler's expedition on it.
             var record = entMan.GetComponent<WGPlanetPoiComponent>(ground);
             var site = record.Sites[0];
@@ -147,10 +152,14 @@ public sealed class PlanetSignalsTest
             var vessels = signals.Where(signal => signal.Kind == WGPlanetSignalKind.Vessel).ToList();
             var sites = signals.Where(signal => signal.Kind == WGPlanetSignalKind.Site).ToList();
 
-            Assert.That(vessels.Select(vessel => vessel.Name), Is.EquivalentTo(new[] { "WG Test Hauler" }),
-                "The vessel list should hold the hauler and not the hidden hull.");
-            Assert.That(vessels[0].Layer, Is.EqualTo(WGPlanetSignalLayer.Orbit));
-            Assert.That(vessels[0].Position, Is.EqualTo(new Vector2i(11, 11)), "The vessel is not listed at its middle.");
+            Assert.That(vessels.Select(vessel => vessel.Name), Is.EquivalentTo(new[] { "WG Test Hauler", "WG Test Raider" }),
+                "The vessel list should hold the hauler and the raider, and not the hidden hull.");
+            var listedHauler = vessels.Single(vessel => vessel.Name == "WG Test Hauler");
+            Assert.That(listedHauler.Layer, Is.EqualTo(WGPlanetSignalLayer.Orbit));
+            Assert.That(listedHauler.Position, Is.EqualTo(new Vector2i(11, 11)), "The vessel is not listed at its middle.");
+            Assert.That(listedHauler.Marked, Is.False, "An unmarked vessel is listed as marked.");
+            Assert.That(vessels.Single(vessel => vessel.Name == "WG Test Raider").Marked, Is.True,
+                "A vessel with a Wilderness mark is not listed as marked.");
 
             Assert.That(sites, Has.Count.EqualTo(2));
             Assert.That(sites.All(site => site.Map == entMan.GetNetEntity(ground) && site.Layer == WGPlanetSignalLayer.Ground), Is.True);

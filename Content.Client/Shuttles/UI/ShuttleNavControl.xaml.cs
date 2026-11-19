@@ -845,6 +845,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
             }
         }
         #endregion
+        DrawWgMarks(handle, worldToView, ourGridId); // WOLFGATE(Wilderness): skulls over marked ships, our own included, above the hulls
         WgDrawTags(handle); // WOLFGATE(RadarLabels): every contact's tag, laid out together over the scope.
         DrawWgLatticeDeadZones(handle, worldToView, xform.MapUid); // WOLFGATE(Lattice): the Coda shows only as static on every scanner.
         DrawWgCoordinateReadout(handle); // WOLFGATE(Waypoints): cursor and scanner coordinates over everything else.
@@ -1125,6 +1126,8 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
                         NfAddBlipToList(_tempBlipDataList, isOutsideRadarCircle, uiPosition, uiXCentre, uiYCentre, labelColor, hideLabel ? default : gUid); // Frontier code
                                                                                                                                                         // End Frontier: IFF drawing functions
                 }
+
+                WgMarkUntagged(gUid, gridUiPosition * UIScale, shouldDrawIFF, blipOnly); // WOLFGATE(Wilderness): a marked ship past name range keeps its skull
 
                 // Frontier Don't skip drawing blips if they're out of range.
                 // WOLFGATE(AsteroidMining) START: redrew every blip so far once per grid; drawn once after the loop
