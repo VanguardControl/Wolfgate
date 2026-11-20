@@ -90,6 +90,8 @@ wg-mhelp-canned-insert = Insert
 wg-mhelp-canned-edit = Edit
 wg-mhelp-sound-option = Play a sound for new questions
 
+guide-entry-wg-mentor-help = Getting help
+
 # DRAFT: not on the strings page yet; Moon to confirm or rewrite before the PR.
 ui-options-function-wg-open-mentor-help = Open Mentor Help
 wg-mhelp-ahelp-reported = Mentor ticket #{ $ticket } reported by the player.

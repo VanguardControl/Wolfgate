@@ -19,6 +19,7 @@
   - MonoMisc # mono
   - WGRemadeGuide # WOLFGATE(Remade): the Monolith, the Remade and how to end an outbreak
   - WGLatticeGuide # WOLFGATE(Lattice): the bands, Drift, exotic matter and the anchors
+  - WGMentorHelpGuide # WOLFGATE(MentorHelp): getting help, Mentor Help and the Mentor Code of Conduct
 
 - type: guideEntry
   id: Bank

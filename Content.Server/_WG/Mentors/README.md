@@ -24,6 +24,8 @@ plate in the card's footer band beside the Wolfgate mark (`WGMentorSigil`), and 
 are drawn by `Tools/_WG/Mentors/gen_mentor_marks.py`: a low silver crown for Trainees, gold for Mentors, gold on an
 olive plate for Seniors.
 
+Guidebook: the Mentor Code of Conduct (`WGMentorCodeOfConduct`), under "Getting help".
+
 Still to come: applications, bans, the staff tab and the panel endpoints.
 
 ## Data
@@ -79,6 +81,7 @@ Read and written through `ServerDbManager.Mentors.cs`.
 
 ### Prototypes
 
+- [`Resources/Prototypes/_WG/Mentors/guidebook.yml`](../../../Resources/Prototypes/_WG/Mentors/guidebook.yml)
 - [`Resources/Prototypes/_WG/Mentors/status_icons.yml`](../../../Resources/Prototypes/_WG/Mentors/status_icons.yml)
 
 ### Localization
@@ -88,6 +91,10 @@ Read and written through `ServerDbManager.Mentors.cs`.
 ### Textures
 
 - [`Resources/Textures/_WG/Mentors/mentor_mark.rsi/`](../../../Resources/Textures/_WG/Mentors/mentor_mark.rsi/)
+
+### Guidebook
+
+- [`Resources/ServerInfo/_WG/Mentors/Guidebook/CodeOfConduct.xml`](../../../Resources/ServerInfo/_WG/Mentors/Guidebook/CodeOfConduct.xml)
 
 ### Tools
 

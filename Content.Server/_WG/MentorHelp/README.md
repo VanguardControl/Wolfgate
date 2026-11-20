@@ -48,6 +48,9 @@ With the Admin Help:
 Ticket lines are copied to the mentors' Discord channel through `wg.mentor.discord_webhook`
 (`WGMentorHelpDiscordSystem`).
 
+Guidebook: "Getting help" (`WGMentorHelpGuide`, under the main guide list) explains Mentor Help and when to use the
+Admin Help instead; the Mentor Code of Conduct (Mentors module) sits under it.
+
 ## Data
 
 - `wolfgate_mentor_ticket`: one row per ticket, with the character name mentors saw, topic, flags, who held the claim
@@ -100,9 +103,17 @@ Read and written through `ServerDbManager.MentorHelp.cs`.
 - [`Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpRoutingTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpRoutingTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpTicketTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpTicketTest.cs)
 
+### Prototypes
+
+- [`Resources/Prototypes/_WG/MentorHelp/guidebook.yml`](../../../Resources/Prototypes/_WG/MentorHelp/guidebook.yml)
+
 ### Localization
 
 - [`Resources/Locale/en-US/_WG/MentorHelp/mentor-help.ftl`](../../../Resources/Locale/en-US/_WG/MentorHelp/mentor-help.ftl)
+
+### Guidebook
+
+- [`Resources/ServerInfo/_WG/MentorHelp/Guidebook/GettingHelp.xml`](../../../Resources/ServerInfo/_WG/MentorHelp/Guidebook/GettingHelp.xml)
 
 ## Non-modular edits
 
@@ -127,6 +138,7 @@ Read and written through `ServerDbManager.MentorHelp.cs`.
   - messages gone with their ticket, tickets searched by player, mentor and date
 - [`Content.Shared.Database/LogType.cs`](../../../Content.Shared.Database/LogType.cs): Mentor Help ticket messages and state
 - [`Resources/keybinds.yml`](../../../Resources/keybinds.yml): Mentor Help on Shift+F1, beside the ahelp
+- [`Resources/Prototypes/_NF/Guidebook/nf14.yml`](../../../Resources/Prototypes/_NF/Guidebook/nf14.yml): getting help, Mentor Help and the Mentor Code of Conduct
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Six_Ahelp.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Six_Ahelp.xml): Rule 6 points to Mentor Help
 
 <!-- WOLFGATE-GENERATED END -->
