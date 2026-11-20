@@ -95,6 +95,10 @@ wg-custom-marking-placement-hair = Over the hair
 wg-custom-marking-placement-hair-hint = Drawn over the head, hair and ears, under hats and masks: use it for changes to the hair. Like hair, all of it is hidden whenever headgear hides the hair.
 wg-custom-marking-placement-front = Over clothing
 wg-custom-marking-placement-front-hint = Drawn over everything, clothing and cloaks included: use it to draw on a tail seen from behind. What lies on a tail goes when clothing hides the tail.
+wg-custom-marking-placement-undergarmenttop = Underwear (Top)
+wg-custom-marking-placement-undergarmenttop-hint = Treated and rendered as an undershirt under clothing.
+wg-custom-marking-placement-undergarmentbottom = Underwear (Button)
+wg-custom-marking-placement-undergarmentbottom-hint = Treated and rendered as an undershirt under clothing. Will hide anatomy when visible, if anatomy is configured as such.
 
 wg-custom-marking-error-disabled = Custom markings are turned off on this server.
 wg-custom-marking-error-cooldown = Wait a moment before saving again.
