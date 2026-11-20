@@ -945,6 +945,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
                     //if (isPlayerShuttle) // Mono - comments this out, replaced elsewere
                     //    shouldDrawIFF &= ShowIFFShuttles;
                 }
+                var wgNamed = shouldDrawIFF; // WOLFGATE(Wilderness): whether it would be named but for range, for a marked ship's skull
 
                 //var mapCenter = curGridToWorld. * gridBody.LocalCenter;
                 //shouldDrawIFF = NfCheckShouldDrawIffRangeCondition(shouldDrawIFF, mapCenter, curGridToWorld); // Frontier code
@@ -1127,7 +1128,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
                                                                                                                                                         // End Frontier: IFF drawing functions
                 }
 
-                WgMarkUntagged(gUid, gridUiPosition * UIScale, shouldDrawIFF, blipOnly); // WOLFGATE(Wilderness): a marked ship past name range keeps its skull
+                WgMarkUntagged(gUid, gridUiPosition * UIScale, wgNamed && !shouldDrawIFF, blipOnly); // WOLFGATE(Wilderness): a marked ship past name range keeps its skull
 
                 // Frontier Don't skip drawing blips if they're out of range.
                 // WOLFGATE(AsteroidMining) START: redrew every blip so far once per grid; drawn once after the loop

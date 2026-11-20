@@ -16,8 +16,11 @@ wg-zone-outpost-ring = OUTPOST
 
 wg-zone-wilderness-title = WILDERNESS: NO PROTECTION
 wg-zone-wilderness-summary = { $open ->
-    [yes] Anyone may attack anyone here without escalation. Stay and you are marked.
-   *[no] TSF and PDV may fight here without escalation; everyone else still needs it. Stay and you are marked.
+    [yes] Anyone may attack anyone here without escalation.
+   *[no] TSF and PDV may fight here without escalation; everyone else still needs it.
+} { $onfoot ->
+    [yes] Stay and you are marked.
+   *[no] Ships that stay are marked.
 }
 wg-zone-wilderness-entered = You entered a WILDERNESS round {$place}. {$summary}
 wg-zone-wilderness-left = You left the Wilderness round {$place}.
@@ -109,7 +112,7 @@ wg-alert-zone-safe-desc = Policy protects you here: no theft, no unprovoked atta
 wg-alert-zone-outpost-name = Faction outpost
 wg-alert-zone-outpost-desc = Within 256 m of a faction outpost: protected from port strikes while the war is COLD, open to them while it is HOT.
 wg-alert-zone-wilderness-name = Wilderness
-wg-alert-zone-wilderness-desc = No policy protection. Who may fight here without escalation is in the Wilderness rules: click the zone banner. Stay and you, or your ship, are marked; the sweep over this icon counts down to it.
+wg-alert-zone-wilderness-desc = No policy protection. Who may fight here without escalation is in the Wilderness rules: click the zone banner. Staying marks a ship, and on some servers a person on foot; while it is counting, the sweep over this icon shows when.
 wg-alert-zone-notsafe-name = Not a Safe Zone
 wg-alert-zone-notsafe-desc = This station is not a Safe Zone. Ordinary rules and escalation apply.
 wg-alert-marked-name = Marked

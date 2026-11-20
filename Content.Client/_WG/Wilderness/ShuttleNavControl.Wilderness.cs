@@ -69,12 +69,12 @@ public partial class ShuttleNavControl
     }
 
     /// <summary>
-    /// For a marked ship drawn by its hull but given no tag, past the scope's name range: a skull over it at
-    /// <paramref name="blip"/>, in pixels.
+    /// For a marked ship drawn by its hull whose tag only range keeps off (<paramref name="pastRange"/>): a skull over
+    /// it at <paramref name="blip"/>, in pixels. A tag hidden on purpose hides the skull too.
     /// </summary>
-    private void WgMarkUntagged(EntityUid grid, Vector2 blip, bool tagged, bool blipOnly)
+    private void WgMarkUntagged(EntityUid grid, Vector2 blip, bool pastRange, bool blipOnly)
     {
-        if (tagged || blipOnly || !ShowIFF || !EntManager.HasComponent<WGSkullComponent>(grid) || !WgOnScope(blip))
+        if (!pastRange || blipOnly || !EntManager.HasComponent<WGSkullComponent>(grid) || !WgOnScope(blip))
             return;
 
         _wgMarkBlips.Add(blip);

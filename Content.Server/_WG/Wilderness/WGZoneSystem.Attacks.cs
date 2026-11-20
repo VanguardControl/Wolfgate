@@ -1,5 +1,7 @@
+using Content.Server._Mono.FireControl;
 using Content.Server._WG.NpcCrew;
 using Content.Shared._WG.Wilderness;
+using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Player;
 
@@ -17,8 +19,14 @@ public sealed partial class WGZoneSystem
     /// <summary>A running mark is only topped up once it has run down this much, so a barrage doesn't resend it.</summary>
     private static readonly TimeSpan TopUp = TimeSpan.FromSeconds(1);
 
+    /// <summary>How long a gunnery order stays the gunner's: the guns keep trying to fire for 0.2 s after it.</summary>
+    private static readonly TimeSpan AimMemory = TimeSpan.FromSeconds(0.5);
+
     /// <summary>Who last fired each ship's guns from a gunnery console, and when.</summary>
     private readonly Dictionary<EntityUid, Dictionary<EntityUid, TimeSpan>> _gunners = new();
+
+    /// <summary>Who last ordered each ship gun to fire from a gunnery console, and when.</summary>
+    private readonly Dictionary<EntityUid, (EntityUid Gunner, TimeSpan At)> _aims = new();
 
     private readonly List<EntityUid> _staleGunners = new();
     private readonly List<EntityUid> _oldGunners = new();
@@ -26,18 +34,37 @@ public sealed partial class WGZoneSystem
     private void InitializeAttacks()
     {
         SubscribeLocalEvent<WGCrewHullHitEvent>(OnHullHit);
+        SubscribeLocalEvent<FireControllableComponent, GunShotEvent>(OnShipGunShot);
     }
 
-    /// <summary>Notes that a player fired a ship's guns from one of its gunnery consoles.</summary>
-    public void NoteGunner(EntityUid ship, EntityUid gunner)
+    /// <summary>
+    /// Notes that a player ordered ship guns to fire from a gunnery console. Only a gun that then fires makes them its
+    /// ship's gunner, so guns on cooldown, empty or locked don't count.
+    /// </summary>
+    public void NoteAim(EntityUid gunner, List<NetEntity> weapons)
     {
         if (!HasComp<ActorComponent>(gunner))
+            return;
+
+        var now = _timing.CurTime;
+        foreach (var weapon in weapons)
+        {
+            if (TryGetEntity(weapon, out var gun) && HasComp<FireControllableComponent>(gun.Value))
+                _aims[gun.Value] = (gunner, now);
+        }
+    }
+
+    /// <summary>Makes whoever just ordered a ship gun to fire a gunner of the ship it fired from.</summary>
+    private void OnShipGunShot(Entity<FireControllableComponent> gun, ref GunShotEvent args)
+    {
+        var now = _timing.CurTime;
+        if (!_aims.TryGetValue(gun, out var aim) || now - aim.At > AimMemory || Transform(gun).GridUid is not { } ship)
             return;
 
         if (!_gunners.TryGetValue(ship, out var gunners))
             _gunners[ship] = gunners = new Dictionary<EntityUid, TimeSpan>();
 
-        gunners[gunner] = _timing.CurTime;
+        gunners[aim.Gunner] = now;
     }
 
     private void OnHullHit(ref WGCrewHullHitEvent args)
@@ -47,8 +74,14 @@ public sealed partial class WGZoneSystem
         if (target == attacker
             || !IsShip(target)
             || !HasComp<MapGridComponent>(attacker)
-            || TerminatingOrDeleted(attacker)
-            || !InWilderness(target, Transform(target))
+            || TerminatingOrDeleted(attacker))
+            return;
+
+        // Where the zones are now, not at the last once-a-second count, in case a site moved since.
+        if (_sourcesTick != _timing.CurTick)
+            GatherSources();
+
+        if (!InWilderness(target, Transform(target))
             || InWilderness(attacker, Transform(attacker)))
             return;
 
@@ -91,6 +124,16 @@ public sealed partial class WGZoneSystem
     /// <summary>Forgets gunners whose rounds have long landed, and ships that are gone.</summary>
     private void UpdateGunners(TimeSpan now)
     {
+        _staleGunners.Clear();
+        foreach (var (gun, aim) in _aims)
+        {
+            if (now - aim.At > AimMemory)
+                _staleGunners.Add(gun);
+        }
+
+        foreach (var gun in _staleGunners)
+            _aims.Remove(gun);
+
         _staleGunners.Clear();
         var since = now - GunnerMemory;
         foreach (var (ship, gunners) in _gunners)

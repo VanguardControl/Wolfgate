@@ -55,6 +55,7 @@ public sealed class WGZoneHudSystem : EntitySystem
     private float _titleAge = float.MaxValue;
     private bool _seen;
     private string? _lastZone;
+    private string? _lastPlace;
     private bool _lastMarked;
     private float _pulse;
 
@@ -85,6 +86,7 @@ public sealed class WGZoneHudSystem : EntitySystem
     {
         _seen = false;
         _lastZone = null;
+        _lastPlace = null;
         _lastMarked = false;
     }
 
@@ -146,11 +148,13 @@ public sealed class WGZoneHudSystem : EntitySystem
     private void Announce(WGZonePrototype? zone, WGInZoneComponent? inZone, bool marked, bool ship)
     {
         var id = zone?.ID;
+        var place = zone != null ? inZone?.Place : null;
         if (!_seen)
         {
             _seen = true;
             _lastMarked = marked;
             _lastZone = null;
+            _lastPlace = null;
         }
 
         if (marked && !_lastMarked)
@@ -158,7 +162,7 @@ public sealed class WGZoneHudSystem : EntitySystem
             ShowTitle(Loc.GetString("wg-zone-title-marked"), Loc.GetString("wg-zone-title-marked-sub"), MarkColor);
             _audio.PlayGlobal(MarkedSound, Filter.Local(), false);
         }
-        else if (id != _lastZone)
+        else if (id != _lastZone || place != _lastPlace)
         {
             if (zone != null && inZone != null)
             {
@@ -174,6 +178,7 @@ public sealed class WGZoneHudSystem : EntitySystem
         }
 
         _lastZone = id;
+        _lastPlace = place;
         _lastMarked = marked;
     }
 
@@ -249,7 +254,7 @@ public sealed class WGZoneHudSystem : EntitySystem
         var open = _cfg.GetCVar(WildernessCVars.OpenToAll);
         if (zone != null && inZone != null)
         {
-            var summary = WGZoneText.Summary(zone, inZone.Hot, open);
+            var summary = WGZoneText.Summary(zone, inZone.Hot, open, _cfg.GetCVar(WildernessCVars.SkullOnFoot));
             if (skull != null && zone.Kind == WGZoneKind.Safe)
                 summary = Loc.GetString("wg-zone-banner-overridden");
 

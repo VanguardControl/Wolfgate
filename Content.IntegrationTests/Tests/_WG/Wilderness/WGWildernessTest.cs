@@ -1,6 +1,7 @@
 #nullable enable
 using System.Numerics;
 using Content.IntegrationTests.Pair;
+using Content.Server._Mono.FireControl;
 using Content.Server._Mono.GridClaimer;
 using Content.Server._WG.NpcCrew;
 using Content.Server._WG.Wilderness;
@@ -13,6 +14,8 @@ using Content.Shared._WG.Wilderness;
 using Content.Shared.Mind;
 using Content.Shared.Players;
 using Content.Shared.Shuttles.Components;
+using Content.Shared.Weapons.Ranged;
+using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
@@ -316,7 +319,7 @@ public sealed class WGWildernessTest
         var cfg = server.ResolveDependency<IConfigurationManager>();
         var map = await pair.CreateTestMap();
         var zones = server.System<WGZoneSystem>();
-        EntityUid target = default, inside = default, attacker = default, far = default, farAttacker = default, mob = default;
+        EntityUid target = default, inside = default, attacker = default, far = default, farAttacker = default, mob = default, gun = default;
 
         await server.WaitPost(() =>
         {
@@ -328,12 +331,14 @@ public sealed class WGWildernessTest
             far = Ship(em, map, new Vector2(3000f, 0f));
             farAttacker = Ship(em, map, new Vector2(3500f, 0f));
             mob = Player(pair, em, new EntityCoordinates(attacker, 0.5f, 0.5f));
+            gun = em.SpawnEntity(null, new EntityCoordinates(attacker, 0.5f, 0.5f));
+            em.EnsureComponent<FireControllableComponent>(gun);
         });
         await pair.RunSeconds(2f);
 
         await server.WaitAssertion(() =>
         {
-            zones.NoteGunner(attacker, mob);
+            zones.NoteAim(mob, new List<NetEntity> { em.GetNetEntity(gun) });
             Hit(em, target, inside);
             Hit(em, far, farAttacker);
             Assert.That(em.HasComponent<WGSkullComponent>(inside), Is.False, "fighting inside the Wilderness marked at once, without the stay.");
@@ -342,9 +347,45 @@ public sealed class WGWildernessTest
             Hit(em, target, attacker);
             Assert.That(em.TryGetComponent<WGSkullComponent>(attacker, out var shipMark), Is.True, "a ship attacking into a Wilderness from outside wasn't marked.");
             Assert.That(shipMark!.ExpiresAt, Is.Not.Null, "the attacker's mark should run down, as it is outside the Wilderness.");
+            Assert.That(em.HasComponent<WGSkullComponent>(mob), Is.False, "a gunner whose guns never fired was marked for the ship's hit.");
+
+            Shot(em, gun);
+            Hit(em, target, attacker);
             Assert.That(em.TryGetComponent<WGSkullComponent>(mob, out var gunnerMark), Is.True, "the gunner attacking into a Wilderness wasn't marked.");
             Assert.That(gunnerMark!.ExpiresAt, Is.Not.Null);
             Assert.That(em.HasComponent<WGSkullComponent>(target), Is.False, "the ship attacked was marked for it.");
+            Reset(cfg);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task AnAttackIsJudgedByWhereTheWildernessIsNow()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = false });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var cfg = server.ResolveDependency<IConfigurationManager>();
+        var xforms = server.System<SharedTransformSystem>();
+        var map = await pair.CreateTestMap();
+        EntityUid target = default, attacker = default;
+
+        await server.WaitPost(() =>
+        {
+            cfg.SetCVar(WildernessCVars.DwellSeconds, 60f);
+            Source(em, map.Grid.Owner, "WGWilderness", 50f);
+            target = Ship(em, map, new Vector2(20f, 0f));
+            attacker = Ship(em, map, new Vector2(2000f, 0f));
+        });
+        await pair.RunSeconds(2f);
+
+        await server.WaitAssertion(() =>
+        {
+            // The site moves off before the next once-a-second count of the zones.
+            xforms.SetWorldPosition(map.Grid.Owner, new Vector2(-5000f, 0f));
+            Hit(em, target, attacker);
+            Assert.That(em.HasComponent<WGSkullComponent>(attacker), Is.False, "an attack was judged by where a Wilderness used to be.");
             Reset(cfg);
         });
 
@@ -395,6 +436,13 @@ public sealed class WGWildernessTest
     {
         var ev = new WGCrewHullHitEvent(target, attacker);
         em.EventBus.RaiseEvent(EventSource.Local, ref ev);
+    }
+
+    /// <summary>A ship gun taking a shot, as its rounds leave it.</summary>
+    private static void Shot(IEntityManager em, EntityUid gun)
+    {
+        var ev = new GunShotEvent(gun, new List<(EntityUid? Uid, IShootable Shootable)>(), new EntityCoordinates(gun, Vector2.Zero));
+        em.EventBus.RaiseLocalEvent(gun, ref ev);
     }
 
     private static void Reset(IConfigurationManager cfg)

@@ -22,7 +22,8 @@ Ships and people carry their own Wilderness mark, `WGSkullComponent`:
   takes the ship's. Crew who aren't flying keep their own.
 - **Attacks.** A ship weapon hit (`WGCrewHullHitEvent`, raised by ship rounds, ship beams and ramming) on a ship in a
   Wilderness from a ship outside one marks the attacking ship and every player who fired its guns from a gunnery
-  console in the last minute (`FireControlSystem` reports them through `NoteGunner`), for the full time, at once.
+  console in the last minute, for the full time, at once. `FireControlSystem` reports each order through `NoteAim`;
+  only a gun that then takes a shot (`GunShotEvent`) counts, so guns cooling down, empty or locked don't.
 
 A marked ship or person has no protection anywhere, Safe Zone included. `wg.wilderness.open_to_all` says whether anyone
 or only TSF and PDV may fight there. The guidebook's `<WGWildernessRule/>` writes the settings into the rules.
@@ -103,6 +104,7 @@ The zone icons are built by `Tools/_WG/Wilderness/make_icons.py` from the radar 
 - [`Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs)
   - the edges of Safe Zones, Wildernesses and outposts.
   - skulls over marked ships, our own included, above the hulls
+  - whether it would be named but for range, for a marked ship's skull
   - a marked ship's name shows red
   - a skull by a marked ship's blip and name
   - a marked ship past name range keeps its skull

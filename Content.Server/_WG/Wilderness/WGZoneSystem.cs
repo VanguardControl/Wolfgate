@@ -47,6 +47,9 @@ public sealed partial class WGZoneSystem : EntitySystem
     private TimeSpan _next;
     private TimeSpan _nextRings;
 
+    /// <summary>The tick <see cref="_sources"/> was last gathered on.</summary>
+    private GameTick _sourcesTick;
+
     private readonly List<Source> _sources = new();
     private readonly Dictionary<EntityUid, List<ICommonSession>> _aboard = new();
     private readonly Dictionary<EntityUid, List<WGZoneRing>> _rings = new();
@@ -92,6 +95,7 @@ public sealed partial class WGZoneSystem : EntitySystem
 
     private void GatherSources()
     {
+        _sourcesTick = _timing.CurTick;
         _sources.Clear();
         var query = EntityQueryEnumerator<WGZoneSourceComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var source, out var xform))
@@ -215,7 +219,7 @@ public sealed partial class WGZoneSystem : EntitySystem
         current.Hot = hot;
         Dirty(mob, current);
 
-        Tell(session, Loc.GetString(zone.Entered, ("place", place), ("summary", WGZoneText.Summary(zone, hot, _cfg.GetCVar(WildernessCVars.OpenToAll)))), zone.Color);
+        Tell(session, Loc.GetString(zone.Entered, ("place", place), ("summary", WGZoneText.Summary(zone, hot, _cfg.GetCVar(WildernessCVars.OpenToAll), _onFoot))), zone.Color);
     }
 
     private void Tell(ICommonSession session, string message, Color color)
