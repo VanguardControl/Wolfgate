@@ -13,6 +13,13 @@ by character name (the one played, or the one selected in the lobby), and staff 
 claims an unclaimed ticket. The fallback puts the player's question into their ahelp as a Gameplay issue through
 `BwoinkSystem.SendFromMentorHelp` (a partial here). Players can also use `mhelp <question>`.
 
+On the client, `WGClientMentorHelpSystem` holds what the server sends, and `MentorHelpUIController` opens
+`MentorHelpWindow` from the menu bar button, the lobby menu and Shift+F1 (`WGMentorHelpKeys`). The window has two tabs:
+the player's own question (ask with a topic and the secret-role box, reply, end, rate, reopen) and, for responders,
+the queue. In the queue, mentors claim, unclaim, take over with a note, hand a question to another mentor, resolve
+and reply, and switch their duty. The menu button turns red when a reply or a new question arrives while the window
+is closed.
+
 ## Data
 
 - `wolfgate_mentor_ticket`: one row per ticket, with the character name mentors saw, topic, flags, who held the claim
@@ -42,6 +49,13 @@ Read and written through `ServerDbManager.MentorHelp.cs`.
 
 - [`Content.Shared/_WG/MentorHelp/MentorHelpCVars.cs`](../../../Content.Shared/_WG/MentorHelp/MentorHelpCVars.cs)
 - [`Content.Shared/_WG/MentorHelp/MentorHelpEvents.cs`](../../../Content.Shared/_WG/MentorHelp/MentorHelpEvents.cs)
+- [`Content.Shared/_WG/MentorHelp/WGMentorHelpKeys.cs`](../../../Content.Shared/_WG/MentorHelp/WGMentorHelpKeys.cs)
+
+### Client
+
+- [`Content.Client/_WG/MentorHelp/MentorHelpUIController.cs`](../../../Content.Client/_WG/MentorHelp/MentorHelpUIController.cs)
+- [`Content.Client/_WG/MentorHelp/MentorHelpWindow.cs`](../../../Content.Client/_WG/MentorHelp/MentorHelpWindow.cs)
+- [`Content.Client/_WG/MentorHelp/WGClientMentorHelpSystem.cs`](../../../Content.Client/_WG/MentorHelp/WGClientMentorHelpSystem.cs)
 
 ### Integration tests
 
@@ -55,9 +69,18 @@ Read and written through `ServerDbManager.MentorHelp.cs`.
 
 ## Non-modular edits
 
+- [`Content.Client/Input/ContentContexts.cs`](../../../Content.Client/Input/ContentContexts.cs): Mentor Help key
+- [`Content.Client/Lobby/UI/LobbyGui.xaml`](../../../Content.Client/Lobby/UI/LobbyGui.xaml): Mentor Help entry in the lobby menu, above the ahelp
+- [`Content.Client/Lobby/UI/LobbyGui.xaml.cs`](../../../Content.Client/Lobby/UI/LobbyGui.xaml.cs)
+- [`Content.Client/Options/UI/Tabs/KeyRebindTab.xaml.cs`](../../../Content.Client/Options/UI/Tabs/KeyRebindTab.xaml.cs): Mentor Help key
+- [`Content.Client/UserInterface/Systems/MenuBar/GameTopMenuBarUIController.cs`](../../../Content.Client/UserInterface/Systems/MenuBar/GameTopMenuBarUIController.cs): Mentor Help button
+- [`Content.Client/UserInterface/Systems/MenuBar/Widgets/GameTopMenuBar.xaml`](../../../Content.Client/UserInterface/Systems/MenuBar/Widgets/GameTopMenuBar.xaml)
+  - mh namespace for the Mentor Help key
+  - Mentor Help button beside ahelp
 - [`Content.Server.Database/Model.cs`](../../../Content.Server.Database/Model.cs)
   - Mentor Help tickets, their messages and the canned answers
   - messages gone with their ticket, tickets searched by player, mentor and date
 - [`Content.Shared.Database/LogType.cs`](../../../Content.Shared.Database/LogType.cs): Mentor Help ticket messages and state
+- [`Resources/keybinds.yml`](../../../Resources/keybinds.yml): Mentor Help on Shift+F1, beside the ahelp
 
 <!-- WOLFGATE-GENERATED END -->

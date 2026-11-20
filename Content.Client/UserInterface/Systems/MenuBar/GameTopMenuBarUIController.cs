@@ -3,6 +3,7 @@ using Content.Client._WG.Genitals.UI; // WOLFGATE(Genitals): anatomy panel
 using Content.Client._WG.SectorControl; // WOLFGATE(SectorControl)
 using Content.Client._WG.Feedback; // WOLFGATE(Feedback)
 using Content.Client._WG.LoreBook; // WOLFGATE(LoreBook)
+using Content.Client._WG.MentorHelp; // WOLFGATE(MentorHelp)
 using Content.Client.UserInterface.Systems.Actions;
 using Content.Client.UserInterface.Systems.Admin;
 using Content.Client.UserInterface.Systems.Bwoink;
@@ -36,6 +37,7 @@ public sealed partial class GameTopMenuBarUIController : UIController
     [Dependency] private EmotesUIController _emotes = default!;
     [Dependency] private LanguageMenuUIController _language = default!;
     [Dependency] private FeedbackUIController _feedback = default!; // WOLFGATE(Feedback): bug report button
+    [Dependency] private MentorHelpUIController _mentorHelp = default!; // WOLFGATE(MentorHelp): Mentor Help button
 
     private GameTopMenuBar? GameTopMenuBar => UIManager.GetActiveUIWidgetOrNull<GameTopMenuBar>();
 
@@ -65,6 +67,7 @@ public sealed partial class GameTopMenuBarUIController : UIController
         _emotes.UnloadButton();
         _language.UnloadButton();
         _feedback.UnloadButton(); // WOLFGATE(Feedback): bug report button
+        _mentorHelp.UnloadButton(); // WOLFGATE(MentorHelp): Mentor Help button
     }
 
     public void LoadButtons()
@@ -84,5 +87,6 @@ public sealed partial class GameTopMenuBarUIController : UIController
         _emotes.LoadButton();
         _language.LoadButton();
         _feedback.LoadButton(); // WOLFGATE(Feedback): bug report button
+        _mentorHelp.LoadButton(); // WOLFGATE(MentorHelp): Mentor Help button
     }
 }

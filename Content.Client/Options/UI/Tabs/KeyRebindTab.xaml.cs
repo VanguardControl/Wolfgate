@@ -266,6 +266,7 @@ namespace Content.Client.Options.UI.Tabs
             AddButton(ContentKeyFunctions.OpenInventoryMenu);
             AddButton(ContentKeyFunctions.OpenLanguageMenu); // Einstein Engines - Language
             AddButton(ContentKeyFunctions.OpenAHelp);
+            AddButton(Content.Shared._WG.MentorHelp.WGMentorHelpKeys.WGOpenMentorHelp); // WOLFGATE(MentorHelp): Mentor Help key
             AddButton(ContentKeyFunctions.OpenConsentWindow); // WOLFGATE(Options): consent system
             AddButton(ContentKeyFunctions.OpenAnatomyPanel); // WOLFGATE(Genitals): anatomy panel
             AddButton(ContentKeyFunctions.OpenSectorMap); // WOLFGATE(SectorControl): sector map

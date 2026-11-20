@@ -188,6 +188,9 @@
                                 <!-- WOLFGATE(LoreBook): lore book entry in the lobby menu -->
                                 <Button Name="LoreBookButton" Access="Public" TextAlign="Left"
                                         Text="{Loc 'wg-lore-book-button'}" StyleClasses="LobbyNav" />
+                                <!-- WOLFGATE(MentorHelp): Mentor Help entry in the lobby menu, above the ahelp -->
+                                <Button Name="MentorHelpButton" Access="Public" TextAlign="Left"
+                                        Text="{Loc 'wg-mhelp-button'}" StyleClasses="LobbyNav" />
                                 <Button Name="AHelpButton" Access="Public" TextAlign="Left"
                                         Text="{Loc 'ui-lobby-ahelp-nav-button'}" StyleClasses="LobbyNav" />
                                 <Button Name="LeaveButton" Access="Public" TextAlign="Left"
