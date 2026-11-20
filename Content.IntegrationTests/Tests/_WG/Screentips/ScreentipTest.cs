@@ -1,4 +1,5 @@
 #nullable enable
+using System.Numerics;
 using System.Reflection;
 using Content.Client._WG.Screentips;
 using Content.Client.Gameplay;
@@ -16,7 +17,8 @@ namespace Content.IntegrationTests.Tests._WG.Screentips;
 
 /// <summary>
 /// A screentip shows the name centred at the top of the view, hides again once the cursor isn't over the view, skips
-/// mobs in the dark, and keeps its colour after leaving and re-entering the game.
+/// mobs in the dark and anything behind a wall or out of examine range, and keeps its colour after leaving and
+/// re-entering the game.
 /// </summary>
 [TestOf(typeof(ScreentipUIController))]
 public sealed class ScreentipTest : InteractionTest
@@ -86,6 +88,28 @@ public sealed class ScreentipTest : InteractionTest
         var tips = Client.System<WGHoverDarknessSystem>();
         await RunTicks(3);
         await Client.WaitAssertion(() => Assert.That(tips.InDark(CTarget!.Value), Is.False, "Only players and mobs hide in the dark."));
+    }
+
+    [Test]
+    public async Task NotNamedBehindWallsOrOutOfRange()
+    {
+        await SpawnTarget("Crowbar");
+        var tips = Client.ResolveDependency<IUserInterfaceManager>().GetUIController<ScreentipUIController>();
+        await Client.WaitAssertion(() => Assert.That(tips.CanSee(CTarget!.Value), Is.True, "An item beside the player is named."));
+
+        await Server.WaitPost(() =>
+        {
+            var player = Transform.GetMapCoordinates(SPlayer);
+            Transform.SetMapCoordinates(STarget!.Value, player.Offset(new Vector2(3, 0)));
+            SEntMan.SpawnEntity("WallSolid", player.Offset(new Vector2(2, 0)));
+        });
+        await RunTicks(5);
+        await Client.WaitAssertion(() => Assert.That(tips.CanSee(CTarget!.Value), Is.False, "An item behind a wall is not named."));
+
+        await Server.WaitPost(() =>
+            Transform.SetMapCoordinates(STarget!.Value, Transform.GetMapCoordinates(SPlayer).Offset(new Vector2(0, 20))));
+        await RunTicks(5);
+        await Client.WaitAssertion(() => Assert.That(tips.CanSee(CTarget!.Value), Is.False, "An item past examine range is not named."));
     }
 
     [Test]

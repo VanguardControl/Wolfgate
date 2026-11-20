@@ -5,7 +5,8 @@ The name of whatever is under the cursor in the game view, as in SS13. It is set
 and there's a text colour slider (`wg.screentips`, `wg.screentip_color`). The name respects identity, so a masked
 person shows as they would on examine. A player or mob standing in the dark (light level under 0.1 on the client) gets
 no tip and no hover outline, so hovering can't find someone hiding; with lighting off in the view (a ghost's toggle)
-everything is shown. `WGHoverDarknessSystem` makes that call for both.
+everything is shown. `WGHoverDarknessSystem` makes that call for both. The tip also follows examine's line of sight
+(`CanExamine`): nothing behind a wall or past examine range is named, while ghosts and admins skip that check.
 
 Entry point: `ScreentipUIController`. Each frame it asks the gameplay state which entity is under the cursor, the
 same way the hover outline does, and positions a small label in the popup layer. It only shows while the cursor is

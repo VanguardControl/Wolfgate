@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Client.Gameplay;
 using Content.Client.Viewport;
 using Content.Shared._WG.Screentips;
+using Content.Shared.Examine;
 using Content.Shared.IdentityManagement;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
@@ -26,6 +27,7 @@ public sealed class ScreentipUIController : UIController, IOnStateEntered<Gamepl
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IStateManager _state = default!;
     [UISystemDependency] private WGHoverDarknessSystem? _darkness = default;
+    [UISystemDependency] private ExamineSystemShared? _examine = default;
 
     /// <summary>How far the tip sits from the cursor or from the top of the view, in UI units.</summary>
     private static readonly Vector2 Offset = new(16, 16);
@@ -81,7 +83,8 @@ public sealed class ScreentipUIController : UIController, IOnStateEntered<Gamepl
         if (mode == ScreentipMode.Off
             || UIManager.CurrentlyHovered is not IViewportControl viewport
             || GetHovered(viewport) is not { } entity
-            || _darkness?.HiddenInDark(entity, viewport) == true)
+            || _darkness?.HiddenInDark(entity, viewport) == true
+            || !CanSee(entity))
         {
             Hide();
             return;
@@ -122,6 +125,17 @@ public sealed class ScreentipUIController : UIController, IOnStateEntered<Gamepl
         }
 
         LayoutContainer.SetPosition(_panel, position);
+    }
+
+    /// <summary>
+    /// Whether the local player could examine <paramref name="entity"/>: in range and not behind a wall, the same
+    /// line-of-sight rule as examine. Ghosts and admins skip it.
+    /// </summary>
+    public bool CanSee(EntityUid entity)
+    {
+        return _examine == null
+               || _player.LocalEntity is not { } viewer
+               || _examine.CanExamine(viewer, entity);
     }
 
     private void Hide()
