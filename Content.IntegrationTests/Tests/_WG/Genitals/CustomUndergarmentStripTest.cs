@@ -52,8 +52,8 @@ public sealed class CustomUndergarmentStripTest : InteractionTest
     private float _stripDelay;
 
     /// <summary>A valid 40-character hex hash used for the custom markings.</summary>
-    private static readonly CustomMarking CustomTop = new("0".PadRight(40, '0'), CustomMarkingPlacement.UndergarmentTop);
-    private static readonly CustomMarking CustomBottom = new("1".PadRight(40, '0'), CustomMarkingPlacement.UndergarmentBottom);
+    private static readonly CustomMarking CustomTop = new(new string('a', CustomMarkingRules.HashLength), CustomMarkingPlacement.UndergarmentTop);
+    private static readonly CustomMarking CustomBottom = new(new string('b', CustomMarkingRules.HashLength), CustomMarkingPlacement.UndergarmentBottom);
 
     /// <summary>Gravity and air, so neither drifting nor pressure damage breaks a DoAfter.</summary>
     [SetUp]
@@ -156,26 +156,29 @@ public sealed class CustomUndergarmentStripTest : InteractionTest
     [Test]
     public async Task CustomUndergarmentCompletionTest()
     {
-        var target = await SpawnConsentingTargetWithBothCustomUnderwear();
+        var target = await SpawnConsentingTarget();
         var genitals = SEntMan.GetComponent<GenitalsComponent>(target);
         var removed = UndergarmentFlags.BottomRemoved | UndergarmentFlags.BottomByOther;
 
         await ClientExecute(RemoveBottom);
         await AwaitStrip();
 
+        var cooldown = TimeSpan.Zero;
         await Server.WaitAssertion(() =>
         {
-            var coverage = SEntMan.System<GenitalCoverageSystem>().GetCoverage((target, genitals, SEntMan.GetComponent<HumanoidAppearanceComponent>(target)));
+            var humanoid = SEntMan.GetComponent<HumanoidAppearanceComponent>(target);
+            var coverage = SEntMan.System<GenitalCoverageSystem>().GetCoverage((target, genitals, humanoid));
 
             Assert.Multiple(() =>
             {
                 Assert.That(genitals.Undergarments, Is.EqualTo(removed), "Removal sets Removed and ByOther.");
-                Assert.That(genitals.StripCooldownUntil, Is.GreaterThan(STiming.CurTime),
-                    "A removal by another player starts the cooldown.");
-                Assert.That(coverage.Undergarments, Is.EqualTo(GenitalRegion.Chest),
-                    "The removed bottom leaves only the top covering.");
+                Assert.That(genitals.StripCooldownUntil, Is.GreaterThan(STiming.CurTime), "A removal by another player starts the cooldown.");
+                Assert.That(_strip.GetRemovalCount(SPlayer, target), Is.EqualTo(1), "The server counts the removal once.");
+                Assert.That(coverage.Undergarments, Is.EqualTo(GenitalRegion.Chest), "The removed bottom no longer covers the groin.");
                 AssertStates(SPlayer, target, "after the removal", (RemoveTop, FailCooldown), (ReplaceBottom, null));
             });
+
+            cooldown = genitals.StripCooldownUntil;
         });
 
         await Client.WaitAssertion(() =>
