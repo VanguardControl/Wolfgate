@@ -156,7 +156,7 @@ public sealed class CustomUndergarmentStripTest : InteractionTest
     [Test]
     public async Task CustomUndergarmentCompletionTest()
     {
-        var target = await SpawnConsentingTarget();
+        var target = await SpawnConsentingTargetWithBothCustomUnderwear();
         var genitals = SEntMan.GetComponent<GenitalsComponent>(target);
         var removed = UndergarmentFlags.BottomRemoved | UndergarmentFlags.BottomByOther;
 
