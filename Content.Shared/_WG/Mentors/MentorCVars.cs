@@ -41,4 +41,8 @@ public sealed class MentorCVars
     /// <summary>Days without logging in after which a mentor goes inactive.</summary>
     public static readonly CVarDef<int> InactiveDays =
         CVarDef.Create("wg.mentor.inactive_days", 90, CVar.SERVERONLY);
+
+    /// <summary>Whether this mentor starts every connection off duty.</summary>
+    public static readonly CVarDef<bool> StartOffDuty =
+        CVarDef.Create("wg.mentor.start_off_duty", false, CVar.CLIENT | CVar.REPLICATED | CVar.ARCHIVE);
 }

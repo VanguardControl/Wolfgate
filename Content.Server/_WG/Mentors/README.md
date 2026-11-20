@@ -26,16 +26,30 @@ Read and written through `ServerDbManager.Mentors.cs`.
 
 ### Server
 
+- [`Content.Server/_WG/Mentors/Commands/MentorCommand.cs`](Commands/MentorCommand.cs)
+- [`Content.Server/_WG/Mentors/Commands/MentorWhoCommand.cs`](Commands/MentorWhoCommand.cs)
+- [`Content.Server/_WG/Mentors/MentorRows.cs`](MentorRows.cs)
 - [`Content.Server/_WG/Mentors/ServerDbBase.Mentors.cs`](ServerDbBase.Mentors.cs)
 - [`Content.Server/_WG/Mentors/ServerDbManager.Mentors.cs`](ServerDbManager.Mentors.cs)
+- [`Content.Server/_WG/Mentors/WGMentorSystem.cs`](WGMentorSystem.cs)
 
 ### Shared
 
 - [`Content.Shared/_WG/Mentors/MentorCVars.cs`](../../../Content.Shared/_WG/Mentors/MentorCVars.cs)
+- [`Content.Shared/_WG/Mentors/MentorEvents.cs`](../../../Content.Shared/_WG/Mentors/MentorEvents.cs)
+
+### Client
+
+- [`Content.Client/_WG/Mentors/WGClientMentorSystem.cs`](../../../Content.Client/_WG/Mentors/WGClientMentorSystem.cs)
 
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WG/Mentors/MentorDbTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Mentors/MentorDbTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/Mentors/MentorRosterTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Mentors/MentorRosterTest.cs)
+
+### Localization
+
+- [`Resources/Locale/en-US/_WG/Mentors/mentors.ftl`](../../../Resources/Locale/en-US/_WG/Mentors/mentors.ftl)
 
 ## Non-modular edits
 
