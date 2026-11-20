@@ -221,9 +221,7 @@ public sealed partial class MoverController : SharedMoverController
 
             // WOLFGATE(Performance) START: a sleeping, input-less, player-less mover has nothing to move
             if (activeComp.RelayedFrom == null
-                && moverComp.HeldMoveButtons == MoveButtons.None
-                && (Timing.CurTick > moverComp.LastInputTick
-                    || (moverComp.CurTickWalkMovement == Vector2.Zero && moverComp.CurTickSprintMovement == Vector2.Zero))
+                && WGIdleInput(moverComp)
                 && !_wgActorQuery.HasComp(uid)
                 && PhysicsQuery.TryComp(uid, out var wgBody)
                 && !wgBody.Awake)

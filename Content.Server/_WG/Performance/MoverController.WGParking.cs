@@ -7,6 +7,7 @@ using Content.Shared.Movement.Systems;
 using Robust.Shared.Configuration;
 using Robust.Shared.Physics;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Server.Physics.Controllers;
 
@@ -20,6 +21,7 @@ public sealed partial class MoverController
 
     private bool _wgPark;
     private int _wgParkedBefore;
+    private GameTick _wgLastSweep;
     private readonly List<EntityUid> _wgToPark = new();
     private readonly HashSet<EntityUid> _wgToWake = new();
 
@@ -30,7 +32,11 @@ public sealed partial class MoverController
         SubscribeLocalEvent<WGParkedMoverComponent, MoveInputEvent>(OnParkedInput);
         SubscribeLocalEvent<WGParkedMoverComponent, PlayerAttachedEvent>(OnParkedAttached);
         SubscribeLocalEvent<WGParkedMoverComponent, SpriteMoveEvent>(OnParkedSteered);
+        SubscribeLocalEvent<ActiveInputMoverComponent, ComponentStartup>(OnActiveStartup);
     }
+
+    // Anything that puts a mover back on the list (unpausing, becoming a relay target) ends its parking.
+    private void OnActiveStartup(Entity<ActiveInputMoverComponent> ent, ref ComponentStartup args) => RemComp<WGParkedMoverComponent>(ent);
 
     // Wakes are queued and applied before the next mover walk, never during it.
     private void OnParkedWake(Entity<WGParkedMoverComponent> ent, ref PhysicsWakeEvent args) => _wgToWake.Add(ent);
@@ -58,9 +64,11 @@ public sealed partial class MoverController
     private void WGWakeParked()
     {
         // Every parked mover is rechecked now and then, in case something set its input without an event.
-        var sweep = Timing.CurTick.Value % WGParkSweepTicks == 0;
+        // Substeps call this several times a tick; sweep once.
+        var sweep = Timing.CurTick.Value % WGParkSweepTicks == 0 && Timing.CurTick != _wgLastSweep;
         if (!_wgPark || sweep)
         {
+            _wgLastSweep = Timing.CurTick;
             var parked = EntityQueryEnumerator<WGParkedMoverComponent, InputMoverComponent>();
             while (parked.MoveNext(out var uid, out _, out var input))
             {

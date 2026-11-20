@@ -71,22 +71,44 @@ public sealed class WGMoverParkingTest
             Assert.That(entMan.HasComponent<ActiveInputMoverComponent>(mob), "Waking the body puts a parked mover back.");
         });
 
+        // Becoming a relay target puts it back on the list some other way, which ends the parking too.
+        await Sleep();
+        await server.WaitAssertion(() => Assert.That(entMan.HasComponent<WGParkedMoverComponent>(mob)));
+        EntityUid driver = default;
+        await server.WaitPost(() =>
+        {
+            driver = entMan.SpawnEntity("MobHuman", map.GridCoords.Offset(new Vector2(2.5f, 0.5f)));
+            mover.SetRelay(driver, mob);
+        });
+        await server.WaitRunTicks(1);
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(entMan.HasComponent<ActiveInputMoverComponent>(mob), "A relay target is on the update list.");
+            Assert.That(entMan.HasComponent<WGParkedMoverComponent>(mob), Is.False, "A mover back on the list isn't counted as parked.");
+        });
+        await server.WaitPost(() => entMan.DeleteEntity(driver));
+        await server.WaitRunTicks(2);
+
         // Turning parking off brings every parked mover back.
         await Sleep();
         await server.WaitAssertion(() => Assert.That(entMan.HasComponent<WGParkedMoverComponent>(mob)));
-        await server.WaitPost(() => cfg.SetCVar(WGPerformanceCVars.ParkIdleMovers, false));
-        await server.WaitRunTicks(2);
-        await server.WaitAssertion(() =>
+        try
         {
-            Assert.That(entMan.HasComponent<WGParkedMoverComponent>(mob), Is.False);
-            Assert.That(entMan.HasComponent<ActiveInputMoverComponent>(mob), "With parking off, parked movers return.");
-        });
+            await server.WaitPost(() => cfg.SetCVar(WGPerformanceCVars.ParkIdleMovers, false));
+            await server.WaitRunTicks(2);
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(entMan.HasComponent<WGParkedMoverComponent>(mob), Is.False);
+                Assert.That(entMan.HasComponent<ActiveInputMoverComponent>(mob), "With parking off, parked movers return.");
+            });
+        }
+        finally
+        {
+            // A pooled server must not keep parking off for the next test.
+            await server.WaitPost(() => cfg.SetCVar(WGPerformanceCVars.ParkIdleMovers, true));
+        }
 
-        await server.WaitPost(() =>
-        {
-            cfg.SetCVar(WGPerformanceCVars.ParkIdleMovers, true);
-            entMan.DeleteEntity(mob);
-        });
+        await server.WaitPost(() => entMan.DeleteEntity(mob));
         await pair.CleanReturnAsync();
 
         async Task Sleep()

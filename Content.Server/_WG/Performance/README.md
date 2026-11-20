@@ -316,6 +316,7 @@ cvar or gauge so it can be checked on the test server.
   - wizden#41390, cached airtight check
   - wizden#38974, tell the atmos monitor a pipe net is gone
   - wizden#38974, pipe net removal event
+- [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.cs`](../../Atmos/EntitySystems/AtmosphereSystem.cs): an unpaused grid rejoins the cached grid atmosphere list
 - [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.CVars.cs`](../../Atmos/EntitySystems/AtmosphereSystem.CVars.cs): skip wind searches too weak to push
 - [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.DeltaPressure.cs`](../../Atmos/EntitySystems/AtmosphereSystem.DeltaPressure.cs)
   - fixed-size tile buffer for ProcessDeltaPressureEntity
