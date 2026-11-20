@@ -1,9 +1,10 @@
 # Screentips
 
 The name of whatever is under the cursor in the game view, as in SS13. It is set in Game Options > Misc > Cursor:
-"Show the name of what's under the cursor" can be off, at the top of the view, or next to the cursor (the default),
+"Show the name of what's under the cursor" can be off, at the top of the view (the default), or next to the cursor,
 and there's a text colour slider (`wg.screentips`, `wg.screentip_color`). The name respects identity, so a masked
-person shows as they would on examine.
+person shows as they would on examine. A player or mob standing in the dark (light level under 0.1 on the client) gets
+no tip, so hovering can't find someone hiding; with lighting off in the view (a ghost's toggle) everything is named.
 
 Entry point: `ScreentipUIController`. Each frame it asks the gameplay state which entity is under the cursor, the
 same way the hover outline does, and positions a small label in the popup layer. It only shows while the cursor is

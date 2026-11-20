@@ -9,13 +9,14 @@ using Robust.Client.State;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Configuration;
+using Robust.Shared.GameObjects;
 using Robust.Shared.Maths;
 
 namespace Content.IntegrationTests.Tests._WG.Screentips;
 
 /// <summary>
-/// A screentip shows the name centred at the top of the view, hides again once the cursor isn't over the view, and
-/// keeps its colour after leaving and re-entering the game.
+/// A screentip shows the name centred at the top of the view, hides again once the cursor isn't over the view, skips
+/// mobs in the dark, and keeps its colour after leaving and re-entering the game.
 /// </summary>
 [TestOf(typeof(ScreentipUIController))]
 public sealed class ScreentipTest : InteractionTest
@@ -54,6 +55,37 @@ public sealed class ScreentipTest : InteractionTest
         {
             await Client.WaitPost(() => cfg.SetCVar(ScreentipCVars.Mode, ScreentipCVars.Mode.DefaultValue));
         }
+    }
+
+    [Test]
+    public async Task MobInDarkIsNotNamed()
+    {
+        await SpawnTarget("MobHuman");
+        var tips = Client.ResolveDependency<IUserInterfaceManager>().GetUIController<ScreentipUIController>();
+
+        // The test map has no ambient light and no lamps.
+        await RunTicks(3);
+        await Client.WaitAssertion(() => Assert.That(tips.InDark(CTarget!.Value), Is.True, "A mob in an unlit room is in the dark."));
+
+        await Server.WaitPost(() =>
+        {
+            var lights = Server.System<SharedPointLightSystem>();
+            var light = lights.EnsureLight(STarget!.Value);
+            lights.SetRadius(STarget!.Value, 5f, light);
+            lights.SetEnergy(STarget!.Value, 1f, light);
+            lights.SetEnabled(STarget!.Value, true, light);
+        });
+        await RunTicks(5);
+        await Client.WaitAssertion(() => Assert.That(tips.InDark(CTarget!.Value), Is.False, "A lit mob is named."));
+    }
+
+    [Test]
+    public async Task ItemInDarkIsStillNamed()
+    {
+        await SpawnTarget("Crowbar");
+        var tips = Client.ResolveDependency<IUserInterfaceManager>().GetUIController<ScreentipUIController>();
+        await RunTicks(3);
+        await Client.WaitAssertion(() => Assert.That(tips.InDark(CTarget!.Value), Is.False, "Only players and mobs hide in the dark."));
     }
 
     [Test]
