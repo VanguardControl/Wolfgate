@@ -5,11 +5,11 @@ using System.Net.Http;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Content.Server.Database;
-using Content.Server._WF.AppearanceStudio;
-using Content.Server._WF.CustomMarkings;
-using Content.Server._WF.FeatureBans;
-using Content.Shared._WF.AppearanceStudio;
-using Content.Shared._WF.CustomMarkings;
+using Content.Server._WG.AppearanceStudio;
+using Content.Server._WG.CustomMarkings;
+using Content.Server._WG.FeatureBans;
+using Content.Shared._WG.AppearanceStudio;
+using Content.Shared._WG.CustomMarkings;
 using Content.Shared.Symphony;
 using Robust.Server.ServerStatus;
 using Robust.Shared.Asynchronous;
@@ -274,15 +274,15 @@ public sealed class SymphonyCustomMarkingsSystem : EntitySystem
     {
         return error switch
         {
-            "wf-custom-marking-error-disabled" => Error(HttpStatusCode.ServiceUnavailable, "disabled"),
-            "wf-feature-banned" => Error(HttpStatusCode.Forbidden, "feature_banned"),
-            "wf-custom-marking-error-cooldown" => Cooldown(_customMarkings.CooldownLeft(user)),
-            "wf-custom-marking-error-blank" => Error(HttpStatusCode.BadRequest, "blank"),
-            "wf-custom-marking-error-missing" => Error(HttpStatusCode.NotFound, "missing"),
-            "wf-custom-marking-error-full" => Full(),
-            "wf-custom-marking-error-blocked" => Error(HttpStatusCode.Conflict, "blocked"),
-            "wf-custom-marking-error-daily" => Error(HttpStatusCode.TooManyRequests, "daily"),
-            "wf-custom-marking-error-invalid" => Error(HttpStatusCode.BadRequest, "invalid"),
+            "wg-custom-marking-error-disabled" => Error(HttpStatusCode.ServiceUnavailable, "disabled"),
+            "wg-feature-banned" => Error(HttpStatusCode.Forbidden, "feature_banned"),
+            "wg-custom-marking-error-cooldown" => Cooldown(_customMarkings.CooldownLeft(user)),
+            "wg-custom-marking-error-blank" => Error(HttpStatusCode.BadRequest, "blank"),
+            "wg-custom-marking-error-missing" => Error(HttpStatusCode.NotFound, "missing"),
+            "wg-custom-marking-error-full" => Full(),
+            "wg-custom-marking-error-blocked" => Error(HttpStatusCode.Conflict, "blocked"),
+            "wg-custom-marking-error-daily" => Error(HttpStatusCode.TooManyRequests, "daily"),
+            "wg-custom-marking-error-invalid" => Error(HttpStatusCode.BadRequest, "invalid"),
             _ => Error(HttpStatusCode.InternalServerError, "failed", error),
         };
     }
@@ -291,13 +291,13 @@ public sealed class SymphonyCustomMarkingsSystem : EntitySystem
     {
         return error switch
         {
-            "wf-studio-error-disabled" => Error(HttpStatusCode.ServiceUnavailable, "disabled"),
-            "wf-feature-banned" => Error(HttpStatusCode.Forbidden, "feature_banned"),
-            "wf-studio-error-cooldown" => Cooldown(_studio.CooldownLeft(user)),
-            "wf-studio-error-invalid" => Error(HttpStatusCode.BadRequest, "invalid"),
-            "wf-studio-error-neutral" => Error(HttpStatusCode.BadRequest, "neutral"),
-            "wf-studio-error-blocked" => Error(HttpStatusCode.Conflict, "blocked"),
-            "wf-studio-error-daily" => Error(HttpStatusCode.TooManyRequests, "daily"),
+            "wg-studio-error-disabled" => Error(HttpStatusCode.ServiceUnavailable, "disabled"),
+            "wg-feature-banned" => Error(HttpStatusCode.Forbidden, "feature_banned"),
+            "wg-studio-error-cooldown" => Cooldown(_studio.CooldownLeft(user)),
+            "wg-studio-error-invalid" => Error(HttpStatusCode.BadRequest, "invalid"),
+            "wg-studio-error-neutral" => Error(HttpStatusCode.BadRequest, "neutral"),
+            "wg-studio-error-blocked" => Error(HttpStatusCode.Conflict, "blocked"),
+            "wg-studio-error-daily" => Error(HttpStatusCode.TooManyRequests, "daily"),
             _ => Error(HttpStatusCode.InternalServerError, "failed", error),
         };
     }

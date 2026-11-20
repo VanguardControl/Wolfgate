@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared._Shitmed.Body.Events; // Shitmed Change
 using Content.Client.DisplacementMap;
-using Content.Client._WF.AppearanceStudio; // WOLFGATE(AppearanceStudio)
+using Content.Client._WG.AppearanceStudio; // WOLFGATE(AppearanceStudio)
 using Content.Client.Examine;
 using Content.Client.Strip;
 using Content.Client.Verbs.UI;

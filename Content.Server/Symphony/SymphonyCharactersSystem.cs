@@ -9,9 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Content.Server.Database;
 using Content.Server.Preferences.Managers;
-using Content.Server._WF.FeatureBans;
-using Content.Shared._WF.AppearanceStudio;
-using Content.Shared._WF.Prototypes;
+using Content.Server._WG.FeatureBans;
+using Content.Shared._WG.AppearanceStudio;
+using Content.Shared._WG.Prototypes;
 using Content.Shared.CCVar;
 using Content.Shared.Preferences;
 using Content.Shared.Preferences.Loadouts.Effects;
@@ -356,7 +356,7 @@ public sealed class SymphonyCharactersSystem : EntitySystem
         var gone = new HashSet<string>();
         foreach (var hash in hashes)
         {
-            if (!Content.Shared._WF.CustomMarkings.CustomMarkingRules.IsValidHash(hash) || await _db.GetCustomMarkingArtAsync(hash) == null)
+            if (!Content.Shared._WG.CustomMarkings.CustomMarkingRules.IsValidHash(hash) || await _db.GetCustomMarkingArtAsync(hash) == null)
                 gone.Add(hash);
         }
 
@@ -402,14 +402,14 @@ public sealed class SymphonyCharactersSystem : EntitySystem
 
         profile = profile
             .WithAugments(old?.Augments.ToDictionary() ?? new())
-            .WithAugmentUnlocks(old?.AugmentUnlocks ?? Enumerable.Empty<Robust.Shared.Prototypes.ProtoId<Content.Shared._WF.Augments.WFAugmentPrototype>>());
+            .WithAugmentUnlocks(old?.AugmentUnlocks ?? Enumerable.Empty<Robust.Shared.Prototypes.ProtoId<Content.Shared._WG.Augments.WGAugmentPrototype>>());
         kept.Add("augments");
 
         if (studioBanned)
         {
             profile = profile
                 .WithStudioTweaks(old?.StudioTweaks ?? new List<StudioTweak>())
-                .WithCustomMarkings(old?.CustomMarkings ?? new List<Content.Shared._WF.CustomMarkings.CustomMarking>());
+                .WithCustomMarkings(old?.CustomMarkings ?? new List<Content.Shared._WG.CustomMarkings.CustomMarking>());
             kept.Add("studioTweaks");
             kept.Add("customMarkings");
         }
@@ -422,7 +422,7 @@ public sealed class SymphonyCharactersSystem : EntitySystem
         try
         {
             profile = _serialization.Read<HumanoidCharacterProfile>(SymphonyJson.ToNode(json), notNullableOverride: true);
-            WFLegacyPrototypeIds.ResolveProfile(profile);
+            WGLegacyPrototypeIds.ResolveProfile(profile);
             error = null;
             return true;
         }

@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
 using Content.Server.Database;
-using Content.Server._WF.AppearanceStudio;
-using Content.Server._WF.FeatureBans;
-using Content.Shared._WF.CustomMarkings;
+using Content.Server._WG.AppearanceStudio;
+using Content.Server._WG.FeatureBans;
+using Content.Shared._WG.CustomMarkings;
 using Content.Shared.Administration;
 using Content.Shared.Database;
 using Content.Shared.GameTicking;
@@ -19,7 +19,7 @@ using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
-namespace Content.Server._WF.CustomMarkings;
+namespace Content.Server._WG.CustomMarkings;
 
 /// <summary>
 /// Keeps each player's library of custom markings and the art behind them, and hands art to clients by hash.
@@ -194,17 +194,17 @@ public sealed partial class CustomMarkingSystem : EntitySystem
         ICommonSession? session = null)
     {
         if (!Enabled)
-            return (CustomMarkingSaveResult.Fail("wf-custom-marking-error-disabled"), false);
+            return (CustomMarkingSaveResult.Fail("wg-custom-marking-error-disabled"), false);
 
         if (await _featureBans.IsBannedAsync(user, StudioSystem.Feature))
-            return (CustomMarkingSaveResult.Fail("wf-feature-banned"), false);
+            return (CustomMarkingSaveResult.Fail("wg-feature-banned"), false);
 
         var now = _timing.RealTime;
         if (_nextSave.TryGetValue(user, out var next) && now < next)
-            return (CustomMarkingSaveResult.Fail("wf-custom-marking-error-cooldown"), false);
+            return (CustomMarkingSaveResult.Fail("wg-custom-marking-error-cooldown"), false);
 
         if (!Enum.IsDefined(msg.Placement))
-            return (CustomMarkingSaveResult.Fail("wf-custom-marking-error-invalid"), false);
+            return (CustomMarkingSaveResult.Fail("wg-custom-marking-error-invalid"), false);
 
         string? hash = null;
         CustomMarkingStoredArt? stored = null;
@@ -216,10 +216,10 @@ public sealed partial class CustomMarkingSystem : EntitySystem
             eraseDropped = erase == null && msg.Erase != null;
             var maxFrames = Math.Max(1, _cfg.GetCVar(CustomMarkingCVars.MaxFrames));
             if (CustomMarkingArt.FromPixels(msg.Pixels, msg.FrameTimes, erase, maxFrames, msg.PingPong) is not { } art)
-                return (CustomMarkingSaveResult.Fail("wf-custom-marking-error-invalid"), false);
+                return (CustomMarkingSaveResult.Fail("wg-custom-marking-error-invalid"), false);
 
             if (art.IsBlank() && !art.HasErase())
-                return (CustomMarkingSaveResult.Fail("wf-custom-marking-error-blank"), false);
+                return (CustomMarkingSaveResult.Fail("wg-custom-marking-error-blank"), false);
 
             hash = Hash(art);
             stored = new CustomMarkingStoredArt(
@@ -230,7 +230,7 @@ public sealed partial class CustomMarkingSystem : EntitySystem
 
         var name = CustomMarkingRules.CleanName(msg.Name);
         if (name.Length == 0)
-            name = Loc.GetString("wf-custom-marking-default-name");
+            name = Loc.GetString("wg-custom-marking-default-name");
 
         // Only saves that reach the database are spaced out; the checks above cost nothing.
         _nextSave[user] = now + SaveCooldown;
@@ -244,7 +244,7 @@ public sealed partial class CustomMarkingSystem : EntitySystem
         catch (Exception e)
         {
             Log.Error($"Saving a custom marking for {actor} threw: {e}");
-            return (CustomMarkingSaveResult.Fail("wf-custom-marking-error-failed"), false);
+            return (CustomMarkingSaveResult.Fail("wg-custom-marking-error-failed"), false);
         }
 
         // Awaits resume on the game thread, so the cache is only touched there.
@@ -400,7 +400,7 @@ public sealed partial class CustomMarkingSystem : EntitySystem
 
         args.Verbs.Add(new Verb
         {
-            Text = Loc.GetString("wf-custom-marking-admin-remove"),
+            Text = Loc.GetString("wg-custom-marking-admin-remove"),
             Category = VerbCategory.Admin,
             Impact = LogImpact.Medium,
             ConfirmationPopup = true,
@@ -418,7 +418,7 @@ public sealed partial class CustomMarkingSystem : EntitySystem
 
         args.Verbs.Add(new Verb
         {
-            Text = Loc.GetString("wf-custom-marking-admin-block"),
+            Text = Loc.GetString("wg-custom-marking-admin-block"),
             Category = VerbCategory.Admin,
             Impact = LogImpact.High,
             ConfirmationPopup = true,

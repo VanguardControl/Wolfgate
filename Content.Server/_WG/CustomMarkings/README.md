@@ -3,7 +3,7 @@
 Markings players draw themselves. The Custom markings card on the creator's Markings tab opens the player's
 library: draw a new marking in the pixel editor or import a PNG, then wear up to four on a character. A marking is
 four 32x32 facings and a placement, which sets its depth: behind the body, on the skin, on the hands and feet, over
-the hair and ears or over everything. It draws anywhere in its frame, unless `wf.custom_markings.body_reach` holds it
+the hair and ears or over everything. It draws anywhere in its frame, unless `wg.custom_markings.body_reach` holds it
 to the wearer's body and other markings, such as a tail or ears, and two pixels around them.
 
 A marking can be animated: up to 32 frames, each shown for a time of its own, played round or back and forth
@@ -18,7 +18,7 @@ reads a drawn pixel or, where there is none, the body under it, which `CustomMar
 target and copies back. The body eraser is a tool of its own: left click erases the body, right click brings it
 back, and while it is picked the facing operations work on what is erased. Both windows sit on a solid backdrop, as
 the skin's glass panel is unreadable over the creator. The icons are drawn by
-`Tools/_WF/CustomMarkings/gen_editor_icons.py`.
+`Tools/_WG/CustomMarkings/gen_editor_icons.py`.
 
 Art is stored once per drawing, under a hash of its pixels, and of its frame times and erase mask when it has them,
 and sent to a client the first time it sees that hash. A character's profile lists what it wears as hash and
@@ -30,16 +30,16 @@ Entry points: the server `CustomMarkingSystem` (library, saving, art requests, a
 `CustomMarkingLibraryWindow` and `CustomMarkingEditorWindow` (creator UI), `CustomMarkingArt`,
 `CustomMarkingErase` and `CustomMarkingRules` (the art, its erase mask and the limits, shared).
 
-Admin: the `WFAppearanceStudio` feature ban (FeatureBans) stops a player saving custom markings and takes them off
+Admin: the `WGAppearanceStudio` feature ban (FeatureBans) stops a player saving custom markings and takes them off
 their body. Saving new art is logged under the Identity log type with its hash. The Remove custom markings verb takes
 them off a live character. The Block custom markings verb, or `custommarkingblock <hash> [true/false]`, blocks the
 art itself: it comes off every body, is no longer sent to anyone and can't be saved again. A client that was told
 art is blocked only asks for it again after reconnecting, so a lifted block shows from then. CVars:
-`wf.custom_markings.enabled`, `wf.custom_markings.max_worn`, `wf.custom_markings.library_limit`,
-`wf.custom_markings.max_frames` (1 allows only still markings), `wf.custom_markings.body_reach` (off by default;
-on, markings are cut to the wearer's outline), `wf.custom_markings.erase_body` (off, masks are
-dropped from what is saved and those already saved are not applied), `wf.custom_markings.daily_art_limit` (most
-new drawings a player may store in a day, 0 for no limit) and `wf.custom_markings.unused_art_days` (how long art
+`wg.custom_markings.enabled`, `wg.custom_markings.max_worn`, `wg.custom_markings.library_limit`,
+`wg.custom_markings.max_frames` (1 allows only still markings), `wg.custom_markings.body_reach` (off by default;
+on, markings are cut to the wearer's outline), `wg.custom_markings.erase_body` (off, masks are
+dropped from what is saved and those already saved are not applied), `wg.custom_markings.daily_art_limit` (most
+new drawings a player may store in a day, 0 for no limit) and `wg.custom_markings.unused_art_days` (how long art
 nothing uses is kept, 0 to keep it forever).
 
 ## How it fits together
@@ -86,104 +86,104 @@ nothing uses is kept, 0 to keep it forever).
   (`CustomMarkingEraseBrush`).
 - A library holds 24 entries, but every redraw of an entry stores a new row of art and leaves the old one, since a
   saved character lists its art by hash and must keep it when the entry changes. Two things bound what that adds
-  up to. A player may only store so many new drawings a day (`wf.custom_markings.daily_art_limit`); a drawing the
+  up to. A player may only store so many new drawings a day (`wg.custom_markings.daily_art_limit`); a drawing the
   server already holds adds no row and is always allowed. And as the server starts, with no round on and so no
   body wearing anything, it looks for art that no library holds and no saved character wears
   (`PurgeUnusedCustomMarkingArtAsync`): what it finds is noted with the time, and deleted by a later start once
-  `wf.custom_markings.unused_art_days` have passed and it is still unused. Blocked art is never deleted, so a block
+  `wg.custom_markings.unused_art_days` have passed and it is still unused. Blocked art is never deleted, so a block
   holds. Until its time is out, art that has left every library can still be looked up and blocked by its hash. A
   character exported to a file and imported after that keeps its other markings but not the deleted art.
 - Round replays don't record the art: a replay shows the bodies without their custom markings.
 
 <!-- WOLFGATE-GENERATED START -->
-<!-- Generated by python Tools/_WF/Ci/modules.py --write. Don't edit by hand. -->
+<!-- Generated by python Tools/_WG/Ci/modules.py --write. Don't edit by hand. -->
 
 ## Files
 
 ### Server
 
-- [`Content.Server/_WF/CustomMarkings/CustomMarkingArtBlockedEvent.cs`](CustomMarkingArtBlockedEvent.cs)
-- [`Content.Server/_WF/CustomMarkings/CustomMarkingBlockCommand.cs`](CustomMarkingBlockCommand.cs)
-- [`Content.Server/_WF/CustomMarkings/CustomMarkingSaveResult.cs`](CustomMarkingSaveResult.cs)
-- [`Content.Server/_WF/CustomMarkings/CustomMarkingStoredArt.cs`](CustomMarkingStoredArt.cs)
-- [`Content.Server/_WF/CustomMarkings/CustomMarkingSystem.cs`](CustomMarkingSystem.cs)
-- [`Content.Server/_WF/CustomMarkings/ServerDbBase.CustomMarkings.cs`](ServerDbBase.CustomMarkings.cs)
-- [`Content.Server/_WF/CustomMarkings/ServerDbManager.CustomMarkings.cs`](ServerDbManager.CustomMarkings.cs)
+- [`Content.Server/_WG/CustomMarkings/CustomMarkingArtBlockedEvent.cs`](CustomMarkingArtBlockedEvent.cs)
+- [`Content.Server/_WG/CustomMarkings/CustomMarkingBlockCommand.cs`](CustomMarkingBlockCommand.cs)
+- [`Content.Server/_WG/CustomMarkings/CustomMarkingSaveResult.cs`](CustomMarkingSaveResult.cs)
+- [`Content.Server/_WG/CustomMarkings/CustomMarkingStoredArt.cs`](CustomMarkingStoredArt.cs)
+- [`Content.Server/_WG/CustomMarkings/CustomMarkingSystem.cs`](CustomMarkingSystem.cs)
+- [`Content.Server/_WG/CustomMarkings/ServerDbBase.CustomMarkings.cs`](ServerDbBase.CustomMarkings.cs)
+- [`Content.Server/_WG/CustomMarkings/ServerDbManager.CustomMarkings.cs`](ServerDbManager.CustomMarkings.cs)
 
 ### Shared
 
-- [`Content.Shared/_WF/CustomMarkings/CustomMarking.cs`](../../../Content.Shared/_WF/CustomMarkings/CustomMarking.cs)
-- [`Content.Shared/_WF/CustomMarkings/CustomMarkingArt.cs`](../../../Content.Shared/_WF/CustomMarkings/CustomMarkingArt.cs)
-- [`Content.Shared/_WF/CustomMarkings/CustomMarkingCVars.cs`](../../../Content.Shared/_WF/CustomMarkings/CustomMarkingCVars.cs)
-- [`Content.Shared/_WF/CustomMarkings/CustomMarkingErase.cs`](../../../Content.Shared/_WF/CustomMarkings/CustomMarkingErase.cs)
-- [`Content.Shared/_WF/CustomMarkings/CustomMarkingMessages.cs`](../../../Content.Shared/_WF/CustomMarkings/CustomMarkingMessages.cs)
-- [`Content.Shared/_WF/CustomMarkings/CustomMarkingRules.cs`](../../../Content.Shared/_WF/CustomMarkings/CustomMarkingRules.cs)
-- [`Content.Shared/_WF/CustomMarkings/CustomMarkingSections.cs`](../../../Content.Shared/_WF/CustomMarkings/CustomMarkingSections.cs)
-- [`Content.Shared/_WF/CustomMarkings/HumanoidAppearanceComponent.CustomMarkings.cs`](../../../Content.Shared/_WF/CustomMarkings/HumanoidAppearanceComponent.CustomMarkings.cs)
-- [`Content.Shared/_WF/CustomMarkings/HumanoidCharacterProfile.CustomMarkings.cs`](../../../Content.Shared/_WF/CustomMarkings/HumanoidCharacterProfile.CustomMarkings.cs)
-- [`Content.Shared/_WF/CustomMarkings/SharedHumanoidAppearanceSystem.CustomMarkings.cs`](../../../Content.Shared/_WF/CustomMarkings/SharedHumanoidAppearanceSystem.CustomMarkings.cs)
+- [`Content.Shared/_WG/CustomMarkings/CustomMarking.cs`](../../../Content.Shared/_WG/CustomMarkings/CustomMarking.cs)
+- [`Content.Shared/_WG/CustomMarkings/CustomMarkingArt.cs`](../../../Content.Shared/_WG/CustomMarkings/CustomMarkingArt.cs)
+- [`Content.Shared/_WG/CustomMarkings/CustomMarkingCVars.cs`](../../../Content.Shared/_WG/CustomMarkings/CustomMarkingCVars.cs)
+- [`Content.Shared/_WG/CustomMarkings/CustomMarkingErase.cs`](../../../Content.Shared/_WG/CustomMarkings/CustomMarkingErase.cs)
+- [`Content.Shared/_WG/CustomMarkings/CustomMarkingMessages.cs`](../../../Content.Shared/_WG/CustomMarkings/CustomMarkingMessages.cs)
+- [`Content.Shared/_WG/CustomMarkings/CustomMarkingRules.cs`](../../../Content.Shared/_WG/CustomMarkings/CustomMarkingRules.cs)
+- [`Content.Shared/_WG/CustomMarkings/CustomMarkingSections.cs`](../../../Content.Shared/_WG/CustomMarkings/CustomMarkingSections.cs)
+- [`Content.Shared/_WG/CustomMarkings/HumanoidAppearanceComponent.CustomMarkings.cs`](../../../Content.Shared/_WG/CustomMarkings/HumanoidAppearanceComponent.CustomMarkings.cs)
+- [`Content.Shared/_WG/CustomMarkings/HumanoidCharacterProfile.CustomMarkings.cs`](../../../Content.Shared/_WG/CustomMarkings/HumanoidCharacterProfile.CustomMarkings.cs)
+- [`Content.Shared/_WG/CustomMarkings/SharedHumanoidAppearanceSystem.CustomMarkings.cs`](../../../Content.Shared/_WG/CustomMarkings/SharedHumanoidAppearanceSystem.CustomMarkings.cs)
 
 ### Client
 
-- [`Content.Client/_WF/CustomMarkings/CustomMarkingColorSpace.cs`](../../../Content.Client/_WF/CustomMarkings/CustomMarkingColorSpace.cs)
-- [`Content.Client/_WF/CustomMarkings/CustomMarkingPng.cs`](../../../Content.Client/_WF/CustomMarkings/CustomMarkingPng.cs)
-- [`Content.Client/_WF/CustomMarkings/CustomMarkingResources.cs`](../../../Content.Client/_WF/CustomMarkings/CustomMarkingResources.cs)
-- [`Content.Client/_WF/CustomMarkings/CustomMarkingSketch.cs`](../../../Content.Client/_WF/CustomMarkings/CustomMarkingSketch.cs)
-- [`Content.Client/_WF/CustomMarkings/CustomMarkingSystem.cs`](../../../Content.Client/_WF/CustomMarkings/CustomMarkingSystem.cs)
-- [`Content.Client/_WF/CustomMarkings/CustomMarkingSystem.Erase.cs`](../../../Content.Client/_WF/CustomMarkings/CustomMarkingSystem.Erase.cs)
-- [`Content.Client/_WF/CustomMarkings/CustomMarkingSystem.Library.cs`](../../../Content.Client/_WF/CustomMarkings/CustomMarkingSystem.Library.cs)
-- [`Content.Client/_WF/CustomMarkings/CustomMarkingSystem.Limbs.cs`](../../../Content.Client/_WF/CustomMarkings/CustomMarkingSystem.Limbs.cs)
-- [`Content.Client/_WF/CustomMarkings/HumanoidProfileEditor.CustomMarkings.cs`](../../../Content.Client/_WF/CustomMarkings/HumanoidProfileEditor.CustomMarkings.cs)
-- [`Content.Client/_WF/CustomMarkings/UI/CustomMarkingBodySampler.cs`](../../../Content.Client/_WF/CustomMarkings/UI/CustomMarkingBodySampler.cs)
-- [`Content.Client/_WF/CustomMarkings/UI/CustomMarkingCanvas.cs`](../../../Content.Client/_WF/CustomMarkings/UI/CustomMarkingCanvas.cs)
-- [`Content.Client/_WF/CustomMarkings/UI/CustomMarkingCloseWindow.cs`](../../../Content.Client/_WF/CustomMarkings/UI/CustomMarkingCloseWindow.cs)
-- [`Content.Client/_WF/CustomMarkings/UI/CustomMarkingEditorWindow.cs`](../../../Content.Client/_WF/CustomMarkings/UI/CustomMarkingEditorWindow.cs)
-- [`Content.Client/_WF/CustomMarkings/UI/CustomMarkingEraseBrush.cs`](../../../Content.Client/_WF/CustomMarkings/UI/CustomMarkingEraseBrush.cs)
-- [`Content.Client/_WF/CustomMarkings/UI/CustomMarkingIconButton.cs`](../../../Content.Client/_WF/CustomMarkings/UI/CustomMarkingIconButton.cs)
-- [`Content.Client/_WF/CustomMarkings/UI/CustomMarkingLibraryWindow.cs`](../../../Content.Client/_WF/CustomMarkings/UI/CustomMarkingLibraryWindow.cs)
-- [`Content.Client/_WF/CustomMarkings/UI/CustomMarkingQuickList.cs`](../../../Content.Client/_WF/CustomMarkings/UI/CustomMarkingQuickList.cs)
-- [`Content.Client/_WF/CustomMarkings/UI/CustomMarkingSampling.cs`](../../../Content.Client/_WF/CustomMarkings/UI/CustomMarkingSampling.cs)
-- [`Content.Client/_WF/CustomMarkings/UI/CustomMarkingWindow.cs`](../../../Content.Client/_WF/CustomMarkings/UI/CustomMarkingWindow.cs)
+- [`Content.Client/_WG/CustomMarkings/CustomMarkingColorSpace.cs`](../../../Content.Client/_WG/CustomMarkings/CustomMarkingColorSpace.cs)
+- [`Content.Client/_WG/CustomMarkings/CustomMarkingPng.cs`](../../../Content.Client/_WG/CustomMarkings/CustomMarkingPng.cs)
+- [`Content.Client/_WG/CustomMarkings/CustomMarkingResources.cs`](../../../Content.Client/_WG/CustomMarkings/CustomMarkingResources.cs)
+- [`Content.Client/_WG/CustomMarkings/CustomMarkingSketch.cs`](../../../Content.Client/_WG/CustomMarkings/CustomMarkingSketch.cs)
+- [`Content.Client/_WG/CustomMarkings/CustomMarkingSystem.cs`](../../../Content.Client/_WG/CustomMarkings/CustomMarkingSystem.cs)
+- [`Content.Client/_WG/CustomMarkings/CustomMarkingSystem.Erase.cs`](../../../Content.Client/_WG/CustomMarkings/CustomMarkingSystem.Erase.cs)
+- [`Content.Client/_WG/CustomMarkings/CustomMarkingSystem.Library.cs`](../../../Content.Client/_WG/CustomMarkings/CustomMarkingSystem.Library.cs)
+- [`Content.Client/_WG/CustomMarkings/CustomMarkingSystem.Limbs.cs`](../../../Content.Client/_WG/CustomMarkings/CustomMarkingSystem.Limbs.cs)
+- [`Content.Client/_WG/CustomMarkings/HumanoidProfileEditor.CustomMarkings.cs`](../../../Content.Client/_WG/CustomMarkings/HumanoidProfileEditor.CustomMarkings.cs)
+- [`Content.Client/_WG/CustomMarkings/UI/CustomMarkingBodySampler.cs`](../../../Content.Client/_WG/CustomMarkings/UI/CustomMarkingBodySampler.cs)
+- [`Content.Client/_WG/CustomMarkings/UI/CustomMarkingCanvas.cs`](../../../Content.Client/_WG/CustomMarkings/UI/CustomMarkingCanvas.cs)
+- [`Content.Client/_WG/CustomMarkings/UI/CustomMarkingCloseWindow.cs`](../../../Content.Client/_WG/CustomMarkings/UI/CustomMarkingCloseWindow.cs)
+- [`Content.Client/_WG/CustomMarkings/UI/CustomMarkingEditorWindow.cs`](../../../Content.Client/_WG/CustomMarkings/UI/CustomMarkingEditorWindow.cs)
+- [`Content.Client/_WG/CustomMarkings/UI/CustomMarkingEraseBrush.cs`](../../../Content.Client/_WG/CustomMarkings/UI/CustomMarkingEraseBrush.cs)
+- [`Content.Client/_WG/CustomMarkings/UI/CustomMarkingIconButton.cs`](../../../Content.Client/_WG/CustomMarkings/UI/CustomMarkingIconButton.cs)
+- [`Content.Client/_WG/CustomMarkings/UI/CustomMarkingLibraryWindow.cs`](../../../Content.Client/_WG/CustomMarkings/UI/CustomMarkingLibraryWindow.cs)
+- [`Content.Client/_WG/CustomMarkings/UI/CustomMarkingQuickList.cs`](../../../Content.Client/_WG/CustomMarkings/UI/CustomMarkingQuickList.cs)
+- [`Content.Client/_WG/CustomMarkings/UI/CustomMarkingSampling.cs`](../../../Content.Client/_WG/CustomMarkings/UI/CustomMarkingSampling.cs)
+- [`Content.Client/_WG/CustomMarkings/UI/CustomMarkingWindow.cs`](../../../Content.Client/_WG/CustomMarkings/UI/CustomMarkingWindow.cs)
 
 ### Integration tests
 
-- [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingBodyEraseTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingBodyEraseTest.cs)
-- [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingHairTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingHairTest.cs)
-- [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingLibraryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingLibraryTest.cs)
-- [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingLimbsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingLimbsTest.cs)
-- [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingPingPongTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingPingPongTest.cs)
-- [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingSpeciesTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingSpeciesTest.cs)
-- [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingVisualsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingVisualsTest.cs)
-- [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingWindowsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingWindowsTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/CustomMarkings/CustomMarkingBodyEraseTest.cs`](../../../Content.IntegrationTests/Tests/_WG/CustomMarkings/CustomMarkingBodyEraseTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/CustomMarkings/CustomMarkingHairTest.cs`](../../../Content.IntegrationTests/Tests/_WG/CustomMarkings/CustomMarkingHairTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/CustomMarkings/CustomMarkingLibraryTest.cs`](../../../Content.IntegrationTests/Tests/_WG/CustomMarkings/CustomMarkingLibraryTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/CustomMarkings/CustomMarkingLimbsTest.cs`](../../../Content.IntegrationTests/Tests/_WG/CustomMarkings/CustomMarkingLimbsTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/CustomMarkings/CustomMarkingPingPongTest.cs`](../../../Content.IntegrationTests/Tests/_WG/CustomMarkings/CustomMarkingPingPongTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/CustomMarkings/CustomMarkingSpeciesTest.cs`](../../../Content.IntegrationTests/Tests/_WG/CustomMarkings/CustomMarkingSpeciesTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/CustomMarkings/CustomMarkingVisualsTest.cs`](../../../Content.IntegrationTests/Tests/_WG/CustomMarkings/CustomMarkingVisualsTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/CustomMarkings/CustomMarkingWindowsTest.cs`](../../../Content.IntegrationTests/Tests/_WG/CustomMarkings/CustomMarkingWindowsTest.cs)
 
 ### Unit tests
 
-- [`Content.Tests/_WF/CustomMarkings/CustomMarkingAnimationTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingAnimationTest.cs)
-- [`Content.Tests/_WF/CustomMarkings/CustomMarkingArtTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingArtTest.cs)
-- [`Content.Tests/_WF/CustomMarkings/CustomMarkingColorSpaceTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingColorSpaceTest.cs)
-- [`Content.Tests/_WF/CustomMarkings/CustomMarkingEraseTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingEraseTest.cs)
-- [`Content.Tests/_WF/CustomMarkings/CustomMarkingRulesTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingRulesTest.cs)
-- [`Content.Tests/_WF/CustomMarkings/CustomMarkingSamplingTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingSamplingTest.cs)
-- [`Content.Tests/_WF/CustomMarkings/CustomMarkingSectionsTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingSectionsTest.cs)
-- [`Content.Tests/_WF/CustomMarkings/CustomMarkingSketchTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingSketchTest.cs)
+- [`Content.Tests/_WG/CustomMarkings/CustomMarkingAnimationTest.cs`](../../../Content.Tests/_WG/CustomMarkings/CustomMarkingAnimationTest.cs)
+- [`Content.Tests/_WG/CustomMarkings/CustomMarkingArtTest.cs`](../../../Content.Tests/_WG/CustomMarkings/CustomMarkingArtTest.cs)
+- [`Content.Tests/_WG/CustomMarkings/CustomMarkingColorSpaceTest.cs`](../../../Content.Tests/_WG/CustomMarkings/CustomMarkingColorSpaceTest.cs)
+- [`Content.Tests/_WG/CustomMarkings/CustomMarkingEraseTest.cs`](../../../Content.Tests/_WG/CustomMarkings/CustomMarkingEraseTest.cs)
+- [`Content.Tests/_WG/CustomMarkings/CustomMarkingRulesTest.cs`](../../../Content.Tests/_WG/CustomMarkings/CustomMarkingRulesTest.cs)
+- [`Content.Tests/_WG/CustomMarkings/CustomMarkingSamplingTest.cs`](../../../Content.Tests/_WG/CustomMarkings/CustomMarkingSamplingTest.cs)
+- [`Content.Tests/_WG/CustomMarkings/CustomMarkingSectionsTest.cs`](../../../Content.Tests/_WG/CustomMarkings/CustomMarkingSectionsTest.cs)
+- [`Content.Tests/_WG/CustomMarkings/CustomMarkingSketchTest.cs`](../../../Content.Tests/_WG/CustomMarkings/CustomMarkingSketchTest.cs)
 
 ### Prototypes
 
-- [`Resources/Prototypes/_WF/CustomMarkings/shaders.yml`](../../../Resources/Prototypes/_WF/CustomMarkings/shaders.yml)
+- [`Resources/Prototypes/_WG/CustomMarkings/shaders.yml`](../../../Resources/Prototypes/_WG/CustomMarkings/shaders.yml)
 
 ### Localization
 
-- [`Resources/Locale/en-US/_WF/CustomMarkings/custom-markings.ftl`](../../../Resources/Locale/en-US/_WF/CustomMarkings/custom-markings.ftl)
+- [`Resources/Locale/en-US/_WG/CustomMarkings/custom-markings.ftl`](../../../Resources/Locale/en-US/_WG/CustomMarkings/custom-markings.ftl)
 
 ### Textures
 
-- [`Resources/Textures/_WF/CustomMarkings/editor.rsi/`](../../../Resources/Textures/_WF/CustomMarkings/editor.rsi/)
-- [`Resources/Textures/_WF/CustomMarkings/erase.swsl`](../../../Resources/Textures/_WF/CustomMarkings/erase.swsl)
-- [`Resources/Textures/_WF/CustomMarkings/erase_unshaded.swsl`](../../../Resources/Textures/_WF/CustomMarkings/erase_unshaded.swsl)
+- [`Resources/Textures/_WG/CustomMarkings/editor.rsi/`](../../../Resources/Textures/_WG/CustomMarkings/editor.rsi/)
+- [`Resources/Textures/_WG/CustomMarkings/erase.swsl`](../../../Resources/Textures/_WG/CustomMarkings/erase.swsl)
+- [`Resources/Textures/_WG/CustomMarkings/erase_unshaded.swsl`](../../../Resources/Textures/_WG/CustomMarkings/erase_unshaded.swsl)
 
 ### Tools
 
-- [`Tools/_WF/CustomMarkings/gen_editor_icons.py`](../../../Tools/_WF/CustomMarkings/gen_editor_icons.py)
+- [`Tools/_WG/CustomMarkings/gen_editor_icons.py`](../../../Tools/_WG/CustomMarkings/gen_editor_icons.py)
 
 ## Non-modular edits
 

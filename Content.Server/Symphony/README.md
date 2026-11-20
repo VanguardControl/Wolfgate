@@ -71,7 +71,7 @@ stored ones. `404 no_preferences`: the account never played on this server.
 Body `{"etag": "<from GET, null for an empty slot>", "profile": {...}}`. Answers
 `200 {"slot", "etag", "profile", "kept": [...]}` with the profile as the game cleaned and stored it. `kept` names the
 fields held at their stored values: always `bankBalance`, `persistentData` and `augments`, plus `studioTweaks` and
-`customMarkings` for a player with the `WFAppearanceStudio` feature ban. A connected player's creator is sent the
+`customMarkings` for a player with the `WGAppearanceStudio` feature ban. A connected player's creator is sent the
 change. `dropped_art` lists custom marking and warp hashes taken off because the server doesn't hold the art or an
 admin blocked it. For an account that isn't connected, loadout job requirements are checked against its stored play
 times, and loadouts it hasn't earned are taken off (as the game does for a connected player). Errors: `409 stale` with `"current"` (the slot as stored, or null) when the etag no longer matches;
@@ -99,16 +99,16 @@ version; a matching `If-None-Match` or `?version=` gets `304`.
 - `prototypes`: `{"<kind>": {"<id>": <raw YAML mapping as written>}}` for `species`, `speciesBaseSprites`,
   `humanoidBaseSprite` (`baseSprite: {sprite, state}`, `matchSkin`, `layerAlpha`), `marking`, `markingPoints`,
   `loadout`, `loadoutGroup`, `roleLoadout`, `startingGear`, `trait`, `job`, `department`, `traitCategory`,
-  `customJobTitle`, `genitalShape`, `genitalSettings`, `genitalPreset`, `genitalSheath`, `wfMessageSound`, `emoteVoice`,
-  `speechSounds`, `wfChatFont`, `typingIndicator`, `wfLegStyle`, the `dataset`/`localizedDataset` name lists species draw
+  `customJobTitle`, `genitalShape`, `genitalSettings`, `genitalPreset`, `genitalSheath`, `wgMessageSound`, `emoteVoice`,
+  `speechSounds`, `wgChatFont`, `typingIndicator`, `wgLegStyle`, the `dataset`/`localizedDataset` name lists species draw
   names from, and `entity`: the dolls and every entity a loadout
   or starting gear names, with their parents' components merged in (a component's fields override its parent's)
   and cut to `id`, `parent`, `name` and their Sprite, Clothing, Item, Inventory (slots and displacement maps),
   Hands, Vocal, TypingIndicator and Speech components. Species mobs are included for their default voice, message
   sound and typing bubble; `emoteSounds` is sent as a kind too.
 - `names`: localised names by kind: `species`, `marking`, `trait`, `job`, `entity`, and from each prototype's own name
-  field `department`, `traitCategory`, `wfChatFont`, `wfMessageSound`, `emoteVoice`, `speechSounds`, `genitalShape`,
-  `customJobTitle`, `wfLegStyle` and `typingIndicator`.
+  field `department`, `traitCategory`, `wgChatFont`, `wgMessageSound`, `emoteVoice`, `speechSounds`, `genitalShape`,
+  `customJobTitle`, `wgLegStyle` and `typingIndicator`.
 - `rsis`: every `.rsi` directory the catalog names, relative to `/Textures`.
 
 Drawing a body as the game does (`Content.Client/Humanoid/HumanoidAppearanceSystem.cs`): each layer of
@@ -117,7 +117,7 @@ Unsexed). With `matchSkin` the layer is `skinColor` at `layerAlpha`. Hair and fa
 `appearance.hair`/`facialHair`, coloured by `hairColor`/`facialHairColor`. A marking goes just above the layer its
 `bodyPart` names, in profile order; sprite `i` takes `markingColor[i]`, or the colour of the sprite `colorLinks` ties
 it to, else white; a marking with `visible: false` isn't drawn. The doll is scaled by `height` and `width`. Studio
-tweaks: see `Content.Client/_WF/AppearanceStudio/StudioSpriteSystem.cs` and the AppearanceStudio module README.
+tweaks: see `Content.Client/_WG/AppearanceStudio/StudioSpriteSystem.cs` and the AppearanceStudio module README.
 
 ### GET /symphony/creator/rsi?path=&lt;rsi dir&gt;/&lt;file&gt;
 
@@ -148,7 +148,7 @@ returns for animated art; re-lay fetched art before editing it.
 
 **GET /symphony/custom-markings?user=&lt;guid&gt;** answers
 `200 {"symphony_module", "entries": [{"id", "name", "hash", "placement"}], "library_limit", "daily_art_limit", "daily_art_left", "banned"}`,
-entries oldest first. `placement` is `Behind`, `Skin`, `Hands`, `Hair` or `Front`. `banned` is the `WFAppearanceStudio`
+entries oldest first. `placement` is `Behind`, `Skin`, `Hands`, `Hair` or `Front`. `banned` is the `WGAppearanceStudio`
 feature ban (saves will be refused). `daily_art_left` is null with no daily limit.
 
 **POST /symphony/custom-markings?user=&lt;guid&gt;** takes

@@ -1,9 +1,9 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Content.Server._WF.CustomMarkings;
-using Content.Shared._WF.AppearanceStudio;
-using Content.Shared._WF.CustomMarkings;
+using Content.Server._WG.CustomMarkings;
+using Content.Shared._WG.AppearanceStudio;
+using Content.Shared._WG.CustomMarkings;
 using Microsoft.EntityFrameworkCore;
 
 namespace Content.Server.Database;
@@ -43,15 +43,15 @@ public abstract partial class ServerDbBase
         {
             entry = await ctx.WolfgateCustomMarking.SingleOrDefaultAsync(m => m.Id == id && m.PlayerUserId == userId, cancel);
             if (entry == null)
-                return CustomMarkingSaveResult.Fail("wf-custom-marking-error-missing");
+                return CustomMarkingSaveResult.Fail("wg-custom-marking-error-missing");
         }
         else if (hash == null || art == null)
         {
-            return CustomMarkingSaveResult.Fail("wf-custom-marking-error-invalid");
+            return CustomMarkingSaveResult.Fail("wg-custom-marking-error-invalid");
         }
         else if (await ctx.WolfgateCustomMarking.CountAsync(m => m.PlayerUserId == userId, cancel) >= limit)
         {
-            return CustomMarkingSaveResult.Fail("wf-custom-marking-error-full");
+            return CustomMarkingSaveResult.Fail("wg-custom-marking-error-full");
         }
 
         string? previous = null;
@@ -63,7 +63,7 @@ public abstract partial class ServerDbBase
                 .SingleOrDefaultAsync(cancel);
 
             if (blocked == true)
-                return CustomMarkingSaveResult.Fail("wf-custom-marking-error-blocked");
+                return CustomMarkingSaveResult.Fail("wg-custom-marking-error-blocked");
 
             if (blocked == null)
             {
@@ -75,7 +75,7 @@ public abstract partial class ServerDbBase
                         .CountAsync(a => a.UploaderUserId == userId && a.UploadedAt > since, cancel);
 
                     if (today >= dailyArtLimit)
-                        return CustomMarkingSaveResult.Fail("wf-custom-marking-error-daily");
+                        return CustomMarkingSaveResult.Fail("wg-custom-marking-error-daily");
                 }
 
                 ctx.WolfgateCustomMarkingArt.Add(new WolfgateCustomMarkingArt

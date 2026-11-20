@@ -8,8 +8,8 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Content.Server.Database;
-using Content.Shared._WF.AppearanceStudio;
-using Content.Shared._WF.CustomMarkings;
+using Content.Shared._WG.AppearanceStudio;
+using Content.Shared._WG.CustomMarkings;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Humanoid.Prototypes;
@@ -56,7 +56,7 @@ public sealed class SymphonyCreatorSystem : EntitySystem
     {
         "job", "department", "traitCategory", "customJobTitle",
         "genitalShape", "genitalSettings", "genitalPreset", "genitalSheath",
-        "wfMessageSound", "emoteVoice", "emoteSounds", "speechSounds", "wfChatFont", "typingIndicator", "wfLegStyle",
+        "wgMessageSound", "emoteVoice", "emoteSounds", "speechSounds", "wgChatFont", "typingIndicator", "wgLegStyle",
     };
 
     private static readonly ResPath TextureRoot = new("/Textures");
@@ -316,7 +316,7 @@ public sealed class SymphonyCreatorSystem : EntitySystem
         names["marking"] = NamesOf<MarkingPrototype>(p => Loc.TryGetString($"marking-{p.ID}", out var n) ? n : p.ID);
         names["trait"] = NamesOf<TraitPrototype>(p => Loc.GetString(p.Name));
         names["job"] = NamesOf<JobPrototype>(p => p.LocalizedName);
-        foreach (var kind in new[] { "department", "traitCategory", "wfChatFont", "wfMessageSound", "emoteVoice", "speechSounds", "genitalShape", "customJobTitle", "wfLegStyle", "typingIndicator" })
+        foreach (var kind in new[] { "department", "traitCategory", "wgChatFont", "wgMessageSound", "emoteVoice", "speechSounds", "genitalShape", "customJobTitle", "wgLegStyle", "typingIndicator" })
         {
             if (prototypes[kind] is JsonObject entries)
                 names[kind] = NamesFromMappings(entries);

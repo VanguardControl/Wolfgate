@@ -2,8 +2,8 @@ using System.Net;
 using System.Text.Json.Nodes;
 using Content.IntegrationTests.Pair;
 using Content.Server.Symphony;
-using Content.Shared._WF.AppearanceStudio;
-using Content.Shared._WF.CustomMarkings;
+using Content.Shared._WG.AppearanceStudio;
+using Content.Shared._WG.CustomMarkings;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace Content.IntegrationTests.Tests.Symphony;
