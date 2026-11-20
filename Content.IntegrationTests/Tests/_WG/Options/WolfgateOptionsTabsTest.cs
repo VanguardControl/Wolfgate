@@ -1,5 +1,10 @@
 #nullable enable
+using System.Collections.Generic;
 using System.Linq;
+using Content.Client.UserInterface.Systems.EscapeMenu;
+using Content.IntegrationTests.Pair;
+using Robust.Shared.Input;
+using Robust.Shared.Map;
 using Content.Client._WG.Options.UI;
 using Content.Client._WG.Options.UI.Tabs;
 using Content.Client.Options.UI;
@@ -35,6 +40,10 @@ public sealed class WolfgateOptionsTabsTest
                 var wolfgate = menu.FindControl<WolfgateOptionsTabs>("WolfgateTabs");
                 Assert.Multiple(() =>
                 {
+                    // The window opens on the SS14 side, with only that page shown.
+                    Assert.That(master.CurrentTab, Is.EqualTo(OptionsMenu.WgStockPage));
+                    Assert.That(menu.Tabs.Visible, Is.True);
+                    Assert.That(wolfgate.Visible, Is.False);
                     Assert.That(master.GetChild(OptionsMenu.WgStockPage), Is.SameAs(menu.Tabs));
                     Assert.That(master.GetChild(OptionsMenu.WgWolfgatePage), Is.SameAs(wolfgate));
                     Assert.That(wolfgate.GetChild(OptionsMenu.ConsentTabIndex), Is.InstanceOf<WolfgateConsentTab>());
@@ -62,6 +71,72 @@ public sealed class WolfgateOptionsTabsTest
         });
 
         await pair.CleanReturnAsync();
+    }
+
+    /// <summary>The open window starts on the SS14 side, and clicking the master buttons switches sides.</summary>
+    [Test]
+    public async Task MasterStripSwitchesSides()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var client = pair.Client;
+        var ui = client.ResolveDependency<IUserInterfaceManager>();
+        await pair.RunTicksSync(20);
+
+        OptionsMenu menu = default!;
+        TabContainer master = default!;
+        List<Button> buttons = default!;
+        await client.WaitPost(() =>
+        {
+            ui.GetUIController<OptionsUIController>().OpenWindow();
+            menu = ui.WindowRoot.Children.OfType<OptionsMenu>().Single();
+            master = menu.FindControl<TabContainer>("WgMaster");
+            buttons = menu.FindControl<WGOptionsMasterStrip>("WgMasterStrip").GetChild(0).Children.OfType<Button>().ToList();
+        });
+        await pair.RunTicksSync(5);
+
+        await client.WaitAssertion(() =>
+        {
+            Assert.That(master.CurrentTab, Is.EqualTo(OptionsMenu.WgStockPage));
+            Assert.That(menu.Tabs.Visible, Is.True);
+            Assert.That(master.GetChild(OptionsMenu.WgWolfgatePage).Visible, Is.False);
+            Assert.That(buttons[OptionsMenu.WgStockPage].Pressed, Is.True);
+            Assert.That(buttons[OptionsMenu.WgWolfgatePage].Pressed, Is.False);
+        });
+
+        await Click(pair, buttons[OptionsMenu.WgWolfgatePage]);
+        await client.WaitAssertion(() =>
+        {
+            Assert.That(master.CurrentTab, Is.EqualTo(OptionsMenu.WgWolfgatePage));
+            Assert.That(menu.Tabs.Visible, Is.False);
+            Assert.That(buttons[OptionsMenu.WgWolfgatePage].Pressed, Is.True);
+        });
+
+        await Click(pair, buttons[OptionsMenu.WgStockPage]);
+        await client.WaitAssertion(() => Assert.That(master.CurrentTab, Is.EqualTo(OptionsMenu.WgStockPage)));
+
+        // The consent shortcut opens the Wolfgate side on its Consent tab.
+        await client.WaitPost(() => ui.GetUIController<OptionsUIController>().OpenWindow(OptionsMenu.ConsentTabIndex));
+        await client.WaitAssertion(() =>
+        {
+            Assert.That(master.CurrentTab, Is.EqualTo(OptionsMenu.WgWolfgatePage));
+            Assert.That(menu.FindControl<WolfgateOptionsTabs>("WolfgateTabs").CurrentTab, Is.EqualTo(OptionsMenu.ConsentTabIndex));
+        });
+
+        await client.WaitPost(() => menu.Close());
+        await pair.CleanReturnAsync();
+    }
+
+    private static async Task Click(TestPair pair, Control control)
+    {
+        var screen = new ScreenCoordinates(control.GlobalPixelPosition + control.PixelSize / 2, control.Window?.Id ?? default);
+        var rel = screen.Position / control.UIScale - control.GlobalPosition;
+        var relPix = screen.Position - control.GlobalPixelPosition;
+
+        foreach (var state in new[] { BoundKeyState.Down, BoundKeyState.Up })
+        {
+            await pair.Client.DoGuiEvent(control, new GUIBoundKeyEventArgs(EngineKeyFunctions.UIClick, state, screen, default, rel, relPix));
+            await pair.RunTicksSync(1);
+        }
     }
 
     /// <summary>Stock binds stay on the SS14 Controls tab, fork binds move to the Wolfgate one, with their headers.</summary>
