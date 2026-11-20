@@ -16,7 +16,15 @@ or not, and staff with Adminhelp or Event: select Mentor in the chat box, start 
 The server side is `ChatManager.Mentors.cs`; the client works out who may select it in `ChatUIController.Mentors.cs`,
 and `MentorsUIController` refreshes the chat box when a player's mentor status changes.
 
-Still to come: applications, bans, marks, the staff tab and the panel endpoints.
+Marks: `WGMentorMarkTagSystem` puts `WGMentorMarkComponent` (tier, crown setting) on the body an on-duty mentor
+controls, never a ghost. It gives the examine line "They are a Mentor." (a chip on the examine card), the tier's crown
+plate in the card's footer band beside the Wolfgate mark (`WGMentorSigil`), and the crown plate over the head
+(`WGMentorIconSystem`, status icons `WGMentorIcon*`) unless the mentor turned it off in the mentor window
+(`wg.mentor.show_crown`). OOC and LOOC lines from an on-duty mentor carry the `[M]` tag (`MentorChatTag`). The plates
+are drawn by `Tools/_WG/Mentors/gen_mentor_marks.py`: a low silver crown for Trainees, gold for Mentors, gold on an
+olive plate for Seniors.
+
+Still to come: applications, bans, the staff tab and the panel endpoints.
 
 ## Data
 
@@ -40,31 +48,50 @@ Read and written through `ServerDbManager.Mentors.cs`.
 - [`Content.Server/_WG/Mentors/Commands/MentorCommand.cs`](Commands/MentorCommand.cs)
 - [`Content.Server/_WG/Mentors/Commands/MentorSayCommand.cs`](Commands/MentorSayCommand.cs)
 - [`Content.Server/_WG/Mentors/Commands/MentorWhoCommand.cs`](Commands/MentorWhoCommand.cs)
+- [`Content.Server/_WG/Mentors/MentorChatTag.cs`](MentorChatTag.cs)
 - [`Content.Server/_WG/Mentors/MentorRows.cs`](MentorRows.cs)
 - [`Content.Server/_WG/Mentors/ServerDbBase.Mentors.cs`](ServerDbBase.Mentors.cs)
 - [`Content.Server/_WG/Mentors/ServerDbManager.Mentors.cs`](ServerDbManager.Mentors.cs)
+- [`Content.Server/_WG/Mentors/WGMentorMarkTagSystem.cs`](WGMentorMarkTagSystem.cs)
 - [`Content.Server/_WG/Mentors/WGMentorSystem.cs`](WGMentorSystem.cs)
 
 ### Shared
 
 - [`Content.Shared/_WG/Mentors/MentorCVars.cs`](../../../Content.Shared/_WG/Mentors/MentorCVars.cs)
 - [`Content.Shared/_WG/Mentors/MentorEvents.cs`](../../../Content.Shared/_WG/Mentors/MentorEvents.cs)
+- [`Content.Shared/_WG/Mentors/WGMentorMarkComponent.cs`](../../../Content.Shared/_WG/Mentors/WGMentorMarkComponent.cs)
+- [`Content.Shared/_WG/Mentors/WGMentorMarkSystem.cs`](../../../Content.Shared/_WG/Mentors/WGMentorMarkSystem.cs)
 
 ### Client
 
 - [`Content.Client/_WG/Mentors/ChatUIController.Mentors.cs`](../../../Content.Client/_WG/Mentors/ChatUIController.Mentors.cs)
 - [`Content.Client/_WG/Mentors/MentorsUIController.cs`](../../../Content.Client/_WG/Mentors/MentorsUIController.cs)
 - [`Content.Client/_WG/Mentors/WGClientMentorSystem.cs`](../../../Content.Client/_WG/Mentors/WGClientMentorSystem.cs)
+- [`Content.Client/_WG/Mentors/WGMentorIconSystem.cs`](../../../Content.Client/_WG/Mentors/WGMentorIconSystem.cs)
+- [`Content.Client/_WG/Mentors/WGMentorSigil.cs`](../../../Content.Client/_WG/Mentors/WGMentorSigil.cs)
 
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WG/Mentors/MentorChatTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Mentors/MentorChatTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Mentors/MentorDbTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Mentors/MentorDbTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/Mentors/MentorMarksTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Mentors/MentorMarksTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Mentors/MentorRosterTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Mentors/MentorRosterTest.cs)
+
+### Prototypes
+
+- [`Resources/Prototypes/_WG/Mentors/status_icons.yml`](../../../Resources/Prototypes/_WG/Mentors/status_icons.yml)
 
 ### Localization
 
 - [`Resources/Locale/en-US/_WG/Mentors/mentors.ftl`](../../../Resources/Locale/en-US/_WG/Mentors/mentors.ftl)
+
+### Textures
+
+- [`Resources/Textures/_WG/Mentors/mentor_mark.rsi/`](../../../Resources/Textures/_WG/Mentors/mentor_mark.rsi/)
+
+### Tools
+
+- [`Tools/_WG/Mentors/gen_mentor_marks.py`](../../../Tools/_WG/Mentors/gen_mentor_marks.py)
 
 ## Non-modular edits
 
@@ -76,7 +103,10 @@ Read and written through `ServerDbManager.Mentors.cs`.
 - [`Content.Server.Database/Model.cs`](../../../Content.Server.Database/Model.cs)
   - the mentor roster and applications to join it
   - defaults for rows the panel writes, applications listed by player
-- [`Content.Server/Chat/Managers/ChatManager.cs`](../../Chat/Managers/ChatManager.cs): mentor chat
+- [`Content.Server/Chat/Managers/ChatManager.cs`](../../Chat/Managers/ChatManager.cs)
+  - mentor chat
+  - mentor tag on OOC
+- [`Content.Server/Chat/Systems/ChatSystem.cs`](../../Chat/Systems/ChatSystem.cs): mentor tag on LOOC
 - [`Content.Shared.Database/LogType.cs`](../../../Content.Shared.Database/LogType.cs): mentor roster, duty and ban actions
 - [`Content.Shared/Chat/ChatChannel.cs`](../../../Content.Shared/Chat/ChatChannel.cs)
   - mentor chat

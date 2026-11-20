@@ -1,0 +1,31 @@
+# The crown plate over an on-duty mentor's head, one per tier. Placed like the newbie plate: a Mod icon sorted
+# first, just above the right-hand icon column.
+- type: ssdIcon
+  id: WGMentorIconTrainee
+  icon:
+    sprite: /Textures/_WG/Mentors/mentor_mark.rsi
+    state: trainee
+  locationPreference: Right
+  priority: -1
+  layer: Mod
+  isShaded: true
+
+- type: ssdIcon
+  id: WGMentorIconMentor
+  icon:
+    sprite: /Textures/_WG/Mentors/mentor_mark.rsi
+    state: mentor
+  locationPreference: Right
+  priority: -1
+  layer: Mod
+  isShaded: true
+
+- type: ssdIcon
+  id: WGMentorIconSenior
+  icon:
+    sprite: /Textures/_WG/Mentors/mentor_mark.rsi
+    state: senior
+  locationPreference: Right
+  priority: -1
+  layer: Mod
+  isShaded: true

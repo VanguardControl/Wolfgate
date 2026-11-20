@@ -18,6 +18,7 @@ public sealed class MentorHelpWindowState
     public bool IsMentor;
     public bool OnDuty;
     public bool StartOffDuty;
+    public bool ShowCrown;
     public int MentorsOnDuty;
     public IEnumerable<MentorHelpTicketView> Tickets = Array.Empty<MentorHelpTicketView>();
 }
@@ -35,6 +36,7 @@ public sealed class MentorHelpWindow : DefaultWindow
     public event Action? AskStaffPressed;
     public event Action<bool>? DutyToggled;
     public event Action<bool>? StartOffDutyToggled;
+    public event Action<bool>? CrownToggled;
 
     private readonly Label _onDuty = new();
     private readonly TabContainer _tabs = new() { VerticalExpand = true };
@@ -62,6 +64,7 @@ public sealed class MentorHelpWindow : DefaultWindow
     private readonly BoxContainer _dutyRow = Row();
     private readonly CheckBox _duty = new();
     private readonly CheckBox _startOff = new();
+    private readonly CheckBox _crown = new();
     private readonly Label _staffMode = new();
     private readonly BoxContainer _queue = Column();
     private readonly RichTextLabel _ticketHeader = new();
@@ -208,8 +211,11 @@ public sealed class MentorHelpWindow : DefaultWindow
         _duty.OnToggled += args => DutyToggled?.Invoke(args.Pressed);
         _startOff.Text = Loc.GetString("wg-mentor-duty-start-off");
         _startOff.OnToggled += args => StartOffDutyToggled?.Invoke(args.Pressed);
+        _crown.Text = Loc.GetString("wg-mentor-crown-option");
+        _crown.OnToggled += args => CrownToggled?.Invoke(args.Pressed);
         _dutyRow.AddChild(_duty);
         _dutyRow.AddChild(_startOff);
+        _dutyRow.AddChild(_crown);
         page.AddChild(_dutyRow);
 
         _staffMode.Text = Loc.GetString("wg-mhelp-mode-staff");
@@ -282,8 +288,10 @@ public sealed class MentorHelpWindow : DefaultWindow
     {
         _duty.Visible = _state.IsMentor;
         _startOff.Visible = _state.IsMentor;
+        _crown.Visible = _state.IsMentor;
         _duty.Pressed = _state.OnDuty;
         _startOff.Pressed = _state.StartOffDuty;
+        _crown.Pressed = _state.ShowCrown;
         _staffMode.Visible = _state.Staff;
 
         _queue.RemoveAllChildren();

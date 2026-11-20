@@ -109,6 +109,7 @@ public sealed class MentorHelpUIController : UIController,
             _window.AskStaffPressed += () => UIManager.GetUIController<AHelpUIController>().Open();
             _window.DutyToggled += onDuty => _mentors?.RequestDuty(onDuty);
             _window.StartOffDutyToggled += off => _cfg.SetCVar(MentorCVars.StartOffDuty, off);
+            _window.CrownToggled += show => _cfg.SetCVar(MentorCVars.ShowCrown, show);
             if (_lastNotice != null)
                 _window.ShowNotice(_lastNotice);
         }
@@ -145,6 +146,7 @@ public sealed class MentorHelpUIController : UIController,
             IsMentor = _mentors?.IsMentor ?? false,
             OnDuty = _mentors?.OnDuty ?? false,
             StartOffDuty = _cfg.GetCVar(MentorCVars.StartOffDuty),
+            ShowCrown = _cfg.GetCVar(MentorCVars.ShowCrown),
             MentorsOnDuty = _mentors?.OnDutyCount ?? 0,
             Tickets = _help.Tickets.Values,
         });

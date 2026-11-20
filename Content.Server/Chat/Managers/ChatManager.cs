@@ -326,6 +326,7 @@ internal sealed partial class ChatManager : IChatManager
         {
             wrappedMessage = Loc.GetString("chat-manager-send-ooc-patron-wrap-message", ("patronColor", patronColor),("playerName", player.Name), ("message", FormattedMessage.EscapeText(message)));
         }
+        wrappedMessage = Content.Server._WG.Mentors.MentorChatTag.Apply(_entityManager.System<Content.Server._WG.Mentors.WGMentorSystem>(), player, player.Name, wrappedMessage); // WOLFGATE(Mentors): mentor tag on OOC
 
         //TODO: player.Name color, this will need to change the structure of the MsgChatMessage
         ChatMessageToAll(ChatChannel.OOC, message, wrappedMessage, EntityUid.Invalid, hideChat: false, recordReplay: true, colorOverride: colorOverride, author: player.UserId);

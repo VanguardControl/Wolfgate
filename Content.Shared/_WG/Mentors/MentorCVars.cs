@@ -42,6 +42,10 @@ public sealed class MentorCVars
     public static readonly CVarDef<int> InactiveDays =
         CVarDef.Create("wg.mentor.inactive_days", 90, CVar.SERVERONLY);
 
+    /// <summary>Whether this mentor shows the crown plate over their head while on duty.</summary>
+    public static readonly CVarDef<bool> ShowCrown =
+        CVarDef.Create("wg.mentor.show_crown", true, CVar.CLIENT | CVar.REPLICATED | CVar.ARCHIVE);
+
     /// <summary>Whether this mentor starts every connection off duty.</summary>
     public static readonly CVarDef<bool> StartOffDuty =
         CVarDef.Create("wg.mentor.start_off_duty", false, CVar.CLIENT | CVar.REPLICATED | CVar.ARCHIVE);

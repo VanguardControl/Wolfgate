@@ -31,6 +31,12 @@ cmd-msay-help = Usage: msay <message>
 hud-chatbox-select-channel-Mentor = { wg-chat-select-mentor }
 hud-chatbox-channel-MentorChat = { wg-chat-channel-humanized-mentor }
 
+wg-mentor-examine = They are a Mentor.
+wg-examine-chip-mentor = Mentor
+wg-mentor-card-tooltip = This player is a Mentor. Ask them how the game works in Mentor Help (Shift+F1).
+wg-mentor-crown-option = Show my Mentor mark over my head
+wg-mentor-chat-tag = [M]
+
 # DRAFT: not on the strings page yet; Moon to confirm or rewrite before the PR.
 wg-mentor-cmd-not-on-roster = { $player } isn't a Mentor.
 wg-mentor-cmd-not-restorable = { $player } isn't suspended or inactive.
