@@ -286,6 +286,11 @@ internal sealed partial class ChatManager : IChatManager
                 SendEventChat(player, message);
                 break;
             // WOLFGATE END
+            // WOLFGATE(Mentors) START: mentor chat
+            case OOCChatType.Mentor:
+                SendMentorChat(player, message);
+                break;
+            // WOLFGATE END
         }
     }
 
@@ -470,4 +475,5 @@ public enum OOCChatType : byte
     OOC,
     Admin,
     Event, // WOLFGATE(EventStaff): event staff chat
+    Mentor, // WOLFGATE(Mentors): mentor chat
 }

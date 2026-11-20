@@ -11,7 +11,12 @@ setting), sends each client its status (`WGClientMentorSystem`) and everyone the
 changes tier and restores, writing the row's history and a `WGMentor` admin log line. Staff use
 `mentor list|grant|revoke|tier|restore` (Moderator); mentors use `mentor on|off`; anyone can run `mentorwho`.
 
-Still to come: applications, bans, marks, mentor chat, the staff tab and the panel endpoints.
+Mentor chat is a chat channel (`MentorChat`, kept out of replays with the admin channels) for active mentors, on duty
+or not, and staff with Adminhelp or Event: select Mentor in the chat box, start a line with `}`, or `msay <text>`.
+The server side is `ChatManager.Mentors.cs`; the client works out who may select it in `ChatUIController.Mentors.cs`,
+and `MentorsUIController` refreshes the chat box when a player's mentor status changes.
+
+Still to come: applications, bans, marks, the staff tab and the panel endpoints.
 
 ## Data
 
@@ -31,7 +36,9 @@ Read and written through `ServerDbManager.Mentors.cs`.
 
 ### Server
 
+- [`Content.Server/_WG/Mentors/ChatManager.Mentors.cs`](ChatManager.Mentors.cs)
 - [`Content.Server/_WG/Mentors/Commands/MentorCommand.cs`](Commands/MentorCommand.cs)
+- [`Content.Server/_WG/Mentors/Commands/MentorSayCommand.cs`](Commands/MentorSayCommand.cs)
 - [`Content.Server/_WG/Mentors/Commands/MentorWhoCommand.cs`](Commands/MentorWhoCommand.cs)
 - [`Content.Server/_WG/Mentors/MentorRows.cs`](MentorRows.cs)
 - [`Content.Server/_WG/Mentors/ServerDbBase.Mentors.cs`](ServerDbBase.Mentors.cs)
@@ -45,10 +52,13 @@ Read and written through `ServerDbManager.Mentors.cs`.
 
 ### Client
 
+- [`Content.Client/_WG/Mentors/ChatUIController.Mentors.cs`](../../../Content.Client/_WG/Mentors/ChatUIController.Mentors.cs)
+- [`Content.Client/_WG/Mentors/MentorsUIController.cs`](../../../Content.Client/_WG/Mentors/MentorsUIController.cs)
 - [`Content.Client/_WG/Mentors/WGClientMentorSystem.cs`](../../../Content.Client/_WG/Mentors/WGClientMentorSystem.cs)
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WG/Mentors/MentorChatTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Mentors/MentorChatTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Mentors/MentorDbTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Mentors/MentorDbTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Mentors/MentorRosterTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Mentors/MentorRosterTest.cs)
 
@@ -58,9 +68,21 @@ Read and written through `ServerDbManager.Mentors.cs`.
 
 ## Non-modular edits
 
+- [`Content.Client/Chat/Managers/ChatManager.cs`](../../../Content.Client/Chat/Managers/ChatManager.cs): mentor chat
+- [`Content.Client/UserInterface/Systems/Chat/ChatUIController.cs`](../../../Content.Client/UserInterface/Systems/Chat/ChatUIController.cs): mentors and staff see / filter mentor chat
+- [`Content.Client/UserInterface/Systems/Chat/Controls/ChannelFilterPopup.xaml.cs`](../../../Content.Client/UserInterface/Systems/Chat/Controls/ChannelFilterPopup.xaml.cs)
+- [`Content.Client/UserInterface/Systems/Chat/Controls/ChannelSelectorButton.cs`](../../../Content.Client/UserInterface/Systems/Chat/Controls/ChannelSelectorButton.cs)
+- [`Content.Client/UserInterface/Systems/Chat/Controls/ChannelSelectorPopup.cs`](../../../Content.Client/UserInterface/Systems/Chat/Controls/ChannelSelectorPopup.cs)
 - [`Content.Server.Database/Model.cs`](../../../Content.Server.Database/Model.cs)
   - the mentor roster and applications to join it
   - defaults for rows the panel writes, applications listed by player
+- [`Content.Server/Chat/Managers/ChatManager.cs`](../../Chat/Managers/ChatManager.cs): mentor chat
 - [`Content.Shared.Database/LogType.cs`](../../../Content.Shared.Database/LogType.cs): mentor roster, duty and ban actions
+- [`Content.Shared/Chat/ChatChannel.cs`](../../../Content.Shared/Chat/ChatChannel.cs)
+  - mentor chat
+  - keep mentor chat out of replays too
+- [`Content.Shared/Chat/ChatChannelExtensions.cs`](../../../Content.Shared/Chat/ChatChannelExtensions.cs): mentor chat tint
+- [`Content.Shared/Chat/ChatSelectChannel.cs`](../../../Content.Shared/Chat/ChatSelectChannel.cs): mentor chat
+- [`Content.Shared/Chat/SharedChatSystem.cs`](../../../Content.Shared/Chat/SharedChatSystem.cs): mentor chat
 
 <!-- WOLFGATE-GENERATED END -->

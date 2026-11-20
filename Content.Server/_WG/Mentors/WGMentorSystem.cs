@@ -83,6 +83,19 @@ public sealed class WGMentorSystem : EntitySystem
 
     public int OnDutyCount => Enabled ? _onDuty.Count : 0;
 
+    /// <summary>The connected active mentors, on duty or not.</summary>
+    public IEnumerable<ICommonSession> ActiveSessions()
+    {
+        if (!Enabled)
+            yield break;
+
+        foreach (var user in _active.Keys)
+        {
+            if (_players.TryGetSessionById(user, out var session))
+                yield return session;
+        }
+    }
+
     /// <summary>Puts a mentor on or off duty. False when they aren't an active mentor.</summary>
     public bool SetDuty(ICommonSession session, bool onDuty)
     {

@@ -23,6 +23,14 @@ wg-mentor-cmd-no-player = No player called { $player }.
 wg-mentor-cmd-done = { $player } is now a { $tier }.
 wg-mentor-cmd-revoked = { $player } is no longer a Mentor.
 
+wg-chat-channel-humanized-mentor = Mentor
+wg-chat-select-mentor = Mentor
+wg-mentor-chat-wrap = MENTOR: { $name }: { $message }
+cmd-msay-desc = Send a message to Mentor chat.
+cmd-msay-help = Usage: msay <message>
+hud-chatbox-select-channel-Mentor = { wg-chat-select-mentor }
+hud-chatbox-channel-MentorChat = { wg-chat-channel-humanized-mentor }
+
 # DRAFT: not on the strings page yet; Moon to confirm or rewrite before the PR.
 wg-mentor-cmd-not-on-roster = { $player } isn't a Mentor.
 wg-mentor-cmd-not-restorable = { $player } isn't suspended or inactive.
