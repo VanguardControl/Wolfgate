@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using Robust.Shared.Maths;
 using Content.Client._WG.CharacterPreview;
+using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 
 namespace Content.IntegrationTests.Tests._WG.CharacterPreview;
@@ -24,7 +25,15 @@ public sealed class PreviewFrameTest
         await client.WaitAssertion(() =>
         {
             var frame = new WGPreviewFrame { SetSize = new Vector2(200, 200) };
-            var view = new SpriteView();
+            // Laid out like the editor's view: a fixed, centred box with a Fit stretch.
+            var view = new SpriteView
+            {
+                Scale = new Vector2(8, 8),
+                Margin = new Thickness(4),
+                SetSize = new Vector2(192, 192),
+                HorizontalAlignment = Control.HAlignment.Center,
+                Stretch = SpriteView.StretchMode.Fit,
+            };
             frame.AddChild(view);
 
             var turns = new List<int>();
@@ -42,7 +51,15 @@ public sealed class PreviewFrameTest
             frame.SetZoom(2);
             frame.Measure(new Vector2(200, 200));
             frame.Arrange(UIBox2.FromDimensions(Vector2.Zero, new Vector2(200, 200)));
-            Assert.That(view.Size.X, Is.EqualTo(400).Within(0.5f), "At 2x the sprite is laid out twice the box.");
+            Assert.That(view.Size.X, Is.EqualTo(384).Within(0.5f), "At 2x the view is laid out twice its fixed size.");
+            Assert.That(view.Scale.X, Is.EqualTo(16).Within(0.01f), "At 2x the sprite draws at twice its scale.");
+            Assert.That(frame.DesiredSize.X, Is.EqualTo(200).Within(0.5f), "Zooming doesn't grow the frame.");
+
+            frame.SetZoom(1);
+            frame.Measure(new Vector2(200, 200));
+            frame.Arrange(UIBox2.FromDimensions(Vector2.Zero, new Vector2(200, 200)));
+            Assert.That(view.Size.X, Is.EqualTo(192).Within(0.5f), "Back at 1x the view returns to its own size.");
+            Assert.That(view.Scale.X, Is.EqualTo(8).Within(0.01f));
 
             for (var i = 0; i <= WGPreviewFrame.Backgrounds.Length; i++)
             {

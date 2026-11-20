@@ -42,6 +42,8 @@ public sealed class ScreentipUIController : UIController, IOnStateEntered<Gamepl
     public void OnStateEntered(GameplayState state)
     {
         _label = new Label { StyleClasses = { "LabelKeyText" } };
+        // A new label has no colour yet, so the next Show applies the configured one.
+        _colorHex = null;
         _panel = new PanelContainer
         {
             PanelOverride = new StyleBoxFlat

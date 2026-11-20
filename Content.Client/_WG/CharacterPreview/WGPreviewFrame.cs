@@ -37,6 +37,8 @@ public sealed class WGPreviewFrame : Control
     private readonly TextureRect _background = new() { Stretch = TextureRect.StretchMode.Scale, MouseFilter = MouseFilterMode.Ignore };
 
     private SpriteView? _view;
+    private Vector2? _baseScale;
+    private Vector2? _baseSize;
     private bool _dragging;
     private float _dragAccumulated;
     private float _lastMouseX;
@@ -85,7 +87,30 @@ public sealed class WGPreviewFrame : Control
     public void SetZoom(float zoom)
     {
         Zoom = Math.Clamp(zoom, MinZoom, MaxZoom);
-        InvalidateArrange();
+        if (_view != null)
+        {
+            // Fit never scales a sprite up, so zoom grows the view's size and scale together: Fit keeps its
+            // unzoomed ratio and a wide sprite stays fitted, just larger.
+            _baseScale ??= _view.Scale;
+            _baseSize ??= _view.SetSize;
+            _view.Scale = _baseScale.Value * Zoom;
+            _view.SetSize = _baseSize.Value * Zoom;
+        }
+
+        InvalidateMeasure();
+    }
+
+    protected override Vector2 MeasureOverride(Vector2 availableSize)
+    {
+        var desired = Vector2.Zero;
+        foreach (var child in Children)
+        {
+            child.Measure(availableSize * Zoom);
+            desired = Vector2.Max(desired, child.DesiredSize);
+        }
+
+        // Report the unzoomed size so zooming clips inside the box instead of growing the pane.
+        return desired / Zoom;
     }
 
     protected override Vector2 ArrangeOverride(Vector2 finalSize)
