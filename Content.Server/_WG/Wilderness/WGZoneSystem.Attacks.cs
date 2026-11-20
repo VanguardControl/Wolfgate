@@ -39,9 +39,10 @@ public sealed partial class WGZoneSystem
 
     /// <summary>
     /// Notes that a player ordered ship guns to fire from a gunnery console. Only a gun that then fires makes them its
-    /// ship's gunner, so guns on cooldown, empty or locked don't count.
+    /// ship's gunner, so guns on cooldown, empty or locked don't count. Guns another fire-control server controls are
+    /// ignored, since the console can't fire them.
     /// </summary>
-    public void NoteAim(EntityUid gunner, List<NetEntity> weapons)
+    public void NoteAim(EntityUid gunner, EntityUid server, List<NetEntity> weapons)
     {
         if (!HasComp<ActorComponent>(gunner))
             return;
@@ -49,7 +50,9 @@ public sealed partial class WGZoneSystem
         var now = _timing.CurTime;
         foreach (var weapon in weapons)
         {
-            if (TryGetEntity(weapon, out var gun) && HasComp<FireControllableComponent>(gun.Value))
+            if (TryGetEntity(weapon, out var gun)
+                && TryComp<FireControllableComponent>(gun.Value, out var controllable)
+                && controllable.ControllingServer == server)
                 _aims[gun.Value] = (gunner, now);
         }
     }

@@ -139,7 +139,7 @@ public sealed partial class FireControlSystem : EntitySystem
             return;
 
         _wgHack.WarnGunner(uid, args.Actor, args.Selected, args.Coordinates); // WOLFGATE(BoardingAction): tell the gunner why locked guns stay silent.
-        if (args.Selected is { Count: > 0 }) EntityManager.System<Content.Server._WG.Wilderness.WGZoneSystem>().NoteAim(args.Actor, args.Selected); // WOLFGATE(Wilderness): who fired, for attacks into a Wilderness
+        if (args.Selected is { Count: > 0 }) EntityManager.System<Content.Server._WG.Wilderness.WGZoneSystem>().NoteAim(args.Actor, component.ConnectedServer.Value, args.Selected); // WOLFGATE(Wilderness): who fired, for attacks into a Wilderness
 
         // Fire the actual weapons
         FireWeapons((EntityUid)component.ConnectedServer, args.Selected, args.Coordinates, server);

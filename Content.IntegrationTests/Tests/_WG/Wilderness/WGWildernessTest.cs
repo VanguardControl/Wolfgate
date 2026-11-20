@@ -320,7 +320,7 @@ public sealed class WGWildernessTest
         var cfg = server.ResolveDependency<IConfigurationManager>();
         var map = await pair.CreateTestMap();
         var zones = server.System<WGZoneSystem>();
-        EntityUid target = default, inside = default, attacker = default, far = default, farAttacker = default, mob = default, gun = default;
+        EntityUid target = default, inside = default, attacker = default, far = default, farAttacker = default, mob = default, gun = default, fireServer = default;
 
         await server.WaitPost(() =>
         {
@@ -333,13 +333,14 @@ public sealed class WGWildernessTest
             farAttacker = Ship(em, map, new Vector2(3500f, 0f));
             mob = Player(pair, em, new EntityCoordinates(attacker, 0.5f, 0.5f));
             gun = em.SpawnEntity(null, new EntityCoordinates(attacker, 0.5f, 0.5f));
-            em.EnsureComponent<FireControllableComponent>(gun);
+            fireServer = em.SpawnEntity(null, new EntityCoordinates(attacker, 0.5f, 0.5f));
+            em.EnsureComponent<FireControllableComponent>(gun).ControllingServer = fireServer;
         });
         await pair.RunSeconds(2f);
 
         await server.WaitAssertion(() =>
         {
-            zones.NoteAim(mob, new List<NetEntity> { em.GetNetEntity(gun) });
+            zones.NoteAim(mob, fireServer, new List<NetEntity> { em.GetNetEntity(gun) });
             Hit(em, target, inside);
             Hit(em, far, farAttacker);
             Assert.That(em.HasComponent<WGSkullComponent>(inside), Is.False, "fighting inside the Wilderness marked at once, without the stay.");
