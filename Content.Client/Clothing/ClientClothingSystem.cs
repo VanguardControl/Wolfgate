@@ -3,9 +3,10 @@ using System.Linq;
 using System.Numerics;
 using Content.Client.DisplacementMap;
 using Content.Client.Inventory;
-using Content.Client._WF.LegStyle; // WOLFGATE(LegStyle)
-using Content.Client._WF.AppearanceStudio; // WOLFGATE(AppearanceStudio)
-using Content.Client._WF.ClothingLayer; // WOLFGATE(ClothingLayer)
+using Content.Client._WG.LegStyle; // WOLFGATE(LegStyle)
+using Content.Client._WG.AppearanceStudio; // WOLFGATE(AppearanceStudio)
+using Content.Client._WG.ClothingLayer; // WOLFGATE(ClothingLayer)
+using Content.Client._WG.NeckSuits; // WOLFGATE(NeckSuits)
 using Content.Shared.Clothing;
 using Content.Shared.Clothing.Components;
 using Content.Shared.Clothing.EntitySystems;
@@ -60,6 +61,7 @@ public sealed partial class ClientClothingSystem : ClothingSystem
     [Dependency] private LegStyleSystem _legStyle = default!; // WOLFGATE(LegStyle)
     [Dependency] private StudioSpriteSystem _studioSprite = default!; // WOLFGATE(AppearanceStudio)
     [Dependency] private ClothingLayerSystem _clothingLayer = default!; // WOLFGATE(ClothingLayer)
+    [Dependency] private WGNeckSuitVisualsSystem _neckSuit = default!; // WOLFGATE(NeckSuits)
 
     public override void Initialize()
     {
@@ -112,18 +114,24 @@ public sealed partial class ClientClothingSystem : ClothingSystem
             return;
 
         List<PrototypeLayerData>? layers = null;
+        var visualSlot = _neckSuit.GetVisualSlot(uid, args.Slot); // WOLFGATE(NeckSuits): a suit in a neck slot draws its outer-suit sprites
 
+        // WOLFGATE(NeckSuits) START: look up visuals by visualSlot instead of args.Slot
         // first attempt to get species specific data.
         if (inventory.SpeciesId != null)
-            item.ClothingVisuals.TryGetValue($"{args.Slot}-{inventory.SpeciesId}", out layers);
+            item.ClothingVisuals.TryGetValue($"{visualSlot}-{inventory.SpeciesId}", out layers);
+
+        if (layers != null && !SpeciesStatesExist(uid, item, layers)) // WOLFGATE(Species): a missing species state falls back to the plain one
+            layers = null;
 
         // if that returned nothing, attempt to find generic data
-        if (layers == null && !item.ClothingVisuals.TryGetValue(args.Slot, out layers))
+        if (layers == null && !item.ClothingVisuals.TryGetValue(visualSlot, out layers))
         {
             // No generic data either. Attempt to generate defaults from the item's RSI & item-prefixes
-            if (!TryGetDefaultVisuals(uid, item, args.Slot, inventory.SpeciesId, out layers))
+            if (!TryGetDefaultVisuals(uid, item, visualSlot, inventory.SpeciesId, out layers))
                 return;
         }
+        // WOLFGATE END
 
         // add each layer to the visuals
         var i = 0;
@@ -306,6 +314,7 @@ public sealed partial class ClientClothingSystem : ClothingSystem
         }
 
         displacementData = _legStyle.GetDisplacement(equipee, slot, displacementData); // WOLFGATE(LegStyle): picked legs decide the map for the slots they reshape
+        displacementData = _neckSuit.GetDisplacement(equipee, equipment, inventory, displacementData); // WOLFGATE(NeckSuits): a suit in a neck slot uses the outer-suit map
         // WOLFGATE(AppearanceStudio) START: a warp the player painted for this slot replaces the species map
         if (_studioSprite.TryGetWornWarp(equipee, slot, out var studioWarp))
             displacementData = studioWarp;

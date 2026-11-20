@@ -24,7 +24,7 @@ using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Content.Server._NF.Traits.Assorted;
-using Content.Server._WF.Wolfmed.Life; // WOLFGATE(Wolfmed)
+using Content.Server._WG.Wolfmed.Life; // WOLFGATE(Wolfmed)
 
 namespace Content.Server._NF.Medical;
 
@@ -81,6 +81,9 @@ public sealed partial class MedicalBountySystem : EntitySystem
     {
         if (component.BountyInitialized)
             return;
+
+        // WOLFGATE: a bounty patient is redeemed at the medical bounty machine, not sold at a pallet for more than the bounty
+        EnsureComp<Content.Server.Cargo.Components.CargoSellBlacklistComponent>(entity);
 
         if (component.Bounty == null)
         {

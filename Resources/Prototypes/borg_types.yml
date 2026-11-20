@@ -59,7 +59,7 @@
     damageContainers:
     - Inorganic
     - Silicon
-    - WFSiliconWolfmed # WOLFGATE(Wolfmed): playtest 3: the IPC's container, so its bar shows
+    - WGSiliconWolfmed # WOLFGATE(Wolfmed): playtest 3: the IPC's container, so its bar shows
     - Synth # WOLFGATE(Wolfmed): the HardLight Synth's container, so its bar shows
 
   # Visual
@@ -165,7 +165,7 @@
   - BorgModuleTool # Mono
   - BorgModuleTreatment
   - BorgModuleSurgery # Mono
-  - BorgModuleDefibrillator # Mono
+  # - BorgModuleDefibrillator # Mono # WOLFGATE(Cyborgs): the treatment module carries the defibrillator
 
   radioChannels:
   - Science

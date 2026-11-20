@@ -29,9 +29,10 @@ public static class SharedSymphony
     /// wolfgate_census_response, which the panel reads, and /symphony/census, /symphony/census/delete. Version 17 added
     /// the web character creator: /symphony/characters (list, save, validate) and /symphony/creator/catalog, /rsi and
     /// /art. Version 18 added /symphony/custom-markings (the custom marking library: list, save, delete) and
-    /// /symphony/studio/warps.
+    /// /symphony/studio/warps. Version 19 added /symphony/logs: the server's own latest log lines, every level it logs
+    /// at, for the panel's live server log.
     /// </summary>
-    public const int ModuleVersion = 18;
+    public const int ModuleVersion = 19;
 
     /// <summary>
     /// Key of the one-time Discord link URL in a whitelist refusal's structured properties.

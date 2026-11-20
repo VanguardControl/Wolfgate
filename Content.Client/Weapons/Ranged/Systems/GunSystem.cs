@@ -36,7 +36,7 @@ using Content.Shared.Damage;
 using Content.Shared.Hands.Components;
 using Content.Shared._Mono.FireControl;
 using Content.Shared._RMC14.Weapons.Ranged.Prediction;
-using GunUseGunOriginComponent = Content.Shared._WF.Vehicles.Weapons.GunUseGunOriginComponent; // WOLFGATE(Vehicles)
+using GunUseGunOriginComponent = Content.Shared._WG.Vehicles.Weapons.GunUseGunOriginComponent; // WOLFGATE(Vehicles)
 using Content.Shared.Mech.Components;
 using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Hitscan.Components;
@@ -242,9 +242,14 @@ public sealed partial class GunSystem : SharedGunSystem
 
         var useKey = gunUid.Comp.UseKey ? EngineKeyFunctions.Use : EngineKeyFunctions.UseSecondary;
 
-        if (_inputSystem.CmdStates.GetState(useKey) != BoundKeyState.Down && !gunUid.Comp.BurstActivated)
+        // WOLFGATE(Weapons) START: no requests with the trigger up; the server finishes a started burst itself.
+        // A request landing after the burst ended started a new one, so a short burst cooldown fired forever.
+        // upstream original, kept for merges:
+        // if (_inputSystem.CmdStates.GetState(useKey) != BoundKeyState.Down && !gunUid.Comp.BurstActivated)
+        if (_inputSystem.CmdStates.GetState(useKey) != BoundKeyState.Down)
+        // WOLFGATE END
         {
-            if (gunUid.Comp.ShotCounter != 0)
+            if (gunUid.Comp.ShotCounter != 0 && !gunUid.Comp.BurstActivated) // WOLFGATE(Weapons): a burst still runs out
                 EntityManager.RaisePredictiveEvent(new RequestStopShootEvent { Gun = GetNetEntity(gunUid) });
             return;
         }

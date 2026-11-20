@@ -5,6 +5,7 @@
   priority: -2
   ruleEntry: true
   children:
+    - MonolithRuleCoreZeroAgeThreshold # WOLFGATE: rule 0 is listed in the ruleset, nest it so Symphony doesn't show it as its own ruleset
     - MonolithRuleCoreOneCommonSense
     - MonolithRuleCoreTwoRespect
     - MonolithRuleCoreThreeCheatingExploits
@@ -27,8 +28,8 @@
     - MonolithRuleConflictTwoNewLife
     - MonolithRuleConflictThreeFairPlay
     - MonolithRuleConflictFourPortStriking
-    - WFRuleConflictFiveDeclaringWar # WOLFGATE(ColdWar)
-    - WFRuleConflictSixNewPlayers # WOLFGATE(Newbie)
+    - WGRuleConflictFiveDeclaringWar # WOLFGATE(ColdWar)
+    - WGRuleConflictSixNewPlayers # WOLFGATE(Newbie)
 
 #MARK: Core Rules
 

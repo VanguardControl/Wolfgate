@@ -1,7 +1,7 @@
 using System.Numerics;
-using Content.Client._WF.Options; // WOLFGATE(Options)
-using Content.Shared._WF.RMCCore.Input; // WOLFGATE(Xenonids)
-using Content.Shared._WF.LandingGuide; // WOLFGATE(LandingGuide)
+using Content.Client._WG.Options; // WOLFGATE(Options)
+using Content.Shared._WG.RMCCore.Input; // WOLFGATE(Xenonids)
+using Content.Shared._WG.LandingGuide; // WOLFGATE(LandingGuide)
 using Content.Client.Stylesheets;
 using Content.Shared.CCVar;
 using Content.Shared.Input;
@@ -202,7 +202,7 @@ namespace Content.Client.Options.UI.Tabs
             AddButton(ContentKeyFunctions.ActivateItemInWorld);
             AddButton(ContentKeyFunctions.AltActivateItemInWorld);
             AddButton(ContentKeyFunctions.Drop);
-            AddButton(ContentKeyFunctions.WFOfferItem); // WOLFGATE(ExtraInteractions): hold out the active item
+            AddButton(ContentKeyFunctions.WGOfferItem); // WOLFGATE(ExtraInteractions): hold out the active item
             AddButton(ContentKeyFunctions.ExamineEntity);
             AddButton(ContentKeyFunctions.SwapHands);
             AddButton(ContentKeyFunctions.SwapHandsPrevious); // Frontier
@@ -277,6 +277,11 @@ namespace Content.Client.Options.UI.Tabs
             AddButton(ContentKeyFunctions.OpenTileSpawnWindow);
             AddButton(ContentKeyFunctions.OpenDecalSpawnWindow);
             AddButton(ContentKeyFunctions.OpenAdminMenu);
+            // WOLFGATE(AdminObserver) START: admin ghost, manifest and observer panel keys
+            AddButton(Content.Shared._WG.AdminObserver.WGAdminObserverKeys.WGToggleAghost);
+            AddButton(Content.Shared._WG.AdminObserver.WGAdminObserverKeys.WGToggleManifest);
+            AddButton(Content.Shared._WG.AdminObserver.WGAdminObserverKeys.WGOpenObserverPanel);
+            // WOLFGATE END
             AddButton(EngineKeyFunctions.WindowCloseAll);
             AddButton(EngineKeyFunctions.WindowCloseRecent);
             AddButton(EngineKeyFunctions.EscapeMenu);
@@ -324,7 +329,7 @@ namespace Content.Client.Options.UI.Tabs
             AddButton(ContentKeyFunctions.ShuttleBrake);
             AddButton(ContentKeyFunctions.ShuttleAscend); // Mono
             AddButton(ContentKeyFunctions.ShuttleDescend); // Mono
-            AddButton(WFLandingGuideKeys.WFToggleLandingGuide); // WOLFGATE(LandingGuide): landing guide toggle
+            AddButton(WGLandingGuideKeys.WGToggleLandingGuide); // WOLFGATE(LandingGuide): landing guide toggle
 
             AddHeader("ui-options-header-map-editor");
             AddButton(EngineKeyFunctions.EditorPlaceObject);
