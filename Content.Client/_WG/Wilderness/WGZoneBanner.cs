@@ -23,7 +23,6 @@ public sealed class WGZoneBanner : PanelContainer
     private readonly RichTextLabel _markDetail;
     private readonly WGHazardStripe _stripe;
 
-    private Color _color = Color.White;
     private bool _hovered;
 
     /// <summary>Whether the details show whatever the cursor does; set by the HUD while it holds them open.</summary>
@@ -42,7 +41,7 @@ public sealed class WGZoneBanner : PanelContainer
         MaxWidth = 640;
         PanelOverride = _box;
         _box.BackgroundColor = Color.Black.WithAlpha(0.8f);
-        _box.BorderThickness = new Thickness(2);
+        _box.BorderThickness = new Thickness(1);
         _box.SetContentMarginOverride(StyleBox.Margin.All, 0);
 
         _icon = new TextureRect
@@ -76,7 +75,7 @@ public sealed class WGZoneBanner : PanelContainer
         _details.AddChild(_markDetail);
         _details.AddChild(hint);
 
-        _stripe = new WGHazardStripe { MinHeight = 3 };
+        _stripe = new WGHazardStripe { MinHeight = 2 };
 
         var column = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
         column.AddChild(row);
@@ -94,8 +93,7 @@ public sealed class WGZoneBanner : PanelContainer
     /// </summary>
     public void Set(Color color, Texture? icon, string title, string summary, string? mark, string? markDetail, bool stripes)
     {
-        _color = color;
-        _box.BorderColor = color;
+        _box.BorderColor = color.WithAlpha(0.7f);
         _icon.Texture = icon;
         _icon.Visible = icon != null;
         _title.Text = title;
@@ -120,12 +118,6 @@ public sealed class WGZoneBanner : PanelContainer
         _stripe.Visible = stripes;
         _stripe.Color = color;
         _details.Visible = HoldOpen || _hovered;
-    }
-
-    /// <summary>Sets how strongly the border shows, for pulsing.</summary>
-    public void Pulse(float strength)
-    {
-        _box.BorderColor = _color.WithAlpha(Math.Clamp(strength, 0f, 1f));
     }
 
     protected override void KeyBindDown(GUIBoundKeyEventArgs args)

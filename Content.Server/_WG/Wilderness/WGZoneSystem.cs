@@ -33,6 +33,7 @@ public sealed partial class WGZoneSystem : EntitySystem
     [Dependency] private IChatManager _chat = default!;
     [Dependency] private DockingSystem _docking = default!;
     [Dependency] private MetaDataSystem _metaData = default!;
+    [Dependency] private INetConfigurationManager _netCfg = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private SectorServiceSystem _sector = default!;
@@ -193,7 +194,7 @@ public sealed partial class WGZoneSystem : EntitySystem
             if (current == null)
                 return;
 
-            if (old != null)
+            if (old != null && WantsZoneChat(session))
                 Tell(session, Loc.GetString(old.Left, ("place", current.Place)), old.Color);
 
             RemComp<WGInZoneComponent>(mob);
@@ -219,7 +220,14 @@ public sealed partial class WGZoneSystem : EntitySystem
         current.Hot = hot;
         Dirty(mob, current);
 
-        Tell(session, Loc.GetString(zone.Entered, ("place", place), ("summary", WGZoneText.Summary(zone, hot, _cfg.GetCVar(WildernessCVars.OpenToAll), _onFoot))), zone.Color);
+        if (WantsZoneChat(session))
+            Tell(session, Loc.GetString(zone.Entered, ("place", place), ("summary", WGZoneText.Summary(zone, hot, _cfg.GetCVar(WildernessCVars.OpenToAll), _onFoot))), zone.Color);
+    }
+
+    /// <summary>Whether the player wants a chat line on entering or leaving a zone.</summary>
+    private bool WantsZoneChat(ICommonSession session)
+    {
+        return _netCfg.GetClientCVar(session.Channel, WildernessCVars.ZoneChat);
     }
 
     private void Tell(ICommonSession session, string message, Color color)

@@ -29,8 +29,11 @@ A marked ship or person has no protection anywhere, Safe Zone included. `wg.wild
 or only TSF and PDV may fight there. The guidebook's `<WGWildernessRule/>` writes the settings into the rules.
 
 The client (`WGZoneHudSystem`) shows a one-line pill under the top menu (zone, place, mark state) that opens to explain
-the zone for a few seconds after a change or under the cursor, and opens the rule when clicked; a title on crossing in or
-out; and a pulsing border in a Wilderness or while marked. It shows the player's own mark, or else their ship's. The
+the zone for a few seconds on entering danger or under the cursor, and opens the rule when clicked; a title and a sound
+on crossing in; and a faint, still border while marked. It shows the player's own mark, or else their ship's. Each part
+has a client setting (`wg.wilderness.banner`, `titles`, `sounds`: always, danger or off; `screen_border`: wilderness,
+marked or off; `zone_chat`, read by the server for the crossing lines). Danger means a Wilderness, an outpost at war,
+or being marked, and is the default for all three. The
 player gets one zone alert: the zone's, with a sweep counting down to the mark in a Wilderness, or the mark's, counting
 down once out. `WGSkullOverlay` draws an 8 px skull centred over each marked person, like the status icons, and hidden
 where they are. Every radar (helm, mass scanner, gunnery and drone consoles) draws each zone's edge, and a marked ship's

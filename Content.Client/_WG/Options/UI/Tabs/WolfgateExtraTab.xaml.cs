@@ -32,7 +32,22 @@ public sealed partial class WolfgateExtraTab : Control
         Control.AddOptionCheckBox(WolfgateCVars.RadarIconsOnly, RadarIconsOnlyCheckBox);
         Control.AddOptionCheckBox(WolfgateCVars.RadarHoverReveal, RadarHoverRevealCheckBox);
         Control.AddOptionCheckBox(WGNewbieCVars.ShowTag, ShowNewbieTagCheckBox);
-        Control.AddOptionCheckBox(WildernessCVars.Border, WildernessBorderCheckBox);
+        var zoneShow = new List<OptionDropDownCVar<string>.ValueOption>
+        {
+            new(WildernessCVars.ShowAlways, Loc.GetString("ui-options-wg-wilderness-always")),
+            new(WildernessCVars.ShowDanger, Loc.GetString("ui-options-wg-wilderness-danger")),
+            new(WildernessCVars.ShowOff, Loc.GetString("ui-options-wg-wilderness-off")),
+        };
+        Control.AddOptionDropDown(WildernessCVars.Banner, WildernessBannerDropDown, zoneShow);
+        Control.AddOptionDropDown(WildernessCVars.Titles, WildernessTitlesDropDown, zoneShow);
+        Control.AddOptionDropDown(WildernessCVars.Sounds, WildernessSoundsDropDown, zoneShow);
+        Control.AddOptionDropDown(WildernessCVars.ScreenBorder, WildernessBorderDropDown, new List<OptionDropDownCVar<string>.ValueOption>
+        {
+            new(WildernessCVars.BorderWilderness, Loc.GetString("ui-options-wg-wilderness-border-wilderness")),
+            new(WildernessCVars.BorderMarked, Loc.GetString("ui-options-wg-wilderness-border-marked")),
+            new(WildernessCVars.ShowOff, Loc.GetString("ui-options-wg-wilderness-off")),
+        });
+        Control.AddOptionCheckBox(WildernessCVars.ZoneChat, WildernessChatCheckBox);
         Control.AddOptionCheckBox(WildernessCVars.RadarRings, WildernessRingsCheckBox);
 
         Control.AddOptionCheckBox(HeatHazeCVars.Enabled, HeatHazeCheckBox);

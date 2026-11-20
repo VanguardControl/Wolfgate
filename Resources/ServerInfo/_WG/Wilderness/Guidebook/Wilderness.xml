@@ -1,13 +1,13 @@
 <Document>
 # Zones and the Wilderness
 
-Some places change what the rules protect. Your screen tells you where you are: a banner at the top while you are inside one, a large title as you cross in or out, an alert, and a line in chat. Shuttle consoles and mass scanners draw each zone's edge as a dashed ring. Click the banner to open the rule behind it.
+Some places change what the rules protect. An alert shows the zone you are in, and a line in chat says when you cross in or out. Where you can be attacked (a Wilderness, an outpost at war, or anywhere while you are marked) a banner also shows at the top, with a title and a sound as you cross in. Shuttle consoles and mass scanners draw each zone's edge as a dashed ring. Click the banner to open the rule behind it.
 
 ## [color=#2e9e4f]Safe Zone[/color]
 Caelestinus Central and everything within 256 m of it. Policy protects everyone here who is not causing trouble: no theft, no unprovoked attacks. Green banner. See [textlink="Safe Zones" link="MonolithRuleRoleplaySevenSafeZones"].
 
 ## [color=#d93c3c]Wilderness[/color]
-Everything within 512 m of an event site: bluespace vaults and weapons caches, wrecks and other bluespace events, planetary vaults and Monolithic Fragments. A salvage wreck someone has claimed is their ship and no longer a Wilderness; claiming a vault, cache or fragment changes nothing. Red banner with hazard stripes, and a red border round the screen.
+Everything within 512 m of an event site: bluespace vaults and weapons caches, wrecks and other bluespace events, planetary vaults and Monolithic Fragments. A salvage wreck someone has claimed is their ship and no longer a Wilderness; claiming a vault, cache or fragment changes nothing. Red banner with hazard stripes, and a faint red border round the screen while you are marked.
 <WGWildernessRule/>
 
 While you are being marked, the banner counts down. Once marked, it shows how long your mark, or your ship's, has left. A marked ship's name shows red with a skull on everyone's radar, and a marked person has a skull over their head. See [textlink="Random deathmatch" link="MonolithRuleConflictOneRandomDeathmatch"].
@@ -19,5 +19,5 @@ Within 256 m of a faction outpost such as Halcyon. While the war is COLD, the ou
 Aboard, or docked at, a station named as not a Safe Zone, such as Camelot or the Underground Black Market, or a mobile base such as the Jupiter. Ordinary rules and escalation apply. Grey banner.
 
 ## Settings
-The screen border and the radar rings can be turned off under Options, Extra, Zones. The banner and the alert always show.
+Under Options, Extra, Zones you choose where the banner, the crossing title and the sounds show (in every zone, only where you can be attacked, or never), when the screen border shows, and whether you get the chat lines and the radar rings. The alert always shows, and so do the chat messages about your mark.
 </Document>

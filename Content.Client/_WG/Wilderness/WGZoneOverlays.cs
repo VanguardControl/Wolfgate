@@ -27,10 +27,10 @@ internal static class WGZoneScreen
     }
 }
 
-/// <summary>A coloured frame round the game view, fading inward, that pulses unless motion is reduced.</summary>
+/// <summary>A faint, still coloured frame round the game view, fading inward.</summary>
 public sealed class WGZoneBorderOverlay : Overlay
 {
-    private const int Bands = 14;
+    private const int Bands = 8;
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
@@ -50,7 +50,7 @@ public sealed class WGZoneBorderOverlay : Overlay
         {
             var inset = band * i;
             var fade = 1f - i / (float) Bands;
-            var color = Color.WithAlpha(Alpha * 0.55f * fade * fade);
+            var color = Color.WithAlpha(Alpha * 0.3f * fade * fade);
             var outer = new UIBox2(box.Left + inset, box.Top + inset, box.Right - inset, box.Bottom - inset);
             handle.DrawRect(new UIBox2(outer.Left, outer.Top, outer.Right, outer.Top + band), color);
             handle.DrawRect(new UIBox2(outer.Left, outer.Bottom - band, outer.Right, outer.Bottom), color);
@@ -131,7 +131,7 @@ public sealed class WGZoneTitleOverlay : Overlay
 {
     [Dependency] private IResourceCache _cache = default!;
 
-    private const int FontSize = 36;
+    private const int FontSize = 26;
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
@@ -158,7 +158,7 @@ public sealed class WGZoneTitleOverlay : Overlay
         var box = WGZoneScreen.Of(args);
         var scale = Math.Clamp(box.Height / 1080f, 0.5f, 1.2f);
         var centre = box.Left + box.Width / 2f;
-        var y = box.Top + box.Height * 0.22f;
+        var y = box.Top + box.Height * 0.16f;
 
         var size = handle.GetDimensions(_font, Title, scale);
         // Narrow views shrink the title to fit rather than cut it off.

@@ -3,7 +3,6 @@ using Content.Client.UserInterface.Systems.MenuBar.Widgets;
 using Content.Client.UserInterface.Systems.Guidebook;
 using Content.Shared._WG.Vehicles.Core;
 using Content.Shared._WG.Wilderness;
-using Content.Shared.CCVar;
 using Robust.Client.Audio;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
@@ -21,9 +20,9 @@ using Robust.Shared.Utility;
 namespace Content.Client._WG.Wilderness;
 
 /// <summary>
-/// Shows the local player the zone they're in and their Wilderness mark: a banner at the top of the screen, a large
-/// title on crossing in or out, a coloured screen border in a Wilderness or while marked, and a skull over marked
-/// people's heads for everyone.
+/// Shows the local player the zone they're in and their Wilderness mark: a pill at the top of the screen, a title on
+/// crossing in or out, a coloured screen border while marked, and a skull over marked people's heads for everyone.
+/// Each part follows its own setting in the Extra options tab; by default only danger gets more than the alert.
 /// </summary>
 public sealed class WGZoneHudSystem : EntitySystem
 {
@@ -41,11 +40,14 @@ public sealed class WGZoneHudSystem : EntitySystem
     private static readonly SoundSpecifier MarkedSound = new SoundPathSpecifier("/Audio/Effects/alert.ogg");
     private static readonly SpriteSpecifier MarkedIcon = new SpriteSpecifier.Rsi(new ResPath("/Textures/_WG/Wilderness/zones.rsi"), "marked");
 
-    private const float TitleHold = 2.5f;
-    private const float DetailsOpen = 8f;
-    private const float TitleFade = 0.8f;
+    private const float TitleHold = 1.5f;
+    private const float DetailsOpen = 5f;
+    private const float TitleFade = 0.6f;
     private const float BannerTop = 8f;
     private const float ChipGap = 8f;
+
+    /// <summary>Decibels taken off every zone sound.</summary>
+    private const float SoundQuieter = -6f;
 
     private WGZoneBanner? _banner;
     private readonly WGZoneBorderOverlay _border = new();
@@ -57,9 +59,9 @@ public sealed class WGZoneHudSystem : EntitySystem
     private string? _lastZone;
     private string? _lastPlace;
     private bool _lastMarked;
-    private float _pulse;
+    private bool _lastDanger;
 
-    /// <summary>Seconds the banner's details stay open after the zone or mark changes.</summary>
+    /// <summary>Seconds the banner's details stay open after entering danger.</summary>
     private float _openFor;
 
     public override void Initialize()
@@ -88,6 +90,7 @@ public sealed class WGZoneHudSystem : EntitySystem
         _lastZone = null;
         _lastPlace = null;
         _lastMarked = false;
+        _lastDanger = false;
     }
 
     public override void FrameUpdate(float frameTime)
@@ -96,7 +99,8 @@ public sealed class WGZoneHudSystem : EntitySystem
 
         if (_player.LocalEntity is not { } mob)
         {
-            Hide();
+            HideBanner();
+            HideBorder();
             ClearTitle();
             return;
         }
@@ -117,14 +121,31 @@ public sealed class WGZoneHudSystem : EntitySystem
         if (skull == null && !TryComp(mob, out dwell) && vessel is { } staying && TryComp(staying, out dwell))
             ship = HasComp<MapGridComponent>(staying);
 
-        var reduced = _cfg.GetCVar(CCVars.ReducedMotion);
-        _pulse += frameTime;
-        var wave = reduced ? 1f : 0.65f + 0.35f * MathF.Abs(MathF.Sin(_pulse * 2.4f));
-
-        Announce(zone, inZone, skull != null, ship);
-        UpdateBanner(zone, inZone, skull, dwell, ship, wave, frameTime);
-        UpdateBorder(zone, skull != null, wave);
+        var marked = skull != null;
+        var danger = Danger(zone, inZone, marked);
+        Announce(zone, inZone, marked, danger);
+        UpdateBanner(zone, inZone, skull, dwell, ship, danger, frameTime);
+        UpdateBorder(zone, marked);
         UpdateTitle(frameTime);
+    }
+
+    /// <summary>Where the player can be attacked without escalation: a Wilderness, an outpost at war, or anywhere while marked.</summary>
+    private static bool Danger(WGZonePrototype? zone, WGInZoneComponent? inZone, bool marked)
+    {
+        return marked
+            || zone?.Kind == WGZoneKind.Wilderness
+            || (zone?.Kind == WGZoneKind.Outpost && inZone?.Hot == true);
+    }
+
+    /// <summary>Whether an always/danger/off setting lets something show, given whether the player is in danger.</summary>
+    private bool Allows(CVarDef<string> setting, bool danger)
+    {
+        return _cfg.GetCVar(setting) switch
+        {
+            WildernessCVars.ShowAlways => true,
+            WildernessCVars.ShowOff => false,
+            _ => danger,
+        };
     }
 
     /// <summary>What the player is aboard that carries a mark of its own: a ship marked or being marked, or a vehicle.</summary>
@@ -144,8 +165,8 @@ public sealed class WGZoneHudSystem : EntitySystem
         return vehicle;
     }
 
-    /// <summary>The title and sound on crossing into or out of a zone, and on being marked.</summary>
-    private void Announce(WGZonePrototype? zone, WGInZoneComponent? inZone, bool marked, bool ship)
+    /// <summary>The title and sound on crossing into or out of a zone, and on being marked, as the settings allow.</summary>
+    private void Announce(WGZonePrototype? zone, WGInZoneComponent? inZone, bool marked, bool danger)
     {
         var id = zone?.ID;
         var place = zone != null ? inZone?.Place : null;
@@ -155,23 +176,34 @@ public sealed class WGZoneHudSystem : EntitySystem
             _lastMarked = marked;
             _lastZone = null;
             _lastPlace = null;
+            _lastDanger = false;
         }
 
         if (marked && !_lastMarked)
         {
-            ShowTitle(Loc.GetString("wg-zone-title-marked"), Loc.GetString("wg-zone-title-marked-sub"), MarkColor);
-            _audio.PlayGlobal(MarkedSound, Filter.Local(), false);
+            if (Allows(WildernessCVars.Titles, true))
+                ShowTitle(Loc.GetString("wg-zone-title-marked"), Loc.GetString("wg-zone-title-marked-sub"), MarkColor);
+            if (Allows(WildernessCVars.Sounds, true))
+                Play(MarkedSound);
+            _openFor = DetailsOpen;
         }
         else if (id != _lastZone || place != _lastPlace)
         {
             if (zone != null && inZone != null)
             {
-                var title = Loc.GetString("wg-zone-title-entering", ("title", WGZoneText.Title(zone, inZone.Hot)));
-                ShowTitle(title, inZone.Place, zone.Color);
-                if (zone.EnterSound != null)
-                    _audio.PlayGlobal(zone.EnterSound, Filter.Local(), false);
+                if (Allows(WildernessCVars.Titles, danger))
+                {
+                    var title = Loc.GetString("wg-zone-title-entering", ("title", WGZoneText.Title(zone, inZone.Hot)));
+                    ShowTitle(title, inZone.Place, zone.Color);
+                }
+
+                if (zone.EnterSound != null && Allows(WildernessCVars.Sounds, danger))
+                    Play(zone.EnterSound);
+
+                if (danger)
+                    _openFor = DetailsOpen;
             }
-            else if (_lastZone != null && _proto.TryIndex<WGZonePrototype>(_lastZone, out var old))
+            else if (_lastZone != null && _proto.TryIndex<WGZonePrototype>(_lastZone, out var old) && Allows(WildernessCVars.Titles, _lastDanger))
             {
                 ShowTitle(Loc.GetString("wg-zone-title-leaving", ("title", Loc.GetString(old.Title))), string.Empty, Color.FromHex("#c8ccd0"));
             }
@@ -180,6 +212,12 @@ public sealed class WGZoneHudSystem : EntitySystem
         _lastZone = id;
         _lastPlace = place;
         _lastMarked = marked;
+        _lastDanger = danger;
+    }
+
+    private void Play(SoundSpecifier sound)
+    {
+        _audio.PlayGlobal(sound, Filter.Local(), false, sound.Params.AddVolume(SoundQuieter));
     }
 
     private void ShowTitle(string title, string sub, Color color)
@@ -194,7 +232,6 @@ public sealed class WGZoneHudSystem : EntitySystem
         _title.Sub = sub;
         _title.Color = color;
         _titleAge = 0f;
-        _openFor = DetailsOpen;
     }
 
     private void UpdateTitle(float frameTime)
@@ -215,11 +252,12 @@ public sealed class WGZoneHudSystem : EntitySystem
     }
 
     private void UpdateBanner(WGZonePrototype? zone, WGInZoneComponent? inZone, WGSkullComponent? skull, WGWildernessDwellComponent? dwell,
-        bool ship, float wave, float frameTime)
+        bool ship, bool danger, float frameTime)
     {
-        if (zone == null && skull == null)
+        _openFor = MathF.Max(0f, _openFor - frameTime);
+        if ((zone == null && skull == null) || !Allows(WildernessCVars.Banner, danger))
         {
-            Hide();
+            HideBanner();
             return;
         }
 
@@ -248,7 +286,6 @@ public sealed class WGZoneHudSystem : EntitySystem
             markDetail = Loc.GetString("wg-zone-banner-marking", ("ship", shipArg), ("seconds", left));
         }
 
-        _openFor = MathF.Max(0f, _openFor - frameTime);
         banner.HoldOpen = _openFor > 0f;
 
         var open = _cfg.GetCVar(WildernessCVars.OpenToAll);
@@ -272,8 +309,6 @@ public sealed class WGZoneHudSystem : EntitySystem
                 Loc.GetString("wg-zone-title-marked"), Loc.GetString("wg-zone-title-marked-sub"), mark, markDetail, true);
         }
 
-        var urgent = zone?.Kind == WGZoneKind.Wilderness || skull != null;
-        banner.Pulse(urgent ? wave : 1f);
         banner.Visible = true;
 
         // Under the top menu, so it never covers its buttons.
@@ -284,13 +319,19 @@ public sealed class WGZoneHudSystem : EntitySystem
         LayoutContainer.SetMarginTop(banner, top);
         _chips.TopMargin = top + banner.Size.Y + ChipGap;
     }
-    private void UpdateBorder(WGZonePrototype? zone, bool marked, float wave)
+
+    private void UpdateBorder(WGZonePrototype? zone, bool marked)
     {
-        var show = _cfg.GetCVar(WildernessCVars.Border) && (marked || zone?.Border == true);
+        var show = _cfg.GetCVar(WildernessCVars.ScreenBorder) switch
+        {
+            WildernessCVars.BorderWilderness => marked || zone?.Border == true,
+            WildernessCVars.ShowOff => false,
+            _ => marked,
+        };
+
         if (!show)
         {
-            if (_overlays.HasOverlay<WGZoneBorderOverlay>())
-                _overlays.RemoveOverlay(_border);
+            HideBorder();
             return;
         }
 
@@ -298,15 +339,19 @@ public sealed class WGZoneHudSystem : EntitySystem
             _overlays.AddOverlay(_border);
 
         _border.Color = marked ? MarkColor : zone!.Color;
-        _border.Alpha = wave;
+        _border.Alpha = 1f;
     }
 
-    private void Hide()
+    private void HideBanner()
     {
         if (_banner != null)
             _banner.Visible = false;
 
         _chips.TopMargin = null;
+    }
+
+    private void HideBorder()
+    {
         if (_overlays.HasOverlay<WGZoneBorderOverlay>())
             _overlays.RemoveOverlay(_border);
     }

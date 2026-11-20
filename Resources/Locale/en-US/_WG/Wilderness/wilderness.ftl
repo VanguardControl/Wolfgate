@@ -112,7 +112,7 @@ wg-alert-zone-safe-desc = Policy protects you here: no theft, no unprovoked atta
 wg-alert-zone-outpost-name = Faction outpost
 wg-alert-zone-outpost-desc = Within 256 m of a faction outpost: protected from port strikes while the war is COLD, open to them while it is HOT.
 wg-alert-zone-wilderness-name = Wilderness
-wg-alert-zone-wilderness-desc = No policy protection. Who may fight here without escalation is in the Wilderness rules: click the zone banner. Staying marks a ship, and on some servers a person on foot; while it is counting, the sweep over this icon shows when.
+wg-alert-zone-wilderness-desc = No policy protection. Who may fight here without escalation is in the Wilderness rules in the guidebook. Staying marks a ship, and on some servers a person on foot; while it is counting, the sweep over this icon shows when.
 wg-alert-zone-notsafe-name = Not a Safe Zone
 wg-alert-zone-notsafe-desc = This station is not a Safe Zone. Ordinary rules and escalation apply.
 wg-alert-marked-name = Marked
@@ -135,7 +135,16 @@ wg-wilderness-rule-attack = -- Damaging a ship in a Wilderness from outside one 
 ## Options
 
 ui-options-wg-zones = Zones
-ui-options-wg-wilderness-border = Coloured screen border in a Wilderness and while marked
+ui-options-wg-wilderness-banner = Zone banner
+ui-options-wg-wilderness-titles = Title on crossing a zone edge
+ui-options-wg-wilderness-sounds = Zone sounds
+ui-options-wg-wilderness-border = Coloured screen border
+ui-options-wg-wilderness-always = In every zone
+ui-options-wg-wilderness-danger = Only where you can be attacked (Wilderness, outpost at war, marked)
+ui-options-wg-wilderness-off = Off
+ui-options-wg-wilderness-border-wilderness = In a Wilderness and while marked
+ui-options-wg-wilderness-border-marked = Only while marked
+ui-options-wg-wilderness-chat = Chat line on entering or leaving a zone
 ui-options-wg-wilderness-rings = Zone edges on radars
 
 ## Admin command

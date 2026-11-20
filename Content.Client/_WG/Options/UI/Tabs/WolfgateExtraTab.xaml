@@ -19,7 +19,11 @@
                 <CheckBox Name="RadarHoverRevealCheckBox" Text="{Loc 'ui-options-wg-radar-hover-reveal'}" />
                 <CheckBox Name="ShowNewbieTagCheckBox" Text="{Loc 'wg-newbie-option-show-tag'}" />
                 <Label Text="{Loc 'ui-options-wg-zones'}" StyleClasses="LabelKeyText"/>
-                <CheckBox Name="WildernessBorderCheckBox" Text="{Loc 'ui-options-wg-wilderness-border'}" />
+                <ui:OptionDropDown Name="WildernessBannerDropDown" Title="{Loc 'ui-options-wg-wilderness-banner'}" />
+                <ui:OptionDropDown Name="WildernessTitlesDropDown" Title="{Loc 'ui-options-wg-wilderness-titles'}" />
+                <ui:OptionDropDown Name="WildernessSoundsDropDown" Title="{Loc 'ui-options-wg-wilderness-sounds'}" />
+                <ui:OptionDropDown Name="WildernessBorderDropDown" Title="{Loc 'ui-options-wg-wilderness-border'}" />
+                <CheckBox Name="WildernessChatCheckBox" Text="{Loc 'ui-options-wg-wilderness-chat'}" />
                 <CheckBox Name="WildernessRingsCheckBox" Text="{Loc 'ui-options-wg-wilderness-rings'}" />
                 <Label Text="{Loc 'ui-options-wg-effects'}" StyleClasses="LabelKeyText"/>
                 <CheckBox Name="HeatHazeCheckBox" Text="{Loc 'ui-options-wg-heat-haze'}" />
