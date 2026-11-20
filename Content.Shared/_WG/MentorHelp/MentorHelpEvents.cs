@@ -1,3 +1,4 @@
+using Robust.Shared.Network;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._WG.MentorHelp;
@@ -85,6 +86,9 @@ public sealed class MentorHelpPlayerTicket
     public bool Answered;
 
     public bool Rated;
+
+    /// <summary>The asker has reported it to staff.</summary>
+    public bool Reported;
 }
 
 /// <summary>A ticket as a mentor or staff member sees it.</summary>
@@ -100,6 +104,9 @@ public sealed class MentorHelpTicketView
 
     /// <summary>The asker's username: sent to staff only.</summary>
     public string? AskerUsername;
+
+    /// <summary>The asker's user id: sent to staff only, for the marker in the ahelp player list.</summary>
+    public NetUserId? AskerId;
 
     public bool AskerInLobby;
     public string? Topic;
@@ -202,6 +209,13 @@ public sealed class WGMentorHelpPlayerActionRequest : EntityEventArgs
 
     /// <summary>For Rate: the optional line.</summary>
     public string? Comment;
+}
+
+/// <summary>Client to server: staff move a player's ahelp to Mentor Help.</summary>
+[Serializable, NetSerializable]
+public sealed class WGMentorHelpFromAHelpRequest : EntityEventArgs
+{
+    public NetUserId Player;
 }
 
 /// <summary>Client to server: send the current state again (the window opened).</summary>

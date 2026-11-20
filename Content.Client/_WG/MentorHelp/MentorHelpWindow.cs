@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using Content.Client.UserInterface.Controls;
 using Content.Shared._WG.MentorHelp;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
@@ -55,6 +56,7 @@ public sealed class MentorHelpWindow : DefaultWindow
     private readonly LineEdit _rateComment = new() { HorizontalExpand = true };
     private readonly BoxContainer _reopenBox = Row();
     private readonly Label _reopenHint = new();
+    private readonly ConfirmButton _report = new();
 
     // The responder's side.
     private readonly BoxContainer _dutyRow = Row();
@@ -90,6 +92,13 @@ public sealed class MentorHelpWindow : DefaultWindow
         _tabs.AddChild(BuildQueue());
         _tabs.SetTabTitle(0, Loc.GetString("wg-mhelp-window-title"));
         _tabs.SetTabTitle(1, Loc.GetString("wg-mhelp-queue-title"));
+    }
+
+    /// <summary>Fills the question box, as when a how-to question comes over from the ahelp.</summary>
+    public void SetQuestion(string text)
+    {
+        _question.Text = text;
+        _tabs.CurrentTab = 0;
     }
 
     /// <summary>Shows a notice from the server under the tabs.</summary>
@@ -181,6 +190,11 @@ public sealed class MentorHelpWindow : DefaultWindow
         _reopenBox.AddChild(_reopenHint);
         _ownBox.AddChild(_reopenBox);
 
+        _report.Text = Loc.GetString("wg-mhelp-report");
+        _report.ConfirmationText = Loc.GetString("wg-mhelp-report-confirm");
+        _report.OnPressed += _ => PlayerActionPressed?.Invoke(MentorHelpPlayerAction.Report, false, null);
+        _ownBox.AddChild(_report);
+
         page.AddChild(_ownBox);
         return page;
     }
@@ -256,6 +270,8 @@ public sealed class MentorHelpWindow : DefaultWindow
         _ownReplyRow.Visible = open;
         _end.Visible = open;
         _rateBox.Visible = !open && own.Answered && !own.Rated;
+
+        _report.Visible = own.Answered && !own.Reported;
 
         var reopenMinutes = own.ReopenUntil is { } until ? (int) Math.Ceiling((until - DateTime.UtcNow).TotalMinutes) : 0;
         _reopenBox.Visible = !open && reopenMinutes > 0;
@@ -351,7 +367,17 @@ public sealed class MentorHelpWindow : DefaultWindow
         }
 
         if (ticket.ClaimedBy == null || ticket.ClaimedByMe || _state.Staff)
+        {
             _ticketActions.AddChild(Button("wg-mhelp-resolve", () => Act(ticket, MentorHelpAction.Resolve)));
+
+            var escalate = new ConfirmButton
+            {
+                Text = Loc.GetString("wg-mhelp-escalate"),
+                ConfirmationText = Loc.GetString("wg-mhelp-escalate-confirm"),
+            };
+            escalate.OnPressed += _ => Act(ticket, MentorHelpAction.Escalate);
+            _ticketActions.AddChild(escalate);
+        }
     }
 
     private static void FillLines(BoxContainer box, List<MentorHelpLine> lines)

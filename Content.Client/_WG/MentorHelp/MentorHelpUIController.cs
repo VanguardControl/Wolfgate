@@ -119,6 +119,14 @@ public sealed class MentorHelpUIController : UIController,
         Refresh();
     }
 
+    /// <summary>Opens the window with a how-to question the player had typed into the ahelp.</summary>
+    public void AskFromAHelp(string text)
+    {
+        Open();
+        _window?.SetQuestion(text);
+        _window?.ShowNotice(Loc.GetString("wg-mhelp-ahelp-moved"));
+    }
+
     private void ButtonPressed(BaseButton.ButtonEventArgs args)
     {
         Toggle();

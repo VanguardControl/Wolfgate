@@ -11,6 +11,8 @@ Play sound box being ignored for event staff.
 The round keeps each ahelp (up to 200 lines a player) and replays it silently on connect: staff get every ahelp
 they would have received, a player gets their own. It resets with the round (`BwoinkSystem.AHelpHistory`).
 
+`ResolveAHelp` resolves from code; Mentor Help uses it when staff move an ahelp to Mentor Help.
+
 Entry points: the `BwoinkSystem` partials (`AHelpStaffSound`, `OnAHelpResolve`, client `SendResolve`) and
 `AHelpResolveMessage`.
 

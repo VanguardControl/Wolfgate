@@ -52,6 +52,7 @@ public sealed class WGMentorHelpSystem : EntitySystem
     [Dependency] private BwoinkSystem _bwoink = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IServerDbManager _db = default!;
+    [Dependency] private WGMentorHelpDiscordSystem _discord = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private WGMentorSystem _mentors = default!;
     [Dependency] private WGNewbieTagSystem _newbie = default!;
@@ -85,6 +86,7 @@ public sealed class WGMentorHelpSystem : EntitySystem
         SubscribeNetworkEvent<WGMentorHelpActionRequest>(OnActionRequest);
         SubscribeNetworkEvent<WGMentorHelpPlayerActionRequest>(OnPlayerActionRequest);
         SubscribeNetworkEvent<WGMentorHelpRefreshRequest>(OnRefreshRequest);
+        SubscribeNetworkEvent<WGMentorHelpFromAHelpRequest>(OnFromAHelpRequest);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
 
         _players.PlayerStatusChanged += OnPlayerStatusChanged;
@@ -185,6 +187,7 @@ public sealed class WGMentorHelpSystem : EntitySystem
 
         _tickets[ticket.Id] = ticket;
         Insert(ticket);
+        _discord.Opened(ticket);
         AddLine(ticket, MentorSenderRole.Player, player, clean);
 
         _adminLog.Add(LogType.WGMentorHelp, LogImpact.Low,
@@ -364,6 +367,92 @@ public sealed class WGMentorHelpSystem : EntitySystem
         return true;
     }
 
+    /// <summary>
+    /// Sends a ticket to staff as a Gameplay ahelp whose first line names the ticket, with the conversation under it,
+    /// and closes it. The claimer or staff may; on an unclaimed ticket any responder may.
+    /// </summary>
+    public bool Escalate(ICommonSession responder, int id)
+    {
+        if (!_tickets.TryGetValue(id, out var ticket) || ticket.Closed || !CanSee(responder, ticket))
+            return false;
+
+        if (ticket.Claimer != null && ticket.Claimer != responder.UserId && !IsStaff(responder))
+            return false;
+
+        var header = Loc.GetString("wg-mhelp-ahelp-escalated", ("ticket", ticket.Id), ("mentor", responder.Name));
+        _bwoink.RelayMentorTicket(ticket.Player, AHelpCategory.Gameplay, Tag(ticket), $"{header}\n{Transcript(ticket)}");
+        Close(ticket, MentorCloseReason.Escalated, responder.Name);
+        return true;
+    }
+
+    /// <summary>The asker reports their latest ticket to staff as a Player-issue ahelp with the conversation. Once a ticket.</summary>
+    public bool Report(ICommonSession player)
+    {
+        if (GetLatestTicket(player.UserId) is not { Answered: true, Reported: false } ticket)
+            return false;
+
+        ticket.Reported = true;
+        var header = Loc.GetString("wg-mhelp-ahelp-reported", ("ticket", ticket.Id));
+        _bwoink.RelayMentorTicket(ticket.Player, AHelpCategory.Player, Tag(ticket), $"{header}\n{Transcript(ticket)}");
+        Notice(player.UserId, Loc.GetString("wg-mhelp-report-sent"));
+        Publish(ticket);
+
+        _adminLog.Add(LogType.WGMentorHelp, LogImpact.Medium, $"{player.Name} reported mentor ticket #{ticket.Id} to staff");
+        return true;
+    }
+
+    /// <summary>
+    /// Staff move a player's ahelp to Mentor Help: a ticket opens with the player's last ahelp message, both sides are
+    /// told, and the ahelp is resolved. False when the player isn't connected or wrote nothing.
+    /// </summary>
+    public bool OpenFromAHelp(ICommonSession staff, NetUserId player)
+    {
+        if (!IsStaff(staff) || !_players.TryGetSessionById(player, out var session) || session.Status == SessionStatus.Disconnected)
+            return false;
+
+        if (_bwoink.LastPlayerAHelpText(player) is not { Length: > 0 } text)
+            return false;
+
+        if (GetOpenTicket(player) is { } open)
+        {
+            if (!PostAsPlayer(session, text))
+                return false;
+
+            open.FromAhelp = true;
+        }
+        else if (Open(session, text, null, false, fromAhelp: true) != MentorHelpOpenResult.Opened)
+        {
+            return false;
+        }
+
+        _bwoink.PostAHelpNote(player,
+            Loc.GetString("wg-mhelp-ahelp-sent", ("admin", staff.Name)),
+            Loc.GetString("wg-mhelp-from-ahelp"));
+        _bwoink.ResolveAHelp(player, staff.Name);
+        Notice(player, Loc.GetString("wg-mhelp-from-ahelp"));
+
+        _adminLog.Add(LogType.WGMentorHelp, LogImpact.Low, $"{staff.Name} sent the ahelp of {session.Name} to Mentor Help");
+        return true;
+    }
+
+    private string Tag(MentorTicket ticket)
+    {
+        return Loc.GetString("wg-mhelp-ahelp-tag", ("ticket", ticket.Id));
+    }
+
+    /// <summary>The conversation as staff see it: the asker by character and username, responders by username.</summary>
+    private static string Transcript(MentorTicket ticket)
+    {
+        var lines = ticket.Lines.Select(l => l.Role switch
+        {
+            MentorSenderRole.Player => $"{ticket.CharacterName} ({ticket.PlayerName}): {l.Text}",
+            MentorSenderRole.System => l.Text,
+            _ => $"{l.SenderName}: {l.Text}",
+        });
+
+        return string.Join("\n", lines);
+    }
+
     #endregion
 
     #region Closing and timers
@@ -424,6 +513,7 @@ public sealed class WGMentorHelpSystem : EntitySystem
 
         _adminLog.Add(LogType.WGMentorHelp, LogImpact.Low,
             $"Mentor ticket #{ticket.Id} of {ticket.PlayerName} closed ({ReasonToDb(reason)}){(by != null ? $" by {by}" : "")}");
+        _discord.Closed(ticket);
         Publish(ticket);
     }
 
@@ -551,6 +641,7 @@ public sealed class WGMentorHelpSystem : EntitySystem
             CloseReason = ticket.CloseReason,
             Answered = ticket.Answered,
             Rated = ticket.Rating != null,
+            Reported = ticket.Reported,
             ReopenUntil = ticket.Closed && CanReopen(ticket) ? ticket.ClosedAt + ReopenWindow : null,
         };
 
@@ -588,6 +679,7 @@ public sealed class WGMentorHelpSystem : EntitySystem
             CloseReason = ticket.CloseReason,
             Asker = ticket.CharacterName,
             AskerUsername = staff ? ticket.PlayerName : null,
+            AskerId = staff ? ticket.Player : null,
             AskerInLobby = asker == null || !InRound(asker),
             Topic = ticket.Topic,
             Secret = ticket.Secret,
@@ -718,6 +810,8 @@ public sealed class WGMentorHelpSystem : EntitySystem
         ticket.Lines.Add(line);
         if (!respondersOnly)
             ticket.LastMessageTime = _timing.RealTime;
+
+        _discord.Line(ticket, line);
 
         Write(ticket, id => _db.AddMentorTicketMessageAsync(new WolfgateMentorTicketMessage
         {
@@ -855,7 +949,15 @@ public sealed class WGMentorHelpSystem : EntitySystem
             case MentorHelpAction.Resolve:
                 Resolve(session, ev.TicketId);
                 break;
+            case MentorHelpAction.Escalate:
+                Escalate(session, ev.TicketId);
+                break;
         }
+    }
+
+    private void OnFromAHelpRequest(WGMentorHelpFromAHelpRequest ev, EntitySessionEventArgs args)
+    {
+        OpenFromAHelp(args.SenderSession, ev.Player);
     }
 
     private void OnPlayerActionRequest(WGMentorHelpPlayerActionRequest ev, EntitySessionEventArgs args)
@@ -871,6 +973,9 @@ public sealed class WGMentorHelpSystem : EntitySystem
                 break;
             case MentorHelpPlayerAction.Rate:
                 Rate(session, ev.Up, ev.Comment);
+                break;
+            case MentorHelpPlayerAction.Report:
+                Report(session);
                 break;
         }
     }

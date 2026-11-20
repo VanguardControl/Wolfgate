@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Shared._WG.MentorHelp;
+using Robust.Shared.Network;
 
 namespace Content.Client._WG.MentorHelp;
 
@@ -66,6 +67,12 @@ public sealed class WGClientMentorHelpSystem : EntitySystem
     public void Refresh()
     {
         RaiseNetworkEvent(new WGMentorHelpRefreshRequest());
+    }
+
+    /// <summary>Staff: moves a player's ahelp to Mentor Help.</summary>
+    public void SendFromAHelp(NetUserId player)
+    {
+        RaiseNetworkEvent(new WGMentorHelpFromAHelpRequest { Player = player });
     }
 
     private void OnPlayerState(WGMentorHelpPlayerStateEvent ev)

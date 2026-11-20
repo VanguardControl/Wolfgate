@@ -1,3 +1,4 @@
+using Robust.Shared.Network;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._WG.Mentors;
@@ -24,6 +25,13 @@ public sealed class WGMentorStatusEvent : EntityEventArgs
 public sealed class WGMentorCountEvent : EntityEventArgs
 {
     public int OnDuty;
+}
+
+/// <summary>Server to staff: the connected active mentors, for the badge in the ahelp player list.</summary>
+[Serializable, NetSerializable]
+public sealed class WGMentorRosterEvent : EntityEventArgs
+{
+    public List<NetUserId> Mentors = new();
 }
 
 /// <summary>Client to server: a mentor goes on or off duty.</summary>

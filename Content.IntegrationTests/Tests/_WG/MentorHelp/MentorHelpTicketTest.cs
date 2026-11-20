@@ -9,6 +9,7 @@ using Content.Server.GameTicking;
 using Content.Shared._WG.EventStaff;
 using Content.Shared._WG.MentorHelp;
 using Content.Shared._WG.Mentors;
+using Content.Shared.CCVar;
 using Robust.Server.Player;
 using Robust.Shared.Configuration;
 using Robust.Shared.Player;
@@ -115,6 +116,7 @@ public sealed class MentorHelpTicketTest
         });
 
         await server.WaitPost(() => cfg.SetCVar(MentorHelpCVars.TicketCooldown, 30));
+        await RestoreLoginLocal(pair);
         await pair.CleanReturnAsync();
     }
 
@@ -184,13 +186,14 @@ public sealed class MentorHelpTicketTest
             cfg.SetCVar(MentorHelpCVars.TicketCooldown, 30);
         });
 
+        await RestoreLoginLocal(pair);
         await pair.CleanReturnAsync();
     }
 
     /// <summary>Two dummy players made mentors and on duty.</summary>
     internal static async Task<(ICommonSession, ICommonSession)> TwoMentors(TestPair pair)
     {
-        var dummies = await pair.Server.AddDummySessions(2);
+        var dummies = new[] { await FreshDummy(pair, "mentor"), await FreshDummy(pair, "mentor") };
         var mentors = pair.Server.System<WGMentorSystem>();
         foreach (var dummy in dummies)
         {
@@ -207,6 +210,24 @@ public sealed class MentorHelpTicketTest
         });
 
         return (dummies[0], dummies[1]);
+    }
+
+    /// <summary>
+    /// A dummy player under a name never used before: dummies keep their user id by name for the server's life, and
+    /// with it any admin rank another test gave them.
+    /// </summary>
+    internal static async Task<ICommonSession> FreshDummy(TestPair pair, string prefix)
+    {
+        // Local connections are made host admins unless this is off, which would make every dummy staff.
+        await pair.Server.WaitPost(() => pair.Server.CfgMan.SetCVar(CCVars.ConsoleLoginLocal, false));
+        return await pair.Server.AddDummySession($"{prefix}_{Guid.NewGuid():N}"[..24]);
+    }
+
+    /// <summary>Puts back what <see cref="FreshDummy"/> turned off.</summary>
+    internal static async Task RestoreLoginLocal(TestPair pair)
+    {
+        await pair.Server.WaitPost(() =>
+            pair.Server.CfgMan.SetCVar(CCVars.ConsoleLoginLocal, CCVars.ConsoleLoginLocal.DefaultValue));
     }
 
     internal static async Task WaitFor(TestPair pair, Func<bool> done, string message)

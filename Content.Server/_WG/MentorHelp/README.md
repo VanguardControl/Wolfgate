@@ -20,6 +20,21 @@ the queue. In the queue, mentors claim, unclaim, take over with a note, hand a q
 and reply, and switch their duty. The menu button turns red when a reply or a new question arrives while the window
 is closed.
 
+With the Admin Help:
+
+- Players: the ahelp window shows how many Mentors are on duty with an Ask a Mentor button
+  (`MentorHelpAHelpHeader`). Text sent under the How do I…? topic opens Mentor Help with the question filled in
+  (`AHelpUIController.MentorHelp.cs`).
+- Staff: **Send to Mentor Help** in the staff ahelp panel opens a ticket from the player's last ahelp line, tells
+  both sides and resolves the ahelp. The player list shows `(Mentor)` before mentors and `?` before players with an
+  open question, and the **Mentor Help** button opens the queue (`BwoinkControl.MentorHelp.cs`).
+- Mentors: **Send to Staff** closes a ticket and puts it in the player's ahelp as a Gameplay issue, tagged
+  `(MENTOR #n)`, with the conversation. The asker's **Report this Mentor** does the same as a Player issue.
+  `BwoinkSystem.MentorHelp.cs` sends these without touching the upstream bwoink flow.
+
+Ticket lines are copied to the mentors' Discord channel through `wg.mentor.discord_webhook`
+(`WGMentorHelpDiscordSystem`).
+
 ## Data
 
 - `wolfgate_mentor_ticket`: one row per ticket, with the character name mentors saw, topic, flags, who held the claim
@@ -43,6 +58,7 @@ Read and written through `ServerDbManager.MentorHelp.cs`.
 - [`Content.Server/_WG/MentorHelp/MentorTicket.cs`](MentorTicket.cs)
 - [`Content.Server/_WG/MentorHelp/ServerDbBase.MentorHelp.cs`](ServerDbBase.MentorHelp.cs)
 - [`Content.Server/_WG/MentorHelp/ServerDbManager.MentorHelp.cs`](ServerDbManager.MentorHelp.cs)
+- [`Content.Server/_WG/MentorHelp/WGMentorHelpDiscordSystem.cs`](WGMentorHelpDiscordSystem.cs)
 - [`Content.Server/_WG/MentorHelp/WGMentorHelpSystem.cs`](WGMentorHelpSystem.cs)
 
 ### Shared
@@ -53,12 +69,16 @@ Read and written through `ServerDbManager.MentorHelp.cs`.
 
 ### Client
 
+- [`Content.Client/_WG/MentorHelp/AHelpUIController.MentorHelp.cs`](../../../Content.Client/_WG/MentorHelp/AHelpUIController.MentorHelp.cs)
+- [`Content.Client/_WG/MentorHelp/BwoinkControl.MentorHelp.cs`](../../../Content.Client/_WG/MentorHelp/BwoinkControl.MentorHelp.cs)
+- [`Content.Client/_WG/MentorHelp/MentorHelpAHelpHeader.cs`](../../../Content.Client/_WG/MentorHelp/MentorHelpAHelpHeader.cs)
 - [`Content.Client/_WG/MentorHelp/MentorHelpUIController.cs`](../../../Content.Client/_WG/MentorHelp/MentorHelpUIController.cs)
 - [`Content.Client/_WG/MentorHelp/MentorHelpWindow.cs`](../../../Content.Client/_WG/MentorHelp/MentorHelpWindow.cs)
 - [`Content.Client/_WG/MentorHelp/WGClientMentorHelpSystem.cs`](../../../Content.Client/_WG/MentorHelp/WGClientMentorHelpSystem.cs)
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WG/MentorHelp/MentorAHelpHandoffTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MentorHelp/MentorAHelpHandoffTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpDbTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpDbTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpRoutingTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpRoutingTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpTicketTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpTicketTest.cs)
@@ -69,10 +89,18 @@ Read and written through `ServerDbManager.MentorHelp.cs`.
 
 ## Non-modular edits
 
+- [`Content.Client/Administration/UI/Bwoink/BwoinkControl.xaml`](../../../Content.Client/Administration/UI/Bwoink/BwoinkControl.xaml): send a how-to ahelp to Mentor Help, open the Mentor Help queue
+- [`Content.Client/Administration/UI/Bwoink/BwoinkControl.xaml.cs`](../../../Content.Client/Administration/UI/Bwoink/BwoinkControl.xaml.cs)
+  - mentor badge and open question mark
+  - Mentor Help buttons and markers
 - [`Content.Client/Input/ContentContexts.cs`](../../../Content.Client/Input/ContentContexts.cs): Mentor Help key
 - [`Content.Client/Lobby/UI/LobbyGui.xaml`](../../../Content.Client/Lobby/UI/LobbyGui.xaml): Mentor Help entry in the lobby menu, above the ahelp
 - [`Content.Client/Lobby/UI/LobbyGui.xaml.cs`](../../../Content.Client/Lobby/UI/LobbyGui.xaml.cs)
 - [`Content.Client/Options/UI/Tabs/KeyRebindTab.xaml.cs`](../../../Content.Client/Options/UI/Tabs/KeyRebindTab.xaml.cs): Mentor Help key
+- [`Content.Client/UserInterface/Systems/Bwoink/AHelpUIController.cs`](../../../Content.Client/UserInterface/Systems/Bwoink/AHelpUIController.cs)
+  - a how-to question goes to Mentor Help instead
+  - the how-to entry
+  - mentors on duty and Ask a Mentor
 - [`Content.Client/UserInterface/Systems/MenuBar/GameTopMenuBarUIController.cs`](../../../Content.Client/UserInterface/Systems/MenuBar/GameTopMenuBarUIController.cs): Mentor Help button
 - [`Content.Client/UserInterface/Systems/MenuBar/Widgets/GameTopMenuBar.xaml`](../../../Content.Client/UserInterface/Systems/MenuBar/Widgets/GameTopMenuBar.xaml)
   - mh namespace for the Mentor Help key
@@ -82,5 +110,6 @@ Read and written through `ServerDbManager.MentorHelp.cs`.
   - messages gone with their ticket, tickets searched by player, mentor and date
 - [`Content.Shared.Database/LogType.cs`](../../../Content.Shared.Database/LogType.cs): Mentor Help ticket messages and state
 - [`Resources/keybinds.yml`](../../../Resources/keybinds.yml): Mentor Help on Shift+F1, beside the ahelp
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Six_Ahelp.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Six_Ahelp.xml): Rule 6 points to Mentor Help
 
 <!-- WOLFGATE-GENERATED END -->

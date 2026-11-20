@@ -33,7 +33,7 @@ public sealed class MentorHelpRoutingTest
 
         var asker = players.Sessions.Single();
         var (mentor, inRound) = await MentorHelpTicketTest.TwoMentors(pair);
-        var bystander = (await server.AddDummySessions(1))[0];
+        var bystander = await MentorHelpTicketTest.FreshDummy(pair, "bystander");
 
         MentorTicket open = null!;
         await server.WaitAssertion(() =>
@@ -121,6 +121,7 @@ public sealed class MentorHelpRoutingTest
             server.ResolveDependency<Robust.Shared.Configuration.IConfigurationManager>().SetCVar(MentorHelpCVars.TicketCooldown, 30);
         });
 
+        await MentorHelpTicketTest.RestoreLoginLocal(pair);
         await pair.CleanReturnAsync();
     }
 }

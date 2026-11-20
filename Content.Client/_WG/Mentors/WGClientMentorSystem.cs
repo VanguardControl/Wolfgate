@@ -1,4 +1,5 @@
 using Content.Shared._WG.Mentors;
+using Robust.Shared.Network;
 
 namespace Content.Client._WG.Mentors;
 
@@ -13,6 +14,14 @@ public sealed class WGClientMentorSystem : EntitySystem
 
     public int OnDutyCount { get; private set; }
 
+    /// <summary>For staff: the connected active mentors.</summary>
+    public IReadOnlySet<NetUserId> Mentors => _mentors;
+
+    /// <summary>Raised when the staff list of mentors changes.</summary>
+    public event Action? RosterChanged;
+
+    private readonly HashSet<NetUserId> _mentors = new();
+
     /// <summary>Raised when this player's status or duty changes.</summary>
     public event Action? StatusChanged;
 
@@ -24,6 +33,14 @@ public sealed class WGClientMentorSystem : EntitySystem
         base.Initialize();
         SubscribeNetworkEvent<WGMentorStatusEvent>(OnStatus);
         SubscribeNetworkEvent<WGMentorCountEvent>(OnCount);
+        SubscribeNetworkEvent<WGMentorRosterEvent>(OnRoster);
+    }
+
+    private void OnRoster(WGMentorRosterEvent ev)
+    {
+        _mentors.Clear();
+        _mentors.UnionWith(ev.Mentors);
+        RosterChanged?.Invoke();
     }
 
     /// <summary>Asks the server to put this mentor on or off duty.</summary>

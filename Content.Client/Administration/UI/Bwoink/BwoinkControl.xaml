@@ -18,6 +18,11 @@
                 </BoxContainer>
                 <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
                 <!-- WOLFGATE END -->
+                    <!-- WOLFGATE(MentorHelp) START: send a how-to ahelp to Mentor Help, open the Mentor Help queue -->
+                    <Button Name="MentorHelpStaffView" Text="{Loc 'wg-mhelp-ahelp-staff-view'}" StyleClasses="OpenRight" />
+                    <Button Name="SendToMentorHelp" Text="{Loc 'wg-mhelp-ahelp-send'}" StyleClasses="OpenLeft" Disabled="True" />
+                    <Label Name="MentorTicketMarker" Text="{Loc 'wg-mhelp-ahelp-open-ticket'}" Visible="False" Margin="6 0 0 0" />
+                    <!-- WOLFGATE END -->
                     <Control HorizontalExpand="True" />
                     <Button Visible="False" Name="Bans" Text="{Loc 'admin-player-actions-bans'}" StyleClasses="OpenRight" />
                     <Button Visible="False" Name="Notes" Text="{Loc 'admin-player-actions-notes'}" StyleClasses="OpenBoth" />

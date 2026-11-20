@@ -64,5 +64,26 @@ wg-mhelp-transfer = Hand to…
 wg-mhelp-resolve = Mark answered
 wg-mhelp-mode-staff = Mentor Help (Staff view)
 
+wg-bwoink-category-option-howto = How do I…? (Mentor Help)
+wg-mhelp-ahelp-moved = Questions about how to play go to Mentor Help. Your text has been moved there.
+wg-mhelp-ahelp-ask = Ask a Mentor
+wg-mhelp-ahelp-send = Send to Mentor Help
+wg-mhelp-ahelp-sent = { $admin } sent this to Mentor Help.
+wg-mhelp-ahelp-badge = Mentor
+wg-mhelp-ahelp-open-ticket = Has an open Mentor question
+wg-mhelp-ahelp-escalated = Mentor ticket #{ $ticket }, sent to Staff by { $mentor }.
+wg-mhelp-ahelp-staff-view = Mentor Help
+wg-mhelp-escalate = Send to Staff
+wg-mhelp-escalate-confirm = Send this to Staff as a gameplay ahelp? They'll see the whole conversation.
+wg-mhelp-report = Report this Mentor
+wg-mhelp-report-confirm = This sends the conversation to Staff through the Admin Help. Send it?
+wg-mhelp-report-sent = Sent to Staff. They'll reply in the Admin Help.
+wg-mhelp-from-ahelp = Staff moved your question to Mentor Help, where a Mentor will answer it.
+wg-mhelp-discord-opened = Ticket #{ $ticket } opened by { $character } ({ $topic })
+wg-mhelp-discord-line = #{ $ticket } { $sender }: { $message }
+wg-mhelp-discord-closed = Ticket #{ $ticket } closed: { $reason }
+
 # DRAFT: not on the strings page yet; Moon to confirm or rewrite before the PR.
 ui-options-function-wg-open-mentor-help = Open Mentor Help
+wg-mhelp-ahelp-reported = Mentor ticket #{ $ticket } reported by the player.
+wg-mhelp-ahelp-tag = (MENTOR #{ $ticket })

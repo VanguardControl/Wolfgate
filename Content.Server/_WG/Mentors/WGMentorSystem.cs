@@ -1,9 +1,12 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Content.Server.Administration;
 using Content.Server.Administration.Logs;
+using Content.Server.Administration.Managers;
 using Content.Server.Chat.Managers;
 using Content.Server.Database;
 using Content.Shared._WG.Mentors;
+using Content.Shared.Administration;
 using Content.Shared.Database;
 using Robust.Server.Player;
 using Robust.Shared.Configuration;
@@ -20,6 +23,7 @@ namespace Content.Server._WG.Mentors;
 public sealed class WGMentorSystem : EntitySystem
 {
     [Dependency] private IAdminLogManager _adminLog = default!;
+    [Dependency] private IAdminManager _admin = default!;
     [Dependency] private IChatManager _chat = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IServerDbManager _db = default!;
@@ -39,6 +43,7 @@ public sealed class WGMentorSystem : EntitySystem
         base.Initialize();
         SubscribeNetworkEvent<WGMentorSetDutyEvent>(OnSetDuty);
         _players.PlayerStatusChanged += OnPlayerStatusChanged;
+        _admin.OnPermsChanged += OnPermsChanged;
         Subs.CVar(_cfg, MentorCVars.Enabled, _ => RefreshAll());
     }
 
@@ -46,6 +51,7 @@ public sealed class WGMentorSystem : EntitySystem
     {
         base.Shutdown();
         _players.PlayerStatusChanged -= OnPlayerStatusChanged;
+        _admin.OnPermsChanged -= OnPermsChanged;
     }
 
     private bool Enabled => _cfg.GetCVar(MentorCVars.Enabled);
@@ -219,11 +225,14 @@ public sealed class WGMentorSystem : EntitySystem
         {
             case SessionStatus.InGame:
                 RaiseNetworkEvent(new WGMentorCountEvent { OnDuty = OnDutyCount }, args.Session);
+                SendRosterToStaff(args.Session);
                 _ = LoadAsync(args.Session);
                 break;
             case SessionStatus.Disconnected:
                 var wasOnDuty = _onDuty.Remove(args.Session.UserId);
-                _active.Remove(args.Session.UserId);
+                if (_active.Remove(args.Session.UserId))
+                    SendRosterToStaff();
+
                 if (wasOnDuty)
                     BroadcastCount();
                 break;
@@ -292,7 +301,30 @@ public sealed class WGMentorSystem : EntitySystem
     {
         SendStatus(session);
         BroadcastCount();
+        SendRosterToStaff();
         StatusChanged?.Invoke(session);
+    }
+
+    /// <summary>Sends staff the connected active mentors, for the badge in the ahelp player list.</summary>
+    private void SendRosterToStaff(ICommonSession? only = null)
+    {
+        var ev = new WGMentorRosterEvent { Mentors = ActiveSessions().Select(s => s.UserId).ToList() };
+        foreach (var admin in _admin.ActiveAdmins)
+        {
+            if (only != null && admin != only)
+                continue;
+
+            if (admin.Status == SessionStatus.InGame
+                && (_admin.HasAdminFlag(admin, AdminFlags.Adminhelp) || _admin.HasAdminFlag(admin, AdminFlags.Event)))
+            {
+                RaiseNetworkEvent(ev, admin);
+            }
+        }
+    }
+
+    private void OnPermsChanged(AdminPermsChangedEventArgs args)
+    {
+        SendRosterToStaff(args.Player);
     }
 
     private void SendStatus(ICommonSession session)
