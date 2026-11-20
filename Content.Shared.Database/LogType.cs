@@ -535,4 +535,14 @@ public enum LogType
     /// <summary>Paintings finished, scanned into the catalogue, ordered, removed and blocked.</summary>
     WGPainting = 12495,
     // WOLFGATE END
+
+    // WOLFGATE(Mentors) START: mentor roster, duty and ban actions
+    /// <summary>Mentor roster, tier, duty and ban changes.</summary>
+    WGMentor = 12496,
+    // WOLFGATE END
+
+    // WOLFGATE(MentorHelp) START: Mentor Help ticket messages and state
+    /// <summary>Mentor Help ticket messages and state changes.</summary>
+    WGMentorHelp = 12497,
+    // WOLFGATE END
 }
