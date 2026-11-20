@@ -11,12 +11,12 @@ public sealed class MentorHelpCVars
         CVarDef.Create("wg.mentor.ticket_cooldown", 30, CVar.SERVER | CVar.REPLICATED);
 
     /// <summary>Minutes an unclaimed ticket waits before it is offered to staff as a Gameplay ahelp.</summary>
-    public static readonly CVarDef<int> FallbackMinutes =
-        CVarDef.Create("wg.mentor.fallback_minutes", 5, CVar.SERVERONLY);
+    public static readonly CVarDef<float> FallbackMinutes =
+        CVarDef.Create("wg.mentor.fallback_minutes", 5f, CVar.SERVERONLY);
 
     /// <summary>Minutes without a message after which a ticket closes.</summary>
-    public static readonly CVarDef<int> IdleCloseMinutes =
-        CVarDef.Create("wg.mentor.idle_close_minutes", 20, CVar.SERVERONLY);
+    public static readonly CVarDef<float> IdleCloseMinutes =
+        CVarDef.Create("wg.mentor.idle_close_minutes", 20f, CVar.SERVERONLY);
 
     /// <summary>Discord webhook that gets a one-way copy of ticket lines. Empty turns it off.</summary>
     public static readonly CVarDef<string> DiscordWebhook =

@@ -5,8 +5,13 @@ Mentor Help; they have no moderation power and are not admins. This module holds
 admin flag), the tiers (Trainee, Mentor, Senior Mentor), duty on and off, the 100-hour application and its checks,
 mentor bans, the marks a mentor on duty shows, mentor chat, the staff Mentors tab and the commands.
 
-Being built in phases: so far the settings (`MentorCVars`, `wg.mentor.*`), the `WGMentor` admin log type and the
-tables.
+Mentors are an entity system, not an admin flag or an IoC manager. `WGMentorSystem` loads a connecting player's
+roster row, keeps active mentors and their duty in memory (a mentor may start every connection off duty, a client
+setting), sends each client its status (`WGClientMentorSystem`) and everyone the on-duty count, and grants, revokes,
+changes tier and restores, writing the row's history and a `WGMentor` admin log line. Staff use
+`mentor list|grant|revoke|tier|restore` (Moderator); mentors use `mentor on|off`; anyone can run `mentorwho`.
+
+Still to come: applications, bans, marks, mentor chat, the staff tab and the panel endpoints.
 
 ## Data
 

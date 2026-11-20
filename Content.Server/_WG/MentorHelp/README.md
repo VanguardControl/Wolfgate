@@ -5,8 +5,13 @@ open ticket at a time; mentors claim, hand on, escalate to staff and resolve it,
 unclaimed ticket falls back to staff as a Gameplay ahelp. Players reach it from the menu bar, the lobby, Shift+F1,
 `mhelp` and the how-to topic in Admin Help; staff can send an ahelp over to it.
 
-Being built in phases: so far the settings (`MentorHelpCVars`), the `WGMentorHelp` admin log type and the tables. The
-roster of mentors is the `Mentors` module.
+`WGMentorHelpSystem` holds the round's tickets in memory and writes each message and state change to the database in
+the background (`MentorTicket.Writes`). Responders are on-duty mentors (from `WGMentorSystem` in the `Mentors`
+module) and staff with Adminhelp or Event. A ticket marked as about a secret role reaches only mentors out of the
+round, and staff. Names follow decision D6: the asker sees responders only as "Mentor", responders see the asker only
+by character name (the one played, or the one selected in the lobby), and staff see both. A responder's first post
+claims an unclaimed ticket. The fallback puts the player's question into their ahelp as a Gameplay issue through
+`BwoinkSystem.SendFromMentorHelp` (a partial here). Players can also use `mhelp <question>`.
 
 ## Data
 
@@ -26,16 +31,27 @@ Read and written through `ServerDbManager.MentorHelp.cs`.
 
 ### Server
 
+- [`Content.Server/_WG/MentorHelp/BwoinkSystem.MentorHelp.cs`](BwoinkSystem.MentorHelp.cs)
+- [`Content.Server/_WG/MentorHelp/Commands/MentorHelpCommand.cs`](Commands/MentorHelpCommand.cs)
+- [`Content.Server/_WG/MentorHelp/MentorTicket.cs`](MentorTicket.cs)
 - [`Content.Server/_WG/MentorHelp/ServerDbBase.MentorHelp.cs`](ServerDbBase.MentorHelp.cs)
 - [`Content.Server/_WG/MentorHelp/ServerDbManager.MentorHelp.cs`](ServerDbManager.MentorHelp.cs)
+- [`Content.Server/_WG/MentorHelp/WGMentorHelpSystem.cs`](WGMentorHelpSystem.cs)
 
 ### Shared
 
 - [`Content.Shared/_WG/MentorHelp/MentorHelpCVars.cs`](../../../Content.Shared/_WG/MentorHelp/MentorHelpCVars.cs)
+- [`Content.Shared/_WG/MentorHelp/MentorHelpEvents.cs`](../../../Content.Shared/_WG/MentorHelp/MentorHelpEvents.cs)
 
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpDbTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpDbTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpRoutingTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpRoutingTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpTicketTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpTicketTest.cs)
+
+### Localization
+
+- [`Resources/Locale/en-US/_WG/MentorHelp/mentor-help.ftl`](../../../Resources/Locale/en-US/_WG/MentorHelp/mentor-help.ftl)
 
 ## Non-modular edits
 
