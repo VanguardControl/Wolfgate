@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Client._Scp.Shaders.Bloom;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
+using Robust.Shared.Graphics;
 using Robust.Shared.Map.Components;
 
 namespace Content.Client._WG.WallmountFov;
