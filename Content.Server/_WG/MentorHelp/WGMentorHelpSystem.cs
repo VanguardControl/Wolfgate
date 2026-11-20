@@ -72,6 +72,9 @@ public sealed class WGMentorHelpSystem : EntitySystem
 
     private static readonly TimeSpan CheckInterval = TimeSpan.FromSeconds(1);
 
+    /// <summary>How long a typing mark lasts without a fresh one.</summary>
+    private static readonly TimeSpan TypingTimeout = TimeSpan.FromSeconds(10);
+
     private readonly Dictionary<int, MentorTicket> _tickets = new();
     private readonly Dictionary<NetUserId, TimeSpan> _lastOpened = new();
     private int _nextId = 1;
@@ -87,6 +90,7 @@ public sealed class WGMentorHelpSystem : EntitySystem
         SubscribeNetworkEvent<WGMentorHelpPlayerActionRequest>(OnPlayerActionRequest);
         SubscribeNetworkEvent<WGMentorHelpRefreshRequest>(OnRefreshRequest);
         SubscribeNetworkEvent<WGMentorHelpFromAHelpRequest>(OnFromAHelpRequest);
+        SubscribeNetworkEvent<WGMentorHelpTypingRequest>(OnTypingRequest);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
 
         _players.PlayerStatusChanged += OnPlayerStatusChanged;
@@ -480,6 +484,19 @@ public sealed class WGMentorHelpSystem : EntitySystem
                 continue;
             }
 
+            if (ticket.Typing.Count > 0)
+            {
+                var before = ticket.Typing.Count;
+                foreach (var (user, until) in ticket.Typing.ToList())
+                {
+                    if (until <= now)
+                        ticket.Typing.Remove(user);
+                }
+
+                if (ticket.Typing.Count != before)
+                    Publish(ticket);
+            }
+
             if (ticket.Claimer == null && !ticket.Answered && now - ticket.OpenedTime >= fallback)
                 Fallback(ticket);
             else if (now - ticket.LastMessageTime >= idle)
@@ -642,6 +659,7 @@ public sealed class WGMentorHelpSystem : EntitySystem
             Answered = ticket.Answered,
             Rated = ticket.Rating != null,
             Reported = ticket.Reported,
+            ResponderTyping = ticket.Typing.Keys.Any(u => u != ticket.Player),
             ReopenUntil = ticket.Closed && CanReopen(ticket) ? ticket.ClosedAt + ReopenWindow : null,
         };
 
@@ -690,6 +708,17 @@ public sealed class WGMentorHelpSystem : EntitySystem
             ClaimedBy = ticket.ClaimerName,
             ClaimedByMe = ticket.Claimer == receiver.UserId,
         };
+
+        foreach (var user in ticket.Typing.Keys)
+        {
+            if (user == receiver.UserId)
+                continue;
+
+            if (user == ticket.Player)
+                view.Typing.Add(ticket.CharacterName);
+            else if (_players.TryGetSessionById(user, out var typer))
+                view.Typing.Add(typer.Name);
+        }
 
         foreach (var line in ticket.Lines)
         {
@@ -797,6 +826,9 @@ public sealed class WGMentorHelpSystem : EntitySystem
 
     private void AddLine(MentorTicket ticket, MentorSenderRole role, ICommonSession? sender, string text, bool respondersOnly = false)
     {
+        if (sender != null)
+            ticket.Typing.Remove(sender.UserId);
+
         var line = new MentorTicketLine
         {
             Role = role,
@@ -958,6 +990,36 @@ public sealed class WGMentorHelpSystem : EntitySystem
     private void OnFromAHelpRequest(WGMentorHelpFromAHelpRequest ev, EntitySessionEventArgs args)
     {
         OpenFromAHelp(args.SenderSession, ev.Player);
+    }
+
+    private void OnTypingRequest(WGMentorHelpTypingRequest ev, EntitySessionEventArgs args)
+    {
+        SetTyping(args.SenderSession, ev.TicketId, ev.Typing);
+    }
+
+    /// <summary>Marks a player as typing in a ticket, or not; null for their own. Lasts a few seconds without renewal.</summary>
+    public void SetTyping(ICommonSession session, int? ticketId, bool typing)
+    {
+        var ticket = ticketId is { } id
+            ? _tickets.GetValueOrDefault(id) is { } t && CanSee(session, t) ? t : null
+            : GetOpenTicket(session.UserId);
+
+        if (ticket == null || ticket.Closed)
+            return;
+
+        bool changed;
+        if (typing)
+        {
+            changed = !ticket.Typing.ContainsKey(session.UserId);
+            ticket.Typing[session.UserId] = _timing.RealTime + TypingTimeout;
+        }
+        else
+        {
+            changed = ticket.Typing.Remove(session.UserId);
+        }
+
+        if (changed)
+            Publish(ticket);
     }
 
     private void OnPlayerActionRequest(WGMentorHelpPlayerActionRequest ev, EntitySessionEventArgs args)

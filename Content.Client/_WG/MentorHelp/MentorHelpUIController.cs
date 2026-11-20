@@ -5,10 +5,14 @@ using Content.Client.UserInterface.Systems.MenuBar.Widgets;
 using Content.Shared._WG.MentorHelp;
 using Content.Shared._WG.Mentors;
 using JetBrains.Annotations;
+using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Configuration;
 using Robust.Shared.Input.Binding;
+using Robust.Shared.Player;
 
 namespace Content.Client._WG.MentorHelp;
 
@@ -23,6 +27,10 @@ public sealed class MentorHelpUIController : UIController,
 {
     [Dependency] private IConfigurationManager _cfg = default!;
 
+    private static readonly SoundSpecifier AlertSound = new SoundPathSpecifier("/Audio/Effects/Cargo/ping.ogg");
+
+    [UISystemDependency] private SharedAudioSystem? _audio = default!;
+
     private WGClientMentorHelpSystem? _help;
     private WGClientMentorSystem? _mentors;
     private MentorHelpWindow? _window;
@@ -34,8 +42,8 @@ public sealed class MentorHelpUIController : UIController,
     {
         _help = system;
         system.Changed += Refresh;
-        system.OwnReply += OnAlert;
-        system.QueueAlert += OnAlert;
+        system.OwnReply += OnOwnReply;
+        system.QueueAlert += OnQueueAlert;
         system.Notice += OnNotice;
 
         CommandBinds.Builder
@@ -47,8 +55,8 @@ public sealed class MentorHelpUIController : UIController,
     {
         CommandBinds.Unregister<MentorHelpUIController>();
         system.Changed -= Refresh;
-        system.OwnReply -= OnAlert;
-        system.QueueAlert -= OnAlert;
+        system.OwnReply -= OnOwnReply;
+        system.QueueAlert -= OnQueueAlert;
         system.Notice -= OnNotice;
         _help = null;
         _window?.Close();
@@ -110,6 +118,10 @@ public sealed class MentorHelpUIController : UIController,
             _window.DutyToggled += onDuty => _mentors?.RequestDuty(onDuty);
             _window.StartOffDutyToggled += off => _cfg.SetCVar(MentorCVars.StartOffDuty, off);
             _window.CrownToggled += show => _cfg.SetCVar(MentorCVars.ShowCrown, show);
+            _window.SoundToggled += on => _cfg.SetCVar(MentorHelpCVars.Sound, on);
+            _window.TypingChanged += (ticket, typing) => _help?.SetTyping(ticket, typing);
+            _window.CannedSaved += answer => _help?.SaveCanned(answer);
+            _window.CannedDeleted += id => _help?.DeleteCanned(id);
             if (_lastNotice != null)
                 _window.ShowNotice(_lastNotice);
         }
@@ -149,7 +161,31 @@ public sealed class MentorHelpUIController : UIController,
             ShowCrown = _cfg.GetCVar(MentorCVars.ShowCrown),
             MentorsOnDuty = _mentors?.OnDutyCount ?? 0,
             Tickets = _help.Tickets.Values,
+            Canned = _help.Canned,
+            CanEditCanned = _help.CanEditCanned,
+            Sound = _cfg.GetCVar(MentorHelpCVars.Sound),
         });
+    }
+
+    /// <summary>A reply in the player's own ticket: always a sound, and the button marked if the window is closed.</summary>
+    private void OnOwnReply()
+    {
+        PlaySound();
+        OnAlert();
+    }
+
+    /// <summary>A new question or message in the queue: a sound if the responder wants one.</summary>
+    private void OnQueueAlert()
+    {
+        if (_cfg.GetCVar(MentorHelpCVars.Sound))
+            PlaySound();
+
+        OnAlert();
+    }
+
+    private void PlaySound()
+    {
+        _audio?.PlayGlobal(AlertSound, Filter.Local(), false);
     }
 
     private void OnAlert()

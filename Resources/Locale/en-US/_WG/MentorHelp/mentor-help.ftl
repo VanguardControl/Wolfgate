@@ -83,7 +83,20 @@ wg-mhelp-discord-opened = Ticket #{ $ticket } opened by { $character } ({ $topic
 wg-mhelp-discord-line = #{ $ticket } { $sender }: { $message }
 wg-mhelp-discord-closed = Ticket #{ $ticket } closed: { $reason }
 
+wg-mhelp-guide-suggestions = Possibly relevant Guidebook pages that might help
+wg-mhelp-guide-link = Link a guidebook page
+wg-mhelp-canned = Canned answers
+wg-mhelp-canned-insert = Insert
+wg-mhelp-canned-edit = Edit
+wg-mhelp-sound-option = Play a sound for new questions
+
 # DRAFT: not on the strings page yet; Moon to confirm or rewrite before the PR.
 ui-options-function-wg-open-mentor-help = Open Mentor Help
 wg-mhelp-ahelp-reported = Mentor ticket #{ $ticket } reported by the player.
 wg-mhelp-ahelp-tag = (MENTOR #{ $ticket })
+wg-mhelp-canned-title = Title
+wg-mhelp-canned-text = Answer
+wg-mhelp-canned-guide = Guidebook page id (optional)
+wg-mhelp-canned-new = New
+wg-mhelp-canned-save = Save
+wg-mhelp-canned-delete = Delete

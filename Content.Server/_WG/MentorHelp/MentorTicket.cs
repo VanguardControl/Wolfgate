@@ -46,6 +46,9 @@ public sealed class MentorTicket
     /// <summary>The asker has reported it to staff.</summary>
     public bool Reported;
 
+    /// <summary>Who is typing in it, until when.</summary>
+    public readonly Dictionary<NetUserId, TimeSpan> Typing = new();
+
     public readonly List<MentorTicketLine> Lines = new();
 
     /// <summary>Responders who were last sent this ticket, so they can be told when they may no longer see it.</summary>

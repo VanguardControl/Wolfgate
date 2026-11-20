@@ -31,6 +31,12 @@ public sealed class WGClientMentorHelpSystem : EntitySystem
     /// <summary>Raised with a notice from the server.</summary>
     public event Action<string>? Notice;
 
+    /// <summary>The canned answers, for responders.</summary>
+    public IReadOnlyList<MentorCannedAnswer> Canned { get; private set; } = new List<MentorCannedAnswer>();
+
+    /// <summary>Whether this player may edit the canned answers.</summary>
+    public bool CanEditCanned { get; private set; }
+
     private readonly Dictionary<int, MentorHelpTicketView> _tickets = new();
 
     public override void Initialize()
@@ -41,6 +47,30 @@ public sealed class WGClientMentorHelpSystem : EntitySystem
         SubscribeNetworkEvent<WGMentorHelpTicketEvent>(OnTicket);
         SubscribeNetworkEvent<WGMentorHelpTicketRemovedEvent>(OnRemoved);
         SubscribeNetworkEvent<WGMentorHelpNoticeEvent>(OnNotice);
+        SubscribeNetworkEvent<WGMentorCannedListEvent>(OnCanned);
+    }
+
+    /// <summary>Tells the server this player started or stopped typing in a ticket; null for their own.</summary>
+    public void SetTyping(int? ticket, bool typing)
+    {
+        RaiseNetworkEvent(new WGMentorHelpTypingRequest { TicketId = ticket, Typing = typing });
+    }
+
+    public void SaveCanned(MentorCannedAnswer answer)
+    {
+        RaiseNetworkEvent(new WGMentorCannedSaveRequest { Answer = answer });
+    }
+
+    public void DeleteCanned(int id)
+    {
+        RaiseNetworkEvent(new WGMentorCannedDeleteRequest { Id = id });
+    }
+
+    private void OnCanned(WGMentorCannedListEvent ev)
+    {
+        Canned = ev.Answers;
+        CanEditCanned = ev.CanEdit;
+        Changed?.Invoke();
     }
 
     public void Open(string text, string? topic, bool secret)

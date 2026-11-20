@@ -1,10 +1,13 @@
 using System.Linq;
 using System.Numerics;
 using Content.Client.UserInterface.Controls;
+using Content.Client.UserInterface.Systems.Guidebook;
 using Content.Shared._WG.MentorHelp;
+using Content.Shared.Guidebook;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
 namespace Content.Client._WG.MentorHelp;
@@ -21,6 +24,9 @@ public sealed class MentorHelpWindowState
     public bool ShowCrown;
     public int MentorsOnDuty;
     public IEnumerable<MentorHelpTicketView> Tickets = Array.Empty<MentorHelpTicketView>();
+    public IReadOnlyList<MentorCannedAnswer> Canned = Array.Empty<MentorCannedAnswer>();
+    public bool CanEditCanned;
+    public bool Sound;
 }
 
 /// <summary>
@@ -37,6 +43,13 @@ public sealed class MentorHelpWindow : DefaultWindow
     public event Action<bool>? DutyToggled;
     public event Action<bool>? StartOffDutyToggled;
     public event Action<bool>? CrownToggled;
+    public event Action<bool>? SoundToggled;
+    public event Action<int?, bool>? TypingChanged;
+    public event Action<MentorCannedAnswer>? CannedSaved;
+    public event Action<int>? CannedDeleted;
+
+    private readonly IPrototypeManager _prototypes;
+    private readonly IUserInterfaceManager _ui;
 
     private readonly Label _onDuty = new();
     private readonly TabContainer _tabs = new() { VerticalExpand = true };
@@ -47,6 +60,7 @@ public sealed class MentorHelpWindow : DefaultWindow
     private readonly OptionButton _topic = new() { HorizontalExpand = true };
     private readonly CheckBox _secret = new();
     private readonly LineEdit _question = new() { HorizontalExpand = true };
+    private readonly BoxContainer _suggestions = Column();
     private readonly BoxContainer _noneOnDuty = Column();
     private readonly BoxContainer _ownBox = Column();
     private readonly RichTextLabel _ownStatus = new();
@@ -65,7 +79,20 @@ public sealed class MentorHelpWindow : DefaultWindow
     private readonly CheckBox _duty = new();
     private readonly CheckBox _startOff = new();
     private readonly CheckBox _crown = new();
+    private readonly CheckBox _sound = new();
     private readonly Label _staffMode = new();
+    private readonly BoxContainer _tools = Column();
+    private readonly LineEdit _guideSearch = new() { HorizontalExpand = true };
+    private readonly BoxContainer _guideResults = Row();
+    private readonly OptionButton _cannedPick = new() { HorizontalExpand = true };
+    private readonly Button _cannedEdit = new();
+    private readonly BoxContainer _cannedEditor = Column();
+    private readonly LineEdit _cannedTitle = new() { HorizontalExpand = true };
+    private readonly LineEdit _cannedText = new() { HorizontalExpand = true };
+    private readonly LineEdit _cannedGuide = new() { HorizontalExpand = true };
+    private int _cannedSelected = -1;
+    private bool _ownTyping;
+    private bool _ticketTyping;
     private readonly BoxContainer _queue = Column();
     private readonly RichTextLabel _ticketHeader = new();
     private readonly BoxContainer _ticketLines = Column();
@@ -80,6 +107,8 @@ public sealed class MentorHelpWindow : DefaultWindow
 
     public MentorHelpWindow()
     {
+        _prototypes = IoCManager.Resolve<IPrototypeManager>();
+        _ui = IoCManager.Resolve<IUserInterfaceManager>();
         Title = Loc.GetString("wg-mhelp-window-title");
         MinSize = new Vector2(560, 520);
         SetSize = new Vector2(640, 600);
@@ -156,9 +185,11 @@ public sealed class MentorHelpWindow : DefaultWindow
         var askRow = Row();
         _question.PlaceHolder = Loc.GetString("wg-mhelp-question-placeholder");
         _question.OnTextEntered += _ => Ask();
+        _question.OnTextChanged += _ => UpdateSuggestions();
         askRow.AddChild(_question);
         askRow.AddChild(Button("wg-mhelp-send", Ask));
         _form.AddChild(askRow);
+        _form.AddChild(_suggestions);
 
         var none = new RichTextLabel();
         none.SetMessage(Loc.GetString("wg-mhelp-none-on-duty"));
@@ -173,6 +204,7 @@ public sealed class MentorHelpWindow : DefaultWindow
 
         _ownReply.PlaceHolder = Loc.GetString("wg-mhelp-reply-placeholder");
         _ownReply.OnTextEntered += _ => ReplyOwn();
+        _ownReply.OnTextChanged += args => SetOwnTyping(args.Text.Length > 0);
         _ownReplyRow.AddChild(_ownReply);
         _ownReplyRow.AddChild(Button("wg-mhelp-send", ReplyOwn));
         _ownBox.AddChild(_ownReplyRow);
@@ -213,9 +245,12 @@ public sealed class MentorHelpWindow : DefaultWindow
         _startOff.OnToggled += args => StartOffDutyToggled?.Invoke(args.Pressed);
         _crown.Text = Loc.GetString("wg-mentor-crown-option");
         _crown.OnToggled += args => CrownToggled?.Invoke(args.Pressed);
+        _sound.Text = Loc.GetString("wg-mhelp-sound-option");
+        _sound.OnToggled += args => SoundToggled?.Invoke(args.Pressed);
         _dutyRow.AddChild(_duty);
         _dutyRow.AddChild(_startOff);
         _dutyRow.AddChild(_crown);
+        _dutyRow.AddChild(_sound);
         page.AddChild(_dutyRow);
 
         _staffMode.Text = Loc.GetString("wg-mhelp-mode-staff");
@@ -237,9 +272,11 @@ public sealed class MentorHelpWindow : DefaultWindow
         _note.PlaceHolder = Loc.GetString("wg-mhelp-take-over-note");
         _target.PlaceHolder = Loc.GetString("wg-mhelp-transfer");
         detail.AddChild(_ticketActions);
+        detail.AddChild(BuildTools());
 
         _ticketReply.PlaceHolder = Loc.GetString("wg-mhelp-reply-placeholder");
         _ticketReply.OnTextEntered += _ => ReplyTicket();
+        _ticketReply.OnTextChanged += args => SetTicketTyping(args.Text.Length > 0);
         _ticketReplyRow.AddChild(_ticketReply);
         _ticketReplyRow.AddChild(Button("wg-mhelp-send", ReplyTicket));
         detail.AddChild(_ticketReplyRow);
@@ -247,6 +284,61 @@ public sealed class MentorHelpWindow : DefaultWindow
         split.AddChild(detail);
         page.AddChild(split);
         return page;
+    }
+
+    /// <summary>The responder's tools under a ticket: link a guidebook page, insert or edit a canned answer.</summary>
+    private Control BuildTools()
+    {
+        var guideRow = Row();
+        _guideSearch.PlaceHolder = Loc.GetString("wg-mhelp-guide-link");
+        _guideSearch.OnTextChanged += _ => UpdateGuideResults();
+        guideRow.AddChild(_guideSearch);
+        _tools.AddChild(guideRow);
+        _tools.AddChild(_guideResults);
+
+        var cannedRow = Row();
+        cannedRow.AddChild(new Label { Text = Loc.GetString("wg-mhelp-canned") });
+        _cannedPick.OnItemSelected += args =>
+        {
+            _cannedPick.SelectId(args.Id);
+            _cannedSelected = args.Id;
+            FillCannedEditor();
+        };
+        cannedRow.AddChild(_cannedPick);
+        cannedRow.AddChild(Button("wg-mhelp-canned-insert", InsertCanned));
+        _cannedEdit.Text = Loc.GetString("wg-mhelp-canned-edit");
+        _cannedEdit.ToggleMode = true;
+        _cannedEdit.OnToggled += args =>
+        {
+            _cannedEditor.Visible = args.Pressed;
+            FillCannedEditor();
+        };
+        cannedRow.AddChild(_cannedEdit);
+        _tools.AddChild(cannedRow);
+
+        _cannedTitle.PlaceHolder = Loc.GetString("wg-mhelp-canned-title");
+        _cannedText.PlaceHolder = Loc.GetString("wg-mhelp-canned-text");
+        _cannedGuide.PlaceHolder = Loc.GetString("wg-mhelp-canned-guide");
+        _cannedEditor.AddChild(_cannedTitle);
+        _cannedEditor.AddChild(_cannedText);
+        _cannedEditor.AddChild(_cannedGuide);
+        var editRow = Row();
+        editRow.AddChild(Button("wg-mhelp-canned-new", () =>
+        {
+            _cannedSelected = -1;
+            FillCannedEditor();
+        }));
+        editRow.AddChild(Button("wg-mhelp-canned-save", SaveCanned));
+        editRow.AddChild(Button("wg-mhelp-canned-delete", () =>
+        {
+            if (SelectedCanned() is { } answer)
+                CannedDeleted?.Invoke(answer.Id);
+        }));
+        _cannedEditor.AddChild(editRow);
+        _cannedEditor.Visible = false;
+        _tools.AddChild(_cannedEditor);
+
+        return _tools;
     }
 
     #endregion
@@ -273,6 +365,9 @@ public sealed class MentorHelpWindow : DefaultWindow
         });
 
         FillLines(_ownLines, own.Lines);
+        if (open && own.ResponderTyping)
+            _ownLines.AddChild(new Label { Text = $"✎ {Loc.GetString("wg-mhelp-sender-mentor")}", FontColorOverride = Color.Gray });
+
         _ownReplyRow.Visible = open;
         _end.Visible = open;
         _rateBox.Visible = !open && own.Answered && !own.Rated;
@@ -292,7 +387,10 @@ public sealed class MentorHelpWindow : DefaultWindow
         _duty.Pressed = _state.OnDuty;
         _startOff.Pressed = _state.StartOffDuty;
         _crown.Pressed = _state.ShowCrown;
+        _sound.Visible = _state.Responder;
+        _sound.Pressed = _state.Sound;
         _staffMode.Visible = _state.Staff;
+        FillCannedList();
 
         _queue.RemoveAllChildren();
         var ordered = _state.Tickets
@@ -328,6 +426,7 @@ public sealed class MentorHelpWindow : DefaultWindow
         _ticketHeader.Visible = selected != null;
         _ticketActions.Visible = selected is { Status: not MentorTicketStatus.Closed };
         _ticketReplyRow.Visible = selected is { Status: not MentorTicketStatus.Closed };
+        _tools.Visible = selected is { Status: not MentorTicketStatus.Closed };
         _ticketLines.RemoveAllChildren();
         if (selected == null)
             return;
@@ -345,6 +444,9 @@ public sealed class MentorHelpWindow : DefaultWindow
 
         _ticketHeader.SetMessage(header);
         FillLines(_ticketLines, selected.Lines);
+        if (selected.Typing.Count > 0)
+            _ticketLines.AddChild(new Label { Text = $"✎ {string.Join(", ", selected.Typing)}", FontColorOverride = Color.Gray });
+
         FillActions(selected);
     }
 
@@ -388,7 +490,7 @@ public sealed class MentorHelpWindow : DefaultWindow
         }
     }
 
-    private static void FillLines(BoxContainer box, List<MentorHelpLine> lines)
+    private void FillLines(BoxContainer box, List<MentorHelpLine> lines)
     {
         box.RemoveAllChildren();
         foreach (var line in lines)
@@ -402,11 +504,123 @@ public sealed class MentorHelpWindow : DefaultWindow
                 message.AddText(": ");
             }
 
-            message.AddText(line.Text);
+            MentorGuideLinks.AddText(message, line.Text, _prototypes);
             var label = new RichTextLabel();
-            label.SetMessage(message);
+            label.SetMessage(message, MentorGuideLinks.LineTags);
             box.AddChild(label);
         }
+    }
+
+    /// <summary>Guidebook pages that might answer the question being typed.</summary>
+    private void UpdateSuggestions()
+    {
+        _suggestions.RemoveAllChildren();
+        var found = MentorGuideLinks.Suggest(_question.Text, _prototypes);
+        if (found.Count == 0)
+            return;
+
+        _suggestions.AddChild(new Label { Text = Loc.GetString("wg-mhelp-guide-suggestions"), FontColorOverride = Color.Gray });
+        var row = Row();
+        foreach (var entry in found)
+        {
+            var id = new ProtoId<GuideEntryPrototype>(entry.ID);
+            var button = new Button { Text = Loc.GetString(entry.Name), ClipText = true };
+            button.OnPressed += _ => _ui.GetUIController<GuidebookUIController>().OpenGuidebook(selected: id);
+            row.AddChild(button);
+        }
+
+        _suggestions.AddChild(row);
+    }
+
+    /// <summary>Pages matching the mentor's search; pressing one puts its link in the reply.</summary>
+    private void UpdateGuideResults()
+    {
+        _guideResults.RemoveAllChildren();
+        foreach (var entry in MentorGuideLinks.Search(_guideSearch.Text, _prototypes))
+        {
+            var button = new Button { Text = Loc.GetString(entry.Name), ClipText = true };
+            var token = MentorGuideLinks.TokenFor(entry.ID);
+            button.OnPressed += _ =>
+            {
+                _ticketReply.Text = $"{_ticketReply.Text.TrimEnd()} {token}".TrimStart();
+                _guideSearch.Text = string.Empty;
+                _guideResults.RemoveAllChildren();
+            };
+            _guideResults.AddChild(button);
+        }
+    }
+
+    private void FillCannedList()
+    {
+        _cannedPick.Clear();
+        for (var i = 0; i < _state.Canned.Count; i++)
+        {
+            _cannedPick.AddItem(_state.Canned[i].Title, i);
+        }
+
+        if (_cannedSelected >= _state.Canned.Count)
+            _cannedSelected = -1;
+
+        if (_cannedSelected >= 0)
+            _cannedPick.SelectId(_cannedSelected);
+        else if (_state.Canned.Count > 0)
+            _cannedSelected = 0;
+
+        _cannedPick.Disabled = _state.Canned.Count == 0;
+        _cannedEdit.Visible = _state.CanEditCanned;
+        if (!_state.CanEditCanned)
+            _cannedEditor.Visible = false;
+    }
+
+    private MentorCannedAnswer? SelectedCanned()
+    {
+        return _cannedSelected >= 0 && _cannedSelected < _state.Canned.Count ? _state.Canned[_cannedSelected] : null;
+    }
+
+    private void InsertCanned()
+    {
+        if (SelectedCanned() is not { } answer)
+            return;
+
+        var text = answer.GuideEntry != null ? $"{answer.Text} {MentorGuideLinks.TokenFor(answer.GuideEntry)}" : answer.Text;
+        _ticketReply.Text = $"{_ticketReply.Text.TrimEnd()} {text}".TrimStart();
+    }
+
+    private void FillCannedEditor()
+    {
+        var answer = SelectedCanned();
+        _cannedTitle.Text = answer?.Title ?? string.Empty;
+        _cannedText.Text = answer?.Text ?? string.Empty;
+        _cannedGuide.Text = answer?.GuideEntry ?? string.Empty;
+    }
+
+    private void SaveCanned()
+    {
+        CannedSaved?.Invoke(new MentorCannedAnswer
+        {
+            Id = SelectedCanned()?.Id ?? 0,
+            Title = _cannedTitle.Text,
+            Text = _cannedText.Text,
+            GuideEntry = _cannedGuide.Text.Trim().Length > 0 ? _cannedGuide.Text.Trim() : null,
+        });
+    }
+
+    private void SetOwnTyping(bool typing)
+    {
+        if (typing == _ownTyping)
+            return;
+
+        _ownTyping = typing;
+        TypingChanged?.Invoke(null, typing);
+    }
+
+    private void SetTicketTyping(bool typing)
+    {
+        if (typing == _ticketTyping || _selected is not { } id)
+            return;
+
+        _ticketTyping = typing;
+        TypingChanged?.Invoke(id, typing);
     }
 
     private static string QueueEntry(MentorHelpTicketView ticket)
@@ -423,6 +637,9 @@ public sealed class MentorHelpWindow : DefaultWindow
 
         if (ticket.Topic != null)
             parts.Add(Loc.GetString($"wg-mhelp-topic-{ticket.Topic}"));
+
+        if (ticket.Typing.Count > 0)
+            parts.Add("✎");
 
         var minutes = Math.Max(0, (int) (DateTime.UtcNow - ticket.OpenedAt).TotalMinutes);
         parts.Add(Loc.GetString("wg-mhelp-waited", ("minutes", minutes)));
@@ -461,6 +678,7 @@ public sealed class MentorHelpWindow : DefaultWindow
 
         PostPressed?.Invoke(null, text);
         _ownReply.Text = string.Empty;
+        _ownTyping = false;
     }
 
     private void ReplyTicket()
@@ -471,6 +689,7 @@ public sealed class MentorHelpWindow : DefaultWindow
 
         PostPressed?.Invoke(id, text);
         _ticketReply.Text = string.Empty;
+        _ticketTyping = false;
     }
 
     private void Rate(bool up)

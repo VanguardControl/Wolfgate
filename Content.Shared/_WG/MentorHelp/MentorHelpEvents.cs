@@ -89,6 +89,9 @@ public sealed class MentorHelpPlayerTicket
 
     /// <summary>The asker has reported it to staff.</summary>
     public bool Reported;
+
+    /// <summary>A responder is typing in it now.</summary>
+    public bool ResponderTyping;
 }
 
 /// <summary>A ticket as a mentor or staff member sees it.</summary>
@@ -121,6 +124,9 @@ public sealed class MentorHelpTicketView
     public string? ClaimedBy;
     public bool ClaimedByMe;
     public List<MentorHelpLine> Lines = new();
+
+    /// <summary>Who is typing in it now, as the receiver may name them.</summary>
+    public List<string> Typing = new();
 }
 
 /// <summary>Server to the asker: their ticket, or null when they have none.</summary>
@@ -209,6 +215,48 @@ public sealed class WGMentorHelpPlayerActionRequest : EntityEventArgs
 
     /// <summary>For Rate: the optional line.</summary>
     public string? Comment;
+}
+
+/// <summary>A canned answer as sent to responders.</summary>
+[Serializable, NetSerializable]
+public sealed class MentorCannedAnswer
+{
+    public int Id;
+    public string Title = string.Empty;
+    public string Text = string.Empty;
+
+    /// <summary>A guidebook entry id the answer links to, or null.</summary>
+    public string? GuideEntry;
+}
+
+/// <summary>Server to a responder: the canned answers, and whether they may edit them.</summary>
+[Serializable, NetSerializable]
+public sealed class WGMentorCannedListEvent : EntityEventArgs
+{
+    public List<MentorCannedAnswer> Answers = new();
+    public bool CanEdit;
+}
+
+/// <summary>Client to server: add (id 0) or change a canned answer; Senior Mentors and staff only.</summary>
+[Serializable, NetSerializable]
+public sealed class WGMentorCannedSaveRequest : EntityEventArgs
+{
+    public MentorCannedAnswer Answer = new();
+}
+
+/// <summary>Client to server: delete a canned answer; Senior Mentors and staff only.</summary>
+[Serializable, NetSerializable]
+public sealed class WGMentorCannedDeleteRequest : EntityEventArgs
+{
+    public int Id;
+}
+
+/// <summary>Client to server: the sender started or stopped typing in a ticket; null for their own.</summary>
+[Serializable, NetSerializable]
+public sealed class WGMentorHelpTypingRequest : EntityEventArgs
+{
+    public int? TicketId;
+    public bool Typing;
 }
 
 /// <summary>Client to server: staff move a player's ahelp to Mentor Help.</summary>

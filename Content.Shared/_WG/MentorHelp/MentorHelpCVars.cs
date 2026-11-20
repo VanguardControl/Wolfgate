@@ -22,6 +22,10 @@ public sealed class MentorHelpCVars
     public static readonly CVarDef<string> DiscordWebhook =
         CVarDef.Create("wg.mentor.discord_webhook", string.Empty, CVar.SERVERONLY | CVar.CONFIDENTIAL);
 
+    /// <summary>Whether this responder hears a sound for a new question or message in the queue.</summary>
+    public static readonly CVarDef<bool> Sound =
+        CVarDef.Create("wg.mentor.sound", true, CVar.CLIENTONLY | CVar.ARCHIVE);
+
     /// <summary>Days a ticket's transcript is kept before its text is deleted.</summary>
     public static readonly CVarDef<int> TranscriptDays =
         CVarDef.Create("wg.mentor.transcript_days", 180, CVar.SERVERONLY);

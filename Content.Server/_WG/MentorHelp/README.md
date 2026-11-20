@@ -20,6 +20,19 @@ the queue. In the queue, mentors claim, unclaim, take over with a note, hand a q
 and reply, and switch their duty. The menu button turns red when a reply or a new question arrives while the window
 is closed.
 
+Helping the player find answers:
+
+- As a player types a question, up to three guidebook pages whose names match it are offered
+  (`MentorGuideLinks.Suggest`).
+- Mentors link a page by searching for it under a ticket; the reply carries a `{guide:ENTRYID}` token, which every
+  window shows as the page name, clickable (`WGGuideLinkTag`, `[wgguide=ID/]`). Tokens are plain text, so they
+  survive the server's markup strip.
+- Canned answers (`WGMentorHelpCannedSystem`, `wolfgate_mentor_canned`) are inserted from a list under a ticket;
+  Senior Mentors and staff with Adminhelp add, change and delete them there.
+- Typing shows as `✎` in the queue and under the conversation, on both sides, and lapses after 10 seconds.
+- A sound plays on a reply to the player's own question, and for responders on a new question or message unless
+  they turn it off (`wg.mentor.sound`).
+
 With the Admin Help:
 
 - Players: the ahelp window shows how many Mentors are on duty with an Ask a Mentor button
@@ -58,6 +71,7 @@ Read and written through `ServerDbManager.MentorHelp.cs`.
 - [`Content.Server/_WG/MentorHelp/MentorTicket.cs`](MentorTicket.cs)
 - [`Content.Server/_WG/MentorHelp/ServerDbBase.MentorHelp.cs`](ServerDbBase.MentorHelp.cs)
 - [`Content.Server/_WG/MentorHelp/ServerDbManager.MentorHelp.cs`](ServerDbManager.MentorHelp.cs)
+- [`Content.Server/_WG/MentorHelp/WGMentorHelpCannedSystem.cs`](WGMentorHelpCannedSystem.cs)
 - [`Content.Server/_WG/MentorHelp/WGMentorHelpDiscordSystem.cs`](WGMentorHelpDiscordSystem.cs)
 - [`Content.Server/_WG/MentorHelp/WGMentorHelpSystem.cs`](WGMentorHelpSystem.cs)
 
@@ -71,15 +85,18 @@ Read and written through `ServerDbManager.MentorHelp.cs`.
 
 - [`Content.Client/_WG/MentorHelp/AHelpUIController.MentorHelp.cs`](../../../Content.Client/_WG/MentorHelp/AHelpUIController.MentorHelp.cs)
 - [`Content.Client/_WG/MentorHelp/BwoinkControl.MentorHelp.cs`](../../../Content.Client/_WG/MentorHelp/BwoinkControl.MentorHelp.cs)
+- [`Content.Client/_WG/MentorHelp/MentorGuideLinks.cs`](../../../Content.Client/_WG/MentorHelp/MentorGuideLinks.cs)
 - [`Content.Client/_WG/MentorHelp/MentorHelpAHelpHeader.cs`](../../../Content.Client/_WG/MentorHelp/MentorHelpAHelpHeader.cs)
 - [`Content.Client/_WG/MentorHelp/MentorHelpUIController.cs`](../../../Content.Client/_WG/MentorHelp/MentorHelpUIController.cs)
 - [`Content.Client/_WG/MentorHelp/MentorHelpWindow.cs`](../../../Content.Client/_WG/MentorHelp/MentorHelpWindow.cs)
 - [`Content.Client/_WG/MentorHelp/WGClientMentorHelpSystem.cs`](../../../Content.Client/_WG/MentorHelp/WGClientMentorHelpSystem.cs)
+- [`Content.Client/_WG/MentorHelp/WGGuideLinkTag.cs`](../../../Content.Client/_WG/MentorHelp/WGGuideLinkTag.cs)
 
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WG/MentorHelp/MentorAHelpHandoffTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MentorHelp/MentorAHelpHandoffTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpDbTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpDbTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpExtrasTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpExtrasTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpRoutingTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpRoutingTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpTicketTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MentorHelp/MentorHelpTicketTest.cs)
 
