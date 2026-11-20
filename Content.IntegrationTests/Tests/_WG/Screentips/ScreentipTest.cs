@@ -5,6 +5,7 @@ using Content.Client._WG.Screentips;
 using Content.Client.Gameplay;
 using Content.Client.UserInterface.Controls;
 using Content.IntegrationTests.Tests.Interaction;
+using Content.Shared.Examine;
 using Content.Shared._WG.Screentips;
 using Robust.Client.State;
 using Robust.Client.UserInterface;
@@ -95,6 +96,12 @@ public sealed class ScreentipTest : InteractionTest
     {
         await SpawnTarget("Crowbar");
         var tips = Client.ResolveDependency<IUserInterfaceManager>().GetUIController<ScreentipUIController>();
+        // UI system dependencies are matched on the system's exact type; a shared base type is never filled in.
+        var examine = typeof(ScreentipUIController).GetField("_examine", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        Assert.That(examine.GetValue(tips), Is.Not.Null, "The controller gets the examine system.");
+
+        // The test mob can't examine at all; a real player mob can, and the component isn't networked.
+        await Client.WaitPost(() => CEntMan.EnsureComponent<ExaminerComponent>(CPlayer));
         await Client.WaitAssertion(() => Assert.That(tips.CanSee(CTarget!.Value), Is.True, "An item beside the player is named."));
 
         await Server.WaitPost(() =>

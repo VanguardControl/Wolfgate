@@ -6,7 +6,8 @@ and there's a text colour slider (`wg.screentips`, `wg.screentip_color`). The na
 person shows as they would on examine. A player or mob standing in the dark (light level under 0.1 on the client) gets
 no tip and no hover outline, so hovering can't find someone hiding; with lighting off in the view (a ghost's toggle)
 everything is shown. `WGHoverDarknessSystem` makes that call for both. The tip also follows examine's line of sight
-(`CanExamine`): nothing behind a wall or past examine range is named, while ghosts and admins skip that check.
+(examine's checks, in `ScreentipUIController.CanSee`): nothing behind a wall or past examine range is named, while ghosts
+and admins skip that check. It leaves out the client's main-eye view-bounds test, since a hovered entity is on screen.
 
 Entry point: `ScreentipUIController`. Each frame it asks the gameplay state which entity is under the cursor, the
 same way the hover outline does, and positions a small label in the popup layer. It only shows while the cursor is
