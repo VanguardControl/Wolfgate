@@ -2490,6 +2490,286 @@ namespace Content.Server.Database.Migrations.Sqlite
                     b.ToTable("wolfgate_game_score", (string)null);
                 });
 
+            modelBuilder.Entity("Content.Server.Database.WolfgateMentor", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("user_id");
+
+                    b.Property<DateTime>("GrantedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("granted_at");
+
+                    b.Property<Guid?>("GrantedBy")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("granted_by");
+
+                    b.Property<string>("History")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("[]")
+                        .HasColumnName("history");
+
+                    b.Property<DateTime>("LastActiveAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("last_active_at");
+
+                    b.Property<DateTime?>("PromotedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("promoted_at");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("source");
+
+                    b.Property<string>("StaffNotes")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("")
+                        .HasColumnName("staff_notes");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("state");
+
+                    b.Property<string>("Tier")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("tier");
+
+                    b.HasKey("UserId")
+                        .HasName("PK_wolfgate_mentor");
+
+                    b.ToTable("wolfgate_mentor", (string)null);
+                });
+
+            modelBuilder.Entity("Content.Server.Database.WolfgateMentorApplication", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("wolfgate_mentor_application_id");
+
+                    b.Property<string>("Answers")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("answers");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("PlaytimeMinutes")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("playtime_minutes");
+
+                    b.Property<DateTime?>("ReapplyAfter")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("reapply_after");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("reason");
+
+                    b.Property<string>("RecordSummary")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("record_summary");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("reviewed_at");
+
+                    b.Property<Guid?>("ReviewedBy")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("reviewed_by");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("state");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("PK_wolfgate_mentor_application");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("wolfgate_mentor_application", (string)null);
+                });
+
+            modelBuilder.Entity("Content.Server.Database.WolfgateMentorCanned", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("wolfgate_mentor_canned_id");
+
+                    b.Property<string>("GuideEntry")
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("guide_entry");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("title");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("PK_wolfgate_mentor_canned");
+
+                    b.ToTable("wolfgate_mentor_canned", (string)null);
+                });
+
+            modelBuilder.Entity("Content.Server.Database.WolfgateMentorTicket", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("wolfgate_mentor_ticket_id");
+
+                    b.Property<string>("CharacterName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("character_name");
+
+                    b.Property<Guid?>("ClaimedBy")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("claimed_by");
+
+                    b.Property<string>("CloseReason")
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("close_reason");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("closed_at");
+
+                    b.Property<DateTime?>("FirstAnswerAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("first_answer_at");
+
+                    b.Property<bool>("FromAhelp")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("from_ahelp");
+
+                    b.Property<bool>("Newbie")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("newbie");
+
+                    b.Property<DateTime>("OpenedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("opened_at");
+
+                    b.Property<Guid>("PlayerUserId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("player_user_id");
+
+                    b.Property<int?>("Rating")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("rating");
+
+                    b.Property<string>("RatingComment")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("rating_comment");
+
+                    b.Property<int?>("RoundId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("round_id");
+
+                    b.Property<bool>("SecretRole")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("secret_role");
+
+                    b.Property<int?>("ServerId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("server_id");
+
+                    b.Property<string>("Topic")
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("topic");
+
+                    b.HasKey("Id")
+                        .HasName("PK_wolfgate_mentor_ticket");
+
+                    b.HasIndex("ClaimedBy");
+
+                    b.HasIndex("OpenedAt");
+
+                    b.HasIndex("PlayerUserId");
+
+                    b.ToTable("wolfgate_mentor_ticket", (string)null);
+                });
+
+            modelBuilder.Entity("Content.Server.Database.WolfgateMentorTicketMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("wolfgate_mentor_ticket_message_id");
+
+                    b.Property<string>("SenderRole")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("sender_role");
+
+                    b.Property<Guid?>("SenderUserId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("sender_user_id");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("sent_at");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("text");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("ticket_id");
+
+                    b.HasKey("Id")
+                        .HasName("PK_wolfgate_mentor_ticket_message");
+
+                    b.HasIndex("SenderUserId");
+
+                    b.HasIndex("TicketId")
+                        .HasDatabaseName("IX_wolfgate_mentor_ticket_message_ticket_id");
+
+                    b.ToTable("wolfgate_mentor_ticket_message", (string)null);
+                });
+
             modelBuilder.Entity("Content.Server.Database.WolfgateNanoChatNumber", b =>
                 {
                     b.Property<int>("ProfileId")
@@ -3427,6 +3707,18 @@ namespace Content.Server.Database.Migrations.Sqlite
                     b.Navigation("Art");
                 });
 
+            modelBuilder.Entity("Content.Server.Database.WolfgateMentorTicketMessage", b =>
+                {
+                    b.HasOne("Content.Server.Database.WolfgateMentorTicket", "Ticket")
+                        .WithMany("Messages")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_wolfgate_mentor_ticket_message_wolfgate_mentor_ticket_ticket_id");
+
+                    b.Navigation("Ticket");
+                });
+
             modelBuilder.Entity("Content.Server.Database.WolfgateNanoChatNumber", b =>
                 {
                     b.HasOne("Content.Server.Database.Profile", "Profile")
@@ -3609,6 +3901,11 @@ namespace Content.Server.Database.Migrations.Sqlite
                     b.Navigation("Members");
 
                     b.Navigation("Ranks");
+                });
+
+            modelBuilder.Entity("Content.Server.Database.WolfgateMentorTicket", b =>
+                {
+                    b.Navigation("Messages");
                 });
 #pragma warning restore 612, 618
         }
