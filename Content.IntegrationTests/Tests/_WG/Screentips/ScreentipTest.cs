@@ -61,7 +61,7 @@ public sealed class ScreentipTest : InteractionTest
     public async Task MobInDarkIsNotNamed()
     {
         await SpawnTarget("MobHuman");
-        var tips = Client.ResolveDependency<IUserInterfaceManager>().GetUIController<ScreentipUIController>();
+        var tips = Client.System<WGHoverDarknessSystem>();
 
         // The test map has no ambient light and no lamps.
         await RunTicks(3);
@@ -83,7 +83,7 @@ public sealed class ScreentipTest : InteractionTest
     public async Task ItemInDarkIsStillNamed()
     {
         await SpawnTarget("Crowbar");
-        var tips = Client.ResolveDependency<IUserInterfaceManager>().GetUIController<ScreentipUIController>();
+        var tips = Client.System<WGHoverDarknessSystem>();
         await RunTicks(3);
         await Client.WaitAssertion(() => Assert.That(tips.InDark(CTarget!.Value), Is.False, "Only players and mobs hide in the dark."));
     }

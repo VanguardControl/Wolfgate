@@ -4,7 +4,8 @@ The name of whatever is under the cursor in the game view, as in SS13. It is set
 "Show the name of what's under the cursor" can be off, at the top of the view (the default), or next to the cursor,
 and there's a text colour slider (`wg.screentips`, `wg.screentip_color`). The name respects identity, so a masked
 person shows as they would on examine. A player or mob standing in the dark (light level under 0.1 on the client) gets
-no tip, so hovering can't find someone hiding; with lighting off in the view (a ghost's toggle) everything is named.
+no tip and no hover outline, so hovering can't find someone hiding; with lighting off in the view (a ghost's toggle)
+everything is shown. `WGHoverDarknessSystem` makes that call for both.
 
 Entry point: `ScreentipUIController`. Each frame it asks the gameplay state which entity is under the cursor, the
 same way the hover outline does, and positions a small label in the popup layer. It only shows while the cursor is
@@ -23,6 +24,7 @@ over the game view, never over UI.
 
 - [`Content.Client/_WG/Screentips/MiscTab.Screentips.cs`](../../../Content.Client/_WG/Screentips/MiscTab.Screentips.cs)
 - [`Content.Client/_WG/Screentips/ScreentipUIController.cs`](../../../Content.Client/_WG/Screentips/ScreentipUIController.cs)
+- [`Content.Client/_WG/Screentips/WGHoverDarknessSystem.cs`](../../../Content.Client/_WG/Screentips/WGHoverDarknessSystem.cs)
 
 ### Integration tests
 
@@ -36,5 +38,8 @@ over the game view, never over UI.
 
 - [`Content.Client/Options/UI/Tabs/MiscTab.xaml`](../../../Content.Client/Options/UI/Tabs/MiscTab.xaml): screentip position and colour
 - [`Content.Client/Options/UI/Tabs/MiscTab.xaml.cs`](../../../Content.Client/Options/UI/Tabs/MiscTab.xaml.cs): screentip position and colour
+- [`Content.Client/Outline/InteractionOutlineSystem.cs`](../../../Content.Client/Outline/InteractionOutlineSystem.cs)
+  - no outline on mobs in the dark
+  - a player or mob hidden in the dark gets no hover outline
 
 <!-- WOLFGATE-GENERATED END -->
