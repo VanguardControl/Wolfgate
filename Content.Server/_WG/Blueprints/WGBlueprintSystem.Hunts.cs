@@ -1,7 +1,7 @@
 using System.Linq;
-using Content.Server._WF.PlanetPois;
+using Content.Server._WG.PlanetPois;
 using Content.Server.Storage.Components;
-using Content.Shared._WF.Blueprints;
+using Content.Shared._WG.Blueprints;
 using Content.Shared.Database;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Physics;
@@ -11,13 +11,13 @@ using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
-namespace Content.Server._WF.Blueprints;
+namespace Content.Server._WG.Blueprints;
 
-public sealed partial class WFBlueprintSystem
+public sealed partial class WGBlueprintSystem
 {
-    public static readonly EntProtoId ShardProto = "WFBlueprintShard";
+    public static readonly EntProtoId ShardProto = "WGBlueprintShard";
 
-    private void OnLocate(Entity<WFBlueprintLocatorComponent> ent, ref WFBlueprintLocateMessage args)
+    private void OnLocate(Entity<WGBlueprintLocatorComponent> ent, ref WGBlueprintLocateMessage args)
     {
         var user = args.Actor;
         if (TryLocate(ent, user, args.Patterns, out var error))
@@ -27,33 +27,33 @@ public sealed partial class WFBlueprintSystem
     }
 
     /// <summary>Validates a request, takes the fee, claims a site and hides the shards; error is a loc id.</summary>
-    public bool TryLocate(Entity<WFBlueprintLocatorComponent> ent, EntityUid user, List<string> ids, out string error)
+    public bool TryLocate(Entity<WGBlueprintLocatorComponent> ent, EntityUid user, List<string> ids, out string error)
     {
         error = string.Empty;
         if (ent.Comp.Hunt != null)
         {
-            error = "wf-blueprint-locator-busy";
+            error = "wg-blueprint-locator-busy";
             return false;
         }
 
         if (_timing.CurTime < ent.Comp.NextHunt)
         {
-            error = "wf-blueprint-locator-cooldown";
+            error = "wg-blueprint-locator-cooldown";
             return false;
         }
 
         if (!TryGetDatabase(ent, out _, out _))
         {
-            error = "wf-blueprint-locator-unlinked";
+            error = "wg-blueprint-locator-unlinked";
             return false;
         }
 
-        var patterns = new List<WFBlueprintPatternPrototype>();
+        var patterns = new List<WGBlueprintPatternPrototype>();
         foreach (var id in ids.Distinct())
         {
-            if (!_proto.TryIndex<WFBlueprintPatternPrototype>(id, out var pattern) || IsOwned(ent, pattern) || !Fits(ent, pattern))
+            if (!_proto.TryIndex<WGBlueprintPatternPrototype>(id, out var pattern) || IsOwned(ent, pattern) || !Fits(ent, pattern))
             {
-                error = "wf-blueprint-locator-invalid";
+                error = "wg-blueprint-locator-invalid";
                 return false;
             }
 
@@ -62,20 +62,20 @@ public sealed partial class WFBlueprintSystem
 
         if (patterns.Count == 0 || patterns.Count > ent.Comp.MaxPatterns || patterns.Any(p => p.Tier != patterns[0].Tier))
         {
-            error = "wf-blueprint-locator-invalid";
+            error = "wg-blueprint-locator-invalid";
             return false;
         }
 
         if (patterns.Any(p => !PrerequisitesKnown(ent, p)))
         {
-            error = "wf-blueprint-locator-prerequisites";
+            error = "wg-blueprint-locator-prerequisites";
             return false;
         }
 
         var tier = patterns[0].Tier;
         if (!TryPickSite(tier, out var ground, out var index))
         {
-            error = "wf-blueprint-locator-no-site";
+            error = "wg-blueprint-locator-no-site";
             return false;
         }
 
@@ -86,30 +86,30 @@ public sealed partial class WFBlueprintSystem
 
         if (fee > fromPoints && !_bank.TryBankWithdraw(user, fee - fromPoints))
         {
-            error = "wf-blueprint-locator-no-funds";
+            error = "wg-blueprint-locator-no-funds";
             return false;
         }
 
         if (fromPoints > 0)
             _research.ModifyServerPoints(serverUid!.Value, -fromPoints, server);
 
-        var site = Comp<WFPlanetPoiComponent>(ground).Sites[index];
-        var hunt = new WFBlueprintHunt
+        var site = Comp<WGPlanetPoiComponent>(ground).Sites[index];
+        var hunt = new WGBlueprintHunt
         {
             Ground = ground,
             SiteIndex = index,
             Tier = tier,
-            Patterns = patterns.Select(p => new ProtoId<WFBlueprintPatternPrototype>(p.ID)).ToList(),
+            Patterns = patterns.Select(p => new ProtoId<WGBlueprintPatternPrototype>(p.ID)).ToList(),
         };
 
         site.BlueprintClaim = ent;
         ent.Comp.Hunt = hunt;
         PlaceShards(ent, hunt, site, patterns);
 
-        if (TryComp<WFPoiSignalComponent>(site.Signal, out var signal) && !signal.Revealed)
+        if (TryComp<WGPoiSignalComponent>(site.Signal, out var signal) && !signal.Revealed)
             _pois.Reveal((site.Signal, signal), null);
 
-        _popup.PopupEntity(Loc.GetString("wf-blueprint-locator-started",
+        _popup.PopupEntity(Loc.GetString("wg-blueprint-locator-started",
             ("site", Loc.GetString(site.Name)), ("world", Name(ground))), ent, user);
         _adminLog.Add(LogType.Action, LogImpact.Low,
             $"{ToPrettyString(user):player} started a tier {tier} blueprint hunt at {ToPrettyString(ent)} for {string.Join(", ", hunt.Patterns)}");
@@ -121,7 +121,7 @@ public sealed partial class WFBlueprintSystem
     private bool TryPickSite(int tier, out EntityUid ground, out int index)
     {
         var free = new List<(EntityUid Ground, int Index)>();
-        var query = EntityQueryEnumerator<WFPlanetPoiComponent>();
+        var query = EntityQueryEnumerator<WGPlanetPoiComponent>();
         while (query.MoveNext(out var uid, out var record))
         {
             if (!record.NetworkReady)
@@ -156,7 +156,7 @@ public sealed partial class WFBlueprintSystem
     }
 
     /// <summary>One shard a pattern: inside the site's crates and lockers first, then on its open floor.</summary>
-    private void PlaceShards(Entity<WFBlueprintLocatorComponent> ent, WFBlueprintHunt hunt, WFPlanetPoiSite site, List<WFBlueprintPatternPrototype> patterns)
+    private void PlaceShards(Entity<WGBlueprintLocatorComponent> ent, WGBlueprintHunt hunt, WGPlanetPoiSite site, List<WGBlueprintPatternPrototype> patterns)
     {
         if (!TryComp<MapGridComponent>(hunt.Ground, out var grid))
             return;
@@ -188,28 +188,28 @@ public sealed partial class WFBlueprintSystem
             if (nextStorage < storages.Count)
             {
                 var storage = storages[nextStorage++];
-                shard = SpawnFor(ShardProto, pattern, Transform(storage).Coordinates, "wf-blueprint-shard-name");
+                shard = SpawnFor(ShardProto, pattern, Transform(storage).Coordinates, "wg-blueprint-shard-name");
                 _entityStorage.Insert(shard, storage);
             }
             else if (nextFloor < floor.Count)
             {
-                shard = SpawnFor(ShardProto, pattern, _map.GridTileToLocal(hunt.Ground, grid, floor[nextFloor++]), "wf-blueprint-shard-name");
+                shard = SpawnFor(ShardProto, pattern, _map.GridTileToLocal(hunt.Ground, grid, floor[nextFloor++]), "wg-blueprint-shard-name");
             }
             else
             {
                 // A site with no free floor: the shard lies at its middle.
                 var centre = new Vector2i((site.Bounds.Left + site.Bounds.Right) / 2, (site.Bounds.Bottom + site.Bounds.Top) / 2);
-                shard = SpawnFor(ShardProto, pattern, _map.GridTileToLocal(hunt.Ground, grid, centre), "wf-blueprint-shard-name");
+                shard = SpawnFor(ShardProto, pattern, _map.GridTileToLocal(hunt.Ground, grid, centre), "wg-blueprint-shard-name");
             }
 
-            Comp<WFBlueprintShardComponent>(shard).Locator = ent;
+            Comp<WGBlueprintShardComponent>(shard).Locator = ent;
             hunt.Shards.Add(shard);
         }
     }
 
-    private void OnShardShutdown(Entity<WFBlueprintShardComponent> ent, ref ComponentShutdown args)
+    private void OnShardShutdown(Entity<WGBlueprintShardComponent> ent, ref ComponentShutdown args)
     {
-        if (ent.Comp.Locator is not { } locator || !TryComp<WFBlueprintLocatorComponent>(locator, out var comp)
+        if (ent.Comp.Locator is not { } locator || !TryComp<WGBlueprintLocatorComponent>(locator, out var comp)
             || comp.Hunt is not { } hunt)
             return;
 
@@ -220,24 +220,24 @@ public sealed partial class WFBlueprintSystem
             UpdateUi((locator, comp));
     }
 
-    private void OnAbandon(Entity<WFBlueprintLocatorComponent> ent, ref WFBlueprintAbandonMessage args)
+    private void OnAbandon(Entity<WGBlueprintLocatorComponent> ent, ref WGBlueprintAbandonMessage args)
     {
         if (ent.Comp.Hunt == null)
             return;
 
         Abandon(ent);
-        _popup.PopupEntity(Loc.GetString("wf-blueprint-locator-abandoned"), ent, args.Actor);
+        _popup.PopupEntity(Loc.GetString("wg-blueprint-locator-abandoned"), ent, args.Actor);
     }
 
     /// <summary>Ends the hunt early: shards still at the site go, shards someone carries stay theirs.</summary>
-    public void Abandon(Entity<WFBlueprintLocatorComponent> ent)
+    public void Abandon(Entity<WGBlueprintLocatorComponent> ent)
     {
         if (ent.Comp.Hunt is not { } hunt)
             return;
 
         foreach (var uid in hunt.Shards.ToList())
         {
-            if (!TryComp<WFBlueprintShardComponent>(uid, out var shard))
+            if (!TryComp<WGBlueprintShardComponent>(uid, out var shard))
                 continue;
 
             shard.Locator = null;
@@ -264,12 +264,12 @@ public sealed partial class WFBlueprintSystem
     }
 
     /// <summary>Releases the site and starts the cooldown.</summary>
-    private void EndHunt(Entity<WFBlueprintLocatorComponent> ent)
+    private void EndHunt(Entity<WGBlueprintLocatorComponent> ent)
     {
         if (ent.Comp.Hunt is not { } hunt)
             return;
 
-        if (TryComp<WFPlanetPoiComponent>(hunt.Ground, out var record) && hunt.SiteIndex < record.Sites.Count
+        if (TryComp<WGPlanetPoiComponent>(hunt.Ground, out var record) && hunt.SiteIndex < record.Sites.Count
             && record.Sites[hunt.SiteIndex].BlueprintClaim == ent.Owner)
             record.Sites[hunt.SiteIndex].BlueprintClaim = null;
 
@@ -278,18 +278,18 @@ public sealed partial class WFBlueprintSystem
         UpdateUi(ent);
     }
 
-    private void OnLocatorShutdown(Entity<WFBlueprintLocatorComponent> ent, ref ComponentShutdown args)
+    private void OnLocatorShutdown(Entity<WGBlueprintLocatorComponent> ent, ref ComponentShutdown args)
     {
         if (ent.Comp.Hunt is not { } hunt)
             return;
 
         foreach (var uid in hunt.Shards)
         {
-            if (TryComp<WFBlueprintShardComponent>(uid, out var shard))
+            if (TryComp<WGBlueprintShardComponent>(uid, out var shard))
                 shard.Locator = null;
         }
 
-        if (TryComp<WFPlanetPoiComponent>(hunt.Ground, out var record) && hunt.SiteIndex < record.Sites.Count)
+        if (TryComp<WGPlanetPoiComponent>(hunt.Ground, out var record) && hunt.SiteIndex < record.Sites.Count)
             record.Sites[hunt.SiteIndex].BlueprintClaim = null;
 
         ent.Comp.Hunt = null;

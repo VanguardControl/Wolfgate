@@ -4,7 +4,7 @@ using Content.Client._Goobstation.Research.UI;
 using Content.Client.Stylesheets;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._Goobstation.Research;
-using Content.Shared._WF.Blueprints;
+using Content.Shared._WG.Blueprints;
 using Content.Shared.Lathe;
 using Content.Shared.Materials;
 using Content.Shared.Research.Prototypes;
@@ -20,14 +20,14 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
-namespace Content.Client._WF.Blueprints;
+namespace Content.Client._WG.Blueprints;
 
 /// <summary>
 /// The R&D console: the Codex tree of technologies, the relic patterns outside it, a detail pane for whatever is
 /// highlighted, and a bar that holds either the hunt request being built or the running hunt.
 /// </summary>
 [GenerateTypedNameReferences]
-public sealed partial class WFBlueprintLocatorWindow : FancyWindow
+public sealed partial class WGBlueprintLocatorWindow : FancyWindow
 {
     [Dependency] private IEntityManager _entMan = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -49,10 +49,10 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
 
     private static readonly (ResearchAvailability State, Color Colour, string Loc)[] Legend =
     {
-        (ResearchAvailability.Researched, Color.FromHex("#2ab043"), "wf-codex-legend-known"),
-        (ResearchAvailability.Available, Color.FromHex("#fab325"), "wf-codex-legend-huntable"),
-        (ResearchAvailability.PrereqsMet, Color.FromHex("#91752f"), "wf-codex-legend-hunting"),
-        (ResearchAvailability.Unavailable, Color.Crimson, "wf-codex-legend-locked"),
+        (ResearchAvailability.Researched, Color.FromHex("#2ab043"), "wg-codex-legend-known"),
+        (ResearchAvailability.Available, Color.FromHex("#fab325"), "wg-codex-legend-huntable"),
+        (ResearchAvailability.PrereqsMet, Color.FromHex("#91752f"), "wg-codex-legend-hunting"),
+        (ResearchAvailability.Unavailable, Color.Crimson, "wg-codex-legend-locked"),
     };
 
     private readonly SharedLatheSystem _lathe;
@@ -61,7 +61,7 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
     private readonly Dictionary<int, Button> _tierButtons = new();
     private readonly Dictionary<string, string> _techPatterns = new();
 
-    private WFBlueprintLocatorState? _state;
+    private WGBlueprintLocatorState? _state;
     private string? _highlightPattern;
     private string? _highlightTech;
     private int _tierFilter;
@@ -70,15 +70,15 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
     private Vector2 _home = Vector2.Zero;
     private bool _placed;
 
-    public WFBlueprintLocatorWindow()
+    public WGBlueprintLocatorWindow()
     {
         RobustXamlLoader.Load(this);
         IoCManager.InjectDependencies(this);
         _lathe = _entMan.System<SharedLatheSystem>();
         _sprite = _entMan.System<SpriteSystem>();
 
-        Tabs.SetTabTitle(0, Loc.GetString("wf-codex-tab"));
-        Tabs.SetTabTitle(1, Loc.GetString("wf-relics-tab"));
+        Tabs.SetTabTitle(0, Loc.GetString("wg-codex-tab"));
+        Tabs.SetTabTitle(1, Loc.GetString("wg-relics-tab"));
 
         SearchEdit.OnTextChanged += _ => RebuildRelics();
         HideKnownBox.OnToggled += _ => RebuildRelics();
@@ -109,7 +109,7 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
             var t = tier;
             var button = new Button
             {
-                Text = tier == 0 ? Loc.GetString("wf-blueprint-locator-tier-all") : Loc.GetString("wf-blueprint-tier-short", ("tier", tier)),
+                Text = tier == 0 ? Loc.GetString("wg-blueprint-locator-tier-all") : Loc.GetString("wg-blueprint-tier-short", ("tier", tier)),
                 ToggleMode = true,
                 Group = group,
                 Pressed = tier == 0,
@@ -144,14 +144,14 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
     private void IndexPatterns()
     {
         _techPatterns.Clear();
-        foreach (var pattern in _proto.EnumeratePrototypes<WFBlueprintPatternPrototype>())
+        foreach (var pattern in _proto.EnumeratePrototypes<WGBlueprintPatternPrototype>())
         {
             if (pattern.Technology is { } tech)
                 _techPatterns[tech.Id] = pattern.ID;
         }
     }
 
-    public void UpdateState(WFBlueprintLocatorState state)
+    public void UpdateState(WGBlueprintLocatorState state)
     {
         _state = state;
         _selected.RemoveWhere(id => state.Patterns.All(p => p.Id != id || p.Owned || !p.Ready));
@@ -168,18 +168,18 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
 
         var cooling = _timing.CurTime < state.NextHunt;
         var status = !state.Linked
-            ? Loc.GetString("wf-blueprint-locator-status-unlinked")
+            ? Loc.GetString("wg-blueprint-locator-status-unlinked")
             : state.Hunt != null
-                ? Loc.GetString("wf-blueprint-locator-status-hunting")
+                ? Loc.GetString("wg-blueprint-locator-status-hunting")
                 : cooling
-                    ? Loc.GetString("wf-blueprint-locator-status-cooldown", ("minutes", Math.Ceiling((state.NextHunt - _timing.CurTime).TotalMinutes)))
-                    : Loc.GetString("wf-blueprint-locator-status-ready");
+                    ? Loc.GetString("wg-blueprint-locator-status-cooldown", ("minutes", Math.Ceiling((state.NextHunt - _timing.CurTime).TotalMinutes)))
+                    : Loc.GetString("wg-blueprint-locator-status-ready");
         StatusLabel.Text = state.ServerName is { } server
-            ? Loc.GetString("wf-codex-status", ("server", server), ("status", status))
+            ? Loc.GetString("wg-codex-status", ("server", server), ("status", status))
             : status;
-        PointsLabel.SetMessage(FormattedMessage.FromMarkupPermissive(Loc.GetString("wf-codex-points", ("points", state.Points))
-            + "\n" + Loc.GetString("wf-codex-arrays", ("arrays", state.Arrays),
-                ("percent", (int) MathF.Round(WFBlueprintDecode.Scale(state.Arrays) * 100)))));
+        PointsLabel.SetMessage(FormattedMessage.FromMarkupPermissive(Loc.GetString("wg-codex-points", ("points", state.Points))
+            + "\n" + Loc.GetString("wg-codex-arrays", ("arrays", state.Arrays),
+                ("percent", (int) MathF.Round(WGBlueprintDecode.Scale(state.Arrays) * 100)))));
 
         RebuildDisciplines(state);
         RebuildTree(state);
@@ -188,12 +188,12 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
         RebuildBar(state, cooling);
     }
 
-    private bool TryPattern(string id, out WFBlueprintPatternPrototype pattern)
+    private bool TryPattern(string id, out WGBlueprintPatternPrototype pattern)
     {
         return _proto.TryIndex(id, out pattern!);
     }
 
-    private WFBlueprintPatternState? PatternState(string? id)
+    private WGBlueprintPatternState? PatternState(string? id)
     {
         return id == null ? null : _state?.Patterns.FirstOrDefault(p => p.Id == id);
     }
@@ -258,13 +258,13 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
 
     #region Codex tree
 
-    private IEnumerable<TechnologyPrototype> TreeTechs(WFBlueprintLocatorState state)
+    private IEnumerable<TechnologyPrototype> TreeTechs(WGBlueprintLocatorState state)
     {
         return _proto.EnumeratePrototypes<TechnologyPrototype>()
             .Where(t => !t.Hidden && t.GetAllDisciplines().Any(d => state.Disciplines.Contains(d.Id)));
     }
 
-    private ResearchAvailability NodeState(WFBlueprintLocatorState state, TechnologyPrototype tech)
+    private ResearchAvailability NodeState(WGBlueprintLocatorState state, TechnologyPrototype tech)
     {
         if (state.Known.Contains(tech.ID))
             return ResearchAvailability.Researched;
@@ -276,7 +276,7 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
         return PatternState(patternId) is { Ready: true } ? ResearchAvailability.Available : ResearchAvailability.Unavailable;
     }
 
-    private void RebuildDisciplines(WFBlueprintLocatorState state)
+    private void RebuildDisciplines(WGBlueprintLocatorState state)
     {
         DisciplineContainer.RemoveAllChildren();
         var techs = TreeTechs(state).ToList();
@@ -303,14 +303,14 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
             });
             entry.AddChild(new Label
             {
-                Text = Loc.GetString("wf-codex-discipline", ("known", inDiscipline.Count(t => state.Known.Contains(t.ID))), ("total", inDiscipline.Count)),
+                Text = Loc.GetString("wg-codex-discipline", ("known", inDiscipline.Count(t => state.Known.Contains(t.ID))), ("total", inDiscipline.Count)),
                 VerticalAlignment = VAlignment.Center,
             });
             DisciplineContainer.AddChild(entry);
         }
     }
 
-    private void RebuildTree(WFBlueprintLocatorState state)
+    private void RebuildTree(WGBlueprintLocatorState state)
     {
         TreePanel.RemoveAllChildren();
         var techs = TreeTechs(state).ToList();
@@ -385,7 +385,7 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
         var search = SearchEdit.Text.Trim();
         var hideKnown = HideKnownBox.Pressed;
         var relics = state.Patterns.Where(p => TryPattern(p.Id, out var pattern) && pattern.Technology == null).ToList();
-        CountLabel.Text = Loc.GetString("wf-blueprint-locator-count", ("known", relics.Count(p => p.Owned)), ("total", relics.Count));
+        CountLabel.Text = Loc.GetString("wg-blueprint-locator-count", ("known", relics.Count(p => p.Owned)), ("total", relics.Count));
 
         PatternList.RemoveAllChildren();
         int? lastTier = null;
@@ -409,7 +409,7 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
                 lastTier = pattern.Tier;
                 PatternList.AddChild(new Label
                 {
-                    Text = Loc.GetString("wf-blueprint-tier", ("tier", pattern.Tier)),
+                    Text = Loc.GetString("wg-blueprint-tier", ("tier", pattern.Tier)),
                     StyleClasses = { StyleNano.StyleClassLabelKeyText },
                     FontColorOverride = TierColour(pattern.Tier),
                     Margin = new Thickness(4, shown == 0 ? 2 : 10, 0, 2),
@@ -429,7 +429,7 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
         {
             PatternList.AddChild(new Label
             {
-                Text = Loc.GetString("wf-blueprint-locator-none-shown"),
+                Text = Loc.GetString("wg-blueprint-locator-none-shown"),
                 StyleClasses = { StyleNano.StyleClassLabelSecondaryColor },
                 Margin = new Thickness(4),
             });
@@ -440,14 +440,14 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
 
     #region Detail and bar
 
-    private void RebuildDetail(WFBlueprintLocatorState state)
+    private void RebuildDetail(WGBlueprintLocatorState state)
     {
         TechnologyPrototype? tech = null;
         if (_highlightTech != null)
             _proto.TryIndex<TechnologyPrototype>(_highlightTech, out tech);
-        WFBlueprintPatternPrototype? pattern = null;
+        WGBlueprintPatternPrototype? pattern = null;
         if (_highlightPattern != null)
-            _proto.TryIndex<WFBlueprintPatternPrototype>(_highlightPattern, out pattern);
+            _proto.TryIndex<WGBlueprintPatternPrototype>(_highlightPattern, out pattern);
 
         if (tech == null && pattern == null)
         {
@@ -467,14 +467,14 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
             disciplineName = Loc.GetString(discipline.Name);
 
         var tierText = pattern != null
-            ? Loc.GetString("wf-blueprint-tier", ("tier", pattern.Tier))
-            : Loc.GetString("wf-codex-tier-inherited-short");
+            ? Loc.GetString("wg-blueprint-tier", ("tier", pattern.Tier))
+            : Loc.GetString("wg-codex-tier-inherited-short");
         DetailTier.Text = disciplineName != null
-            ? Loc.GetString("wf-codex-tier-line", ("discipline", disciplineName), ("tier", tierText))
+            ? Loc.GetString("wg-codex-tier-line", ("discipline", disciplineName), ("tier", tierText))
             : tierText;
         DetailTier.FontColorOverride = pattern != null ? TierColour(pattern.Tier) : TierColours[0];
 
-        var description = pattern != null ? Describe(pattern) : Loc.GetString("wf-codex-inherited-desc");
+        var description = pattern != null ? Describe(pattern) : Loc.GetString("wg-codex-inherited-desc");
         DetailDescription.SetMessage(FormattedMessage.FromMarkupPermissive(description));
 
         var known = tech != null ? state.Known.Contains(tech.ID) : PatternState(_highlightPattern)?.Owned == true;
@@ -482,26 +482,26 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
         var picked = _highlightPattern != null && _selected.Contains(_highlightPattern);
         string stateText;
         if (known)
-            stateText = pattern == null ? Loc.GetString("wf-codex-state-inherited") : Loc.GetString("wf-blueprint-locator-detail-known");
+            stateText = pattern == null ? Loc.GetString("wg-codex-state-inherited") : Loc.GetString("wg-blueprint-locator-detail-known");
         else if (InHunt(_highlightPattern))
-            stateText = Loc.GetString("wf-codex-state-hunting");
+            stateText = Loc.GetString("wg-codex-state-hunting");
         else if (picked)
-            stateText = Loc.GetString("wf-blueprint-locator-detail-picked");
+            stateText = Loc.GetString("wg-blueprint-locator-detail-picked");
         else if (entry == null)
-            stateText = Loc.GetString("wf-codex-state-foreign");
+            stateText = Loc.GetString("wg-codex-state-foreign");
         else if (!entry.Ready && tech != null)
-            stateText = Loc.GetString("wf-codex-state-locked", ("prerequisites", string.Join(", ", tech.TechnologyPrerequisites
+            stateText = Loc.GetString("wg-codex-state-locked", ("prerequisites", string.Join(", ", tech.TechnologyPrerequisites
                 .Where(p => !state.Known.Contains(p.Id))
                 .Select(p => _proto.TryIndex(p, out var pre) ? Loc.GetString(pre.Name) : p.Id))));
         else
-            stateText = Loc.GetString("wf-codex-state-huntable");
+            stateText = Loc.GetString("wg-codex-state-huntable");
         DetailState.SetMessage(FormattedMessage.FromMarkupPermissive(stateText));
 
         var canPick = _highlightPattern != null && CanPick(_highlightPattern);
         DetailToggleButton.Visible = picked || canPick;
         DetailToggleButton.Text = picked
-            ? Loc.GetString("wf-blueprint-locator-remove")
-            : Loc.GetString("wf-blueprint-locator-add");
+            ? Loc.GetString("wg-blueprint-locator-remove")
+            : Loc.GetString("wg-blueprint-locator-add");
         DetailToggleButton.Disabled = !picked && pattern != null && _selected.Count >= state.MaxPatterns && SelectedTier() == pattern.Tier;
 
         DetailRecipes.RemoveAllChildren();
@@ -522,7 +522,7 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
             text.AddChild(new Label { Text = _lathe.GetRecipeName(recipe) });
             text.AddChild(new Label
             {
-                Text = string.Join(", ", recipe.Materials.Select(m => Loc.GetString("wf-blueprint-locator-material",
+                Text = string.Join(", ", recipe.Materials.Select(m => Loc.GetString("wg-blueprint-locator-material",
                     ("name", _proto.TryIndex<MaterialPrototype>(m.Key, out var mat) ? Loc.GetString(mat.Name) : m.Key.Id), ("amount", m.Value)))),
                 StyleClasses = { StyleNano.StyleClassLabelSecondaryColor },
             });
@@ -536,7 +536,7 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
             foreach (var unlock in tech.GenericUnlocks)
             {
                 var label = new RichTextLabel();
-                label.SetMessage(FormattedMessage.FromMarkupPermissive(Loc.GetString("wf-codex-generic-unlock",
+                label.SetMessage(FormattedMessage.FromMarkupPermissive(Loc.GetString("wg-codex-generic-unlock",
                     ("text", Loc.GetString(unlock.UnlockDescription)))));
                 DetailUnlocks.AddChild(label);
             }
@@ -545,14 +545,14 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
         DetailRecipesHeader.Visible = DetailRecipes.ChildCount > 0 || DetailUnlocks.ChildCount > 0;
     }
 
-    private void RebuildBar(WFBlueprintLocatorState state, bool cooling)
+    private void RebuildBar(WGBlueprintLocatorState state, bool cooling)
     {
         if (state.Hunt is { } hunt)
         {
             RequestBar.Visible = false;
             HuntBar.Visible = true;
             var names = string.Join(", ", hunt.Patterns.Select(id => TryPattern(id, out var p) ? Loc.GetString(p.Name) : id));
-            HuntLabel.SetMessage(FormattedMessage.FromMarkupPermissive(Loc.GetString("wf-blueprint-locator-hunt",
+            HuntLabel.SetMessage(FormattedMessage.FromMarkupPermissive(Loc.GetString("wg-blueprint-locator-hunt",
                 ("site", hunt.Site), ("world", hunt.World), ("tier", hunt.Tier), ("patterns", names), ("remaining", hunt.Remaining))));
             return;
         }
@@ -568,9 +568,9 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
 
             var chip = new Button
             {
-                Text = Loc.GetString("wf-blueprint-locator-chip", ("name", Loc.GetString(pattern.Name))),
+                Text = Loc.GetString("wg-blueprint-locator-chip", ("name", Loc.GetString(pattern.Name))),
                 StyleClasses = { "ButtonSmall" },
-                ToolTip = Loc.GetString("wf-blueprint-locator-chip-tooltip"),
+                ToolTip = Loc.GetString("wg-blueprint-locator-chip-tooltip"),
             };
             var chipId = id;
             chip.OnPressed += _ => Toggle(chipId);
@@ -581,7 +581,7 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
         {
             RequestChips.AddChild(new Label
             {
-                Text = Loc.GetString("wf-blueprint-locator-pick", ("max", state.MaxPatterns)),
+                Text = Loc.GetString("wg-blueprint-locator-pick", ("max", state.MaxPatterns)),
                 StyleClasses = { StyleNano.StyleClassLabelSecondaryColor },
                 VerticalAlignment = VAlignment.Center,
             });
@@ -591,7 +591,7 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
         {
             var fee = state.Fees[Math.Clamp(tier - 1, 0, state.Fees.Length - 1)];
             var points = Math.Clamp(state.Points, 0, fee);
-            FeeLabel.Text = Loc.GetString("wf-blueprint-locator-fee", ("points", points), ("spesos", fee - points),
+            FeeLabel.Text = Loc.GetString("wg-blueprint-locator-fee", ("points", points), ("spesos", fee - points),
                 ("count", _selected.Count), ("max", state.MaxPatterns));
         }
         else
@@ -604,20 +604,20 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
     }
 
     /// <summary>The pattern's own description, or for a technology's pattern the technology and its discipline.</summary>
-    private string Describe(WFBlueprintPatternPrototype pattern)
+    private string Describe(WGBlueprintPatternPrototype pattern)
     {
         if (pattern.Description is { } desc)
             return Loc.GetString(desc);
 
         if (pattern.Technology is { } techId && _proto.TryIndex(techId, out var tech)
             && _proto.TryIndex(tech.Discipline, out var discipline))
-            return Loc.GetString("wf-blueprint-tech-desc", ("discipline", Loc.GetString(discipline.Name)));
+            return Loc.GetString("wg-blueprint-tech-desc", ("discipline", Loc.GetString(discipline.Name)));
 
         return string.Empty;
     }
 
     /// <summary>The pattern's recipes, then its technology's.</summary>
-    private static IEnumerable<ProtoId<LatheRecipePrototype>> AllRecipes(WFBlueprintPatternPrototype? pattern, TechnologyPrototype? tech)
+    private static IEnumerable<ProtoId<LatheRecipePrototype>> AllRecipes(WGBlueprintPatternPrototype? pattern, TechnologyPrototype? tech)
     {
         var seen = new HashSet<ProtoId<LatheRecipePrototype>>();
         if (pattern != null)
@@ -652,7 +652,7 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
         public readonly ContainerButton Button;
         public readonly CheckBox Pick;
 
-        public Row(WFBlueprintPatternPrototype pattern, string name, bool owned, bool hunting, bool picked, bool highlighted, Color accent)
+        public Row(WGBlueprintPatternPrototype pattern, string name, bool owned, bool hunting, bool picked, bool highlighted, Color accent)
         {
             Button = new ContainerButton { HorizontalExpand = true, MinHeight = 36 };
             Button.AddStyleClass(ContainerButton.StyleClassButton);
@@ -675,9 +675,9 @@ public sealed partial class WFBlueprintLocatorWindow : FancyWindow
             box.AddChild(view);
 
             var text = owned
-                ? Loc.GetString("wf-blueprint-pattern-owned", ("name", name))
+                ? Loc.GetString("wg-blueprint-pattern-owned", ("name", name))
                 : hunting
-                    ? Loc.GetString("wf-codex-pattern-hunting", ("name", name))
+                    ? Loc.GetString("wg-codex-pattern-hunting", ("name", name))
                     : name;
             box.AddChild(new Label
             {

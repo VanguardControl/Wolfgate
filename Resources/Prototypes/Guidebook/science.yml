@@ -3,7 +3,7 @@
   name: guide-entry-science
   # WOLFGATE(Blueprints) START: science is pattern hunting now
   # text: "/ServerInfo/Guidebook/Science/Science.xml"
-  text: "/ServerInfo/_WF/Blueprints/Science.xml"
+  text: "/ServerInfo/_WG/Blueprints/Science.xml"
   # WOLFGATE END
   children:
   - Technologies
@@ -18,7 +18,7 @@
   name: guide-entry-technologies
   # WOLFGATE(Blueprints) START: technology is hunted, not bought
   # text: "/ServerInfo/Guidebook/Science/Technologies.xml"
-  text: "/ServerInfo/_WF/Blueprints/Technologies.xml"
+  text: "/ServerInfo/_WG/Blueprints/Technologies.xml"
   # WOLFGATE END
   filterEnabled: True
 

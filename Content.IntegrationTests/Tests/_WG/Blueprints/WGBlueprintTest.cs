@@ -1,10 +1,10 @@
 #nullable enable
 using System.Collections.Generic;
 using System.Linq;
-using Content.Server._WF.Blueprints;
-using Content.Server._WF.PlanetPois;
+using Content.Server._WG.Blueprints;
+using Content.Server._WG.PlanetPois;
 using Content.Server.Research.Systems;
-using Content.Shared._WF.Blueprints;
+using Content.Shared._WG.Blueprints;
 using Content.Shared.Maps;
 using Content.Shared.Research.Components;
 using Content.Shared.Research.Prototypes;
@@ -15,15 +15,15 @@ using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
 
-namespace Content.IntegrationTests.Tests._WF.Blueprints;
+namespace Content.IntegrationTests.Tests._WG.Blueprints;
 
 /// <summary>
 /// A locator hunt claims a site of its tier and hides a shard per pattern there; assembling the shards ends the hunt
 /// and frees the site, and a Construct used on the R&D console unlocks its pattern's recipes on the locator's server.
 /// </summary>
 [TestFixture]
-[TestOf(typeof(WFBlueprintSystem))]
-public sealed class WFBlueprintTest
+[TestOf(typeof(WGBlueprintSystem))]
+public sealed class WGBlueprintTest
 {
     [Test]
     public async Task HuntPlacesShardsAndConstructUnlocks()
@@ -34,7 +34,7 @@ public sealed class WFBlueprintTest
         var proto = server.ResolveDependency<IPrototypeManager>();
         var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
         var maps = server.System<SharedMapSystem>();
-        var blueprints = server.System<WFBlueprintSystem>();
+        var blueprints = server.System<WGBlueprintSystem>();
 
         var groundMap = EntityUid.Invalid;
         var shipMap = EntityUid.Invalid;
@@ -46,13 +46,13 @@ public sealed class WFBlueprintTest
             // A ground with one Moderate site and one Extreme site, standing in for a world's POI record.
             groundMap = maps.CreateMap(out var groundMapId);
             var ground = maps.CreateGridEntity(groundMapId);
-            var record = entMan.AddComponent<WFPlanetPoiComponent>(ground.Owner);
+            var record = entMan.AddComponent<WGPlanetPoiComponent>(ground.Owner);
             record.NetworkReady = true;
             foreach (var (left, rating) in new[] { (0, DifficultyRating.Moderate), (20, DifficultyRating.Extreme) })
             {
-                var site = new WFPlanetPoiSite
+                var site = new WGPlanetPoiSite
                 {
-                    Name = "wf-blueprint-locator-title",
+                    Name = "wg-blueprint-locator-title",
                     Bounds = new Box2i(left, 0, left + 6, 6),
                     Difficulty = rating,
                     Signal = EntityUid.Invalid,
@@ -75,13 +75,13 @@ public sealed class WFBlueprintTest
             maps.SetTile(ship.Owner, ship.Comp, new Vector2i(1, 0), floor);
             var researchServer = entMan.SpawnEntity("ResearchAndDevelopmentServer", new EntityCoordinates(ship.Owner, 0.5f, 0.5f));
             var locatorUid = entMan.SpawnEntity("ComputerResearchAndDevelopment", new EntityCoordinates(ship.Owner, 1.5f, 0.5f));
-            var locator = new Entity<WFBlueprintLocatorComponent>(locatorUid, entMan.GetComponent<WFBlueprintLocatorComponent>(locatorUid));
+            var locator = new Entity<WGBlueprintLocatorComponent>(locatorUid, entMan.GetComponent<WGBlueprintLocatorComponent>(locatorUid));
             locator.Comp.Fees = new[] { 0, 0, 0 };
 
             // Patterns of two tiers in one request are refused.
-            Assert.That(blueprints.TryLocate(locator, locatorUid, new List<string> { "WFPatternOmnitool", "WFPatternHandTeleporter" }, out _), Is.False);
+            Assert.That(blueprints.TryLocate(locator, locatorUid, new List<string> { "WGPatternOmnitool", "WGPatternHandTeleporter" }, out _), Is.False);
 
-            Assert.That(blueprints.TryLocate(locator, locatorUid, new List<string> { "WFPatternOmnitool", "WFPatternJetpackBlack" }, out var error), Is.True, error);
+            Assert.That(blueprints.TryLocate(locator, locatorUid, new List<string> { "WGPatternOmnitool", "WGPatternJetpackBlack" }, out var error), Is.True, error);
             var hunt = locator.Comp.Hunt;
             Assert.That(hunt, Is.Not.Null);
             Assert.That(hunt!.SiteIndex, Is.EqualTo(0), "A tier I hunt took a site of the wrong rating.");
@@ -95,16 +95,16 @@ public sealed class WFBlueprintTest
             }
 
             // A second hunt waits for the first.
-            Assert.That(blueprints.TryLocate(locator, locatorUid, new List<string> { "WFPatternHandTeleporter" }, out _), Is.False);
+            Assert.That(blueprints.TryLocate(locator, locatorUid, new List<string> { "WGPatternHandTeleporter" }, out _), Is.False);
 
             // Decoding: each shard becomes a Construct; the last one ends the hunt and frees the site.
             var constructs = new List<EntityUid>();
             foreach (var shard in hunt.Shards.ToList())
             {
-                var comp = entMan.GetComponent<WFBlueprintShardComponent>(shard);
-                var pattern = proto.Index<WFBlueprintPatternPrototype>(comp.Pattern!.Value);
+                var comp = entMan.GetComponent<WGBlueprintShardComponent>(shard);
+                var pattern = proto.Index<WGBlueprintPatternPrototype>(comp.Pattern!.Value);
                 var made = blueprints.Decode(locator, (shard, comp), pattern, null);
-                Assert.That(entMan.GetComponent<WFBlueprintConstructComponent>(made).Pattern, Is.EqualTo(comp.Pattern));
+                Assert.That(entMan.GetComponent<WGBlueprintConstructComponent>(made).Pattern, Is.EqualTo(comp.Pattern));
                 constructs.Add(made);
                 entMan.DeleteEntity(shard);
             }
@@ -118,21 +118,21 @@ public sealed class WFBlueprintTest
             locator.Comp.Fees = new[] { 1000, 1000, 1000 };
             locator.Comp.NextHunt = TimeSpan.Zero;
             research.ModifyServerPoints(researchServer, 1500 - serverComp.Points, serverComp);
-            Assert.That(blueprints.TryLocate(locator, locatorUid, new List<string> { "WFPatternOmnitool" }, out error), Is.True, error);
+            Assert.That(blueprints.TryLocate(locator, locatorUid, new List<string> { "WGPatternOmnitool" }, out error), Is.True, error);
             Assert.That(serverComp.Points, Is.EqualTo(500), "The fee wasn't taken from research points.");
             blueprints.Abandon(locator);
 
             // A Construct unlocks its pattern's recipes on the server; a second copy is refused.
             var construct = constructs[0];
-            var patternId = entMan.GetComponent<WFBlueprintConstructComponent>(construct).Pattern!.Value;
+            var patternId = entMan.GetComponent<WGBlueprintConstructComponent>(construct).Pattern!.Value;
             var recipes = proto.Index(patternId).Recipes;
-            Assert.That(blueprints.TryInsertConstruct(locator, (construct, entMan.GetComponent<WFBlueprintConstructComponent>(construct)), locatorUid), Is.True);
+            Assert.That(blueprints.TryInsertConstruct(locator, (construct, entMan.GetComponent<WGBlueprintConstructComponent>(construct)), locatorUid), Is.True);
             var db = entMan.GetComponent<TechnologyDatabaseComponent>(researchServer);
             var unlocked = db.UnlockedRecipes;
             Assert.That(recipes.All(r => unlocked.Contains(r)), Is.True, "The pattern's recipes were not unlocked.");
 
-            var copy = blueprints.SpawnFor("WFBlueprintConstruct", proto.Index(patternId), new EntityCoordinates(ship.Owner, 0.5f, 0.5f), "wf-blueprint-construct-name");
-            Assert.That(blueprints.TryInsertConstruct(locator, (copy, entMan.GetComponent<WFBlueprintConstructComponent>(copy)), locatorUid), Is.False);
+            var copy = blueprints.SpawnFor("WGBlueprintConstruct", proto.Index(patternId), new EntityCoordinates(ship.Owner, 0.5f, 0.5f), "wg-blueprint-construct-name");
+            Assert.That(blueprints.TryInsertConstruct(locator, (copy, entMan.GetComponent<WGBlueprintConstructComponent>(copy)), locatorUid), Is.False);
 
             // Every tier-1 technology of the server's disciplines is free from the start.
             var supported = db.SupportedDisciplines;
@@ -143,14 +143,14 @@ public sealed class WFBlueprintTest
             Assert.That(basics.All(t => techs.Contains(t.ID)), Is.True, "A tier-1 technology was not unlocked at map init.");
 
             // Every technology past tier 1 has a pattern, so points unlock nothing.
-            var patternTechs = proto.EnumeratePrototypes<WFBlueprintPatternPrototype>()
+            var patternTechs = proto.EnumeratePrototypes<WGBlueprintPatternPrototype>()
                 .Where(p => p.Technology != null).Select(p => p.Technology!.Value.Id).ToHashSet();
             var missing = proto.EnumeratePrototypes<TechnologyPrototype>()
                 .Where(t => t.Tier > 1 && !t.Hidden && !patternTechs.Contains(t.ID)).Select(t => t.ID).ToList();
-            Assert.That(missing, Is.Empty, "Technologies without a pattern; rerun Tools/_WF/Blueprints/gen_techweb_patterns.py.");
+            Assert.That(missing, Is.Empty, "Technologies without a pattern; rerun Tools/_WG/Blueprints/gen_techweb_patterns.py.");
 
             // A hunt-only technology: points can't unlock it, its Construct can.
-            var huntOnly = proto.EnumeratePrototypes<WFBlueprintPatternPrototype>()
+            var huntOnly = proto.EnumeratePrototypes<WGBlueprintPatternPrototype>()
                 .First(p => p.Technology is { } t && supported.Contains(proto.Index(t).Discipline));
             var tech = proto.Index(huntOnly.Technology!.Value);
             Assert.That(tech.Tier, Is.GreaterThan(1));
@@ -158,29 +158,29 @@ public sealed class WFBlueprintTest
             Assert.That(blueprints.Fits(locatorUid, huntOnly), Is.True);
 
             // A technology whose prerequisites aren't known can't be located yet.
-            var blocked = proto.EnumeratePrototypes<WFBlueprintPatternPrototype>()
+            var blocked = proto.EnumeratePrototypes<WGBlueprintPatternPrototype>()
                 .FirstOrDefault(p => p.Technology != null && blueprints.Fits(locatorUid, p) && !blueprints.PrerequisitesKnown(locatorUid, p));
             if (blocked != null)
             {
                 locator.Comp.NextHunt = TimeSpan.Zero;
                 locator.Comp.Fees = new[] { 0, 0, 0 };
                 Assert.That(blueprints.TryLocate(locator, locatorUid, new List<string> { blocked.ID }, out error), Is.False);
-                Assert.That(error, Is.EqualTo("wf-blueprint-locator-prerequisites"));
+                Assert.That(error, Is.EqualTo("wg-blueprint-locator-prerequisites"));
             }
 
             // Decoding arrays: none on this ship, and the speed-up has a floor.
             Assert.That(blueprints.CountArrays(locatorUid), Is.Zero);
-            Assert.That(WFBlueprintDecode.Scale(0), Is.EqualTo(1f));
-            Assert.That(WFBlueprintDecode.Scale(20), Is.EqualTo(0.4f));
+            Assert.That(WGBlueprintDecode.Scale(0), Is.EqualTo(1f));
+            Assert.That(WGBlueprintDecode.Scale(20), Is.EqualTo(0.4f));
 
-            var techConstruct = blueprints.SpawnFor("WFBlueprintConstruct", huntOnly, new EntityCoordinates(ship.Owner, 0.5f, 0.5f), "wf-blueprint-construct-name");
-            Assert.That(blueprints.TryInsertConstruct(locator, (techConstruct, entMan.GetComponent<WFBlueprintConstructComponent>(techConstruct)), locatorUid), Is.True);
+            var techConstruct = blueprints.SpawnFor("WGBlueprintConstruct", huntOnly, new EntityCoordinates(ship.Owner, 0.5f, 0.5f), "wg-blueprint-construct-name");
+            Assert.That(blueprints.TryInsertConstruct(locator, (techConstruct, entMan.GetComponent<WGBlueprintConstructComponent>(techConstruct)), locatorUid), Is.True);
             Assert.That(db.UnlockedTechnologies, Does.Contain(tech.ID));
             var techRecipes = db.UnlockedRecipes;
             Assert.That(tech.RecipeUnlocks.All(r => techRecipes.Contains(r)), Is.True, "The technology's recipes were not unlocked.");
 
             // A faction's technology isn't offered to a server without its discipline.
-            var foreign = proto.EnumeratePrototypes<WFBlueprintPatternPrototype>()
+            var foreign = proto.EnumeratePrototypes<WGBlueprintPatternPrototype>()
                 .FirstOrDefault(p => p.Technology is { } t && proto.Index(t).GetAllDisciplines().All(d => !supported.Contains(d)));
             if (foreign != null)
                 Assert.That(blueprints.Fits(locatorUid, foreign), Is.False);

@@ -11,7 +11,7 @@ Everything past it was lost, and the pieces lie scattered across the worlds and 
 
 A **pattern shard** is a sliver of glyph-etched crystal holding part of a lost design. Common shards are old human
 work: syndicate data cores, corporate vault slates. The rarest are not human. Their glyphs match the Lattice anchors,
-and whoever wrote them knew the star would fall (see `WFLoreLattice`). These are the **unknown technologies**.
+and whoever wrote them knew the star would fall (see `WGLoreLattice`). These are the **unknown technologies**.
 
 The Vanguard reverse-engineers syndicate equipment and treats recovered patterns with something close to reverence.
 The TSF calls it salvage. The Bench calls it evidence. Under the Common Writ an unregistered object recovered beyond
@@ -40,15 +40,15 @@ Value follows risk. A pattern's tier fixes where its shard can be found, how har
 | II, Lost | Adrift and Untethered space; Hazardous worlds (Fervidus, Thrascias) | Deep Writ needed for space | Medium | Bring a crew. Shards carry weak Drift |
 | III, Forgotten | The Deep (band 4, past 30 km); Extreme worlds (Aerumna, Carcinoma) | Bench-sanctioned expedition | Hard | Always rolls one unknown tech. Strong Drift. Public signal |
 
-Band and world difficulty come from what already exists: `WFLatticeSystem` bands and the `difficulty` on
-`wfPlanetPoiTable` entries.
+Band and world difficulty come from what already exists: `WGLatticeSystem` bands and the `difficulty` on
+`wgPlanetPoiTable` entries.
 
 ### Sanctioned vs. unsanctioned
 
 When a request goes into Lattice space, the locator offers a choice:
 
 - **Sanctioned:** pay the Bench fee. The hunt is registered and its shards are lawful. Judges leave you alone.
-- **Unsanctioned:** no fee. The shards carry the `WFUnlawful` contraband tag until registered, and the crew is
+- **Unsanctioned:** no fee. The shards carry the `WGUnlawful` contraband tag until registered, and the crew is
   trespassing. Judges can ticket them and seize the shards into bond.
 
 This gives the judges and the cold war something to do with BAS, without either side being forced to play along.
@@ -65,7 +65,7 @@ needed. The console links to the ship's research server.
   - **Hunt:** pick up to 4 patterns (one tier per request), see the fee and choose sanctioned or not. Shows the active
     hunt's site and its shards' state. One active hunt per console.
   - **Exchange** (later): what is for sale at the Archaeolathe, and listing your own patterns there.
-- **Decode:** use a shard on the console. A tier-scaled read (the minigame later, through `_WF/Minigames`) seals it into
+- **Decode:** use a shard on the console. A tier-scaled read (the minigame later, through `_WG/Minigames`) seals it into
   a Blueprint Construct. A failure costs the shard integrity rather than destroying it: about three failures at Tier
   III and the shard is gone.
 - **Unlock:** use a Construct on the console to add its pattern to the server. The Construct is the portable form, so it
@@ -110,7 +110,7 @@ BAS replaces points research entirely (decided 2026-11-07):
 - **Tier 1: free.** Every tier-1 technology a server's disciplines cover is unlocked when the server starts, so every
   ship has the basics.
 - **Tiers 2 and 3: hunt-only.** Each technology, faction trees included, has a generated pattern
-  (`_WF/Blueprints/techweb.yml`): tier 2 is a Recovered hunt, tier 3 a Lost or Forgotten one by cost. Points can't
+  (`_WG/Blueprints/techweb.yml`): tier 2 is a Recovered hunt, tier 3 a Lost or Forgotten one by cost. Points can't
   unlock it; a Construct unlocks the whole node. A faction's node is only offered on that faction's servers.
 - **Prerequisites still matter.** A technology can only be located once its prerequisites are known, so the tree is
   climbed hunt by hunt.
@@ -123,7 +123,7 @@ BAS replaces points research entirely (decided 2026-11-07):
 
 Beyond the techweb, BAS patterns are also new things that can't be had any other way.
 
-`wfBlueprintPattern` prototype: tier, site tags, minigame pool, and the recipes the pattern unlocks. It holds its own
+`wgBlueprintPattern` prototype: tier, site tags, minigame pool, and the recipes the pattern unlocks. It holds its own
 recipes and isn't tied to a Codex technology.
 
 ### What makes a pattern
@@ -145,7 +145,7 @@ The first 46 patterns are existing entities nothing else hands out, found by ind
 judging the leftovers: Goobstation's cell lasers, X-ray and pulse cells, mantis blades and Sandevistan; Mono's Century,
 Centurion and Director suits, Ashstorm LMG, heavy pulse cannon and EMP rounds; upstream's minigun, rocket salvo,
 experimental RCD, mirror and clockwork shields, hypereutactic blade and healing staff; Frontier's breaching anchor and
-elite pirate suit; and more. They are listed in `Resources/Prototypes/_WF/Blueprints/patterns.yml`.
+elite pirate suit; and more. They are listed in `Resources/Prototypes/_WG/Blueprints/patterns.yml`.
 
 Left out on purpose: antagonist kit, admin and debug items, variants of things you can buy, round-ending bombs and
 infinite ship ammo. Structures without a flatpack (Curio pre-fracture turrets, the unlimited-range holopads, the
@@ -210,14 +210,14 @@ Renaming all 208 techs would mean marked edits in upstream Fluent files, so don'
 
 ## Build order
 
-1. **Data:** `wfBlueprintPattern` prototypes with their own recipes, plus the shard and Construct items. No change to
+1. **Data:** `wgBlueprintPattern` prototypes with their own recipes, plus the shard and Construct items. No change to
    points research. The first patterns are reskins of existing rare items, so the loop can be tested before the
    catalogue is built.
 2. **Locator (minimal):** the pattern list and hunt request on the R&D console.
 3. **Sites:** planet arming (reusing the expedition site picker), shard placement in containers and NPCs, and the
    waypoint.
 4. **Unlock:** a Construct used on the console adds the pattern to the server.
-5. **Decode:** start with a timed read, then the `_WF/Minigames` pool by tier.
+5. **Decode:** start with a timed read, then the `_WG/Minigames` pool by tier.
 
    Steps 1–5 are the MVP. The loop is playable here, so playtest before going further.
 
@@ -227,7 +227,7 @@ Renaming all 208 techs would mean marked edits in upstream Fluent files, so don'
 8. **Catalogue:** patterns in batches, each with its own test. Then the unknown patterns and the Tier III signal.
 9. **Codex retheme and lore pages.**
 
-Each step gets an integration test under `Content.IntegrationTests/Tests/_WF/Blueprints`:
+Each step gets an integration test under `Content.IntegrationTests/Tests/_WG/Blueprints`:
 
 - request → shards placed at a site of the right tier
 - decode → unlock

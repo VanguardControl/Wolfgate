@@ -257,7 +257,7 @@
     - Mining
     - AtmosTools
     - ResearchedExplosives # Mono
-    - WFBlueprintPatterns # WOLFGATE(Blueprints): recovered pattern recipes
+    - WGBlueprintPatterns # WOLFGATE(Blueprints): recovered pattern recipes
     # - EngineeringWeapons # Frontier
     - Chemistry
     - Janitor

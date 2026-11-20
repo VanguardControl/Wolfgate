@@ -697,7 +697,7 @@
   - type: ActivatableUI
     # WOLFGATE(Blueprints) START: the console opens the Codex window; points research is gone
     # key: enum.ResearchConsoleUiKey.Key
-    key: enum.WFBlueprintLocatorUiKey.Key
+    key: enum.WGBlueprintLocatorUiKey.Key
     # WOLFGATE END
   - type: UserInterface
     interfaces:
@@ -710,8 +710,8 @@
       enum.WiresUiKey.Key:
         type: WiresBoundUserInterface
       # WOLFGATE(Blueprints) START: the Codex window
-      enum.WFBlueprintLocatorUiKey.Key:
-        type: WFBlueprintLocatorBoundUserInterface
+      enum.WGBlueprintLocatorUiKey.Key:
+        type: WGBlueprintLocatorBoundUserInterface
       # WOLFGATE END
   - type: ApcPowerReceiver
     powerLoad: 1000
@@ -730,7 +730,7 @@
   - type: ShipRepairable
     repairTime: 4
     repairCost: 8
-  - type: WFBlueprintLocator # WOLFGATE(Blueprints): hunts lost patterns and decodes their shards
+  - type: WGBlueprintLocator # WOLFGATE(Blueprints): hunts lost patterns and decodes their shards
 
 - type: entity
   parent: BaseComputerAiAccess

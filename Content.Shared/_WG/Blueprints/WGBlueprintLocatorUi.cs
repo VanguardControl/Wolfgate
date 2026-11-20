@@ -1,32 +1,32 @@
 using Content.Shared.DoAfter;
 using Robust.Shared.Serialization;
 
-namespace Content.Shared._WF.Blueprints;
+namespace Content.Shared._WG.Blueprints;
 
 /// <summary>The R&D console's window: the Codex tree, relic patterns and the hunt.</summary>
 [Serializable, NetSerializable]
-public enum WFBlueprintLocatorUiKey : byte
+public enum WGBlueprintLocatorUiKey : byte
 {
     Key,
 }
 
 /// <summary>One pattern the console can hunt; Ready means its technology's prerequisites are known.</summary>
 [Serializable, NetSerializable]
-public sealed record WFBlueprintPatternState(string Id, bool Owned, bool Ready);
+public sealed record WGBlueprintPatternState(string Id, bool Owned, bool Ready);
 
 /// <summary>The console's running hunt.</summary>
 [Serializable, NetSerializable]
-public sealed record WFBlueprintHuntState(string Site, string World, int Tier, List<string> Patterns, int Remaining);
+public sealed record WGBlueprintHuntState(string Site, string World, int Tier, List<string> Patterns, int Remaining);
 
 [Serializable, NetSerializable]
-public sealed class WFBlueprintLocatorState : BoundUserInterfaceState
+public sealed class WGBlueprintLocatorState : BoundUserInterfaceState
 {
     public readonly bool Linked;
     public readonly string? ServerName;
-    public readonly List<WFBlueprintPatternState> Patterns;
+    public readonly List<WGBlueprintPatternState> Patterns;
     public readonly int[] Fees;
     public readonly int MaxPatterns;
-    public readonly WFBlueprintHuntState? Hunt;
+    public readonly WGBlueprintHuntState? Hunt;
     public readonly TimeSpan NextHunt;
 
     /// <summary>The linked server's research points, spent on the fee before the bank.</summary>
@@ -41,8 +41,8 @@ public sealed class WFBlueprintLocatorState : BoundUserInterfaceState
     /// <summary>Powered decoding arrays linked to the server; each speeds up decoding.</summary>
     public readonly int Arrays;
 
-    public WFBlueprintLocatorState(bool linked, string? serverName, List<WFBlueprintPatternState> patterns, int[] fees,
-        int maxPatterns, WFBlueprintHuntState? hunt, TimeSpan nextHunt, int points, HashSet<string> known,
+    public WGBlueprintLocatorState(bool linked, string? serverName, List<WGBlueprintPatternState> patterns, int[] fees,
+        int maxPatterns, WGBlueprintHuntState? hunt, TimeSpan nextHunt, int points, HashSet<string> known,
         List<string> disciplines, int arrays)
     {
         Arrays = arrays;
@@ -61,21 +61,21 @@ public sealed class WFBlueprintLocatorState : BoundUserInterfaceState
 
 /// <summary>Starts a hunt for the chosen patterns, all of one tier.</summary>
 [Serializable, NetSerializable]
-public sealed class WFBlueprintLocateMessage(List<string> patterns) : BoundUserInterfaceMessage
+public sealed class WGBlueprintLocateMessage(List<string> patterns) : BoundUserInterfaceMessage
 {
     public readonly List<string> Patterns = patterns;
 }
 
 /// <summary>Gives up the running hunt.</summary>
 [Serializable, NetSerializable]
-public sealed class WFBlueprintAbandonMessage : BoundUserInterfaceMessage;
+public sealed class WGBlueprintAbandonMessage : BoundUserInterfaceMessage;
 
 /// <summary>A shard finishes decoding into a Construct.</summary>
 [Serializable, NetSerializable]
-public sealed partial class WFBlueprintDecodeDoAfterEvent : SimpleDoAfterEvent;
+public sealed partial class WGBlueprintDecodeDoAfterEvent : SimpleDoAfterEvent;
 
 /// <summary>Decoding speed from decoding arrays.</summary>
-public static class WFBlueprintDecode
+public static class WGBlueprintDecode
 {
     /// <summary>Decode time multiplier: each array cuts a quarter of what is left, down to 40%.</summary>
     public static float Scale(int arrays)

@@ -1,11 +1,11 @@
 using Content.Shared.Research.Prototypes;
 using Robust.Shared.Prototypes;
 
-namespace Content.Shared._WF.Blueprints;
+namespace Content.Shared._WG.Blueprints;
 
 /// <summary>A lost pattern the research console's locator can hunt for; recovering it unlocks its recipes.</summary>
-[Prototype("wfBlueprintPattern")]
-public sealed partial class WFBlueprintPatternPrototype : IPrototype
+[Prototype("wgBlueprintPattern")]
+public sealed partial class WGBlueprintPatternPrototype : IPrototype
 {
     [IdDataField]
     public string ID { get; private set; } = default!;

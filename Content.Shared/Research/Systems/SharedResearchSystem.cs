@@ -70,7 +70,7 @@ public abstract partial class SharedResearchSystem : EntitySystem
         if (tech.Hidden)
             return false;
 
-        if (WFIsHuntOnly(tech.ID)) // WOLFGATE(Blueprints): tier-3 technology is recovered by hunting, not points
+        if (WGIsHuntOnly(tech.ID)) // WOLFGATE(Blueprints): tier-3 technology is recovered by hunting, not points
             return false;
 
         if (!component.SupportedDisciplines.Contains(tech.Discipline))
@@ -167,7 +167,7 @@ public abstract partial class SharedResearchSystem : EntitySystem
 
         if (includeCost)
         {
-            WFAddRecoveryLine(description, technology); // WOLFGATE(Blueprints): technology is recovered by hunts, not bought
+            WGAddRecoveryLine(description, technology); // WOLFGATE(Blueprints): technology is recovered by hunts, not bought
             // description.AddMarkupOrThrow(Loc.GetString("research-console-cost", ("amount", technology.Cost))); // WOLFGATE(Blueprints)
             description.PushNewline();
         }

@@ -113,7 +113,7 @@ public sealed class ResearchTest
 
                 unlockedTechs.UnionWith(techDiskRecipes);
                 // WOLFGATE(Blueprints) START: a recovered blueprint pattern unlocks its recipes too
-                foreach (var pattern in protoManager.EnumeratePrototypes<Content.Shared._WF.Blueprints.WFBlueprintPatternPrototype>())
+                foreach (var pattern in protoManager.EnumeratePrototypes<Content.Shared._WG.Blueprints.WGBlueprintPatternPrototype>())
                     unlockedTechs.UnionWith(pattern.Recipes);
                 // WOLFGATE END
                 // now check that every dynamic recipe a lathe lists can be unlocked

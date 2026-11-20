@@ -1,11 +1,11 @@
 using System.Linq;
 using Content.Server._NF.Bank;
-using Content.Server._WF.PlanetPois;
+using Content.Server._WG.PlanetPois;
 using Content.Server.Power.EntitySystems;
 using Content.Server.Research.Components;
 using Content.Server.Research.Systems;
 using Content.Server.Storage.EntitySystems;
-using Content.Shared._WF.Blueprints;
+using Content.Shared._WG.Blueprints;
 using Content.Shared.Database;
 using Content.Shared.DoAfter;
 using Content.Shared.Examine;
@@ -22,13 +22,13 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
 
-namespace Content.Server._WF.Blueprints;
+namespace Content.Server._WG.Blueprints;
 
 /// <summary>
 /// The Blueprint Artifact System: the locator lists patterns and starts hunts, hunts hide shards at planet sites, the
 /// research console decodes shards into Constructs and a Construct unlocks its pattern on the console's research server..
 /// </summary>
-public sealed partial class WFBlueprintSystem : EntitySystem
+public sealed partial class WGBlueprintSystem : EntitySystem
 {
     [Dependency] private IAdminLogManager _adminLog = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -46,39 +46,39 @@ public sealed partial class WFBlueprintSystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private TurfSystem _turf = default!;
     [Dependency] private UserInterfaceSystem _ui = default!;
-    [Dependency] private WFPlanetPoiSystem _pois = default!;
+    [Dependency] private WGPlanetPoiSystem _pois = default!;
 
     public override void Initialize()
     {
-        SubscribeLocalEvent<WFBlueprintLocatorComponent, BoundUIOpenedEvent>(OnLocatorOpened);
-        SubscribeLocalEvent<WFBlueprintLocatorComponent, WFBlueprintLocateMessage>(OnLocate);
-        SubscribeLocalEvent<WFBlueprintLocatorComponent, WFBlueprintAbandonMessage>(OnAbandon);
-        SubscribeLocalEvent<WFBlueprintLocatorComponent, ResearchServerPointsChangedEvent>(OnResearchChanged);
-        SubscribeLocalEvent<WFBlueprintLocatorComponent, ResearchRegistrationChangedEvent>(OnResearchChanged);
-        SubscribeLocalEvent<WFBlueprintLocatorComponent, TechnologyDatabaseModifiedEvent>(OnResearchChanged);
-        SubscribeLocalEvent<WFBlueprintLocatorComponent, WFBlueprintDecodeDoAfterEvent>(OnDecoded);
-        SubscribeLocalEvent<WFBlueprintLocatorComponent, InteractUsingEvent>(OnLocatorInteractUsing);
-        SubscribeLocalEvent<WFBlueprintLocatorComponent, ComponentShutdown>(OnLocatorShutdown);
+        SubscribeLocalEvent<WGBlueprintLocatorComponent, BoundUIOpenedEvent>(OnLocatorOpened);
+        SubscribeLocalEvent<WGBlueprintLocatorComponent, WGBlueprintLocateMessage>(OnLocate);
+        SubscribeLocalEvent<WGBlueprintLocatorComponent, WGBlueprintAbandonMessage>(OnAbandon);
+        SubscribeLocalEvent<WGBlueprintLocatorComponent, ResearchServerPointsChangedEvent>(OnResearchChanged);
+        SubscribeLocalEvent<WGBlueprintLocatorComponent, ResearchRegistrationChangedEvent>(OnResearchChanged);
+        SubscribeLocalEvent<WGBlueprintLocatorComponent, TechnologyDatabaseModifiedEvent>(OnResearchChanged);
+        SubscribeLocalEvent<WGBlueprintLocatorComponent, WGBlueprintDecodeDoAfterEvent>(OnDecoded);
+        SubscribeLocalEvent<WGBlueprintLocatorComponent, InteractUsingEvent>(OnLocatorInteractUsing);
+        SubscribeLocalEvent<WGBlueprintLocatorComponent, ComponentShutdown>(OnLocatorShutdown);
 
-        SubscribeLocalEvent<WFBlueprintShardComponent, ComponentShutdown>(OnShardShutdown);
-        SubscribeLocalEvent<WFBlueprintShardComponent, ExaminedEvent>(OnShardExamined);
-        SubscribeLocalEvent<WFBlueprintConstructComponent, ExaminedEvent>(OnConstructExamined);
+        SubscribeLocalEvent<WGBlueprintShardComponent, ComponentShutdown>(OnShardShutdown);
+        SubscribeLocalEvent<WGBlueprintShardComponent, ExaminedEvent>(OnShardExamined);
+        SubscribeLocalEvent<WGBlueprintConstructComponent, ExaminedEvent>(OnConstructExamined);
     }
 
-    private void OnLocatorOpened(Entity<WFBlueprintLocatorComponent> ent, ref BoundUIOpenedEvent args)
+    private void OnLocatorOpened(Entity<WGBlueprintLocatorComponent> ent, ref BoundUIOpenedEvent args)
     {
-        if (args.UiKey is WFBlueprintLocatorUiKey)
+        if (args.UiKey is WGBlueprintLocatorUiKey)
             UpdateUi(ent);
     }
 
-    private void OnResearchChanged<T>(Entity<WFBlueprintLocatorComponent> ent, ref T args)
+    private void OnResearchChanged<T>(Entity<WGBlueprintLocatorComponent> ent, ref T args)
     {
-        if (_ui.IsUiOpen(ent.Owner, WFBlueprintLocatorUiKey.Key))
+        if (_ui.IsUiOpen(ent.Owner, WGBlueprintLocatorUiKey.Key))
             UpdateUi(ent);
     }
 
     /// <summary>Whether every prerequisite of the pattern's technology is known; a relic pattern has none.</summary>
-    public bool PrerequisitesKnown(EntityUid locator, WFBlueprintPatternPrototype pattern)
+    public bool PrerequisitesKnown(EntityUid locator, WGBlueprintPatternPrototype pattern)
     {
         if (pattern.Technology is not { } techId || !_proto.TryIndex(techId, out var tech))
             return true;
@@ -91,7 +91,7 @@ public sealed partial class WFBlueprintSystem : EntitySystem
     }
 
     /// <summary>Whether the locator's server already holds the pattern's technology and every recipe.</summary>
-    public bool IsOwned(EntityUid locator, WFBlueprintPatternPrototype pattern)
+    public bool IsOwned(EntityUid locator, WGBlueprintPatternPrototype pattern)
     {
         if (!TryGetDatabase(locator, out _, out var db))
             return false;
@@ -141,14 +141,14 @@ public sealed partial class WFBlueprintSystem : EntitySystem
         return true;
     }
 
-    public void UpdateUi(Entity<WFBlueprintLocatorComponent> ent)
+    public void UpdateUi(Entity<WGBlueprintLocatorComponent> ent)
     {
         var linked = TryGetDatabase(ent, out _, out var db);
-        var patterns = new List<WFBlueprintPatternState>();
-        foreach (var pattern in _proto.EnumeratePrototypes<WFBlueprintPatternPrototype>().OrderBy(p => p.Tier).ThenBy(p => p.ID))
+        var patterns = new List<WGBlueprintPatternState>();
+        foreach (var pattern in _proto.EnumeratePrototypes<WGBlueprintPatternPrototype>().OrderBy(p => p.Tier).ThenBy(p => p.ID))
         {
             if (Fits(ent, pattern))
-                patterns.Add(new WFBlueprintPatternState(pattern.ID, IsOwned(ent, pattern), PrerequisitesKnown(ent, pattern)));
+                patterns.Add(new WGBlueprintPatternState(pattern.ID, IsOwned(ent, pattern), PrerequisitesKnown(ent, pattern)));
         }
 
         var known = new HashSet<string>();
@@ -161,11 +161,11 @@ public sealed partial class WFBlueprintSystem : EntitySystem
             disciplines.AddRange(supported);
         }
 
-        WFBlueprintHuntState? hunt = null;
-        if (ent.Comp.Hunt is { } active && TryComp<WFPlanetPoiComponent>(active.Ground, out var record)
+        WGBlueprintHuntState? hunt = null;
+        if (ent.Comp.Hunt is { } active && TryComp<WGPlanetPoiComponent>(active.Ground, out var record)
             && active.SiteIndex < record.Sites.Count)
         {
-            hunt = new WFBlueprintHuntState(
+            hunt = new WGBlueprintHuntState(
                 Loc.GetString(record.Sites[active.SiteIndex].Name),
                 Name(active.Ground),
                 active.Tier,
@@ -174,23 +174,23 @@ public sealed partial class WFBlueprintSystem : EntitySystem
         }
 
         var hasServer = _research.TryGetClientServer(ent, out _, out var server);
-        _ui.SetUiState(ent.Owner, WFBlueprintLocatorUiKey.Key,
-            new WFBlueprintLocatorState(linked, hasServer ? server!.ServerName : null, patterns, ent.Comp.Fees,
+        _ui.SetUiState(ent.Owner, WGBlueprintLocatorUiKey.Key,
+            new WGBlueprintLocatorState(linked, hasServer ? server!.ServerName : null, patterns, ent.Comp.Fees,
                 ent.Comp.MaxPatterns, hunt, ent.Comp.NextHunt, hasServer ? Math.Max(0, server!.Points) : 0, known, disciplines,
                 CountArrays(ent)));
     }
 
-    private void OnLocatorInteractUsing(Entity<WFBlueprintLocatorComponent> ent, ref InteractUsingEvent args)
+    private void OnLocatorInteractUsing(Entity<WGBlueprintLocatorComponent> ent, ref InteractUsingEvent args)
     {
         if (args.Handled)
             return;
 
-        if (TryComp<WFBlueprintConstructComponent>(args.Used, out var construct))
+        if (TryComp<WGBlueprintConstructComponent>(args.Used, out var construct))
         {
             args.Handled = true;
             TryInsertConstruct(ent, (args.Used, construct), args.User);
         }
-        else if (TryComp<WFBlueprintShardComponent>(args.Used, out var shard))
+        else if (TryComp<WGBlueprintShardComponent>(args.Used, out var shard))
         {
             args.Handled = true;
             TryStartDecode(ent, (args.Used, shard), args.User);
@@ -198,26 +198,26 @@ public sealed partial class WFBlueprintSystem : EntitySystem
     }
 
     /// <summary>Unlocks a Construct's pattern on the locator's server and consumes it.</summary>
-    public bool TryInsertConstruct(Entity<WFBlueprintLocatorComponent> ent, Entity<WFBlueprintConstructComponent> construct, EntityUid user)
+    public bool TryInsertConstruct(Entity<WGBlueprintLocatorComponent> ent, Entity<WGBlueprintConstructComponent> construct, EntityUid user)
     {
         if (construct.Comp.Pattern is not { } patternId || !_proto.TryIndex(patternId, out var pattern))
             return false;
 
         if (!TryGetDatabase(ent, out var server, out _))
         {
-            _popup.PopupEntity(Loc.GetString("wf-blueprint-locator-unlinked"), ent, user, PopupType.MediumCaution);
+            _popup.PopupEntity(Loc.GetString("wg-blueprint-locator-unlinked"), ent, user, PopupType.MediumCaution);
             return false;
         }
 
         if (IsOwned(ent, pattern))
         {
-            _popup.PopupEntity(Loc.GetString("wf-blueprint-construct-owned"), ent, user);
+            _popup.PopupEntity(Loc.GetString("wg-blueprint-construct-owned"), ent, user);
             return false;
         }
 
         Unlock(server, pattern);
         QueueDel(construct);
-        _popup.PopupEntity(Loc.GetString("wf-blueprint-construct-unlocked", ("pattern", Loc.GetString(pattern.Name))), ent, user);
+        _popup.PopupEntity(Loc.GetString("wg-blueprint-construct-unlocked", ("pattern", Loc.GetString(pattern.Name))), ent, user);
         _adminLog.Add(LogType.Action, LogImpact.Medium,
             $"{ToPrettyString(user):player} unlocked blueprint pattern {pattern.ID} at {ToPrettyString(ent)} for server {ToPrettyString(server)}");
         UpdateUi(ent);
@@ -228,7 +228,7 @@ public sealed partial class WFBlueprintSystem : EntitySystem
     /// Whether the locator's server can use the pattern: a technology's pattern needs one of its disciplines, so a
     /// faction's technology is only hunted from that faction's servers.
     /// </summary>
-    public bool Fits(EntityUid locator, WFBlueprintPatternPrototype pattern)
+    public bool Fits(EntityUid locator, WGBlueprintPatternPrototype pattern)
     {
         if (pattern.Technology is not { } techId || !_proto.TryIndex(techId, out var tech))
             return true;
@@ -247,7 +247,7 @@ public sealed partial class WFBlueprintSystem : EntitySystem
     }
 
     /// <summary>Adds the pattern's technology and every recipe to the server's database.</summary>
-    public void Unlock(EntityUid server, WFBlueprintPatternPrototype pattern)
+    public void Unlock(EntityUid server, WGBlueprintPatternPrototype pattern)
     {
         if (pattern.Technology is { } tech && _proto.TryIndex(tech, out var technology))
         {
@@ -261,25 +261,25 @@ public sealed partial class WFBlueprintSystem : EntitySystem
         }
     }
 
-    private void OnShardExamined(Entity<WFBlueprintShardComponent> ent, ref ExaminedEvent args)
+    private void OnShardExamined(Entity<WGBlueprintShardComponent> ent, ref ExaminedEvent args)
     {
         if (ent.Comp.Pattern is { } id && _proto.TryIndex(id, out var pattern))
-            args.PushMarkup(Loc.GetString("wf-blueprint-shard-examine", ("pattern", Loc.GetString(pattern.Name)), ("tier", pattern.Tier)));
+            args.PushMarkup(Loc.GetString("wg-blueprint-shard-examine", ("pattern", Loc.GetString(pattern.Name)), ("tier", pattern.Tier)));
     }
 
-    private void OnConstructExamined(Entity<WFBlueprintConstructComponent> ent, ref ExaminedEvent args)
+    private void OnConstructExamined(Entity<WGBlueprintConstructComponent> ent, ref ExaminedEvent args)
     {
         if (ent.Comp.Pattern is { } id && _proto.TryIndex(id, out var pattern))
-            args.PushMarkup(Loc.GetString("wf-blueprint-construct-examine", ("pattern", Loc.GetString(pattern.Name))));
+            args.PushMarkup(Loc.GetString("wg-blueprint-construct-examine", ("pattern", Loc.GetString(pattern.Name))));
     }
 
     /// <summary>Makes a shard or Construct item for a pattern and names it after the pattern.</summary>
-    public EntityUid SpawnFor(EntProtoId proto, WFBlueprintPatternPrototype pattern, EntityCoordinates coords, string nameKey)
+    public EntityUid SpawnFor(EntProtoId proto, WGBlueprintPatternPrototype pattern, EntityCoordinates coords, string nameKey)
     {
         var uid = Spawn(proto, coords);
-        if (TryComp<WFBlueprintShardComponent>(uid, out var shard))
+        if (TryComp<WGBlueprintShardComponent>(uid, out var shard))
             shard.Pattern = pattern.ID;
-        if (TryComp<WFBlueprintConstructComponent>(uid, out var construct))
+        if (TryComp<WGBlueprintConstructComponent>(uid, out var construct))
             construct.Pattern = pattern.ID;
 
         _meta.SetEntityName(uid, Loc.GetString(nameKey, ("pattern", Loc.GetString(pattern.Name))));
@@ -287,19 +287,19 @@ public sealed partial class WFBlueprintSystem : EntitySystem
     }
 
     /// <summary>Starts reading a shard at the console; the user holds it until it is sealed into a Construct.</summary>
-    private void TryStartDecode(Entity<WFBlueprintLocatorComponent> ent, Entity<WFBlueprintShardComponent> shard, EntityUid user)
+    private void TryStartDecode(Entity<WGBlueprintLocatorComponent> ent, Entity<WGBlueprintShardComponent> shard, EntityUid user)
     {
         if (shard.Comp.Pattern is not { } id || !_proto.TryIndex(id, out var pattern))
             return;
 
         if (!_power.IsPowered(ent))
         {
-            _popup.PopupEntity(Loc.GetString("wf-blueprint-decode-unpowered"), ent, user);
+            _popup.PopupEntity(Loc.GetString("wg-blueprint-decode-unpowered"), ent, user);
             return;
         }
 
-        var time = ent.Comp.DecodeTimes[Math.Clamp(pattern.Tier - 1, 0, ent.Comp.DecodeTimes.Length - 1)] * WFBlueprintDecode.Scale(CountArrays(ent));
-        var doAfter = new DoAfterArgs(EntityManager, user, TimeSpan.FromSeconds(time), new WFBlueprintDecodeDoAfterEvent(), ent, ent, shard)
+        var time = ent.Comp.DecodeTimes[Math.Clamp(pattern.Tier - 1, 0, ent.Comp.DecodeTimes.Length - 1)] * WGBlueprintDecode.Scale(CountArrays(ent));
+        var doAfter = new DoAfterArgs(EntityManager, user, TimeSpan.FromSeconds(time), new WGBlueprintDecodeDoAfterEvent(), ent, ent, shard)
         {
             BreakOnMove = true,
             BreakOnDamage = true,
@@ -308,25 +308,25 @@ public sealed partial class WFBlueprintSystem : EntitySystem
         };
 
         if (_doAfter.TryStartDoAfter(doAfter))
-            _popup.PopupEntity(Loc.GetString("wf-blueprint-decode-start"), ent, user);
+            _popup.PopupEntity(Loc.GetString("wg-blueprint-decode-start"), ent, user);
     }
 
-    private void OnDecoded(Entity<WFBlueprintLocatorComponent> ent, ref WFBlueprintDecodeDoAfterEvent args)
+    private void OnDecoded(Entity<WGBlueprintLocatorComponent> ent, ref WGBlueprintDecodeDoAfterEvent args)
     {
         if (args.Handled || args.Cancelled || args.Used is not { } used
-            || !TryComp<WFBlueprintShardComponent>(used, out var shard)
+            || !TryComp<WGBlueprintShardComponent>(used, out var shard)
             || shard.Pattern is not { } id || !_proto.TryIndex(id, out var pattern))
             return;
 
         args.Handled = true;
         Decode(ent, (used, shard), pattern, args.User);
-        _popup.PopupEntity(Loc.GetString("wf-blueprint-decode-done", ("pattern", Loc.GetString(pattern.Name))), ent, args.User);
+        _popup.PopupEntity(Loc.GetString("wg-blueprint-decode-done", ("pattern", Loc.GetString(pattern.Name))), ent, args.User);
     }
 
     /// <summary>Replaces a shard with its pattern's Construct, handed to the user.</summary>
-    public EntityUid Decode(Entity<WFBlueprintLocatorComponent> ent, Entity<WFBlueprintShardComponent> shard, WFBlueprintPatternPrototype pattern, EntityUid? user)
+    public EntityUid Decode(Entity<WGBlueprintLocatorComponent> ent, Entity<WGBlueprintShardComponent> shard, WGBlueprintPatternPrototype pattern, EntityUid? user)
     {
-        var construct = SpawnFor(ent.Comp.Construct, pattern, Transform(ent).Coordinates, "wf-blueprint-construct-name");
+        var construct = SpawnFor(ent.Comp.Construct, pattern, Transform(ent).Coordinates, "wg-blueprint-construct-name");
         QueueDel(shard);
         if (user != null)
             _hands.PickupOrDrop(user, construct);

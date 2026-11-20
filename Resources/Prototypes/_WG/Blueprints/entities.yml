@@ -1,7 +1,7 @@
 # A sliver of glyph-etched crystal holding part of a lost pattern.
 - type: entity
   parent: BaseItem
-  id: WFBlueprintShard
+  id: WGBlueprintShard
   name: pattern shard
   description: A sliver of glyph-etched crystal holding part of a lost design. Any R&D console can decode it.
   components:
@@ -16,12 +16,12 @@
     color: "#b040e0"
   - type: StaticPrice
     price: 500
-  - type: WFBlueprintShard
+  - type: WGBlueprintShard
 
 # A decoded pattern, ready for a research console.
 - type: entity
   parent: BaseItem
-  id: WFBlueprintConstruct
+  id: WGBlueprintConstruct
   name: blueprint construct
   description: A sealed pattern case. Use it on an R&D console to teach its research server the pattern.
   components:
@@ -33,4 +33,4 @@
     size: Small
   - type: StaticPrice
     price: 1500
-  - type: WFBlueprintConstruct
+  - type: WGBlueprintConstruct
