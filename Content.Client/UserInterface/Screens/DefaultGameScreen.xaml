@@ -28,8 +28,7 @@
         <!-- <actions:ActionsBar Name="Actions" Access="Protected" /> -->
         <BoxContainer Orientation="Horizontal" Margin="0 20 0 0">
             <actions:ActionsBar Name="Actions" Access="Protected" VerticalAlignment="Top" />
-            <!-- 526 = a vote popup's own 600 cap less the 64 action column and 10 gap, so the row is no wider than a lone vote was -->
-            <BoxContainer Name="VoteMenu" Access="Public" Margin="10 0 0 10" Orientation="Vertical" VerticalAlignment="Top" MaxWidth="526"/>
+            <BoxContainer Name="VoteMenu" Access="Public" Margin="10 0 0 10" Orientation="Vertical" VerticalAlignment="Top"/>
         </BoxContainer>
         <!-- WOLFGATE END -->
     </BoxContainer>
