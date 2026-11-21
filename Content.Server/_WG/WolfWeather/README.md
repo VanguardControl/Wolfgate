@@ -62,7 +62,6 @@ Entry points: `SharedWolfWeatherSystem.SetWeather`, `WGPlanetWeatherSystem.Resol
 
 ### Client
 
-- [`Content.Client/_WG/WolfWeather/WGGraphicsTab.WolfWeather.cs`](../../../Content.Client/_WG/WolfWeather/WGGraphicsTab.WolfWeather.cs)
 - [`Content.Client/_WG/WolfWeather/WolfThunderboltSystem.cs`](../../../Content.Client/_WG/WolfWeather/WolfThunderboltSystem.cs)
 - [`Content.Client/_WG/WolfWeather/WolfWeatherOverlay.cs`](../../../Content.Client/_WG/WolfWeather/WolfWeatherOverlay.cs)
 - [`Content.Client/_WG/WolfWeather/WolfWeatherSoundSystem.cs`](../../../Content.Client/_WG/WolfWeather/WolfWeatherSoundSystem.cs)

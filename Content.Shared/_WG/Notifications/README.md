@@ -29,7 +29,6 @@ which listens to `GhostSystem.GhostRoleCountUpdated`.
 ### Client
 
 - [`Content.Client/_WG/Notifications/ChatUIController.Notifications.cs`](../../../Content.Client/_WG/Notifications/ChatUIController.Notifications.cs)
-- [`Content.Client/_WG/Notifications/WGChatTab.Notifications.cs`](../../../Content.Client/_WG/Notifications/WGChatTab.Notifications.cs)
 - [`Content.Client/_WG/Notifications/WGGhostRoleAlertSystem.cs`](../../../Content.Client/_WG/Notifications/WGGhostRoleAlertSystem.cs)
 - [`Content.Client/_WG/Notifications/WGWindowFlash.cs`](../../../Content.Client/_WG/Notifications/WGWindowFlash.cs)
 

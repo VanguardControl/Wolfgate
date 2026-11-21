@@ -21,7 +21,6 @@ the setting or the UI theme changes, and removed at the defaults, so a default s
 ### Client
 
 - [`Content.Client/_WG/ChatTextSize/ChatBox.ChatTextSize.cs`](../../../Content.Client/_WG/ChatTextSize/ChatBox.ChatTextSize.cs)
-- [`Content.Client/_WG/ChatTextSize/WGChatTab.ChatTextSize.cs`](../../../Content.Client/_WG/ChatTextSize/WGChatTab.ChatTextSize.cs)
 - [`Content.Client/_WG/ChatTextSize/WGSpacedFont.cs`](../../../Content.Client/_WG/ChatTextSize/WGSpacedFont.cs)
 
 ### Integration tests

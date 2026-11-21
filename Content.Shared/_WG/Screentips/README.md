@@ -26,7 +26,6 @@ over the game view, never over UI.
 
 - [`Content.Client/_WG/Screentips/ScreentipUIController.cs`](../../../Content.Client/_WG/Screentips/ScreentipUIController.cs)
 - [`Content.Client/_WG/Screentips/WGHoverDarknessSystem.cs`](../../../Content.Client/_WG/Screentips/WGHoverDarknessSystem.cs)
-- [`Content.Client/_WG/Screentips/WGInterfaceTab.Screentips.cs`](../../../Content.Client/_WG/Screentips/WGInterfaceTab.Screentips.cs)
 
 ### Integration tests
 

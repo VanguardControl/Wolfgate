@@ -28,7 +28,6 @@ any tags left open, so the markup stays valid.
 
 - [`Content.Client/_WG/SpeechBubbles/ChatUIController.SpeechBubbles.cs`](../../../Content.Client/_WG/SpeechBubbles/ChatUIController.SpeechBubbles.cs)
 - [`Content.Client/_WG/SpeechBubbles/WGBubbleLength.cs`](../../../Content.Client/_WG/SpeechBubbles/WGBubbleLength.cs)
-- [`Content.Client/_WG/SpeechBubbles/WGChatTab.SpeechBubbles.cs`](../../../Content.Client/_WG/SpeechBubbles/WGChatTab.SpeechBubbles.cs)
 
 ### Integration tests
 

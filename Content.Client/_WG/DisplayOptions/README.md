@@ -30,7 +30,6 @@ checkbox on `WGInterfaceTab`. `WGBloomSystem` adds `WGBloomOverlay` while `scp.l
 
 - [`Content.Client/_WG/DisplayOptions/WGBloomOverlay.cs`](WGBloomOverlay.cs)
 - [`Content.Client/_WG/DisplayOptions/WGBloomSystem.cs`](WGBloomSystem.cs)
-- [`Content.Client/_WG/DisplayOptions/WGGraphicsTab.DisplayOptions.cs`](WGGraphicsTab.DisplayOptions.cs)
 
 ### Integration tests
 

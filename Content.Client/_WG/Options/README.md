@@ -8,7 +8,8 @@ and Consent.
 Entry points: `OptionsMenu.Wolfgate.cs` (the master tabs, wired in by a marked edit in `OptionsMenu`),
 `WGOptionsMasterStrip` (the switch, styled by `StyleWolfgate.Options.cs`) and `WolfgateOptionsTabs` (the Wolfgate
 tabs, in place of Delta-V's `DeltaTab`). A new player-facing client cvar gets a control on one of the `WG*Tab` tabs,
-never on a stock tab; a module that owns its controls adds them through a partial of that tab (`WGChatTab.SpeechBubbles.cs`).
+never on a stock tab. A feature's controls go in a partial of that tab named after the feature
+(`WGChatTab.SpeechBubbles.cs`), kept here in `UI/Tabs` beside the tab's XAML so its namespace follows its folder.
 
 The Controls tab is split the same way: `KeyRebindTab(true)` on the Wolfgate side lists only the binds and checkboxes
 missing from stock SS14 (`KeyRebindTab.Wolfgate.cs` lists the stock ones; anything else is a fork bind), and drops the
@@ -44,10 +45,16 @@ the query to `KeybindSearch`, which also matches a bound key exactly (typing `W`
 - [`Content.Client/_WG/Options/UI/Tabs/WGAccessibilityTab.xaml.cs`](UI/Tabs/WGAccessibilityTab.xaml.cs)
 - [`Content.Client/_WG/Options/UI/Tabs/WGAudioTab.xaml`](UI/Tabs/WGAudioTab.xaml)
 - [`Content.Client/_WG/Options/UI/Tabs/WGAudioTab.xaml.cs`](UI/Tabs/WGAudioTab.xaml.cs)
+- [`Content.Client/_WG/Options/UI/Tabs/WGChatTab.ChatTextSize.cs`](UI/Tabs/WGChatTab.ChatTextSize.cs)
+- [`Content.Client/_WG/Options/UI/Tabs/WGChatTab.Notifications.cs`](UI/Tabs/WGChatTab.Notifications.cs)
+- [`Content.Client/_WG/Options/UI/Tabs/WGChatTab.SpeechBubbles.cs`](UI/Tabs/WGChatTab.SpeechBubbles.cs)
 - [`Content.Client/_WG/Options/UI/Tabs/WGChatTab.xaml`](UI/Tabs/WGChatTab.xaml)
 - [`Content.Client/_WG/Options/UI/Tabs/WGChatTab.xaml.cs`](UI/Tabs/WGChatTab.xaml.cs)
+- [`Content.Client/_WG/Options/UI/Tabs/WGGraphicsTab.DisplayOptions.cs`](UI/Tabs/WGGraphicsTab.DisplayOptions.cs)
+- [`Content.Client/_WG/Options/UI/Tabs/WGGraphicsTab.WolfWeather.cs`](UI/Tabs/WGGraphicsTab.WolfWeather.cs)
 - [`Content.Client/_WG/Options/UI/Tabs/WGGraphicsTab.xaml`](UI/Tabs/WGGraphicsTab.xaml)
 - [`Content.Client/_WG/Options/UI/Tabs/WGGraphicsTab.xaml.cs`](UI/Tabs/WGGraphicsTab.xaml.cs)
+- [`Content.Client/_WG/Options/UI/Tabs/WGInterfaceTab.Screentips.cs`](UI/Tabs/WGInterfaceTab.Screentips.cs)
 - [`Content.Client/_WG/Options/UI/Tabs/WGInterfaceTab.xaml`](UI/Tabs/WGInterfaceTab.xaml)
 - [`Content.Client/_WG/Options/UI/Tabs/WGInterfaceTab.xaml.cs`](UI/Tabs/WGInterfaceTab.xaml.cs)
 - [`Content.Client/_WG/Options/UI/Tabs/WolfgateConsentTab.xaml`](UI/Tabs/WolfgateConsentTab.xaml)
