@@ -22,7 +22,7 @@ public sealed class CleanupPlayerSnapshotTest
 {
     private const float Radius = 10f;
 
-    /// <summary>Longer than the snapshot lifetime, so the next query rebuilds it.</summary>
+    /// <summary>Time for the world to settle between steps; the snapshot itself is rebuilt every tick.</summary>
     private const float RefreshWait = 1.5f;
 
     [Test]
@@ -65,6 +65,16 @@ public sealed class CleanupPlayerSnapshotTest
             Assert.That(cleanup.HasNearbyPlayers(At(mapA, mindlessSpot), Radius), Is.False,
                 "A mind container without a mind must not protect.");
         });
+
+        // a player who moves inside the radius protects on the very next tick
+        var far = spot + new Vector2(0f, Radius * 4f);
+        await server.WaitAssertion(() =>
+            Assert.That(cleanup.HasNearbyPlayers(At(mapA, far), Radius), Is.False, "Precondition: nobody near."));
+        await server.WaitPost(() => entMan.System<SharedTransformSystem>().SetMapCoordinates(player, new MapCoordinates(far, mapA.MapId)));
+        await pair.RunTicksSync(1);
+        await server.WaitAssertion(() =>
+            Assert.That(cleanup.HasNearbyPlayers(At(mapA, far), Radius), Is.True, "A player who moved close was missed by a stale snapshot."));
+        await server.WaitPost(() => entMan.System<SharedTransformSystem>().SetMapCoordinates(player, new MapCoordinates(spot, mapA.MapId)));
 
         // a player who arrives is seen once the snapshot refreshes
         await server.WaitPost(() => SpawnPlayer(entMan, minds, new MapCoordinates(spot, mapB.MapId), null, mindIds));

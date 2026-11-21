@@ -53,10 +53,10 @@ public sealed class WGCensus
     /// <summary>Deleted per prototype between the census before and this one.</summary>
     public Dictionary<string, int> Deleted = new();
 
-    /// <summary>Spawned per prototype between the census before and this one; empty on the first.</summary>
+    /// <summary>Spawned per prototype between the census before (or the round start) and this one.</summary>
     public readonly Dictionary<string, int> Spawned = new();
 
-    /// <summary>Seconds since the census before; 0 on the first.</summary>
+    /// <summary>Seconds the spawn and delete counts cover.</summary>
     public double Span;
 
     public readonly Dictionary<EntityUid, int> GridCounts = new();
@@ -101,6 +101,8 @@ public sealed class WGEntityCensusSystem : EntitySystem
     private readonly HashSet<string> _prototypeLabels = new();
     private readonly HashSet<string> _spawnLabels = new();
     private Dictionary<string, int> _deleted = new();
+    private Dictionary<string, int> _spawned = new();
+    private TimeSpan _countedSince;
     private EntityUid[] _snapshot = [];
     private WGCensus? _building;
     private int _cursor;
@@ -122,12 +124,15 @@ public sealed class WGEntityCensusSystem : EntitySystem
         Subs.CVar(_cfg, WGEntityCensusCVars.BudgetMs, value => _budget = value, true);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         EntityManager.EntityDeleted += OnEntityDeleted;
+        EntityManager.EntityInitialized += OnEntityAdded;
+        _countedSince = _timing.CurTime;
     }
 
     public override void Shutdown()
     {
         base.Shutdown();
         EntityManager.EntityDeleted -= OnEntityDeleted;
+        EntityManager.EntityInitialized -= OnEntityAdded;
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
@@ -135,7 +140,15 @@ public sealed class WGEntityCensusSystem : EntitySystem
         _building = null;
         _snapshot = [];
         _deleted.Clear();
+        _spawned.Clear();
+        _countedSince = _timing.CurTime;
         Last = null;
+    }
+
+    private void OnEntityAdded(Entity<MetaDataComponent> ent)
+    {
+        var id = ent.Comp.EntityPrototype?.ID ?? NoPrototype;
+        _spawned[id] = _spawned.GetValueOrDefault(id) + 1;
     }
 
     private void OnEntityDeleted(Entity<MetaDataComponent> ent)
@@ -252,19 +265,18 @@ public sealed class WGEntityCensusSystem : EntitySystem
                 census.Grids.Add((meta.EntityName, _gridKinds.GetValueOrDefault(grid), count));
         }
 
-        // Deletions since the census before; ones during this walk fall in either, which evens out.
+        // Spawns and deletions are counted as they happen, over the same span, so a prototype whose entities came
+        // and went between two counts still shows, and the walk's own timing doesn't skew them.
         census.Deleted = _deleted;
         _deleted = new Dictionary<string, int>();
-        if (Last is { } before)
+        foreach (var (id, count) in _spawned)
         {
-            census.Span = (census.Taken - before.Taken).TotalSeconds;
-            foreach (var (id, count) in census.Prototypes)
-            {
-                var spawned = count - before.Prototypes.GetValueOrDefault(id) + census.Deleted.GetValueOrDefault(id);
-                if (spawned > 0)
-                    census.Spawned[id] = spawned;
-            }
+            census.Spawned[id] = count;
         }
+
+        _spawned.Clear();
+        census.Span = (_timing.CurTime - _countedSince).TotalSeconds;
+        _countedSince = _timing.CurTime;
 
         Last = census;
         Publish(census);

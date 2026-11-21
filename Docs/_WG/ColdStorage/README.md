@@ -1,5 +1,7 @@
 # ColdStorage
 
+> **Status: proposed.** Only the census is built. The tiers, storage, restore and persistence below are planned.
+
 Cold Storage makes the server's cost follow the players online, not the age of the round or the size of the world.
 It is the package behind rounds that never have to end and a population cap set by hardware, not by entity count.
 
@@ -21,8 +23,8 @@ The unit is always a whole grid, never single entities: a ship is a closed unit 
 it can be saved and rebuilt intact. Anything outside that points into a grid (a deed, a dock, an NPC's home) points at
 the stand-in.
 
-Because stored grids live in the database, the world survives a restart or a crash. A restart becomes a pause, not
-the end of a round.
+Stored grids live in the database, so they survive a restart or a crash. Live and stasis grids exist only in server
+memory until they are stored, so a crash loses them.
 
 ## Parts
 

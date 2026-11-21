@@ -5,17 +5,13 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._Mono.Cleanup;
 
-/// <summary>Player protection from a position snapshot taken at most once a second, instead of a spatial lookup per candidate.</summary>
+/// <summary>Player protection from a position snapshot taken once a tick, instead of a spatial lookup per candidate.</summary>
 public sealed partial class CleanupHelperSystem
 {
     [Dependency] private IGameTiming _timing = default!;
 
-    /// <summary>Longest a player snapshot is used before it is rebuilt.</summary>
-    private static readonly TimeSpan WGPlayerSnapshotLifetime = TimeSpan.FromSeconds(1);
-
     private List<MapCoordinates> _wgPlayers = new();
-    private TimeSpan _wgPlayersTakenAt;
-    private bool _wgPlayersValid;
+    private GameTick _wgPlayersTick = GameTick.Zero;
 
     /// <summary>Distance to the nearest player-bound entity on the same map, or infinity if there is none.</summary>
     public float WGNearestPlayerDistance(EntityCoordinates coord)
@@ -40,15 +36,17 @@ public sealed partial class CleanupHelperSystem
         return MathF.Sqrt(bestSquared);
     }
 
-    /// <summary>Rebuilds the snapshot once it is a second old, with the same player test the lookup used.</summary>
+    /// <summary>
+    /// Rebuilds the snapshot on the first check of a tick, with the same player test the lookup used. Nobody moves
+    /// within a tick, so every check sees players where they are now.
+    /// </summary>
     private void WGRefreshPlayers()
     {
-        var now = _timing.CurTime;
-        if (_wgPlayersValid && now >= _wgPlayersTakenAt && now - _wgPlayersTakenAt < WGPlayerSnapshotLifetime)
+        var now = _timing.CurTick;
+        if (now == _wgPlayersTick)
             return;
 
-        _wgPlayersValid = true;
-        _wgPlayersTakenAt = now;
+        _wgPlayersTick = now;
         _wgPlayers.Clear();
 
         // all, not just unpaused: the lookup it replaces found paused players too

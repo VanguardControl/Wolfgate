@@ -79,7 +79,7 @@ public sealed partial class WGEncounterZoneSystem : EntitySystem
     private readonly List<EntityUid> _stale = new();
     private readonly List<(EntityUid Encounter, WGEncounterShipState Ship)> _fleet = new();
     private readonly HashSet<(EntityUid Ship, EntityUid Other)> _rivals = new();
-    private readonly List<(EntityUid Shot, Vector2 Position, MapId Map, EntityUid Shooter)> _shots = new();
+    private readonly List<(EntityUid Shot, EntityUid Shooter)> _shots = new();
     private readonly HashSet<EntityUid> _liveShots = new();
     private readonly HashSet<(EntityUid Ship, EntityUid Shot)> _answeredShots = new();
 
@@ -97,6 +97,16 @@ public sealed partial class WGEncounterZoneSystem : EntitySystem
     private readonly Dictionary<EntityUid, List<EntityUid?>> _docked = new();
     private readonly Stack<List<EntityUid?>> _dockLists = new();
     private readonly Stack<Crewed> _crewedPool = new();
+
+    /// <summary>Set when a dock joins or parts mid-pass, so the next slice re-indexes before judging anyone.</summary>
+    private bool _docksDirty;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<Content.Server.Shuttles.Events.DockEvent>(_ => _docksDirty = true);
+        SubscribeLocalEvent<Content.Server.Shuttles.Events.UndockEvent>(_ => _docksDirty = true);
+    }
 
     /// <summary>A ship with a living player aboard.</summary>
     private sealed class Crewed
@@ -164,6 +174,9 @@ public sealed partial class WGEncounterZoneSystem : EntitySystem
     /// <summary>Watches the next ships of the pass: their rivals in the fleet, then their zones.</summary>
     private void WatchSlice(int count)
     {
+        if (_docksDirty && _cursor < _fleet.Count)
+            IndexDocks();
+
         for (var done = 0; done < count && _cursor < _fleet.Count; done++)
         {
             var (uid, ship) = _fleet[_cursor++];
@@ -202,6 +215,7 @@ public sealed partial class WGEncounterZoneSystem : EntitySystem
         }
 
         _docked.Clear();
+        _docksDirty = false;
         var docks = EntityQueryEnumerator<Content.Server.Shuttles.Components.DockingComponent, TransformComponent>();
         while (docks.MoveNext(out _, out var dock, out var xform))
         {
@@ -619,6 +633,14 @@ public sealed partial class WGEncounterZoneSystem : EntitySystem
                     continue;
             }
 
+            // The crewed list is from the pass's start: one that has since berthed at a station is in sanctuary.
+            if (_encounters.DockedAtStation(intruder))
+            {
+                Release(encounter, ship, intruder);
+                _alerts.EndZoneWarning(ship.Grid, intruder);
+                continue;
+            }
+
             // Formation partners and the ships a side has taken as allies are not intruders.
             if (_escorts.AreInFormation(ship.Grid, intruder))
                 continue;
@@ -763,6 +785,14 @@ public sealed partial class WGEncounterZoneSystem : EntitySystem
         return ship.Declared.Contains(intruder) || ship.Engaged.Contains(intruder) || _alerts.IsAttacker(ship.Grid, intruder);
     }
 
+    /// <summary>Where a shot is now, read once a tick.</summary>
+    private MapCoordinates ShotPosition(EntityUid shot)
+    {
+        if (!_centres.TryGetValue(shot, out var at))
+            _centres[shot] = at = _transform.GetMapCoordinates(shot);
+        return at;
+    }
+
     /// <summary>Below this speed, in metres a second, a vessel is lying still.</summary>
     private const float IdleSpeed = 2f;
 
@@ -772,7 +802,7 @@ public sealed partial class WGEncounterZoneSystem : EntitySystem
         _shots.Clear();
         _liveShots.Clear();
         var query = EntityQueryEnumerator<ProjectileComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out var projectile, out var xform))
+        while (query.MoveNext(out var uid, out var projectile, out _))
         {
             _liveShots.Add(uid);
             var shooter = _alerts.IsShipWeapon(projectile.Weapon)
@@ -781,7 +811,7 @@ public sealed partial class WGEncounterZoneSystem : EntitySystem
             if (shooter is not { } source)
                 continue;
 
-            _shots.Add((uid, _transform.GetWorldPosition(xform), xform.MapID, source));
+            _shots.Add((uid, source));
         }
 
         _answeredShots.RemoveWhere(key => !_liveShots.Contains(key.Shot));
@@ -800,7 +830,12 @@ public sealed partial class WGEncounterZoneSystem : EntitySystem
         var reach = ship.AttackRange * ship.AttackRange;
         foreach (var shot in _shots)
         {
-            if (shot.Map != here.MapId || shot.Shooter == ship.Grid || (shot.Position - here.Position).LengthSquared() > reach
+            // The pass gathered the shots; a slice later in it reads where each one is now, or skips it if gone.
+            if (shot.Shooter == ship.Grid || TerminatingOrDeleted(shot.Shot))
+                continue;
+
+            var at = ShotPosition(shot.Shot);
+            if (at.MapId != here.MapId || (at.Position - here.Position).LengthSquared() > reach
                 || !_answeredShots.Add((ship.Grid, shot.Shot)))
                 continue;
 

@@ -64,12 +64,14 @@ public sealed class EntityCensusTest
             entMan.DeleteEntity(spawned[1]);
             entMan.DeleteEntity(spawned[2]);
             entMan.SpawnEntity(Prototype, new EntityCoordinates(grid, 0.5f, 0.5f));
+            // One that comes and goes between two counts still counts both ways.
+            entMan.DeleteEntity(entMan.SpawnEntity(Prototype, new EntityCoordinates(grid, 0.5f, 0.5f)));
 
             var flow = census.TakeNow();
             Assert.Multiple(() =>
             {
-                Assert.That(flow.Deleted.GetValueOrDefault(Prototype), Is.EqualTo(2));
-                Assert.That(flow.Spawned.GetValueOrDefault(Prototype), Is.EqualTo(1));
+                Assert.That(flow.Deleted.GetValueOrDefault(Prototype), Is.EqualTo(3));
+                Assert.That(flow.Spawned.GetValueOrDefault(Prototype), Is.EqualTo(2));
             });
 
             entMan.DeleteEntity(grid);
