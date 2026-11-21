@@ -77,6 +77,13 @@ namespace Content.Shared.Chat
         SubtleOOC = ChatChannel.SubtleOOC,
         // WOLFGATE END
 
+        // WOLFGATE(Mentors) START: mentor chat
+        /// <summary>
+        ///     Mentors and staff
+        /// </summary>
+        Mentor = ChatChannel.MentorChat,
+        // WOLFGATE END
+
         Console = ChatChannel.Unspecified
     }
 }

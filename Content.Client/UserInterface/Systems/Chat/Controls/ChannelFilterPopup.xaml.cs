@@ -28,6 +28,7 @@ public sealed partial class ChannelFilterPopup : Popup
         ChatChannel.AdminAlert,
         ChatChannel.AdminChat,
         ChatChannel.EventChat, // WOLFGATE(EventStaff)
+        ChatChannel.MentorChat, // WOLFGATE(Mentors)
         ChatChannel.Server
     };
 

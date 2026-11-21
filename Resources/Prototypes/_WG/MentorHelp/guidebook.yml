@@ -1,0 +1,7 @@
+- type: guideEntry
+  id: WGMentorHelpGuide
+  name: guide-entry-wg-mentor-help
+  text: "/ServerInfo/_WG/MentorHelp/Guidebook/GettingHelp.xml"
+  priority: 0
+  children:
+  - WGMentorCodeOfConduct
