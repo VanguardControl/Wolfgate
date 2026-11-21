@@ -44,13 +44,15 @@ It also covers player AI cores; see **Station AI** below.
   use a key on it; wirecutters take them all out. The stock key path (`IntrinsicRadioKeySystem`) would replace the
   cyborg's radio channels with its keys', so `WGBorgRadioKeysServerSystem` puts the built-in channels back on top,
   and takes the type's channels as the new built-in set when a type is picked. While an AI drives the cyborg it
-  keeps the AI's channels and updates the ones it restores. The key holder isn't networked, so
+  keeps the AI's channels and updates the ones it restores. The Corvax back-to-AI action restores no channels (only
+  removing the controller does), so the system gives the cyborg its own back when that action or a reopened core
+  (`WGAiCoreGhostRoleSystem`) lets the AI go. The key holder isn't networked, so
   `WGBorgRadioKeysSystem` opens the slots from the networked lock right before each use or examine. A marked edit on
   `BaseBorgChassis`.
 
 `BorgPdaTest` covers the apps, the action and a cyborg's NanoChat, `BorgStackRefillTest` the issued kit and the
 cell-paid refill, `BorgPowerTest` the drinker lookup, `BorgShipPurchaseTest` a cyborg buying a ship with its card,
-`BorgShipAccessTest` a crew door admitting it, and `BorgRadioKeysTest` the lock-gated key slots and channels.
+`BorgShipAccessTest` a crew door admitting it, and `BorgRadioKeysTest` the lock-gated key slots and channels, and an AI's return.
 
 ## Station AI
 

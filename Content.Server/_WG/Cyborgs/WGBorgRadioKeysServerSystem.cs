@@ -1,5 +1,7 @@
 using System.Linq;
+using Content.Server._CorvaxNext.Silicons.Borgs;
 using Content.Server._EinsteinEngines.Radio;
+using Content.Shared._CorvaxNext.Silicons.Borgs;
 using Content.Shared._CorvaxNext.Silicons.Borgs.Components;
 using Content.Shared._WG.BorgSkins;
 using Content.Shared._WG.Cyborgs;
@@ -21,6 +23,34 @@ public sealed class WGBorgRadioKeysServerSystem : EntitySystem
         SubscribeLocalEvent<WGBorgRadioKeysComponent, EncryptionChannelsChangedEvent>(OnKeysChanged,
             after: new[] { typeof(IntrinsicRadioKeySystem) });
         SubscribeLocalEvent<WGBorgRadioKeysComponent, WGBorgSubtypeSelectedEvent>(OnTypeSelected);
+        SubscribeLocalEvent<WGBorgRadioKeysComponent, ReturnMindIntoAiEvent>(OnAiReturned,
+            after: new[] { typeof(AiRemoteControlSystem) });
+    }
+
+    /// <summary>
+    /// Gives a cyborg an AI has just let go its own channels back, where the AI's would otherwise stay. Does nothing
+    /// unless an AI took control and has since gone, so a repeat can't apply stale channels.
+    /// </summary>
+    public void RestoreAfterAi(EntityUid uid)
+    {
+        if (!TryComp<WGBorgRadioKeysComponent>(uid, out var comp)
+            || !TryComp<AiRemoteControllerComponent>(uid, out var remote)
+            || remote.AiHolder != null
+            || remote.PreviouslyTransmitterChannels == null && remote.PreviouslyActiveRadioChannels == null)
+            return;
+
+        // Taking control saves them afresh, so they are spent once restored.
+        remote.PreviouslyTransmitterChannels = null;
+        remote.PreviouslyActiveRadioChannels = null;
+
+        if (TryComp<EncryptionKeyHolderComponent>(uid, out var keys))
+            Apply((uid, comp), keys);
+    }
+
+    // The back-to-AI action moves the mind out but restores no channels; only removing the controller does.
+    private void OnAiReturned(Entity<WGBorgRadioKeysComponent> ent, ref ReturnMindIntoAiEvent args)
+    {
+        RestoreAfterAi(ent);
     }
 
     // Init runs before any startup, so this reads the prototype's channels before the key holder's startup clears them.
