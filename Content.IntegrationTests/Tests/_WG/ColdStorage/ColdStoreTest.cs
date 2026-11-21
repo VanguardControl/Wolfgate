@@ -517,6 +517,10 @@ public sealed class ColdStoreTest
     {
         await pair.Server.WaitPost(() =>
         {
+            // A pooled server carries the counts of whichever test had it before.
+            var cold = pair.Server.System<WGColdStoreSystem>();
+            cold.Stores = cold.Restores = cold.Aborts = cold.Failures = cold.Expired = 0;
+
             var cfg = pair.Server.CfgMan;
             cfg.SetCVar(CCVars.NPCEnabled, false);
             cfg.SetCVar(WGStasisCVars.Idle, 0f);
