@@ -28,7 +28,7 @@ public sealed class WarmthGaugeDiagTest
     private const int Half = 12;
 
     [Test]
-    public async Task Trace([Range(1, 12)] int run)
+    public async Task Trace([Range(1, 24)] int run)
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
         var server = pair.Server;
@@ -92,7 +92,24 @@ public sealed class WarmthGaugeDiagTest
                    $"bodyC {temps.GetHeatCapacity(mob, t):F0} dist {dist:F2} lookup {inLookup} active {active} feel {w.Feel} strain {w.Strain}";
         }
 
-        await pair.RunTicksSync(pair.SecondsToTicks(240f));
+        var dormancy = server.System<Content.Server._WG.Dormancy.WGDormancySystem>();
+        for (var s = 0; s < 240; s += 10)
+        {
+            var at = s;
+            await server.WaitPost(() =>
+            {
+                var t = entMan.GetComponent<TemperatureComponent>(mob);
+                var xform = entMan.GetComponent<TransformComponent>(mob);
+                var air = atmos.GetContainingMixture((mob, xform));
+                entMan.TryGetComponent<Content.Server._WG.Wolfmed.Life.WolfmedBodyTemperatureComponent>(mob, out var btc);
+                var seen = btc == null ? float.NaN : btc.Surface;
+                lines.Add($"c{at}s tick {timing.CurTick.Value} time {timing.CurTime.TotalSeconds:F1} surface {t.CurrentTemperature:F3} core {bt.GetCore(mob):F3} " +
+                          $"btc {seen:F2} air {(air == null ? "null" : $"{air.Temperature:F1}K/{air.TotalMoles:F1}")} " +
+                          $"sleeps {dormancy.BodySleeps(mob)} active {dormancy.IsActive(mob)} map {xform.MapUid} grid {xform.GridUid}");
+            });
+            await pair.RunTicksSync(pair.SecondsToTicks(10f));
+        }
+
         var coldCore = 0f;
         var coldRaw = 0f;
         var coldGauge = 0;
