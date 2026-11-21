@@ -41,7 +41,7 @@ public sealed class WGFeedbackBatch1121GameTest
             solutions.TryAddReagent(fromSoln!.Value, "Water", 5);
 
             var state = em.GetComponentState(em.EventBus, fromSoln.Value.Comp, null, GameTick.Zero);
-            var stateSolution = (Solution) state.GetType().GetField(nameof(SolutionComponent.Solution))!.GetValue(state)!;
+            var stateSolution = (Solution) state!.GetType().GetField(nameof(SolutionComponent.Solution))!.GetValue(state)!;
             var handle = new ComponentHandleState(state, null);
             em.EventBus.RaiseComponentEvent(toSoln!.Value.Owner, toSoln.Value.Comp, ref handle);
 
