@@ -118,7 +118,7 @@
 
 - type: marking
   id: KitsuneEarsDefault
-  bodyPart: Head
+  bodyPart: HeadTop # priv fix
   markingCategory: HeadTop
   speciesRestriction: [Skrell, Thaven,Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, WGCanine]
   coloring:
@@ -136,7 +136,7 @@
 
 - type: marking
   id: KitsuneEarsFox
-  bodyPart: Head
+  bodyPart: HeadTop # priv fix
   markingCategory: HeadTop
   speciesRestriction: [Skrell, Thaven,Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, WGCanine]
   coloring:
