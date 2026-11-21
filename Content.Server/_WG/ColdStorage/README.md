@@ -11,7 +11,7 @@ keeps only what someone can see or use loaded, in three tiers:
 |---|---|---|---|
 | Live | Someone is aboard or near. Simulated as now. | Full | - |
 | Stasis | Nobody near for a few minutes. Paused where it stands; keeps every entity and all state. | Memory only | One tick |
-| Stored | In stasis long enough. Saved and deleted, leaving one stand-in entity. Kept in server memory for the round (a database row is planned). | Its compressed bytes | One tick for now, before anyone can see it |
+| Stored | In stasis long enough. Saved and deleted, leaving one stand-in entity. Kept in server memory for the round (a database row is planned). | Its compressed bytes | A few milliseconds a tick, before anyone can see it; at once if they are already near |
 
 A stored grid's stand-in keeps its place in the world: its radar blip, name, owner, position, drift and outline. A
 player approaching or plotting a jump to it brings the grid back before it is in view. Planned: an owner logging in
@@ -33,8 +33,9 @@ everything else in the round.
 3. **Stasis** (built): the planet site stash (`Dormancy`) extended to grids in space.
 4. **Store and restore** (built for wrecks, in memory): the stand-in and waking on approach. Catch-up on wake is
    planned.
-5. **Engine (Lupine, server-only)** (planned): grid loading spread over ticks so a restore never stalls a tick, and a
-   per-player always-visible set so unchanged grids aren't re-added for every player every tick.
+5. **Engine (Lupine, server-only)** (built, not yet run live): grid loading spread over ticks so a restore never
+   stalls a tick, and unchanged grids no longer re-added for every player every tick (`net.pvs_force_delta`, off by
+   default).
 6. **Persistence** (planned): stored grids in the database, restored after a restart.
 
 ## Stasis
@@ -122,9 +123,9 @@ abort puts it back unchanged; if its map went meanwhile it is deleted as the map
 fixtures and a `RadarBlip` the size of those bounds in the grid's IFF colour (none for a hidden grid); it shows no
 label or tile outline. Space and grid cleanup leave it alone.
 
-A stand-in is restored, nearest first and one a tick, by a viewer or arrival within the restore range, another grid
-within half of it, a blast near it, `wg_coldstore restore`, or storing being turned off. The grid is loaded onto a
-paused staging map in one tick, run through `UsedShipReinitSystem.ReinitLoadedShip` (device net, wires, nav map,
+A stand-in is restored, nearest first and one at a time, by a viewer or arrival within the restore range, another
+grid within half of it, a blast near it, `wg_coldstore restore`, or storing being turned off. The grid is loaded onto
+a paused staging map, over several ticks or in one call (see `wg.coldstore.restore_budget_ms` below), run through `UsedShipReinitSystem.ReinitLoadedShip` (device net, wires, nav map,
 shields and the other map-init state a load skips), placed, nudged off any grid now in the way, held awake 60 s and
 `WGGridRestoredEvent` is raised. A failed load, or a hull that still overlaps a grid after being moved on eight times,
 keeps the stand-in and bytes, logs an error and stays queued for a retry once a minute, three tries in all; after that

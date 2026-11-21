@@ -92,6 +92,11 @@ public sealed class ColdStoreTest
             var crowbar = entMan.SpawnEntity("Crowbar", spot);
             Assert.That(entMan.System<SharedEntityStorageSystem>().Insert(crowbar, crate), Is.True);
 
+            // A storage with two items: each needs its own key in the saved grid layout.
+            var box = entMan.SpawnEntity("BoxCardboard", spot);
+            for (var i = 0; i < 2; i++)
+                Assert.That(entMan.System<SharedStorageSystem>().Insert(box, entMan.SpawnEntity("Pen", spot), out _, playSound: false), Is.True);
+
             door = Tree(entMan, grid).First(u => entMan.TryGetComponent<DoorComponent>(u, out var d) && d.State == DoorState.Closed
                 && !(entMan.TryGetComponent<DoorBoltComponent>(u, out var bolts) && bolts.BoltsDown));
             doorAt = entMan.GetComponent<TransformComponent>(door).LocalPosition;
@@ -159,6 +164,11 @@ public sealed class ColdStoreTest
                     && Math.Abs(b.CurrentCharge / b.MaxCharge - 0.37f) < 0.01f), Is.True, "The drained cell came back charged.");
                 var crate = tree.Single(u => Proto(entMan, u) == "CrateGenericSteel");
                 Assert.That(Children(entMan, crate).Any(u => Proto(entMan, u) == "Crowbar"), Is.True, "The crowbar left the crate.");
+                var box = tree.Single(u => Proto(entMan, u) == "BoxCardboard");
+                var pens = Children(entMan, box).Where(u => Proto(entMan, u) == "Pen").ToList();
+                Assert.That(pens, Has.Count.EqualTo(2), "The pens left the box.");
+                Assert.That(pens.All(entMan.GetComponent<StorageComponent>(box).StoredItems.ContainsKey), Is.True,
+                    "The box lost where its pens sit.");
                 var restoredDoor = tree.Single(u => entMan.HasComponent<DoorComponent>(u)
                     && (entMan.GetComponent<TransformComponent>(u).LocalPosition - doorAt).Length() < 0.01f);
                 Assert.That(entMan.GetComponent<DoorComponent>(restoredDoor).State, Is.EqualTo(DoorState.Open), "The open door came back shut.");
