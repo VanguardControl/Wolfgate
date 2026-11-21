@@ -41,5 +41,6 @@ over the game view, never over UI.
 - [`Content.Client/Outline/InteractionOutlineSystem.cs`](../../../Content.Client/Outline/InteractionOutlineSystem.cs)
   - no outline on mobs in the dark
   - a player or mob hidden in the dark gets no hover outline
+  - a dark mob picked from the right-click list gets no outline either
 
 <!-- WOLFGATE-GENERATED END -->

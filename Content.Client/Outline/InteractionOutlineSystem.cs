@@ -134,6 +134,10 @@ public sealed partial class InteractionOutlineSystem : EntitySystem
             // above is fixed, the viewport should probably be the one that was clicked on to open the entity menu
             // in the first place.
             renderScale = _eyeManager.MainViewport.GetRenderScale();
+
+            // WOLFGATE(Screentips): a dark mob picked from the right-click list gets no outline either
+            if (entityToClick != null && _wgDarkness.HiddenInDark(entityToClick.Value, _eyeManager.MainViewport))
+                entityToClick = null;
         }
 
         var inRange = false;
