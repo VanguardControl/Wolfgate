@@ -43,10 +43,10 @@ public sealed partial class WGCrewWeaponSystem
     private readonly HashSet<Entity<NpcFactionMemberComponent>> _nearbyMembers = new();
 
     /// <summary>
-    /// Where a mob can stand: moving bodies and non-colliding ones. Walls, anchored fittings and everything carried
-    /// are skipped, which is most of what a ship holds.
+    /// Everything not carried: static bodies stay in, since an anchored turret is a faction member too. What is in
+    /// a container is skipped, which is most of what a ship holds.
     /// </summary>
-    private const LookupFlags NearbyFlags = LookupFlags.Dynamic | LookupFlags.Sundries | LookupFlags.Sensors;
+    private const LookupFlags NearbyFlags = LookupFlags.Dynamic | LookupFlags.Static | LookupFlags.Sundries | LookupFlags.Sensors;
 
     /// <summary>How long one crewman's lookup of the faction members around him serves all his target checks.</summary>
     public static readonly TimeSpan NearbyCacheTime = TimeSpan.FromSeconds(0.25);
