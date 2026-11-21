@@ -18,11 +18,6 @@
                 </BoxContainer>
                 <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
                 <!-- WOLFGATE END -->
-                    <!-- WOLFGATE(MentorHelp) START: send a how-to ahelp to Mentor Help, open the Mentor Help queue -->
-                    <Button Name="MentorHelpStaffView" Text="{Loc 'wg-mhelp-ahelp-staff-view'}" StyleClasses="OpenRight" />
-                    <Button Name="SendToMentorHelp" Text="{Loc 'wg-mhelp-ahelp-send'}" StyleClasses="OpenLeft" Disabled="True" />
-                    <Label Name="MentorTicketMarker" Text="{Loc 'wg-mhelp-ahelp-open-ticket'}" Visible="False" Margin="6 0 0 0" />
-                    <!-- WOLFGATE END -->
                     <Control HorizontalExpand="True" />
                     <Button Visible="False" Name="Bans" Text="{Loc 'admin-player-actions-bans'}" StyleClasses="OpenRight" />
                     <Button Visible="False" Name="Notes" Text="{Loc 'admin-player-actions-notes'}" StyleClasses="OpenBoth" />
@@ -31,6 +26,14 @@
                     <Button Visible="False" Name="Respawn" Text="{Loc 'admin-player-actions-respawn'}" StyleClasses="OpenBoth" />
                     <Button Visible="False" Name="Follow" Text="{Loc 'admin-player-actions-follow'}" StyleClasses="OpenLeft" />
                 </BoxContainer>
+                <!-- WOLFGATE(MentorHelp) START: Mentor Help on a row of its own, so it doesn't squeeze the player list -->
+                <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
+                    <Label Name="MentorTicketMarker" Text="{Loc 'wg-mhelp-ahelp-open-ticket'}" Visible="False" ClipText="True" HorizontalExpand="True" Margin="4 0 6 0" />
+                    <Control HorizontalExpand="True" />
+                    <Button Name="MentorHelpStaffView" Text="{Loc 'wg-mhelp-ahelp-staff-view'}" StyleClasses="OpenRight" />
+                    <Button Name="SendToMentorHelp" Text="{Loc 'wg-mhelp-ahelp-send'}" StyleClasses="OpenLeft" Disabled="True" />
+                </BoxContainer>
+                <!-- WOLFGATE END -->
             </BoxContainer>
         </SplitContainer>
     </PanelContainer>
