@@ -1,0 +1,34 @@
+- type: vessel
+  id: WFBratan
+  parent: BaseVessel
+  name: 'ZPB Bratan'
+  description: 'Gerster''s Bratan, modified and shortened after a few too many accidents. Seems to require a special voucher.'
+  price: 135000 # appraised at 107372
+  category: Large # 807 tiles
+  group: Syndicate # Underground
+  access: Underground
+  purchasable: false # voucher only: WFShipVoucherBratan
+  shuttlePath: /SharedMaps/_WG/Community/bratan2.yml
+  guidebookPage: null
+  class:
+  - Civilian
+  engine:
+  - AME
+
+- type: gameMap
+  id: WFBratan
+  mapName: 'ZPB Bratan'
+  mapPath: /SharedMaps/_WG/Community/bratan2.yml
+  minPlayers: 0
+  stations:
+    WFBratan:
+      stationProto: StandardFrontierVessel
+      components:
+      - type: StationNameSetup
+        mapNameTemplate: 'Bratan CIV{1}'
+        nameGenerator:
+          !type:NanotrasenNameGenerator
+          prefixCreator: '14'
+      - type: StationJobs
+        availableJobs:
+          Contractor: [ 0, 0 ]
