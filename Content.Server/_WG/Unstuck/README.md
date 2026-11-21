@@ -7,6 +7,11 @@ to walk out of a locked room or a cell; anyone trapped another way is told to ah
 buckled bodies are refused. Each player can use it once every 30 seconds, and every use goes to the admin log as a
 `Teleport` entry.
 
+Inside a vehicle (an APC or any other with an interior map), it puts the occupant back outside instead, through
+`VehicleInteriorSystem.TryExitVehicle`: unbuckled from their seat, at once, with no do-after. This works for the living,
+the dead and ghosts (a ghost with no free exit lands on the vehicle itself). A locked vehicle still holds the living, so
+it can't be used to break out of one; a dead body comes out regardless.
+
 Entry points: `WGUnstuckSystem.TryUnstuck` (server), the `UnstuckButton` in `EscapeMenu.xaml` and its handler in
 `EscapeUIController`, which sends `WGUnstuckRequestEvent` through the client `WGUnstuckSystem`.
 

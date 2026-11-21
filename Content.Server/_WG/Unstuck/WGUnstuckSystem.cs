@@ -2,11 +2,14 @@ using System.Numerics;
 using Content.Server.Administration.Logs;
 using Content.Server.Atmos.EntitySystems;
 using Content.Shared._WG.Unstuck;
+using Content.Shared._WG.Vehicles.Core;
 using Content.Shared.Buckle;
+using Content.Shared.Buckle.Components;
 using Content.Shared.Database;
 using Content.Shared.GameTicking;
 using Content.Shared.Ghost;
 using Content.Shared.Maps;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.Movement.Pulling.Components;
 using Content.Shared.Movement.Pulling.Systems;
 using Content.Shared.Popups;
@@ -30,6 +33,7 @@ public sealed class WGUnstuckSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private AtmosphereSystem _atmosphere = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private PullingSystem _pulling = default!;
     [Dependency] private SharedBuckleSystem _buckle = default!;
     [Dependency] private SharedContainerSystem _container = default!;
@@ -38,6 +42,7 @@ public sealed class WGUnstuckSystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private TurfSystem _turf = default!;
+    [Dependency] private VehicleInteriorSystem _vehicleInterior = default!;
 
     /// <summary>How far, in tiles, the search for clear floor reaches.</summary>
     private const int SearchRadius = 3;
@@ -87,12 +92,15 @@ public sealed class WGUnstuckSystem : EntitySystem
     }
 
     /// <summary>
-    /// Moves the entity to the nearest clear floor if it is embedded in a structure it collides with.
-    /// Prefers floor with breathable air within <see cref="SearchRadius"/> tiles, then any floor.
+    /// Puts the entity outside if it is inside a vehicle; otherwise moves it to the nearest clear floor if it is
+    /// embedded in a structure it collides with, preferring floor with breathable air within <see cref="SearchRadius"/> tiles.
     /// </summary>
     /// <param name="message">The player-facing result.</param>
     public bool TryUnstuck(EntityUid user, out string message)
     {
+        if (_vehicleInterior.TryGetVehicleFromInterior(user, out var vehicle) && vehicle is { } vehicleUid)
+            return TryLeaveVehicle(user, vehicleUid, out message);
+
         if (HasComp<GhostComponent>(user) || !_physicsQuery.TryComp(user, out var body) || !body.CanCollide)
         {
             message = Loc.GetString("wg-unstuck-no-body");
@@ -142,6 +150,50 @@ public sealed class WGUnstuckSystem : EntitySystem
             $"{ToPrettyString(user):player} used Unstick me, moved from {from} to {target}");
 
         message = Loc.GetString("wg-unstuck-done");
+        return true;
+    }
+
+    /// <summary>
+    /// Puts an occupant, living, dead or a ghost, out through the vehicle's exits, unbuckling them from their seat.
+    /// A locked vehicle still holds the living.
+    /// </summary>
+    private bool TryLeaveVehicle(EntityUid user, EntityUid vehicle, out string message)
+    {
+        var ghost = HasComp<GhostComponent>(user);
+        if (!ghost && _container.IsEntityInContainer(user))
+        {
+            message = Loc.GetString("wg-unstuck-in-container");
+            return false;
+        }
+
+        if (!ghost
+            && !_mobState.IsDead(user)
+            && TryComp<VehicleLockComponent>(vehicle, out var vehicleLock)
+            && vehicleLock.Locked)
+        {
+            message = Loc.GetString("wg-unstuck-vehicle-locked");
+            return false;
+        }
+
+        if (TryComp<BuckleComponent>(user, out var buckle) && buckle.BuckledTo != null)
+            _buckle.Unbuckle((user, buckle), null);
+
+        if (!_vehicleInterior.TryExitVehicle(vehicle, user))
+        {
+            // A ghost needs no floor, so it can always come out on the vehicle itself.
+            if (!ghost)
+            {
+                message = Loc.GetString("wg-unstuck-vehicle-blocked");
+                return false;
+            }
+
+            _transform.SetMapCoordinates(user, _transform.GetMapCoordinates(vehicle));
+        }
+
+        _adminLog.Add(LogType.Teleport, LogImpact.Low,
+            $"{ToPrettyString(user):player} used Unstick me to leave {ToPrettyString(vehicle):vehicle}, now at {Transform(user).Coordinates}");
+
+        message = Loc.GetString("wg-unstuck-vehicle-done");
         return true;
     }
 

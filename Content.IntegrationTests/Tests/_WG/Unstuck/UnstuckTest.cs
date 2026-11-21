@@ -1,7 +1,12 @@
 #nullable enable
 using System.Numerics;
+using Content.IntegrationTests.Pair;
 using Content.IntegrationTests.Tests._WG.Drydock;
 using Content.Server._WG.Unstuck;
+using Content.Shared._WG.Vehicles.Core;
+using Content.Shared.Interaction;
+using Content.Shared.Mobs;
+using Content.Shared.Mobs.Systems;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -10,7 +15,8 @@ using Robust.Shared.Maths;
 namespace Content.IntegrationTests.Tests._WG.Unstuck;
 
 /// <summary>
-/// Unstick me moves a body out of a wall to the nearest clear floor, and does nothing for one that isn't stuck.
+/// Unstick me moves a body out of a wall to the nearest clear floor, does nothing for one that isn't stuck, and puts a
+/// vehicle's occupant back outside.
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WGUnstuckSystem))]
@@ -19,7 +25,89 @@ public sealed class UnstuckTest
     private const string MobProto = "MobHuman";
     private const string WallProto = "WallSolid";
 
+    /// <summary>The interior test chassis from <c>VehicleInteriorTest</c>; its doorways are a metre to either side.</summary>
+    private const string VehicleProto = "WGInteriorTestVehicle";
+
     private static readonly Vector2i WallTile = new(2, 2);
+    private static readonly Vector2 VehicleSpot = new(5.5f, 5.5f);
+
+    /// <summary>A living occupant of an unlocked vehicle is put outside it.</summary>
+    [Test]
+    public async Task LivingLeaveAnUnlockedVehicle()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var (vehicle, mob) = await Board(pair);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(server.System<WGUnstuckSystem>().TryUnstuck(mob, out var message), Is.True, message);
+            Assert.That(em.GetComponent<TransformComponent>(mob).MapID, Is.EqualTo(em.GetComponent<TransformComponent>(vehicle).MapID),
+                "The body isn't back outside by the vehicle.");
+            Assert.That(em.HasComponent<VehicleInteriorOccupantComponent>(mob), Is.False, "The body still counts as inside.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A locked vehicle keeps a living occupant in, but not a dead one.</summary>
+    [Test]
+    public async Task LockedVehicleHoldsTheLivingButNotTheDead()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var (vehicle, mob) = await Board(pair);
+
+        await server.WaitAssertion(() =>
+        {
+#pragma warning disable RA0002 // The test locks the vehicle directly.
+            em.GetComponent<VehicleLockComponent>(vehicle).Locked = true;
+#pragma warning restore RA0002
+
+            var unstuck = server.System<WGUnstuckSystem>();
+            Assert.That(unstuck.TryUnstuck(mob, out _), Is.False, "A living body got past the lock.");
+
+            server.System<MobStateSystem>().ChangeMobState(mob, MobState.Dead);
+            Assert.That(unstuck.TryUnstuck(mob, out var message), Is.True, message);
+            Assert.That(em.GetComponent<TransformComponent>(mob).MapID, Is.EqualTo(em.GetComponent<TransformComponent>(vehicle).MapID),
+                "The dead body isn't back outside by the vehicle.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>The test chassis on a block of plating, with a human who has climbed in through a doorway.</summary>
+    private static async Task<(EntityUid Vehicle, EntityUid Mob)> Board(TestPair pair)
+    {
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var grid = map.Grid.Owner;
+        EntityUid vehicle = default, mob = default;
+
+        await server.WaitPost(() =>
+        {
+            var maps = server.System<SharedMapSystem>();
+            var plating = server.ResolveDependency<ITileDefinitionManager>()["Plating"].TileId;
+            for (var x = -4; x < 16; x++)
+            for (var y = -4; y < 16; y++)
+                maps.SetTile(grid, map.Grid.Comp, new Vector2i(x, y), new Tile(plating));
+
+            vehicle = em.SpawnEntity(VehicleProto, new EntityCoordinates(grid, VehicleSpot));
+            mob = em.SpawnEntity(MobProto, new EntityCoordinates(grid, VehicleSpot + new Vector2(1f, 0f)));
+        });
+        await server.WaitRunTicks(5);
+
+        await server.WaitPost(() => server.System<SharedInteractionSystem>().InteractionActivate(mob, vehicle));
+        await server.WaitRunTicks(30);
+
+        await server.WaitAssertion(() =>
+            Assert.That(em.HasComponent<VehicleInteriorOccupantComponent>(mob), Is.True, "The body never got in."));
+
+        return (vehicle, mob);
+    }
 
     /// <summary>A body inside a wall, nearer its top edge, lands on the floor just above it.</summary>
     [Test]
