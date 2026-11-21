@@ -74,6 +74,10 @@ public sealed partial class PickFleePointOperator : HTNOperator
 
         foreach (var angle in Angles)
         {
+            // Each path is awaited; the owner or its map can be gone by the next angle.
+            if (_entManager.Deleted(owner) || xform.MapID == MapId.Nullspace)
+                return (false, null);
+
             var dir = new Angle(MathHelper.DegreesToRadians(angle)).RotateVec(away);
             var end = _transform.ToCoordinates(new MapCoordinates(ownerPos + dir * distance, xform.MapID));
             var path = await _pathfinding.GetPath(owner, xform.Coordinates, end, 1.5f, cancelToken,
