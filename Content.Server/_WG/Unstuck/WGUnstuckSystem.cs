@@ -1,0 +1,225 @@
+using System.Numerics;
+using Content.Server.Administration.Logs;
+using Content.Server.Atmos.EntitySystems;
+using Content.Shared._WG.Unstuck;
+using Content.Shared.Buckle;
+using Content.Shared.Database;
+using Content.Shared.GameTicking;
+using Content.Shared.Ghost;
+using Content.Shared.Maps;
+using Content.Shared.Movement.Pulling.Components;
+using Content.Shared.Movement.Pulling.Systems;
+using Content.Shared.Popups;
+using Robust.Shared.Containers;
+using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
+using Robust.Shared.Network;
+using Robust.Shared.Physics;
+using Robust.Shared.Physics.Components;
+using Robust.Shared.Physics.Systems;
+using Robust.Shared.Timing;
+
+namespace Content.Server._WG.Unstuck;
+
+/// <summary>
+/// Frees a player whose body is wedged in a wall or other solid structure by moving them to the nearest clear floor.
+/// </summary>
+public sealed class WGUnstuckSystem : EntitySystem
+{
+    [Dependency] private IAdminLogManager _adminLog = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private AtmosphereSystem _atmosphere = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private PullingSystem _pulling = default!;
+    [Dependency] private SharedBuckleSystem _buckle = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
+    [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private TurfSystem _turf = default!;
+
+    /// <summary>How far, in tiles, the search for clear floor reaches.</summary>
+    private const int SearchRadius = 3;
+
+    /// <summary>How deep the body must sit inside a structure to count as stuck, so standing against a wall doesn't.</summary>
+    private const float EmbedDepth = 0.1f;
+
+    private static readonly TimeSpan Cooldown = TimeSpan.FromSeconds(30);
+
+    private readonly Dictionary<NetUserId, TimeSpan> _nextUse = new();
+
+    private EntityQuery<MapGridComponent> _gridQuery;
+    private EntityQuery<PhysicsComponent> _physicsQuery;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        _gridQuery = GetEntityQuery<MapGridComponent>();
+        _physicsQuery = GetEntityQuery<PhysicsComponent>();
+
+        SubscribeNetworkEvent<WGUnstuckRequestEvent>(OnRequest);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _nextUse.Clear());
+    }
+
+    private void OnRequest(WGUnstuckRequestEvent ev, EntitySessionEventArgs args)
+    {
+        var session = args.SenderSession;
+        if (session.AttachedEntity is not { } user)
+            return;
+
+        if (_nextUse.TryGetValue(session.UserId, out var next) && _timing.CurTime < next)
+        {
+            var seconds = (int) Math.Ceiling((next - _timing.CurTime).TotalSeconds);
+            _popup.PopupEntity(Loc.GetString("wg-unstuck-cooldown", ("seconds", seconds)), user, user, PopupType.SmallCaution);
+            return;
+        }
+
+        if (!TryUnstuck(user, out var message))
+        {
+            _popup.PopupEntity(message, user, user, PopupType.SmallCaution);
+            return;
+        }
+
+        _nextUse[session.UserId] = _timing.CurTime + Cooldown;
+        _popup.PopupEntity(message, user, user);
+    }
+
+    /// <summary>
+    /// Moves the entity to the nearest clear floor if it is embedded in a structure it collides with.
+    /// Prefers floor with breathable air within <see cref="SearchRadius"/> tiles, then any floor.
+    /// </summary>
+    /// <param name="message">The player-facing result.</param>
+    public bool TryUnstuck(EntityUid user, out string message)
+    {
+        if (HasComp<GhostComponent>(user) || !_physicsQuery.TryComp(user, out var body) || !body.CanCollide)
+        {
+            message = Loc.GetString("wg-unstuck-no-body");
+            return false;
+        }
+
+        if (_container.IsEntityInContainer(user))
+        {
+            message = Loc.GetString("wg-unstuck-in-container");
+            return false;
+        }
+
+        if (_buckle.IsBuckled(user))
+        {
+            message = Loc.GetString("wg-unstuck-buckled");
+            return false;
+        }
+
+        var xform = Transform(user);
+        if (!IsEmbedded(user, body.CollisionMask, xform))
+        {
+            message = Loc.GetString("wg-unstuck-not-stuck");
+            return false;
+        }
+
+        if (xform.GridUid is not { } gridUid
+            || !_gridQuery.TryComp(gridUid, out var grid)
+            || !TryFindClearFloor((gridUid, grid), xform, body.CollisionMask, out var target))
+        {
+            message = Loc.GetString("wg-unstuck-no-room");
+            return false;
+        }
+
+        if (TryComp<PullableComponent>(user, out var pullable) && pullable.BeingPulled)
+            _pulling.TryStopPull(user, pullable);
+
+        if (TryComp<PullerComponent>(user, out var puller)
+            && puller.Pulling is { } pulled
+            && TryComp<PullableComponent>(pulled, out var pulledComp))
+            _pulling.TryStopPull(pulled, pulledComp);
+
+        var from = xform.Coordinates;
+        _transform.SetCoordinates(user, xform, target);
+        _physics.SetLinearVelocity(user, Vector2.Zero, body: body);
+
+        _adminLog.Add(LogType.Teleport, LogImpact.Low,
+            $"{ToPrettyString(user):player} used Unstick me, moved from {from} to {target}");
+
+        message = Loc.GetString("wg-unstuck-done");
+        return true;
+    }
+
+    /// <summary>Whether the body sits inside a static structure it would collide with.</summary>
+    private bool IsEmbedded(EntityUid user, int mask, TransformComponent xform)
+    {
+        var aabb = _lookup.GetWorldAABB(user, xform);
+        var size = Vector2.Max(aabb.Size - new Vector2(EmbedDepth * 2), new Vector2(0.01f));
+        var core = Box2.CenteredAround(aabb.Center, size);
+
+        foreach (var other in _lookup.GetEntitiesIntersecting(xform.MapID, core, LookupFlags.Static))
+        {
+            if (other != user && Blocks(other, mask))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>Picks the floor tile nearest the entity that nothing solid is anchored on.</summary>
+    private bool TryFindClearFloor(Entity<MapGridComponent> grid, TransformComponent xform, int mask, out EntityCoordinates target)
+    {
+        target = default;
+        var local = _transform.WithEntityId(xform.Coordinates, grid).Position;
+        var origin = _map.TileIndicesFor(grid, xform.Coordinates);
+        var map = xform.MapUid ?? grid.Owner;
+        var tileSize = grid.Comp.TileSize;
+
+        var found = false;
+        var bestSafe = false;
+        var bestDistance = float.MaxValue;
+
+        for (var dx = -SearchRadius; dx <= SearchRadius; dx++)
+        for (var dy = -SearchRadius; dy <= SearchRadius; dy++)
+        {
+            var indices = origin + new Vector2i(dx, dy);
+            if (!_map.TryGetTileRef(grid, grid.Comp, indices, out var tile)
+                || _turf.IsSpace(tile)
+                || IsObstructed(grid, indices, mask))
+                continue;
+
+            var safe = _atmosphere.IsTileMixtureProbablySafe(grid.Owner, map, indices);
+            var center = new Vector2((indices.X + 0.5f) * tileSize, (indices.Y + 0.5f) * tileSize);
+            var distance = (center - local).LengthSquared();
+
+            // Breathable air wins over distance; among equals the nearer tile wins.
+            if (found && ((bestSafe && !safe) || (bestSafe == safe && distance >= bestDistance)))
+                continue;
+
+            found = true;
+            bestSafe = safe;
+            bestDistance = distance;
+            target = new EntityCoordinates(grid, center);
+        }
+
+        return found;
+    }
+
+    /// <summary>Whether something anchored on the tile would block the entity.</summary>
+    private bool IsObstructed(Entity<MapGridComponent> grid, Vector2i indices, int mask)
+    {
+        var anchored = _map.GetAnchoredEntitiesEnumerator(grid, grid.Comp, indices);
+        while (anchored.MoveNext(out var uid))
+        {
+            if (Blocks(uid.Value, mask))
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool Blocks(EntityUid uid, int mask)
+    {
+        return !_gridQuery.HasComp(uid)
+            && _physicsQuery.TryComp(uid, out var body)
+            && body.CanCollide
+            && body.Hard
+            && body.BodyType == BodyType.Static
+            && (body.CollisionLayer & mask) != 0;
+    }
+}
