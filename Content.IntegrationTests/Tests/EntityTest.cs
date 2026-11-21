@@ -1,5 +1,6 @@
 using System; // WOLFGATE(Wolfmed)
 using System.Collections.Generic;
+using System.IO; // WOLFGATE(Ci)
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -12,6 +13,7 @@ using Robust.Shared.Map;
 using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.Manager.Attributes;
+using Robust.UnitTesting; // WOLFGATE(Ci)
 
 namespace Content.IntegrationTests.Tests
 {
@@ -71,8 +73,10 @@ namespace Content.IntegrationTests.Tests
                     }
                 });
 
-                await server.WaitRunTicks(450); // 15 seconds, enough to trigger most update loops
+                // await server.WaitRunTicks(450); // 15 seconds, enough to trigger most update loops
+                await RunSpawnAllTicks(server, entityMan, "different-maps", first, protoIds.Count);
                 await server.WaitPost(() => DeleteEverything(entityMan, mapSystem));
+                LogSpawnAllProgress($"different-maps {first}: deleted");
             }
             // WOLFGATE END
 
@@ -123,8 +127,9 @@ namespace Content.IntegrationTests.Tests
                     }
                 });
 
-                await server.WaitRunTicks(450); // 15 seconds, enough to trigger most update loops
+                await RunSpawnAllTicks(server, entityMan, "same-spot", first, protoIds.Count);
                 await server.WaitPost(() => DeleteEverything(entityMan, mapSystem));
+                LogSpawnAllProgress($"same-spot {first}: deleted");
             }
 
             // var map = await pair.CreateTestMap();
@@ -189,6 +194,31 @@ namespace Content.IntegrationTests.Tests
             // The slice's garbage goes now, not when the next slice has already been spawned on top of it.
             GC.Collect();
             GC.WaitForPendingFinalizers();
+        }
+
+        // WOLFGATE END
+
+        // WOLFGATE(Ci) START: timed progress of the spawn-all slices, so a slow core shard shows where the time goes
+        /// <summary>Runs a slice's 450 ticks in thirds, logging after each.</summary>
+        private static async Task RunSpawnAllTicks(RobustIntegrationTest.ServerIntegrationInstance server,
+            IEntityManager entityMan, string test, int first, int total)
+        {
+            LogSpawnAllProgress($"{test} {first}/{total}: spawned, {entityMan.EntityCount} entities");
+            for (var third = 1; third <= 3; third++)
+            {
+                await server.WaitRunTicks(150); // 450 in all: 15 seconds, enough to trigger most update loops
+                LogSpawnAllProgress($"{test} {first}/{total}: {third * 150} ticks, {entityMan.EntityCount} entities");
+            }
+        }
+
+        /// <summary>Writes a timed line with the heap and working set to the test log and to a file the CI artifact keeps.</summary>
+        private static void LogSpawnAllProgress(string message)
+        {
+            var line = $"{DateTime.UtcNow:HH:mm:ss} {message}; heap {GC.GetTotalMemory(false) >> 20} MB, "
+                + $"working set {Environment.WorkingSet >> 20} MB, gen2 GCs {GC.CollectionCount(2)}";
+            TestContext.Progress.WriteLine(line);
+            File.AppendAllText(Path.Combine(TestContext.CurrentContext.WorkDirectory, "spawn-all-progress.txt"),
+                line + "\n");
         }
 
         // WOLFGATE END
