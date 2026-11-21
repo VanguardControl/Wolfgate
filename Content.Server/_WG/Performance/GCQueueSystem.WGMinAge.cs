@@ -1,3 +1,4 @@
+using Content.Server._WG.ColdStorage;
 using Content.Server.Worldgen.Prototypes;
 using Content.Shared.GameTicking;
 using Robust.Shared.Timing;
@@ -7,6 +8,7 @@ namespace Content.Server.Worldgen.Systems.GC;
 public sealed partial class GCQueueSystem
 {
     [Dependency] private IGameTiming _wgTiming = default!;
+    [Dependency] private WGEntityPressureSystem _wgPressure = default!;
 
     /// <summary>When each queued entity joined its queue, for queues with a minimum age.</summary>
     private readonly Dictionary<EntityUid, TimeSpan> _wgQueuedAt = new();
@@ -50,7 +52,7 @@ public sealed partial class GCQueueSystem
                queue.Count <= proto.Depth &&
                queue.TryPeek(out var oldest) &&
                _wgQueuedAt.TryGetValue(oldest, out var at) &&
-               _wgTiming.CurTime - at < proto.WGMinAge;
+               _wgTiming.CurTime - at < proto.WGMinAge * _wgPressure.Scale(1f, 0.25f);
     }
 
     private void WGOnDequeued(EntityUid uid)

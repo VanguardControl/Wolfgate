@@ -1,3 +1,4 @@
+using Content.Server._WG.ColdStorage;
 using Content.Server.Worldgen.Components;
 using Content.Shared._WG.Performance;
 using Content.Shared.GameTicking;
@@ -8,6 +9,7 @@ namespace Content.Server.Worldgen.Systems;
 public sealed partial class WorldControllerSystem
 {
     [Dependency] private IConfigurationManager _wgCfg = default!;
+    [Dependency] private WGEntityPressureSystem _wgPressure = default!;
 
     /// <summary>When each loaded chunk stopped being needed, for chunks waiting out the unload grace.</summary>
     private readonly Dictionary<EntityUid, TimeSpan> _wgUnneededSince = new();
@@ -37,7 +39,7 @@ public sealed partial class WorldControllerSystem
             _wgUnneededSince[chunk] = since = now;
         }
 
-        if (now - since < _wgUnloadGrace)
+        if (now - since < _wgUnloadGrace * _wgPressure.Scale(1f, 0.25f))
             return false;
 
         _wgUnneededSince.Remove(chunk);

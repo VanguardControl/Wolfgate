@@ -173,7 +173,7 @@ public sealed partial class WGHullBondSystem : EntitySystem
         if (id.Id.Length == 0)
             return;
 
-        var query = EntityQueryEnumerator<WGHullBondComponent>();
+        var query = AllEntityQuery<WGHullBondComponent>();
         while (query.MoveNext(out _, out var bond))
         {
             if (bond.Hull != id.Id)

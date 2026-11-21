@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Server._Mono.NPC.HTN;
+using Content.Server._WG.ColdStorage;
 using Content.Server._WG.NpcCrew.Systems;
 using Content.Server.NPC.HTN;
 using Content.Server.Physics.Controllers;
@@ -33,6 +34,7 @@ public sealed partial class WGAutoDockSystem : EntitySystem
     [Dependency] private SharedTransformSystem _xform = default!;
     [Dependency] private ShipSteeringSystem _steering = default!;
     [Dependency] private WGPilotDutySystem _pilots = default!;
+    [Dependency] private WGGridStasisSystem _stasis = default!;
 
     /// <summary>How far, in metres, a grid may be for its docks to be listed or flown to.</summary>
     public const float MaxRange = 6000f;
@@ -53,6 +55,10 @@ public sealed partial class WGAutoDockSystem : EntitySystem
     private static readonly TimeSpan OptionsGap = TimeSpan.FromSeconds(0.5);
 
     private readonly Dictionary<EntityUid, TimeSpan> _nextOptions = new();
+
+    /// <summary>The ship each console's docking or orbit trip holds out of stasis.</summary>
+    private readonly Dictionary<EntityUid, EntityUid> _dockPins = new();
+    private readonly Dictionary<EntityUid, EntityUid> _orbitPins = new();
 
     public override void Initialize()
     {
@@ -162,6 +168,7 @@ public sealed partial class WGAutoDockSystem : EntitySystem
         StopAutopilot(console);
         RemCompDeferred<WGAutoOrbitComponent>(console);
         var request = EnsureComp<WGAutoDockComponent>(console);
+        PinShip(_dockPins, "auto-dock", console, ship);
         request.TargetGrid = grid;
         request.RequestedDock = dock;
         request.Plan = plan;
@@ -407,6 +414,21 @@ public sealed partial class WGAutoDockSystem : EntitySystem
     private void OnShutdown(Entity<WGAutoDockComponent> ent, ref ComponentShutdown args)
     {
         _nextOptions.Remove(ent);
+        UnpinShip(_dockPins, "auto-dock", ent);
+    }
+
+    /// <summary>Keeps a ship under autopilot out of stasis for as long as the request lasts.</summary>
+    private void PinShip(Dictionary<EntityUid, EntityUid> pins, string kind, EntityUid console, EntityUid ship)
+    {
+        UnpinShip(pins, kind, console);
+        pins[console] = ship;
+        _stasis.Pin(ship, $"{kind} {console}");
+    }
+
+    private void UnpinShip(Dictionary<EntityUid, EntityUid> pins, string kind, EntityUid console)
+    {
+        if (pins.Remove(console, out var ship))
+            _stasis.Unpin(ship, $"{kind} {console}");
     }
 
     private void OnCancel(Entity<ShuttleConsoleComponent> ent, ref WGAutopilotCancelMessage args)

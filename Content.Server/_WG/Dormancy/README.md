@@ -48,7 +48,8 @@ are in. A sleeping region is swept once a minute for anything that turned up sin
 the sleep. Pausing, not saving and deleting, was chosen: saving drops references held outside data fields (a
 stranger's home, a trader's counter), loading can't be spread over ticks without breaking links between the pieces,
 and taking walls away would disturb the air, power and navmesh round them. `wg.planet_site_stash` turns it off; tests
-run with it off unless they turn it on.
+run with it off unless they turn it on. Its `PauseEntity`, `WakeEntity`, `Blocks` and `IsInert` are shared with grid
+stasis in space (`ColdStorage`).
 
 `PlanetIdleProfileTest` (explicit) builds every round-start world as a round would, with nobody on them, and prints
 each system's update cost and what it walks; run it by hand when tuning.

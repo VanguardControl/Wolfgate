@@ -328,7 +328,7 @@ public sealed partial class ShuttleConsoleLockSystem : SharedShuttleConsoleLockS
         var hasMatchingDeed = false;
 
         // Find all deed components (either on the ID or pointing to this ID)
-        var query = EntityQueryEnumerator<ShuttleDeedComponent>();
+        var query = AllEntityQuery<ShuttleDeedComponent>(); // WOLFGATE(ColdStorage): a deed on a paused holder still counts
         while (query.MoveNext(out var entity, out var deed))
         {
             // Check if this is for the same shuttle
@@ -413,7 +413,7 @@ public sealed partial class ShuttleConsoleLockSystem : SharedShuttleConsoleLockS
         // Get the voucher's UID
         var voucherUid = voucher.ToString();
         var deedFound = false;
-        var query = EntityQueryEnumerator<ShuttleDeedComponent>();
+        var query = AllEntityQuery<ShuttleDeedComponent>(); // WOLFGATE(ColdStorage): a deed on a paused holder still counts
 
         while (query.MoveNext(out var entity, out var deed))
         {
@@ -487,7 +487,7 @@ public sealed partial class ShuttleConsoleLockSystem : SharedShuttleConsoleLockS
         // Get the voucher's UID
         var voucherUid = voucher.ToString();
         var deedFound = false;
-        var query = EntityQueryEnumerator<ShuttleDeedComponent>();
+        var query = AllEntityQuery<ShuttleDeedComponent>(); // WOLFGATE(ColdStorage): a deed on a paused holder still counts
 
         while (query.MoveNext(out var entity, out var deed))
         {
@@ -640,7 +640,7 @@ public sealed partial class ShuttleConsoleLockSystem : SharedShuttleConsoleLockS
         var deeds = new List<(EntityUid Entity, ShuttleDeedComponent Component)>();
 
         // Find all deed components (either on the ID or pointing to this ID)
-        var query = EntityQueryEnumerator<ShuttleDeedComponent>();
+        var query = AllEntityQuery<ShuttleDeedComponent>(); // WOLFGATE(ColdStorage): a deed on a paused holder still counts
         while (query.MoveNext(out var entity, out var deed))
         {
             // Case 1: The deed is on this ID card

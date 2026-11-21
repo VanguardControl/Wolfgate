@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Server._WG.ColdStorage;
 using Content.Server.Physics.Controllers;
 using Content.Shared._WG.Tether;
 using Robust.Server.GameStates;
@@ -28,6 +29,7 @@ public sealed partial class RopeSystem : VirtualController
     [Dependency] private IPrototypeManager _protos = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private WGGridStasisSystem _stasis = default!;
 
     /// <summary>Seconds above the break force before a rope snaps. Twice the force snaps instantly.</summary>
     private const float OverloadDuration = 0.25f;
@@ -43,6 +45,9 @@ public sealed partial class RopeSystem : VirtualController
 
     /// <summary>Guards the bookkeeping while an attach point is tearing down its own ropes.</summary>
     private readonly HashSet<EntityUid> _detaching = new();
+
+    /// <summary>The grids each rope holds out of stasis.</summary>
+    private readonly Dictionary<EntityUid, List<EntityUid>> _pinned = new();
 
     public override void Initialize()
     {
@@ -93,6 +98,7 @@ public sealed partial class RopeSystem : VirtualController
         pointB.Ropes.Add(net);
         Dirty(b, pointB);
         RefreshJoint(uid, comp, proto);
+        PinEnds(uid, comp);
 
         var attachedA = new RopeAttachedEvent(uid, b, type);
         RaiseLocalEvent(a, ref attachedA);
@@ -174,8 +180,48 @@ public sealed partial class RopeSystem : VirtualController
 
     #region Lifecycle
 
+    /// <summary>Keeps the grids at both ends of a rope out of stasis until it goes; call once its ends are set.</summary>
+    public void PinEnds(EntityUid rope, RopeComponent comp)
+    {
+        var grids = new List<EntityUid>(2);
+        AddEndGrid(comp.EndA, grids);
+        AddEndGrid(comp.EndB, grids);
+        if (grids.Count == 0)
+            return;
+
+        _pinned[rope] = grids;
+        var reason = $"rope {rope}";
+        foreach (var grid in grids)
+        {
+            _stasis.Pin(grid, reason);
+        }
+    }
+
+    private void AddEndGrid(NetEntity end, List<EntityUid> grids)
+    {
+        if (!TryGetEntity(end, out var point) || TerminatingOrDeleted(point.Value))
+            return;
+
+        var grid = HasComp<MapGridComponent>(point.Value) ? point : Transform(point.Value).GridUid;
+        if (grid is { } found && !grids.Contains(found))
+            grids.Add(found);
+    }
+
+    private void UnpinEnds(EntityUid rope)
+    {
+        if (!_pinned.Remove(rope, out var grids))
+            return;
+
+        var reason = $"rope {rope}";
+        foreach (var grid in grids)
+        {
+            _stasis.Unpin(grid, reason);
+        }
+    }
+
     private void OnRopeShutdown(Entity<RopeComponent> ent, ref ComponentShutdown args)
     {
+        UnpinEnds(ent.Owner);
         RemoveRopeJoint(ent.Comp);
         _pvs.RemoveGlobalOverride(ent.Owner);
         TryGetEntity(ent.Comp.EndA, out var endA);

@@ -106,7 +106,7 @@ public sealed partial class WGSiteStashSystem : EntitySystem
         {
             foreach (var uid in region.Paused)
             {
-                Wake(uid);
+                WakeEntity(uid);
             }
         }
 
@@ -212,7 +212,7 @@ public sealed partial class WGSiteStashSystem : EntitySystem
                 var end = Math.Min(region.Paused.Count, region.Cursor + Slice);
                 for (; region.Cursor < end; region.Cursor++)
                 {
-                    Wake(region.Paused[region.Cursor]);
+                    WakeEntity(region.Paused[region.Cursor]);
                 }
             }
 
@@ -285,8 +285,15 @@ public sealed partial class WGSiteStashSystem : EntitySystem
     /// <summary>Pauses one entity and remembers it; one paused already, by its map or anyone else, is left to them.</summary>
     private void Pause(WGStashRegion region, EntityUid uid)
     {
+        if (PauseEntity(uid))
+            region.Paused.Add(uid);
+    }
+
+    /// <summary>Puts one entity's body to sleep and pauses it; false if it is going or paused already, by its map or anyone else.</summary>
+    public bool PauseEntity(EntityUid uid)
+    {
         if (!_metaQuery.TryComp(uid, out var meta) || meta.EntityLifeStage >= EntityLifeStage.Terminating || meta.EntityPaused)
-            return;
+            return false;
 
         // Physics ignores pausing, so an awake body would keep its contacts in the solver forever.
         if (_physicsQuery.TryComp(uid, out var body) && body.Awake && !body.IgnorePaused)
@@ -296,10 +303,11 @@ public sealed partial class WGSiteStashSystem : EntitySystem
         }
 
         _meta.SetEntityPaused(uid, true, meta);
-        region.Paused.Add(uid);
+        return true;
     }
 
-    private void Wake(EntityUid uid)
+    /// <summary>Unpauses one entity unless it is going.</summary>
+    public void WakeEntity(EntityUid uid)
     {
         if (_metaQuery.TryComp(uid, out var meta) && meta.EntityLifeStage < EntityLifeStage.Terminating)
             _meta.SetEntityPaused(uid, false, meta);
@@ -404,7 +412,7 @@ public sealed partial class WGSiteStashSystem : EntitySystem
     }
 
     /// <summary>Whether an entity keeps the whole thing it is part of awake.</summary>
-    private bool Blocks(EntityUid uid)
+    public bool Blocks(EntityUid uid)
     {
         return HasComp<ActorComponent>(uid)
                || TryComp<MindContainerComponent>(uid, out var mind) && mind.HasMind
@@ -413,7 +421,7 @@ public sealed partial class WGSiteStashSystem : EntitySystem
     }
 
     /// <summary>An anchored wall, window, door or cable: nothing to pause, as it does nothing a tick.</summary>
-    private bool IsInert(EntityUid uid, TransformComponent xform)
+    public bool IsInert(EntityUid uid, TransformComponent xform)
     {
         return xform.Anchored && (HasComp<AirtightComponent>(uid) || HasComp<CableComponent>(uid));
     }

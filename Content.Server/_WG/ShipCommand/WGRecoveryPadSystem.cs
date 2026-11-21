@@ -216,7 +216,7 @@ public sealed class WGRecoveryPadSystem : EntitySystem
     {
         var result = new List<WGRecoveryPadEntry>();
         var from = _transform.GetMapCoordinates(pad);
-        var minds = EntityQueryEnumerator<MindContainerComponent, MobStateComponent, TransformComponent>();
+        var minds = AllEntityQuery<MindContainerComponent, MobStateComponent, TransformComponent>();
         while (minds.MoveNext(out var uid, out _, out _, out var xform))
         {
             if (xform.MapID != from.MapId || !Reaches(pad, uid) || Condition(uid) is not { } condition)

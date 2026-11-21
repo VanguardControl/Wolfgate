@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Server._WG.AsteroidMining;
+using Content.Server._WG.ColdStorage;
 using Content.Server._WG.Encounters.Components;
 using Content.Server._WG.NpcCrew.Components;
 using Content.Shared._NF.Shipyard.Components;
@@ -59,6 +60,14 @@ public sealed class WGCensus
     /// <summary>Seconds the spawn and delete counts cover.</summary>
     public double Span;
 
+    /// <summary>Grids in stasis, and the entities that sit on them.</summary>
+    public int StasisGrids;
+    public int StasisEntities;
+
+    /// <summary>Grids stored by Cold Storage, and the entities they would hold if loaded.</summary>
+    public int StoredGrids;
+    public int StoredEntities;
+
     public readonly Dictionary<EntityUid, int> GridCounts = new();
     public readonly List<(string Name, WGCensusKind Kind, int Count)> Grids = new();
 }
@@ -92,12 +101,16 @@ public sealed class WGEntityCensusSystem : EntitySystem
 
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private WGGridStasisSystem _stasis = default!;
+    [Dependency] private WGEntityPressureSystem _pressure = default!;
+    [Dependency] private WGColdStoreSystem _coldStore = default!;
 
     private EntityQuery<MetaDataComponent> _metaQuery;
     private EntityQuery<TransformComponent> _xformQuery;
 
     private readonly System.Diagnostics.Stopwatch _watch = new();
     private readonly Dictionary<EntityUid, WGCensusKind> _gridKinds = new();
+    private readonly Dictionary<EntityUid, bool> _gridStasis = new();
     private readonly HashSet<string> _prototypeLabels = new();
     private readonly HashSet<string> _spawnLabels = new();
     private Dictionary<string, int> _deleted = new();
@@ -202,6 +215,7 @@ public sealed class WGEntityCensusSystem : EntitySystem
         _snapshot = EntityManager.GetEntities().ToArray();
         _cursor = 0;
         _gridKinds.Clear();
+        _gridStasis.Clear();
         _building = new WGCensus { Taken = _timing.CurTime };
     }
 
@@ -213,6 +227,9 @@ public sealed class WGEntityCensusSystem : EntitySystem
             return;
 
         var kind = KindOf(census, xform);
+        if (xform.GridUid is { } onGrid && onGrid != uid && InStasis(census, onGrid))
+            census.StasisEntities++;
+
         census.Total++;
         census.Kinds[(int) kind]++;
         if (meta.EntityPaused)
@@ -223,6 +240,20 @@ public sealed class WGEntityCensusSystem : EntitySystem
 
         var id = meta.EntityPrototype?.ID ?? NoPrototype;
         census.Prototypes[id] = census.Prototypes.GetValueOrDefault(id) + 1;
+    }
+
+    /// <summary>Whether a grid is in stasis, asked once per grid a census.</summary>
+    private bool InStasis(WGCensus census, EntityUid grid)
+    {
+        if (_gridStasis.TryGetValue(grid, out var known))
+            return known;
+
+        var asleep = _stasis.IsInStasis(grid);
+        _gridStasis[grid] = asleep;
+        if (asleep)
+            census.StasisGrids++;
+
+        return asleep;
     }
 
     private WGCensusKind KindOf(WGCensus census, TransformComponent xform)
@@ -258,6 +289,8 @@ public sealed class WGEntityCensusSystem : EntitySystem
         _building = null;
         _snapshot = [];
         _next = _timing.CurTime + TimeSpan.FromSeconds(_interval);
+        census.StoredGrids = _coldStore.Stored.Count;
+        census.StoredEntities = _coldStore.StoredEntities;
 
         foreach (var (grid, count) in census.GridCounts.OrderByDescending(pair => pair.Value).Take(Top))
         {
@@ -297,7 +330,7 @@ public sealed class WGEntityCensusSystem : EntitySystem
 
         var kinds = string.Join(", ", Enumerable.Range(0, (int) WGCensusKind.Count)
             .Select(i => $"{(WGCensusKind) i} {census.Kinds[i]} ({census.Paused[i]} paused)"));
-        Log.Info($"Entity census: {census.Total} entities, {census.Contained} in containers. {kinds}.");
+        Log.Info($"Entity census: {census.Total} entities, {census.Contained} in containers. {kinds}. Stasis: {census.StasisGrids} grids, {census.StasisEntities} entities. Stored: {census.StoredGrids} grids, {census.StoredEntities} entities. Pressure: {_pressure.Pressure:F2}.");
         if (census.Spawned.Count > 0)
         {
             var spawned = string.Join(", ", census.Spawned.OrderByDescending(pair => pair.Value).Take(15)

@@ -25,6 +25,12 @@ public sealed partial class WGAutoDockSystem
     private void InitializeOrbit()
     {
         SubscribeLocalEvent<WGAutoOrbitComponent, ShuttleConsoleAutopilotPositionMessage>(OnOrbitOtherAutopilot);
+        SubscribeLocalEvent<WGAutoOrbitComponent, ComponentShutdown>(OnOrbitShutdown);
+    }
+
+    private void OnOrbitShutdown(Entity<WGAutoOrbitComponent> ent, ref ComponentShutdown args)
+    {
+        UnpinShip(_orbitPins, "auto-orbit", ent);
     }
 
     private void OnOrbitRequest(Entity<ShuttleConsoleComponent> ent, ref WGAutoOrbitRequestMessage args)
@@ -76,6 +82,7 @@ public sealed partial class WGAutoDockSystem
         htn.Blackboard.SetValue(console.Comp.AutopilotRotationKey, _xform.GetWorldRotation(ship) + MathF.PI);
 
         var request = EnsureComp<WGAutoOrbitComponent>(console);
+        PinShip(_orbitPins, "auto-orbit", console, ship);
         request.Planet = planet;
         request.Pilot = pilot;
         request.NextCheck = _timing.CurTime;

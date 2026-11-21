@@ -191,6 +191,7 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
     {
         ShipyardSaleResult result = new ShipyardSaleResult();
         bill = 0;
+        _wgStasis.Wake(shuttleUid); // WOLFGATE(ColdStorage): the organics check, appraisal and clean-up need the hull awake
 
         // WOLFGATE(Companies) START: company hangar ships belong to the company and can't be sold
         if (HasComp<Content.Server._WG.Companies.WGCompanyHangarShipComponent>(shuttleUid))
@@ -380,7 +381,7 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
             Dirty(uid, shuttleDeed);
 
             // Find and update all other deeds for the same ship
-            var query = EntityQueryEnumerator<ShuttleDeedComponent>();
+            var query = AllEntityQuery<ShuttleDeedComponent>(); // WOLFGATE(ColdStorage): a deed on a paused holder still counts
             while (query.MoveNext(out var deedEntity, out var deed))
             {
                 // Skip the deed we already updated

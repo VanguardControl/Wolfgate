@@ -294,7 +294,7 @@ public sealed class WGShipConsoleSystem : EntitySystem
     public List<WGShipConsoleAboard> Aboard(Entity<WGShipCommandComponent> ship)
     {
         var result = new List<WGShipConsoleAboard>();
-        var query = EntityQueryEnumerator<MindContainerComponent, MobStateComponent, TransformComponent>();
+        var query = AllEntityQuery<MindContainerComponent, MobStateComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out _, out _, out var xform))
         {
             if (xform.GridUid != ship.Owner || HasComp<GhostComponent>(uid) || !_mind.TryGetMind(uid, out _, out _))

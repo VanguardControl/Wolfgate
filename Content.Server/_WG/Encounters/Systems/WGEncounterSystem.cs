@@ -1,6 +1,7 @@
 using System.Linq;
 using Content.Server._WG.Administration.Systems;
 using Content.Server._WG.BattleLoad;
+using Content.Server._WG.ColdStorage;
 using Content.Server._WG.Drydock;
 using Content.Server._WG.Encounters.Components;
 using Content.Server._WG.NpcCrew;
@@ -41,6 +42,7 @@ public sealed partial class WGEncounterSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private WGEntityPressureSystem _pressure = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private IConfigurationManager _config = default!;
     [Dependency] private AdminVesselSpawnSystem _vessels = default!;
@@ -1395,7 +1397,7 @@ public sealed partial class WGEncounterSystem : EntitySystem
     private bool CleanUp(WGEncounterComponent encounter)
     {
         var now = _timing.CurTime;
-        var overdue = encounter.ResolvedAt is { } resolved && now - resolved >= _cleanupLinger;
+        var overdue = encounter.ResolvedAt is { } resolved && now - resolved >= _cleanupLinger * _pressure.Scale(1f, 0.5f);
         var remaining = false;
         foreach (var ship in encounter.Ships.Values)
         {
@@ -1476,7 +1478,7 @@ public sealed partial class WGEncounterSystem : EntitySystem
             else
                 ship.Quiet ??= _timing.CurTime;
 
-            if (ship.Quiet is { } quiet && _timing.CurTime - quiet >= _cleanupDelay)
+            if (ship.Quiet is { } quiet && _timing.CurTime - quiet >= _cleanupDelay * _pressure.Scale(1f, 0.5f))
                 RemoveShip(ship);
             else
                 remaining = true;

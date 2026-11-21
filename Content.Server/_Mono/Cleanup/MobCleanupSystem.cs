@@ -1,3 +1,4 @@
+using Content.Server._WG.ColdStorage; // WOLFGATE(ColdStorage)
 using Content.Server.Ghost.Roles.Components;
 using Content.Server.NPC.HTN;
 using Content.Shared._Mono.CCVar;
@@ -38,7 +39,7 @@ public sealed partial class MobCleanupSystem : BaseCleanupSystem<HTNComponent>
         return xform.GridUid == null
             && !_immuneQuery.HasComp(uid)
             && !_ghostQuery.HasComp(uid)
-            && !_cleanup.HasNearbyPlayers(xform.Coordinates, _maxDistance)
-            && !_cleanup.HasNearbyGrids(xform.Coordinates, _maxGridDistance);
+            && !_cleanup.HasNearbyPlayers(xform.Coordinates, _maxDistance * WGRadiusScale) // WOLFGATE(ColdStorage): tighter under entity pressure
+            && !_cleanup.HasNearbyGrids(xform.Coordinates, _maxGridDistance * WGRadiusScale); // WOLFGATE(ColdStorage): tighter under entity pressure
     }
 }

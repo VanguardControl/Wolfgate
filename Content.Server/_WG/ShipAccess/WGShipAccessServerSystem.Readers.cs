@@ -430,7 +430,7 @@ public sealed partial class WGShipAccessServerSystem
     {
         var keys = new HashSet<StationRecordKey>();
         var cardKey = false;
-        var query = EntityQueryEnumerator<ShuttleDeedComponent, StationRecordKeyStorageComponent>();
+        var query = AllEntityQuery<ShuttleDeedComponent, StationRecordKeyStorageComponent>();
         while (query.MoveNext(out var uid, out var deed, out var storage))
         {
             if (deed.ShuttleUid != ship.Owner || storage.Key is not { } key)

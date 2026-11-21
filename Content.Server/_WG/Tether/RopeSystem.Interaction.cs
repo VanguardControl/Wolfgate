@@ -141,6 +141,7 @@ public sealed partial class RopeSystem
         comp.Carried = true;
         Dirty(rope, comp);
         _pvs.AddGlobalOverride(rope);
+        PinEnds(rope, comp);
 
         var carrier = EnsureComp<RopeCarrierComponent>(user);
         carrier.Rope = GetNetEntity(rope);

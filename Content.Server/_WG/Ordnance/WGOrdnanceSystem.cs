@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Server._WG.ColdStorage;
 using Content.Server._WG.Defcon;
 using Content.Server._WG.Warheads;
 using Content.Server._WG.Warheads.Components;
@@ -28,13 +29,18 @@ public sealed partial class WGOrdnanceSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private TurfSystem _turf = default!;
     [Dependency] private WGDefconSystem _defcon = default!;
+    [Dependency] private WGGridStasisSystem _stasis = default!;
     [Dependency] private Content.Server._WG.Ghost.GhostNoticeSystem _ghostNotice = default!;
 
     private static readonly TimeSpan PlaceInterval = TimeSpan.FromSeconds(5);
     private static readonly Color AnnounceColor = Color.FromHex("#e0a020");
     private static readonly SoundSpecifier PurchaseSound = new SoundPathSpecifier("/Audio/Misc/notice1.ogg");
 
+    private static readonly TimeSpan HoldInterval = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan ArmedHold = TimeSpan.FromSeconds(10);
+
     private TimeSpan _nextPlace;
+    private TimeSpan _nextHold;
 
     public override void Initialize()
     {
@@ -53,11 +59,37 @@ public sealed partial class WGOrdnanceSystem : EntitySystem
         UpdateKlaxons();
 
         var now = _timing.CurTime;
+        KeepArmedAwake(now);
         if (now < _nextPlace)
             return;
 
         _nextPlace = now + PlaceInterval;
         PlaceTerminals();
+    }
+
+    /// <summary>
+    /// Holds the grid of every armed warhead and planted beacon awake, since paused they would never count down. A hold
+    /// outlasts the interval, so it lapses by itself once the device is disarmed, gone or has gone off.
+    /// </summary>
+    private void KeepArmedAwake(TimeSpan now)
+    {
+        if (now < _nextHold)
+            return;
+
+        _nextHold = now + HoldInterval;
+        var warheads = AllEntityQuery<WGWarheadComponent, TransformComponent>();
+        while (warheads.MoveNext(out _, out var warhead, out var xform))
+        {
+            if (warhead.State is WGWarheadState.Armed or WGWarheadState.Countdown or WGWarheadState.Final && xform.GridUid is { } grid)
+                _stasis.Wake(grid, ArmedHold);
+        }
+
+        var beacons = AllEntityQuery<WGOrdnanceBeaconComponent, TransformComponent>();
+        while (beacons.MoveNext(out _, out var beacon, out var xform))
+        {
+            if (beacon.LandsAt != null && xform.GridUid is { } grid)
+                _stasis.Wake(grid, ArmedHold);
+        }
     }
 
     /// <summary>The whole sector hears that a faction has bought a nuclear device.</summary>

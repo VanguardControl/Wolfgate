@@ -354,6 +354,7 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
         var deedShuttle = EnsureComp<ShuttleDeedComponent>(shuttleUid);
         AssignShuttleDeedProperties(deedShuttle, shuttleUid, name, shuttleOwner, voucherUsed, voucherUsed ? targetId.ToString() : null);
 
+        _wgStasis.Wake(shuttleUid); // WOLFGATE(ColdStorage): the console query below skips paused consoles
         // Lock all shuttle consoles on the ship to this deed
         var shuttleConsoleQuery = EntityQueryEnumerator<ShuttleConsoleComponent, TransformComponent>();
         while (shuttleConsoleQuery.MoveNext(out var consoleUid, out _, out var transform))
@@ -576,6 +577,7 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
             _records.Synchronize(stationUid);
         }
 
+        _wgStasis.Wake(shuttleUid); // WOLFGATE(ColdStorage): the sale prechecks look at the hull's items, which are paused in stasis
         var shuttleName = ToPrettyString(shuttleUid); // Grab the name before it gets 1984'd
 
         // Check for shipyard blacklisting components
