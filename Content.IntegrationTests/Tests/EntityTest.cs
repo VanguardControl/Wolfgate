@@ -1,5 +1,6 @@
 using System; // WOLFGATE(Wolfmed)
 using System.Collections.Generic;
+using System.Diagnostics; // WOLFGATE(Ci)
 using System.IO; // WOLFGATE(Ci)
 using System.Linq;
 using System.Numerics;
@@ -10,6 +11,7 @@ using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Log;
 using Robust.Shared.Map;
+using Robust.Shared.Map.Components; // WOLFGATE(Ci)
 using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.Manager.Attributes;
@@ -74,7 +76,7 @@ namespace Content.IntegrationTests.Tests
                 });
 
                 // await server.WaitRunTicks(450); // 15 seconds, enough to trigger most update loops
-                await RunSpawnAllTicks(server, entityMan, "different-maps", first, protoIds.Count);
+                await RunSpawnAllTicks(server, entityMan, "different-maps", first, protoIds.Count, slice);
                 await server.WaitPost(() => DeleteEverything(entityMan, mapSystem));
                 LogSpawnAllProgress($"different-maps {first}: deleted");
             }
@@ -127,7 +129,7 @@ namespace Content.IntegrationTests.Tests
                     }
                 });
 
-                await RunSpawnAllTicks(server, entityMan, "same-spot", first, protoIds.Count);
+                await RunSpawnAllTicks(server, entityMan, "same-spot", first, protoIds.Count, slice);
                 await server.WaitPost(() => DeleteEverything(entityMan, mapSystem));
                 LogSpawnAllProgress($"same-spot {first}: deleted");
             }
@@ -199,16 +201,56 @@ namespace Content.IntegrationTests.Tests
         // WOLFGATE END
 
         // WOLFGATE(Ci) START: timed progress of the spawn-all slices, so a slow core shard shows where the time goes
-        /// <summary>Runs a slice's 450 ticks in thirds, logging after each.</summary>
+        /// <summary>
+        /// Runs a slice's 450 ticks in thirds, logging after each. The first 150 go one at a time: a tick over two
+        /// seconds logs what is alive, and a slice whose first third is over 30 seconds has its prototypes written out.
+        /// </summary>
         private static async Task RunSpawnAllTicks(RobustIntegrationTest.ServerIntegrationInstance server,
-            IEntityManager entityMan, string test, int first, int total)
+            IEntityManager entityMan, string test, int first, int total, List<string> slice)
         {
             LogSpawnAllProgress($"{test} {first}/{total}: spawned, {entityMan.EntityCount} entities");
-            for (var third = 1; third <= 3; third++)
+            var third = Stopwatch.StartNew();
+            var slowTicks = 0;
+            for (var tick = 1; tick <= 150; tick++)
+            {
+                var watch = Stopwatch.StartNew();
+                await server.WaitRunTicks(1);
+                if (watch.Elapsed.TotalSeconds < 2 || ++slowTicks > 12)
+                    continue;
+
+                var alive = "";
+                await server.WaitPost(() => alive = DescribeAlive(entityMan));
+                LogSpawnAllProgress($"{test} {first}: tick {tick} took {watch.Elapsed.TotalSeconds:F1} s; {alive}");
+            }
+
+            LogSpawnAllProgress($"{test} {first}/{total}: 150 ticks, {entityMan.EntityCount} entities");
+            if (third.Elapsed.TotalSeconds > 30)
+            {
+                File.AppendAllText(Path.Combine(TestContext.CurrentContext.WorkDirectory, "spawn-all-slow-slices.txt"),
+                    $"{test} {first} ({third.Elapsed.TotalSeconds:F0} s): {string.Join(' ', slice)}\n");
+            }
+
+            for (var rest = 2; rest <= 3; rest++)
             {
                 await server.WaitRunTicks(150); // 450 in all: 15 seconds, enough to trigger most update loops
-                LogSpawnAllProgress($"{test} {first}/{total}: {third * 150} ticks, {entityMan.EntityCount} entities");
+                LogSpawnAllProgress($"{test} {first}/{total}: {rest * 150} ticks, {entityMan.EntityCount} entities");
             }
+        }
+
+        /// <summary>Entity, map and grid counts and the eight most common prototypes alive.</summary>
+        private static string DescribeAlive(IEntityManager entityMan)
+        {
+            var counts = new Dictionary<string, int>();
+            var query = entityMan.AllEntityQueryEnumerator<MetaDataComponent>();
+            while (query.MoveNext(out _, out var meta))
+            {
+                var id = meta.EntityPrototype?.ID ?? "(none)";
+                counts[id] = counts.GetValueOrDefault(id) + 1;
+            }
+
+            var top = string.Join(", ", counts.OrderByDescending(c => c.Value).Take(8).Select(c => $"{c.Key} {c.Value}"));
+            return $"{entityMan.EntityCount} entities, {entityMan.Count<MapComponent>()} maps, "
+                + $"{entityMan.Count<MapGridComponent>()} grids; top: {top}";
         }
 
         /// <summary>Writes a timed line with the heap and working set to the test log and to a file the CI artifact keeps.</summary>
