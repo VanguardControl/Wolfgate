@@ -87,15 +87,18 @@ namespace Content.IntegrationTests.Tests
             var settings = new PoolSettings { Dirty = true };
             await using var pair = await PoolManager.GetServerClient(settings);
             var server = pair.Server;
-            var map = await pair.CreateTestMap();
-
+            // WOLFGATE(Ci) START: in slices, as the different-maps test; all at once ran the 16 GB runner out of memory
+            // In one spot, every prototype at once took the test host from 6.5 to about 13 GB, ran 23 minutes on a good
+            // day and got the core shard's runner shut down on a bad one. Each slice spawns in one spot on a fresh test
+            // map, runs the same 450 ticks and is deleted before the next.
             var entityMan = server.ResolveDependency<IEntityManager>();
             var prototypeMan = server.ResolveDependency<IPrototypeManager>();
+            var mapSystem = entityMan.System<SharedMapSystem>();
 
+            var protoIds = new List<string>();
             await server.WaitPost(() =>
             {
-
-                var protoIds = prototypeMan
+                protoIds = prototypeMan
                     .EnumeratePrototypes<EntityPrototype>()
                     .Where(p => !p.Abstract)
                     .Where(p => !pair.IsTestPrototype(p))
@@ -106,50 +109,53 @@ namespace Content.IntegrationTests.Tests
                     .Where(p => p.Categories.All(x => x.ID != SpawnerCategory)) // mono
                     .Select(p => p.ID)
                     .ToList();
-                foreach (var protoId in protoIds)
-                {
-                    SpawnEntity(entityMan, protoId, map.GridCoords); // Monolith
-                }
             });
-            await server.WaitRunTicks(450); // 15 seconds, enough to trigger most update loops
-            await server.WaitPost(() =>
+
+            for (var first = 0; first < protoIds.Count; first += SpawnAllSlice)
             {
-                static IEnumerable<(EntityUid, TComp)> Query<TComp>(IEntityManager entityMan)
-                    where TComp : Component
+                var slice = protoIds.Skip(first).Take(SpawnAllSlice).ToList();
+                var map = await pair.CreateTestMap();
+                await server.WaitPost(() =>
                 {
-                    var query = entityMan.AllEntityQueryEnumerator<TComp>();
-                    while (query.MoveNext(out var uid, out var meta))
+                    foreach (var protoId in slice)
                     {
-                        yield return (uid, meta);
+                        SpawnEntity(entityMan, protoId, map.GridCoords); // Monolith
                     }
-                }
+                });
 
-                // WOLFGATE(Wolfmed) START: maps first, so everything on them goes parent-first, as it does when a round
-                // ends. Deleting in enumeration order could delete a held item out of a live xenoborg's hand before its
-                // module, which DroppableBorgModuleSystem logs as an error; the order follows prototype file order,
-                // which differs between Windows and Linux, so it failed on CI only.
-                var mapSystem = entityMan.System<SharedMapSystem>();
-                foreach (var mapId in mapSystem.GetAllMapIds().ToList())
-                {
-                    mapSystem.DeleteMap(mapId);
-                }
-                // WOLFGATE END
+                await server.WaitRunTicks(450); // 15 seconds, enough to trigger most update loops
+                await server.WaitPost(() => DeleteEverything(entityMan, mapSystem));
+            }
 
-                var entityMetas = Query<MetaDataComponent>(entityMan).ToList();
-                foreach (var (uid, meta) in entityMetas)
-                {
-                    if (!meta.EntityDeleted)
-                        entityMan.DeleteEntity(uid);
-                }
-
-                Assert.That(entityMan.EntityCount, Is.Zero);
-            });
+            // var map = await pair.CreateTestMap();
+            //
+            // var entityMan = server.ResolveDependency<IEntityManager>();
+            // var prototypeMan = server.ResolveDependency<IPrototypeManager>();
+            //
+            // await server.WaitPost(() =>
+            // {
+            //
+            //     var protoIds = prototypeMan
+            //         ...the same filters as above...
+            //         .ToList();
+            //     foreach (var protoId in protoIds)
+            //     {
+            //         SpawnEntity(entityMan, protoId, map.GridCoords); // Monolith
+            //     }
+            // });
+            // await server.WaitRunTicks(450); // 15 seconds, enough to trigger most update loops
+            // await server.WaitPost(() =>
+            // {
+            //     ...delete every map, then every entity left (now DeleteEverything)...
+            //     Assert.That(entityMan.EntityCount, Is.Zero);
+            // });
+            // WOLFGATE END
 
             await pair.CleanReturnAsync();
         }
 
         // WOLFGATE(Wolfmed) START: the slice size and the delete of the sliced spawn-all test.
-        /// <summary>Prototypes spawned per slice of the different-maps spawn-all test: about a seventh of them.</summary>
+        /// <summary>Prototypes spawned per slice of the spawn-all tests: about a seventh of them.</summary>
         private const int SpawnAllSlice = 2500;
 
         /// <summary>
