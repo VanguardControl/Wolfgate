@@ -3,6 +3,8 @@ using System.Numerics;
 using Content.IntegrationTests.Pair;
 using Content.IntegrationTests.Tests._WG.Drydock;
 using Content.Server._WG.Unstuck;
+using Content.Server.Atmos.EntitySystems;
+using Content.Shared.Atmos;
 using Content.Shared._WG.Vehicles.Core;
 using Content.Shared.Cuffs;
 using Content.Shared.Interaction;
@@ -155,6 +157,52 @@ public sealed class UnstuckTest
             Assert.That(tile, Is.EqualTo(WallTile + new Vector2i(0, 1)), "The body didn't land on the nearest floor.");
 
             Assert.That(unstuck.TryUnstuck(mob, out message), Is.False, "A freed body still counted as stuck.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// A body mostly on the airless side of a wall line comes out on that side, not through the wall into the air.
+    /// </summary>
+    [Test]
+    public async Task AirDoesNotPullThroughAWall()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var grid = map.Grid.Owner;
+
+        await server.WaitPost(() =>
+        {
+            DrydockTest.SetFloor(pair, grid, 5);
+            for (var x = 0; x < 5; x++)
+                DrydockTest.SpawnAnchored(pair, grid, WallProto, new Vector2i(x, WallTile.Y));
+        });
+        await server.WaitRunTicks(5);
+
+        await server.WaitAssertion(() =>
+        {
+            var atmos = server.System<AtmosphereSystem>();
+            for (var x = 0; x < 5; x++)
+            for (var y = WallTile.Y + 1; y < 5; y++)
+            {
+                var mix = atmos.GetTileMixture(grid, map.MapUid, new Vector2i(x, y), true);
+                Assert.That(mix, Is.Not.Null, "The floor above the wall has no air to fill.");
+                mix!.AdjustMoles(Gas.Oxygen, Atmospherics.MolesCellStandard * 0.21f);
+                mix.AdjustMoles(Gas.Nitrogen, Atmospherics.MolesCellStandard * 0.79f);
+                mix.Temperature = Atmospherics.T20C;
+            }
+
+            Assert.That(atmos.IsTileMixtureProbablySafe(grid, map.MapUid, WallTile + new Vector2i(0, 1)), Is.True, "The air above isn't breathable.");
+            Assert.That(atmos.IsTileMixtureProbablySafe(grid, map.MapUid, WallTile - new Vector2i(0, 1)), Is.False, "The floor below has air.");
+
+            var mob = em.SpawnEntity(MobProto, new EntityCoordinates(grid, WallTile.X + 0.5f, WallTile.Y + 0.2f));
+            Assert.That(server.System<WGUnstuckSystem>().TryUnstuck(mob, out var message), Is.True, message);
+            var tile = server.System<SharedMapSystem>()
+                .TileIndicesFor(grid, em.GetComponent<MapGridComponent>(grid), em.GetComponent<TransformComponent>(mob).Coordinates);
+            Assert.That(tile, Is.EqualTo(WallTile - new Vector2i(0, 1)), "The body was pulled through the wall to the air.");
         });
 
         await pair.CleanReturnAsync();

@@ -52,6 +52,12 @@ public sealed class WGUnstuckSystem : EntitySystem
     /// <summary>How deep the body must sit inside a structure to count as stuck, so standing against a wall doesn't.</summary>
     private const float EmbedDepth = 0.1f;
 
+    /// <summary>Tiles within this much of the same distance count as a tie, which breathable air breaks.</summary>
+    private const float TieDistance = 0.05f;
+
+    /// <summary>The share of a tile between checks along the way to a candidate tile.</summary>
+    private const float LineStep = 0.2f;
+
     private static readonly TimeSpan Cooldown = TimeSpan.FromSeconds(30);
 
     private readonly Dictionary<NetUserId, TimeSpan> _nextUse = new();
@@ -95,7 +101,7 @@ public sealed class WGUnstuckSystem : EntitySystem
 
     /// <summary>
     /// Puts the entity outside if it is inside a vehicle; otherwise moves it to the nearest clear floor if it is
-    /// embedded in a structure it collides with, preferring floor with breathable air within <see cref="SearchRadius"/> tiles.
+    /// embedded in a structure it collides with, on the side it was mostly on, within <see cref="SearchRadius"/> tiles.
     /// </summary>
     /// <param name="message">The player-facing result.</param>
     public bool TryUnstuck(EntityUid user, out string message)
@@ -220,7 +226,10 @@ public sealed class WGUnstuckSystem : EntitySystem
         return false;
     }
 
-    /// <summary>Picks the floor tile nearest the entity that nothing solid is anchored on.</summary>
+    /// <summary>
+    /// Picks the clear floor tile nearest the entity's exact position, so it comes out on the side it was mostly on.
+    /// A tile behind another solid tile doesn't count, and breathable air only breaks a tie.
+    /// </summary>
     private bool TryFindClearFloor(Entity<MapGridComponent> grid, TransformComponent xform, int mask, out EntityCoordinates target)
     {
         target = default;
@@ -242,12 +251,21 @@ public sealed class WGUnstuckSystem : EntitySystem
                 || IsObstructed(grid, indices, mask))
                 continue;
 
-            var safe = _atmosphere.IsTileMixtureProbablySafe(grid.Owner, map, indices);
             var center = new Vector2((indices.X + 0.5f) * tileSize, (indices.Y + 0.5f) * tileSize);
-            var distance = (center - local).LengthSquared();
+            var distance = (center - local).Length();
+            if (found && distance > bestDistance + TieDistance)
+                continue;
 
-            // Breathable air wins over distance; among equals the nearer tile wins.
-            if (found && ((bestSafe && !safe) || (bestSafe == safe && distance >= bestDistance)))
+            if (BehindSolid(grid, local, center, origin, indices, mask))
+                continue;
+
+            // The nearer tile wins; within a tie, breathable air wins, then the nearer.
+            var safe = _atmosphere.IsTileMixtureProbablySafe(grid.Owner, map, indices);
+            var better = !found
+                || distance < bestDistance - TieDistance
+                || safe && !bestSafe
+                || safe == bestSafe && distance < bestDistance;
+            if (!better)
                 continue;
 
             found = true;
@@ -257,6 +275,22 @@ public sealed class WGUnstuckSystem : EntitySystem
         }
 
         return found;
+    }
+
+    /// <summary>Whether the way from the entity to a tile crosses a solid tile other than the one it is stuck in.</summary>
+    private bool BehindSolid(Entity<MapGridComponent> grid, Vector2 from, Vector2 to, Vector2i origin, Vector2i target, int mask)
+    {
+        var tileSize = grid.Comp.TileSize;
+        var steps = (int) MathF.Ceiling((to - from).Length() / (tileSize * LineStep));
+        for (var i = 1; i < steps; i++)
+        {
+            var point = Vector2.Lerp(from, to, i / (float) steps);
+            var indices = new Vector2i((int) MathF.Floor(point.X / tileSize), (int) MathF.Floor(point.Y / tileSize));
+            if (indices != origin && indices != target && IsObstructed(grid, indices, mask))
+                return true;
+        }
+
+        return false;
     }
 
     /// <summary>Whether something anchored on the tile would block the entity.</summary>
