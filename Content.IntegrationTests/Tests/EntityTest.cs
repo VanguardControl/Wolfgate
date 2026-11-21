@@ -11,7 +11,6 @@ using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Log;
 using Robust.Shared.Map;
-using Robust.Shared.Map.Components; // WOLFGATE(Ci)
 using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.Manager.Attributes;
@@ -202,55 +201,24 @@ namespace Content.IntegrationTests.Tests
 
         // WOLFGATE(Ci) START: timed progress of the spawn-all slices, so a slow core shard shows where the time goes
         /// <summary>
-        /// Runs a slice's 450 ticks in thirds, logging after each. The first 150 go one at a time: a tick over two
-        /// seconds logs what is alive, and a slice whose first third is over 30 seconds has its prototypes written out.
+        /// Runs a slice's 450 ticks in thirds, logging after each. A slice whose first third is over 30 seconds has its
+        /// prototypes written out, to bisect what made it slow.
         /// </summary>
         private static async Task RunSpawnAllTicks(RobustIntegrationTest.ServerIntegrationInstance server,
             IEntityManager entityMan, string test, int first, int total, List<string> slice)
         {
             LogSpawnAllProgress($"{test} {first}/{total}: spawned, {entityMan.EntityCount} entities");
-            var third = Stopwatch.StartNew();
-            var slowTicks = 0;
-            for (var tick = 1; tick <= 150; tick++)
-            {
-                var watch = Stopwatch.StartNew();
-                await server.WaitRunTicks(1);
-                if (watch.Elapsed.TotalSeconds < 2 || ++slowTicks > 12)
-                    continue;
-
-                var alive = "";
-                await server.WaitPost(() => alive = DescribeAlive(entityMan));
-                LogSpawnAllProgress($"{test} {first}: tick {tick} took {watch.Elapsed.TotalSeconds:F1} s; {alive}");
-            }
-
-            LogSpawnAllProgress($"{test} {first}/{total}: 150 ticks, {entityMan.EntityCount} entities");
-            if (third.Elapsed.TotalSeconds > 30)
-            {
-                File.AppendAllText(Path.Combine(TestContext.CurrentContext.WorkDirectory, "spawn-all-slow-slices.txt"),
-                    $"{test} {first} ({third.Elapsed.TotalSeconds:F0} s): {string.Join(' ', slice)}\n");
-            }
-
-            for (var rest = 2; rest <= 3; rest++)
+            var watch = Stopwatch.StartNew();
+            for (var third = 1; third <= 3; third++)
             {
                 await server.WaitRunTicks(150); // 450 in all: 15 seconds, enough to trigger most update loops
-                LogSpawnAllProgress($"{test} {first}/{total}: {rest * 150} ticks, {entityMan.EntityCount} entities");
-            }
-        }
+                LogSpawnAllProgress($"{test} {first}/{total}: {third * 150} ticks, {entityMan.EntityCount} entities");
+                if (third != 1 || watch.Elapsed.TotalSeconds <= 30)
+                    continue;
 
-        /// <summary>Entity, map and grid counts and the eight most common prototypes alive.</summary>
-        private static string DescribeAlive(IEntityManager entityMan)
-        {
-            var counts = new Dictionary<string, int>();
-            var query = entityMan.AllEntityQueryEnumerator<MetaDataComponent>();
-            while (query.MoveNext(out _, out var meta))
-            {
-                var id = meta.EntityPrototype?.ID ?? "(none)";
-                counts[id] = counts.GetValueOrDefault(id) + 1;
+                File.AppendAllText(Path.Combine(TestContext.CurrentContext.WorkDirectory, "spawn-all-slow-slices.txt"),
+                    $"{test} {first} ({watch.Elapsed.TotalSeconds:F0} s): {string.Join(' ', slice)}\n");
             }
-
-            var top = string.Join(", ", counts.OrderByDescending(c => c.Value).Take(8).Select(c => $"{c.Key} {c.Value}"));
-            return $"{entityMan.EntityCount} entities, {entityMan.Count<MapComponent>()} maps, "
-                + $"{entityMan.Count<MapGridComponent>()} grids; top: {top}";
         }
 
         /// <summary>Writes a timed line with the heap and working set to the test log and to a file the CI artifact keeps.</summary>

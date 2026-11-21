@@ -177,6 +177,7 @@ Standalone edits outside `_WG` that serve no module: files with an untagged `WOL
 - [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.HighPressureDelta.cs`](../../Content.Server/Atmos/EntitySystems/AtmosphereSystem.HighPressureDelta.cs)
   - Vector2 for the space-wind NaN guard
   - a zero vector here normalises to NaN, which the impulse writes into the mob's position
+- [`Content.Server/Atmos/EntitySystems/FlammableSystem.cs`](../../Content.Server/Atmos/EntitySystems/FlammableSystem.cs): a flammable without appearance (an envelope, a xeno wall) has no fire visuals to set, not an error
 - [`Content.Server/Atmos/EntitySystems/HeatExchangerSystem.cs`](../../Content.Server/Atmos/EntitySystems/HeatExchangerSystem.cs): restore the licence header removed by Kill Spdx
 - [`Content.Server/Body/Systems/RespiratorSystem.cs`](../../Content.Server/Body/Systems/RespiratorSystem.cs): entities without a respirator cannot metabolize inhaled gases; absence is valid.
 - [`Content.Server/Cargo/Systems/CargoSystem.Shuttle.cs`](../../Content.Server/Cargo/Systems/CargoSystem.Shuttle.cs)
@@ -265,6 +266,7 @@ Standalone edits outside `_WG` that serve no module: files with an untagged `WOL
   - fallback ordering
   - prefer spawners that aren't another job's, e.g. not the godfather's office for a fugitive
   - other jobs' spawners only when nothing else is left
+- [`Content.Server/Speech/EntitySystems/VocalSystem.cs`](../../Content.Server/Speech/EntitySystems/VocalSystem.cs): only while it is still ours; a detached skull's action has already gone, which logged an error
 - [`Content.Server/VendingMachines/VendingMachineSystem.cs`](../../Content.Server/VendingMachines/VendingMachineSystem.cs)
   - restore the licence header removed by Kill Spdx
   - a free vend skips the cash payment, which logs a zero amount as invalid
@@ -366,6 +368,7 @@ Standalone edits outside `_WG` that serve no module: files with an untagged `WOL
   - the do-afters to update this tick, taken before any runs
   - drifting isn't moving, so it doesn't interrupt work on yourself or something you carry
   - skipped while drifting
+- [`Content.Shared/Ensnaring/SharedEnsnareableSystem.cs`](../../Content.Shared/Ensnaring/SharedEnsnareableSystem.cs): no container moves while either side is being deleted; removing it then threw
 - [`Content.Shared/Gibbing/Systems/GibbingSystem.cs`](../../Content.Shared/Gibbing/Systems/GibbingSystem.cs)
   - bodiless giblets are skipped when flung.
   - bodiless dropped contents are skipped instead of flung.

@@ -104,6 +104,13 @@ public sealed partial class EmpSystem : SharedEmpSystem
             args.Handled = true;
             return;
         }
+
+        // Nothing to pulse in nullspace, and its sound has no coordinates to play at.
+        if (_transform.GetMapCoordinates(uid).MapId == MapId.Nullspace)
+        {
+            args.Handled = true;
+            return;
+        }
         // WOLFGATE END
 
         EmpPulse(_transform.GetMapCoordinates(uid), comp.Range, comp.EnergyConsumption, TimeSpan.FromSeconds(comp.DisableDuration));

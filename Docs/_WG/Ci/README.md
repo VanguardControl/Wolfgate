@@ -36,7 +36,7 @@ entry ids from 100000).
   - split the integration tests over six runners; each builds and runs one shard
   - unit tests run once, on the core shard
   - exclude Shipyard tests in NUnit itself; the --filter form still ran them and only hid the results
-  - a test running past 20 minutes is killed and named, before a stalled runner is shut down with no name
+  - a test running past 30 minutes is killed and named, before a stalled runner is shut down with no name
   - one artifact per shard
   - report failure instead of skipping when a shard fails; a skipped required check counts as passed
 - [`.github/workflows/changelog.yml`](../../../.github/workflows/changelog.yml)
