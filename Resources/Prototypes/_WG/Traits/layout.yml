@@ -134,6 +134,8 @@
     - Liar
     - WGCanineTraits
     - WGAvianTraits
+    - NoContractions
+    - StiltedSpeech
 
 - type: wgTraitLayout
   id: LanguageTraits
