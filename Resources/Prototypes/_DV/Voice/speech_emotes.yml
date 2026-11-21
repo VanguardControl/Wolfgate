@@ -12,11 +12,13 @@
     components:
     - BorgChassis
   chatMessages: [honks.]
+  # WOLFGATE(Cyborgs) START: keep Harpy honks separate from borg honks in chat
   chatTriggers:
-    - honk
-    - honks
-    - honking
-    - honked
+    - harpyhonk
+    - harpyhonks
+    - harpyhonking
+    - harpyhonked
+  # WOLFGATE END
 
 - type: emote
   id: HarpyRing
@@ -88,11 +90,13 @@
     components:
     - BorgChassis
   chatMessages: [beeps.]
+  # WOLFGATE(Cyborgs) START: keep Harpy beeps separate from borg beeps in chat
   chatTriggers:
-    - beep
-    - beeps
-    - beeping
-    - beeped
+    - harpybeep
+    - harpybeeps
+    - harpybeeping
+    - harpybeeped
+  # WOLFGATE END
 
 - type: emote
   id: HarpyRev
