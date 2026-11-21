@@ -56,7 +56,11 @@ namespace Content.Server.GameTicking
 
                     // Make the player actually join the game.
                     // timer time must be > tick length
-                    Timer.Spawn(0, () => _playerManager.JoinGame(args.Session));
+                    // WOLFGATE(JoinQueue) START: a full server holds the player in the queue instead
+                    // Timer.Spawn(0, () => _playerManager.JoinGame(args.Session));
+                    if (!await _joinQueue.TryHold(args.Session))
+                        Timer.Spawn(0, () => _playerManager.JoinGame(args.Session));
+                    // WOLFGATE END
 
                     var record = await _db.GetPlayerRecordByUserId(args.Session.UserId);
                     var firstConnection = record != null &&
