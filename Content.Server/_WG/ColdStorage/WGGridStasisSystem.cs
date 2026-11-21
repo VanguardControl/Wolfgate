@@ -127,7 +127,23 @@ public sealed partial class WGGridStasisSystem : EntitySystem
     /// <summary>Whether a grid is in stasis or going into it.</summary>
     public bool IsInStasis(EntityUid grid)
     {
-        return _grids.TryGetValue(grid, out var rec) && rec.State is WGGridStasisState.Pausing or WGGridStasisState.Paused;
+        return _hollow.Contains(grid)
+               || _grids.TryGetValue(grid, out var rec) && rec.State is WGGridStasisState.Pausing or WGGridStasisState.Paused;
+    }
+
+    private readonly HashSet<EntityUid> _hollow = new();
+
+    /// <summary>
+    /// Marks a grid whose contents are in the cold store. It counts as in stasis whatever its record says: with its
+    /// walls gone, atmos would vent every tile to space.
+    /// </summary>
+    public void SetHollow(EntityUid grid, bool hollow)
+    {
+        if (!(hollow ? _hollow.Add(grid) : _hollow.Remove(grid)) || TerminatingOrDeleted(grid))
+            return;
+
+        var ev = new WGGridStasisChangedEvent(IsInStasis(grid));
+        RaiseLocalEvent(grid, ref ev);
     }
 
     /// <summary>

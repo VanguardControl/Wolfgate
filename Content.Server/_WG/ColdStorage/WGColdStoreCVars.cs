@@ -10,6 +10,13 @@ public sealed class WGColdStoreCVars
     public static readonly CVarDef<bool> Enabled =
         CVarDef.Create("wg.coldstore.enabled", false, CVar.SERVERONLY);
 
+    /// <summary>
+    /// Whether deeded ships may be stored, not only ownerless wrecks. Needs <c>wg.stasis.player_ships</c> too, since
+    /// only a ship in stasis is stored. The ship's own grid stays where it is; only what is on it is saved.
+    /// </summary>
+    public static readonly CVarDef<bool> PlayerShips =
+        CVarDef.Create("wg.coldstore.player_ships", false, CVar.SERVERONLY);
+
     /// <summary>Seconds a grid must have been in stasis before it is stored; down to a quarter at full entity pressure.</summary>
     public static readonly CVarDef<float> Idle =
         CVarDef.Create("wg.coldstore.idle", 900f, CVar.SERVERONLY);

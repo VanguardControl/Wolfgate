@@ -4,6 +4,7 @@ using System.Numerics;
 using Content.Server._Mono.Cleanup;
 using Content.Server._WG.Shipyard;
 using Content.Shared._WG.Explosion;
+using Robust.Shared.EntitySerialization;
 using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -65,7 +66,8 @@ public sealed partial class WGColdStoreSystem
         _nextGrids = now + GridsEvery;
         foreach (var (standIn, record) in _stored)
         {
-            if (GridNear(null, record.MapId, record.WorldBounds))
+            // A kept grid stands in its own bounds.
+            if (GridNear(record.Hollow ? standIn : null, record.MapId, record.WorldBounds))
                 Queue(standIn, _restoreRange / 2f);
         }
 
@@ -220,6 +222,9 @@ public sealed partial class WGColdStoreSystem
         }
 
         var watch = Stopwatch.StartNew();
+        if (record.Hollow)
+            return TryRestoreHollow(record, bytes, priority, watch);
+
         var staging = Staging();
         Entity<MapGridComponent>? loaded;
         double loadMs;
@@ -246,12 +251,64 @@ public sealed partial class WGColdStoreSystem
         return FinishRestore(record, loaded.Value.Owner, priority, loadMs, watch, 1, 0);
     }
 
+    /// <summary>Builds a kept grid's contents back onto it in one call.</summary>
+    private bool TryRestoreHollow(WGStoredGrid record, byte[] bytes, float priority, Stopwatch watch)
+    {
+        StagedGridLoad load;
+        try
+        {
+            if (!MapLoaderSystem.TryParse(new StringReader(Decompress(bytes)), out var data))
+            {
+                Fail(record, "its bytes hold no grid", priority);
+                return false;
+            }
+
+            load = _loader.BeginLoadOntoGrid(data, record.Key, record.StandIn);
+            _loader.StepLoad(load, TimeSpan.MaxValue);
+        }
+        catch (Exception e)
+        {
+            Fail(record, $"{e.GetType().Name}: {e.Message}", priority);
+            return false;
+        }
+
+        if (load.State != StagedLoadState.Done)
+        {
+            Fail(record, "the load failed", priority);
+            return false;
+        }
+
+        return FinishRestore(record, record.StandIn, priority, load.Elapsed.TotalMilliseconds, watch, 1, 0);
+    }
+
+    /// <summary>
+    /// What a restored grid needs once its contents are back on it: the re-init a load skips, the end of its time as
+    /// its own stand-in, and a hold awake. A deed card that was aboard points at the grid again by itself.
+    /// </summary>
+    private bool FinishHollow(WGStoredGrid record, EntityUid grid, double loadMs, Stopwatch watch, int ticks, double worstMs)
+    {
+        _reinit.ReinitLoadedShip(grid);
+        RemComp<WGStoredGridComponent>(grid);
+        _stasis.SetHollow(grid, false);
+        _stasis.Wake(grid, RestoreHold);
+
+        var ev = new WGGridRestoredEvent(grid, grid);
+        RaiseLocalEvent(ref ev);
+
+        Forget(record);
+        NoteRestored(record, loadMs, watch, ticks, worstMs);
+        return true;
+    }
+
     /// <summary>
     /// Redoes what loading skips and moves a loaded grid from its staging map to where its stand-in is. On a failure
     /// the grid is deleted and the stand-in and bytes stay.
     /// </summary>
     private bool FinishRestore(WGStoredGrid record, EntityUid grid, float priority, double loadMs, Stopwatch watch, int ticks, double worstMs)
     {
+        if (record.Hollow)
+            return FinishHollow(record, grid, loadMs, watch, ticks, worstMs);
+
         _reinit.ReinitLoadedShip(grid);
 
         _transform.SetCoordinates(grid, new EntityCoordinates(record.Map, record.Position));
@@ -275,7 +332,13 @@ public sealed partial class WGColdStoreSystem
 
         Forget(record);
         Del(standIn);
+        NoteRestored(record, loadMs, watch, ticks, worstMs);
+        return true;
+    }
 
+    /// <summary>Counts and logs a finished restore.</summary>
+    private void NoteRestored(WGStoredGrid record, double loadMs, Stopwatch watch, int ticks, double worstMs)
+    {
         // The slowest tick is what a player feels: the last one, or an earlier slice of a load spread over ticks.
         var last = watch.Elapsed.TotalMilliseconds;
         var worst = Math.Max(worstMs, last);
@@ -290,8 +353,6 @@ public sealed partial class WGColdStoreSystem
             Log.Warning($"{message} Over wg.coldstore.max_restore_ms ({_maxRestoreMs:0} ms).");
         else
             Log.Info(message);
-
-        return true;
     }
 
     /// <summary>Marks a failed try and keeps a retry queued until the cap, so a one-off trigger isn't lost.</summary>
@@ -412,6 +473,7 @@ public sealed partial class WGColdStoreSystem
                 continue;
 
             Forget(record);
+            _stasis.SetHollow(standIn, false);
             Del(standIn);
             Expired++;
             ExpiredCounter.Inc();

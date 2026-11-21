@@ -8,6 +8,8 @@ using Content.Server._WG.Remade.Corruption;
 using Content.Server._WG.ShipAdmin;
 using Content.Server._WG.ShipSquatters;
 using Content.Server.Shuttles.Systems;
+using Content.Server.Station.Components;
+using Content.Server.Station.Systems;
 using Content.Server.Worldgen.Components.Debris;
 using Content.Shared.Mind.Components;
 using Content.Shared.Mobs.Components;
@@ -27,6 +29,8 @@ public sealed partial class WGColdStoreSystem
     [Dependency] private DockingSystem _docking = default!;
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private WGContractSystem _contracts = default!;
+    [Dependency] private StationSystem _station = default!;
+    [Dependency] private StationJobsSystem _stationJobs = default!;
 
     private const float MaxSpeed = 0.1f;
     private const float MaxSpin = 0.01f;
@@ -63,8 +67,16 @@ public sealed partial class WGColdStoreSystem
         if (_job?.Grid == grid)
             return "wg-coldstore-why-busy";
 
-        if (_stasis.PolicyOf(grid, xform) != WGStasisPolicy.Ownerless)
+        var policy = _stasis.PolicyOf(grid, xform);
+        if (policy != WGStasisPolicy.Ownerless && !(policy == WGStasisPolicy.PlayerShip && _playerShips))
             return "wg-coldstore-why-policy";
+
+        if (HasComp<WGStoredGridComponent>(grid))
+            return "wg-coldstore-why-busy";
+
+        // A new player may be given a job on the ship and would arrive on bare floor.
+        if (policy == WGStasisPolicy.PlayerShip && HasOpenJobs(grid))
+            return "wg-coldstore-why-jobs";
 
         if (!force)
         {
@@ -100,6 +112,21 @@ public sealed partial class WGColdStoreSystem
             return referenced;
 
         return WalkReason(grid);
+    }
+
+    /// <summary>Whether the grid's station has a job slot a joining player could take.</summary>
+    private bool HasOpenJobs(EntityUid grid)
+    {
+        if (_station.GetOwningStation(grid) is not { } station || !HasComp<StationJobsComponent>(station))
+            return false;
+
+        foreach (var (_, slots) in _stationJobs.GetJobs(station))
+        {
+            if (slots is null or > 0)
+                return true;
+        }
+
+        return false;
     }
 
     /// <summary>Metres from the bounds to the nearest viewer or announced arrival on the map.</summary>

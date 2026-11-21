@@ -90,6 +90,12 @@ public sealed class WGStoredGrid
 {
     public string Key = string.Empty;
     public EntityUid StandIn;
+
+    /// <summary>
+    /// The grid itself was kept and only what was on it stored: <see cref="StandIn"/> is the grid, and a restore
+    /// builds its contents back onto it. For owned ships, so deeds, station membership and radar keep their grid.
+    /// </summary>
+    public bool Hollow;
     public string Name = string.Empty;
     public WGStoredState State;
 

@@ -62,6 +62,9 @@ public sealed partial class WGHullRetireSystem : EntitySystem
 
         /// <summary>Copied only: the hull stays parked afterwards until <see cref="Retire"/> or <see cref="ReleaseParked"/>.</summary>
         public bool Keep;
+
+        /// <summary>Only what is on the grid is deleted; the grid itself stays parked for whoever asked.</summary>
+        public bool KeepGrid;
         public List<EntityUid>? Children;
         public int NextChild;
         public double CopyMs;
@@ -96,6 +99,18 @@ public sealed partial class WGHullRetireSystem : EntitySystem
     {
         GetOrPark(grid);
     }
+
+    /// <summary>
+    /// Parks the hull and deletes everything on it in slices, leaving the grid itself parked and empty. The grid is
+    /// in <see cref="Emptied"/> once that is done.
+    /// </summary>
+    public void RetireContents(EntityUid grid)
+    {
+        GetOrPark(grid).KeepGrid = true;
+    }
+
+    /// <summary>Grids <see cref="RetireContents"/> has finished with; whoever asked takes theirs out.</summary>
+    public readonly HashSet<EntityUid> Emptied = new();
 
     /// <summary>
     /// Retires the hull and copies it first. The task gives its YAML, or null if the copy failed.
@@ -230,7 +245,11 @@ public sealed partial class WGHullRetireSystem : EntitySystem
                 continue;
 
             _hulls.Dequeue();
-            _stasis.Unpin(hull.Grid, StasisPin);
+            if (hull.KeepGrid)
+                Emptied.Add(hull.Grid);
+            else
+                _stasis.Unpin(hull.Grid, StasisPin);
+
             Last = (hull.Name, hull.CopyMs, hull.CopyTicks, hull.DeleteMs, hull.DeleteTicks, hull.WorstMs);
             Log.Info($"Retired {hull.Name}: copy {hull.CopyMs:0} ms over {hull.CopyTicks} ticks, delete {hull.DeleteMs:0} ms over {hull.DeleteTicks} ticks, longest {hull.WorstMs:0} ms.");
         }
@@ -324,7 +343,9 @@ public sealed partial class WGHullRetireSystem : EntitySystem
         var maps = new HashSet<MapId> { Transform(hull.Grid).MapID };
         RaiseLocalEvent(new BeforeSerializationEvent(copy.Roots, maps, FileCategory.Grid));
 
-        var serializer = new EntitySerializer(_dependencies, CopyOptions());
+        // A kept copy is read back by this server in the same round, so what it points at off the hull (a station
+        // record on a door's reader, a card) is still there. A resale copy outlives all of that.
+        var serializer = new EntitySerializer(_dependencies, CopyOptions() with { KeepExternalReferences = copy.Parked != null });
         var entities = new HashSet<EntityUid>();
         foreach (var root in copy.Roots)
         {
@@ -395,7 +416,9 @@ public sealed partial class WGHullRetireSystem : EntitySystem
                 Del(child);
         }
 
-        Del(hull.Grid);
+        if (!hull.KeepGrid)
+            Del(hull.Grid);
+
         return true;
     }
 

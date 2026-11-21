@@ -1,4 +1,9 @@
 #nullable enable
+using Content.Shared._WG.ShipAccess;
+using Content.Shared._NF.Shipyard.Components;
+using Content.Server.Station.Systems;
+using Content.Server.Station.Components;
+using Content.IntegrationTests.Tests._WG.ShipAdmin;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Storage.Components;
 using Content.Shared.NodeContainer;
@@ -888,6 +893,152 @@ public sealed class ColdStoreTest
             await Disable(pair);
         }
 
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// An owned ship keeps its own grid entity through a store: its deed, its owner's card, its station and its ship
+    /// access still point at it, only what is on it goes and comes back, in one call and spread over ticks.
+    /// </summary>
+    [Test]
+    public async Task AnOwnedShipKeepsItsGrid()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var cold = server.System<WGColdStoreSystem>();
+        var stasis = server.System<WGGridStasisSystem>();
+        var stations = server.System<StationSystem>();
+        var jobs = server.System<StationJobsSystem>();
+        var xforms = server.System<SharedTransformSystem>();
+        var map = await pair.CreateTestMap();
+        var session = server.PlayerMan.Sessions.First();
+        EntityUid grid = default, card = default;
+        EntityUid? station = null;
+        var before = new Dictionary<string, int>();
+        Vector2 position = default;
+
+        await server.WaitPost(() =>
+        {
+            server.CfgMan.SetCVar(CCVars.NPCEnabled, false);
+            var ship = ShipAdminOwnershipTest.SpawnOwnedShip(pair, map, session);
+            grid = ship.Grid;
+            card = ship.AdaCard;
+            station = stations.GetOwningStation(grid);
+
+            // Clear of the test map's own grid.
+            xforms.SetLocalPosition(grid, new Vector2(0f, 12000f));
+
+            // The owner and the others stand well away, the owner with the deed card.
+            foreach (var body in new[] { ship.Ada, ship.Ben, ship.Guest })
+                xforms.SetCoordinates(body, new EntityCoordinates(map.MapUid, new Vector2(9000f, 9000f)));
+        });
+        await server.WaitRunTicks(30);
+
+        await server.WaitPost(() =>
+        {
+            foreach (var uid in Tree(entMan, grid).Where(u => u != grid && Savable(entMan, u)))
+                Bump(before, Proto(entMan, uid));
+
+            position = entMan.GetComponent<TransformComponent>(grid).LocalPosition;
+        });
+
+        await Enable(pair);
+        try
+        {
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(cold.TryStore(grid, true, out var why), Is.False);
+                Assert.That(why, Is.EqualTo("wg-coldstore-why-policy"), "An owned ship was storable with player ships off.");
+                server.CfgMan.SetCVar(WGColdStoreCVars.PlayerShips, true);
+
+                // A ship a new player could be given a job on is left alone.
+                if (station is { } owner && entMan.HasComponent<StationJobsComponent>(owner))
+                {
+                    var open = jobs.GetJobs(owner).Where(job => job.Value is null or > 0).Select(job => job.Key).ToList();
+                    if (open.Count > 0)
+                    {
+                        Assert.That(cold.TryStore(grid, true, out why), Is.False);
+                        Assert.That(why, Is.EqualTo("wg-coldstore-why-jobs"));
+                    }
+
+                    foreach (var job in open)
+                        Assert.That(jobs.TrySetJobSlot(owner, job, 0), Is.True);
+                }
+            });
+
+            for (var pass = 0; pass < 2; pass++)
+            {
+                var staged = pass == 1;
+                await server.WaitAssertion(() => Assert.That(cold.TryStore(grid, true, out var why), Is.True, $"Refused: {why}"));
+                await RunUntil(pair, () => !cold.Storing);
+                await server.WaitAssertion(() => Assert.Multiple(() =>
+                {
+                    Assert.That(entMan.Deleted(grid), Is.False, "The ship's grid was deleted.");
+                    Assert.That(cold.Stored.TryGetValue(grid, out var record) && record.Hollow, Is.True, "The grid is not its own stand-in.");
+                    Assert.That(entMan.HasComponent<WGStoredGridComponent>(grid), Is.True);
+                    Assert.That(Tree(entMan, grid).Count(u => Savable(entMan, u)), Is.EqualTo(1), "Things were left on the stored ship.");
+                    Assert.That(stasis.IsInStasis(grid), Is.True, "Atmos would run on a hull with no walls.");
+                    var xform = entMan.GetComponent<TransformComponent>(grid);
+                    Assert.That(xform.MapUid, Is.EqualTo(map.MapUid), "The grid did not come back from the parking map.");
+                    Assert.That((xform.LocalPosition - position).Length(), Is.LessThan(0.01f));
+                    Assert.That(stations.GetOwningStation(grid), Is.EqualTo(station), "The ship left its station.");
+                    Assert.That(entMan.GetComponent<ShuttleDeedComponent>(card).ShuttleUid, Is.EqualTo(grid));
+                    Assert.That(entMan.HasComponent<ShuttleDeedComponent>(grid), Is.True);
+                    Assert.That(entMan.HasComponent<WGShipAccessComponent>(grid), Is.True);
+                }));
+
+                await server.WaitRunTicks(30);
+                if (staged)
+                {
+                    await server.WaitPost(() =>
+                    {
+                        server.CfgMan.SetCVar(WGColdStoreCVars.RestoreBudgetMs, 0.5f);
+                        Assert.That(cold.QueueRestoreAll(), Is.EqualTo(1));
+                    });
+                    await RunUntil(pair, () => cold.Stored.Count == 0 && !cold.Restoring);
+                }
+                else
+                {
+                    await server.WaitAssertion(() => Assert.That(cold.RestoreNow(grid), Is.True, "The restore failed."));
+                }
+
+                await server.WaitRunTicks(30);
+                await server.WaitAssertion(() => Assert.Multiple(() =>
+                {
+                    Assert.That(entMan.Deleted(grid), Is.False);
+                    Assert.That(cold.Stored, Is.Empty);
+                    Assert.That(entMan.Count<WGStoredGridComponent>(), Is.Zero);
+                    if (staged)
+                        Assert.That(cold.LastRestoreTicks, Is.GreaterThan(3), "The load was not spread over ticks.");
+
+                    var after = new Dictionary<string, int>();
+                    var tree = Tree(entMan, grid);
+                    foreach (var uid in tree.Where(u => u != grid && Savable(entMan, u)))
+                        Bump(after, Proto(entMan, uid));
+                    var diff = before.Keys.Union(after.Keys)
+                        .Where(k => before.GetValueOrDefault(k) != after.GetValueOrDefault(k))
+                        .Select(k => $"{k} {before.GetValueOrDefault(k)}->{after.GetValueOrDefault(k)}").ToList();
+                    Assert.That(diff, Is.Empty, "Prototypes came back in other numbers.");
+                    Assert.That(tree.Any(u => entMan.GetComponent<MetaDataComponent>(u).EntityPaused), Is.False, "Something came back paused.");
+
+                    Assert.That(stations.GetOwningStation(grid), Is.EqualTo(station));
+                    Assert.That(entMan.GetComponent<ShuttleDeedComponent>(card).ShuttleUid, Is.EqualTo(grid));
+                    Assert.That(entMan.HasComponent<WGShipAccessComponent>(grid), Is.True);
+                    var xform = entMan.GetComponent<TransformComponent>(grid);
+                    Assert.That((xform.LocalPosition - position).Length(), Is.LessThan(0.01f));
+                    TestContext.Out.WriteLine($"Owned ship, staged {staged}: store {cold.LastStore}; restore {cold.LastRestore} over {cold.LastRestoreTicks} ticks");
+                }));
+            }
+        }
+        finally
+        {
+            await server.WaitPost(() => server.CfgMan.SetCVar(WGColdStoreCVars.PlayerShips, false));
+            await Disable(pair);
+        }
+
+        // The client applies everything it was sent: a state that left part of an entity out trips it here.
+        await pair.RunTicksSync(30);
         await pair.CleanReturnAsync();
     }
 

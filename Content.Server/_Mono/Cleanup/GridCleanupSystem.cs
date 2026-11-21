@@ -52,6 +52,9 @@ public sealed partial class GridCleanupSystem : BaseCleanupSystem<MapGridCompone
         if (!TryComp<MapGridComponent>(uid, out var grid) || !TryComp<PhysicsComponent>(uid, out var body))
             return false;
 
+        if (HasComp<Content.Server._WG.ColdStorage.WGStoredGridComponent>(uid)) // WOLFGATE(ColdStorage): a kept grid's record runs the clock while its contents are stored
+            return false;
+
         var parent = xform.ParentUid;
 
         var state = EnsureComp<GridCleanupGridComponent>(uid);

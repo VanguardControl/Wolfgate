@@ -97,7 +97,9 @@ public sealed partial class WGColdStoreSystem
 
         var watch = Stopwatch.StartNew();
         active.Ticks++;
-        active.Load ??= _loader.BeginLoadGrid(data, record.Key, new DeserializationOptions { InitializeMaps = true });
+        active.Load ??= record.Hollow
+            ? _loader.BeginLoadOntoGrid(data, record.Key, record.StandIn)
+            : _loader.BeginLoadGrid(data, record.Key, new DeserializationOptions { InitializeMaps = true });
         var budget = urgent ? TimeSpan.MaxValue : TimeSpan.FromMilliseconds(_restoreBudgetMs);
         if (!_loader.StepLoad(active.Load, budget))
         {
@@ -114,6 +116,9 @@ public sealed partial class WGColdStoreSystem
         }
 
         var ok = FinishRestore(record, grid.Owner, active.Priority, load.Elapsed.TotalMilliseconds, watch, active.Ticks, active.WorstMs);
+        if (record.Hollow)
+            return;
+
         if (Exists(load.Map))
             Del(load.Map);
 

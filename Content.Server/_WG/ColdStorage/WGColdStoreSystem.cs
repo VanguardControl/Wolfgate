@@ -74,6 +74,7 @@ public sealed partial class WGColdStoreSystem : EntitySystem
     private int _minEntities;
     private float _restoreRange;
     private float _maxRestoreMs;
+    private bool _playerShips;
 
     /// <summary>Counts since the round began, for admins and tests.</summary>
     public int Stores, Restores, Aborts, Failures, Expired;
@@ -128,6 +129,7 @@ public sealed partial class WGColdStoreSystem : EntitySystem
         Subs.CVar(_cfg, WGColdStoreCVars.RestoreRange, value => _restoreRange = value, true);
         Subs.CVar(_cfg, WGColdStoreCVars.MaxRestoreMs, value => _maxRestoreMs = value, true);
         Subs.CVar(_cfg, WGColdStoreCVars.RestoreBudgetMs, value => _restoreBudgetMs = value, true);
+        Subs.CVar(_cfg, WGColdStoreCVars.PlayerShips, value => _playerShips = value, true);
 
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<WGStoredGridComponent, EntityTerminatingEvent>(OnStandInTerminating);
@@ -236,6 +238,7 @@ public sealed partial class WGColdStoreSystem : EntitySystem
             IffColor = iff?.Color,
             Entities = CountTree(grid),
             StoredAt = _timing.CurTime,
+            Hollow = _stasis.PolicyOf(grid, xform) == WGStasisPolicy.PlayerShip,
         };
 
         record.CleanupCandidate = _gridCleanup.WGColdStoreCandidate(grid, out record.CleanupAccumulator,
@@ -258,6 +261,12 @@ public sealed partial class WGColdStoreSystem : EntitySystem
     {
         if (job.Deleting)
         {
+            if (job.Record.Hollow)
+            {
+                StepHollow(job);
+                return;
+            }
+
             if (!Deleted(job.Grid))
                 return;
 
@@ -325,6 +334,15 @@ public sealed partial class WGColdStoreSystem : EntitySystem
 
         record.Bytes = bytes.Length;
         Backend.Put(record.Key, bytes, new WGColdStoreMeta(record.Name, record.Entities, record.StoredAt));
+        if (record.Hollow)
+        {
+            // The grid stays; from here atmos must leave it alone, as its walls are about to go.
+            _stasis.SetHollow(job.Grid, true);
+            _hullRetire.RetireContents(job.Grid);
+            job.Deleting = true;
+            return;
+        }
+
         record.StandIn = SpawnStandIn(record);
         _stored[record.StandIn] = record;
         StoredEntities += record.Entities;
@@ -336,6 +354,56 @@ public sealed partial class WGColdStoreSystem : EntitySystem
         job.Deleting = true;
         Stores++;
         StoresCounter.Inc();
+    }
+
+    /// <summary>
+    /// Once a kept grid has been emptied, puts it back where it was as its own stand-in.
+    /// </summary>
+    private void StepHollow(StoreJob job)
+    {
+        var record = job.Record;
+        if (Deleted(job.Grid))
+        {
+            _hullRetire.Emptied.Remove(job.Grid);
+            Backend.Remove(record.Key);
+            _job = null;
+            return;
+        }
+
+        if (!_hullRetire.Emptied.Remove(job.Grid))
+            return;
+
+        if (!Exists(record.Map))
+        {
+            Log.Warning($"Map of {record.Name} is gone while storing it; deleting it as the map would have.");
+            Backend.Remove(record.Key);
+            _stasis.SetHollow(job.Grid, false);
+            _hullRetire.ReleaseParked(job.Grid);
+            Del(job.Grid);
+            _job = null;
+            return;
+        }
+
+        var stored = EnsureComp<WGStoredGridComponent>(job.Grid);
+        stored.Key = record.Key;
+        stored.Bounds = record.WorldBounds;
+        stored.Entities = record.Entities;
+        stored.GridName = record.Name;
+
+        _transform.SetCoordinates(job.Grid, new EntityCoordinates(record.Map, record.Position));
+        _transform.SetLocalRotation(job.Grid, record.Rotation);
+        Still(job.Grid);
+
+        record.StandIn = job.Grid;
+        _stored[job.Grid] = record;
+        StoredEntities += record.Entities;
+
+        var ev = new WGGridStoredEvent(job.Grid, job.Grid);
+        RaiseLocalEvent(ref ev);
+
+        Stores++;
+        StoresCounter.Inc();
+        FinishStore(job);
     }
 
     private void FinishStore(StoreJob job)
@@ -484,6 +552,7 @@ public sealed partial class WGColdStoreSystem : EntitySystem
             return;
 
         AbortStagedRestore(record);
+        _stasis.SetHollow(ent.Owner, false);
         Backend.Remove(record.Key);
         StoredEntities -= record.Entities;
         _restoreQueue.Remove(ent.Owner);
