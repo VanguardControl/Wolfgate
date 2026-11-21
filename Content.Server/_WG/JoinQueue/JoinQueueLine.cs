@@ -10,14 +10,15 @@ namespace Content.Server._WG.JoinQueue;
 /// </summary>
 public sealed class JoinQueueLine
 {
-    /// <summary>Slot openings the wait estimate looks back over.</summary>
+    /// <summary>Openings the wait estimate looks back over.</summary>
     private const int AdmitSamples = 10;
 
     /// <summary>Openings older than this say nothing about the current pace.</summary>
     private static readonly TimeSpan AdmitWindow = TimeSpan.FromMinutes(20);
 
     private readonly List<Entry> _entries = new();
-    private readonly List<TimeSpan> _admits = new();
+    /// <summary>Recent openings, each with how many players it let in at once.</summary>
+    private readonly List<(TimeSpan At, int Slots)> _admits = new();
 
     /// <summary>Everyone holding a place, connected or not.</summary>
     public int Count => _entries.Count;
@@ -67,7 +68,11 @@ public sealed class JoinQueueLine
             return null;
 
         _entries.Remove(next);
-        _admits.Add(now);
+        // Several let in at once are one opening, not several instant ones.
+        if (_admits.Count > 0 && _admits[^1].At == now)
+            _admits[^1] = (now, _admits[^1].Slots + 1);
+        else
+            _admits.Add((now, 1));
         if (_admits.Count > AdmitSamples)
             _admits.RemoveAt(0);
 
@@ -98,13 +103,20 @@ public sealed class JoinQueueLine
     /// </summary>
     public int EstimateSeconds(int position, TimeSpan now)
     {
-        _admits.RemoveAll(admit => now - admit > AdmitWindow);
+        _admits.RemoveAll(admit => now - admit.At > AdmitWindow);
         if (position <= 0 || _admits.Count < 2)
             return MsgJoinQueueUpdate.NoEstimate;
 
-        var pace = (_admits[^1] - _admits[0]).TotalSeconds / (_admits.Count - 1);
+        // Seconds per slot: the slots after the first opening over the time they took.
+        var slots = 0;
+        for (var i = 1; i < _admits.Count; i++)
+        {
+            slots += _admits[i].Slots;
+        }
+
+        var pace = (_admits[^1].At - _admits[0].At).TotalSeconds / slots;
         // The next opening is already partly waited for.
-        var sinceLast = (now - _admits[^1]).TotalSeconds;
+        var sinceLast = (now - _admits[^1].At).TotalSeconds;
         return (int) Math.Max(0, pace * position - Math.Min(sinceLast, pace));
     }
 

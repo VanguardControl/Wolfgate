@@ -320,7 +320,7 @@ namespace Content.Server.Connection
             }
 
             // WOLFGATE(JoinQueue) START: queued players aren't playing, and a full server lets a player in to wait
-            softPlayerCount -= _joinQueue.WaitingCount;
+            softPlayerCount -= _joinQueue.WaitingForCap(_cfg.GetCVar(CCVars.AdminsCountForMaxPlayers));
 
             // if ((softPlayerCount >= _cfg.GetCVar(CCVars.SoftMaxPlayers) && !adminBypass) && !wasInGame)
             if ((softPlayerCount >= _cfg.GetCVar(CCVars.SoftMaxPlayers) && !adminBypass) && !wasInGame &&

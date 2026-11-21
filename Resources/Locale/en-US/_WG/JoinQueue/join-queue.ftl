@@ -18,3 +18,6 @@ join-queue-note-auto = YOU JOIN AUTOMATICALLY WHEN A SLOT OPENS. KEEP THE GAME O
 join-queue-note-hold = IF YOU DISCONNECT, YOUR PLACE IS HELD FOR { $time }.
 join-queue-hold-seconds = { $seconds } SECONDS
 join-queue-hold-minutes = { $minutes } MINUTES
+
+join-queue-admin-waiting = Player {$name} is waiting in the join queue.
+join-queue-admin-admitted = Player {$name} joined from the join queue.

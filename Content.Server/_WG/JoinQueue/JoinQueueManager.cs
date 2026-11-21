@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Content.Server.Administration.Managers;
+using Content.Server.Chat.Managers;
 using Content.Server.Database;
 using Content.Server.GameTicking;
 using Content.Shared._WG.JoinQueue;
@@ -31,6 +32,7 @@ public sealed partial class JoinQueueManager
     [Dependency] private IServerDbManager _db = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private ILogManager _log = default!;
+    [Dependency] private IChatManager _chat = default!;
 
     private readonly JoinQueueLine _line = new();
     private ISawmill _sawmill = default!;
@@ -39,9 +41,19 @@ public sealed partial class JoinQueueManager
 
     // Read by the status handler off the main thread.
     private volatile int _waiting;
+    private volatile int _waitingAdmins;
 
     /// <summary>Connected players waiting in the queue. Safe to read from any thread.</summary>
     public int WaitingCount => _waiting;
+
+    /// <summary>
+    /// Waiting players the cap check would otherwise count: all of them, or only non-admins when admins are already
+    /// left out of the count.
+    /// </summary>
+    public int WaitingForCap(bool adminsCount) => adminsCount ? _waiting : _waiting - _waitingAdmins;
+
+    /// <summary>Whether the player is connected and waiting in the queue.</summary>
+    public bool IsWaiting(NetUserId user) => _line.IsPresent(user);
 
     /// <summary>Waiting players to leave out of the reported player count. Safe to read from any thread.</summary>
     public int HiddenFromStatus => _cfg.GetCVar(JoinQueueCVars.CountInStatus) ? 0 : _waiting;
@@ -57,6 +69,8 @@ public sealed partial class JoinQueueManager
         _players.PlayerStatusChanged += OnStatusChanged;
         _cfg.OnValueChanged(CCVars.SoftMaxPlayers, _ => Changed());
         _cfg.OnValueChanged(JoinQueueCVars.Enabled, _ => Changed());
+        // An admin's rights load after they connect, and change who the cap counts.
+        _admins.OnPermsChanged += _ => Changed();
     }
 
     /// <summary>Whether a player refused by the cap may wait instead: the queue is on and has room, or holds their place.</summary>
@@ -137,11 +151,22 @@ public sealed partial class JoinQueueManager
             // Not inside the status event that may have brought us here.
             Timer.Spawn(0, () =>
             {
-                if (session.Status == SessionStatus.Connected)
-                    _players.JoinGame(session);
+                if (session.Status != SessionStatus.Connected)
+                    return;
+
+                _chat.SendAdminAnnouncement(Loc.GetString("join-queue-admin-admitted", ("name", session.Name)));
+                _players.JoinGame(session);
             });
         }
 
+        var admins = 0;
+        foreach (var user in _line.PresentUsers)
+        {
+            if (_players.TryGetSessionById(user, out var session) && _admins.IsAdmin(session))
+                admins++;
+        }
+
+        _waitingAdmins = admins;
         _waiting = _line.Present;
         _nextRefresh = now + RefreshInterval;
         if (_waiting == 0)

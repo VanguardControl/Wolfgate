@@ -58,7 +58,8 @@ namespace Content.Server.GameTicking
                     // timer time must be > tick length
                     // WOLFGATE(JoinQueue) START: a full server holds the player in the queue instead
                     // Timer.Spawn(0, () => _playerManager.JoinGame(args.Session));
-                    if (!await _joinQueue.TryHold(args.Session))
+                    var queued = await _joinQueue.TryHold(args.Session);
+                    if (!queued)
                         Timer.Spawn(0, () => _playerManager.JoinGame(args.Session));
                     // WOLFGATE END
 
@@ -66,9 +67,17 @@ namespace Content.Server.GameTicking
                     var firstConnection = record != null &&
                                           Math.Abs((record.FirstSeenTime - record.LastSeenTime).TotalMinutes) < 1;
 
-                    _chatManager.SendAdminAnnouncement(firstConnection
-                        ? Loc.GetString("player-first-join-message", ("name", args.Session.Name))
-                        : Loc.GetString("player-join-message", ("name", args.Session.Name)));
+                    // WOLFGATE(JoinQueue) START: a queued player is announced as waiting; the queue announces them when let in
+                    // _chatManager.SendAdminAnnouncement(firstConnection
+                    //     ? Loc.GetString("player-first-join-message", ("name", args.Session.Name))
+                    //     : Loc.GetString("player-join-message", ("name", args.Session.Name)));
+                    if (queued)
+                        _chatManager.SendAdminAnnouncement(Loc.GetString("join-queue-admin-waiting", ("name", args.Session.Name)));
+                    else
+                        _chatManager.SendAdminAnnouncement(firstConnection
+                            ? Loc.GetString("player-first-join-message", ("name", args.Session.Name))
+                            : Loc.GetString("player-join-message", ("name", args.Session.Name)));
+                    // WOLFGATE END
 
                     RaiseNetworkEvent(GetConnectionStatusMsg(), session.Channel);
 

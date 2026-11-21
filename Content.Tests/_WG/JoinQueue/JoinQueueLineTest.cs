@@ -107,4 +107,24 @@ public sealed class JoinQueueLineTest
         Assert.That(JoinQueueText.MinutesLeft(61), Is.EqualTo(2));
         Assert.That(JoinQueueText.MinutesLeft(-5), Is.Zero);
     }
+
+    [Test]
+    public void SeveralLetInAtOnceAreOneOpening()
+    {
+        var line = new JoinQueueLine();
+        foreach (var index in Enumerable.Range(0, 12))
+        {
+            line.Join(new NetUserId(Guid.NewGuid()), Sec(0));
+        }
+
+        // Ten let in together, say the cap went up, then one more after ten minutes.
+        foreach (var index in Enumerable.Range(0, 10))
+        {
+            line.TakeNext(Sec(0));
+        }
+
+        Assert.That(line.EstimateSeconds(1, Sec(0)), Is.EqualTo(MsgJoinQueueUpdate.NoEstimate), "one burst is no pace");
+        line.TakeNext(Sec(600));
+        Assert.That(line.EstimateSeconds(1, Sec(600)), Is.EqualTo(600), "the burst made the wait look instant");
+    }
 }

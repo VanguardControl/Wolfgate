@@ -6,6 +6,8 @@ in the queue, how long they have waited and a rough estimate of the wait. When a
 the lobby or the game as usual.
 
 - Admins who bypass the cap and players who already reached the lobby this round skip the queue, as they skip the cap.
+- A round restart leaves waiting players out of the lobby, so they can't ready up past the queue. Admins see
+  "waiting in the join queue" when a player starts waiting and "joined from the join queue" when let in.
 - A queued player who disconnects keeps their place for `wg.join_queue.hold_seconds` (120). A slot that opens while
   they are away goes to the next connected player, and their place stays.
 - The queue holds `wg.join_queue.max_size` (50) players; past that the server refuses the connection as before.
@@ -18,7 +20,7 @@ the lobby or the game as usual.
 
 `JoinQueueManager` (server) decides at `SessionStatus.Connected` whether a player joins or waits, where `GameTicker`
 would call `JoinGame`. It lets players in when someone disconnects, when the cap changes, and on its tick. The order,
-held places and the estimate are `JoinQueueLine`; the estimate is the pace of the last ten openings times the player's
+held places and the estimate are `JoinQueueLine`; the estimate is the pace of the last ten openings (players let in together count as one) times the player's
 place, and is unknown until two slots have opened. Each change sends every waiting player a `MsgJoinQueueUpdate`, and
 at least every ten seconds.
 
@@ -67,9 +69,15 @@ the player was let in: the screen says so until the lobby or the game takes over
 - [`Content.Client/Entry/EntryPoint.cs`](../../../Content.Client/Entry/EntryPoint.cs): register the queue message
 - [`Content.Client/IoC/ClientContentIoC.cs`](../../../Content.Client/IoC/ClientContentIoC.cs): shows the queue screen when the server is full
 - [`Content.Server/Connection/ConnectionManager.cs`](../../Connection/ConnectionManager.cs): queued players aren't playing, and a full server lets a player in to wait
+- [`Content.Server/Connection/ConnectionManager.Whitelist.cs`](../../Connection/ConnectionManager.Whitelist.cs): players waiting in the queue aren't playing
 - [`Content.Server/Entry/EntryPoint.cs`](../../Entry/EntryPoint.cs): holds players a full server has no slot for
 - [`Content.Server/GameTicking/GameTicker.Lobby.cs`](../../GameTicking/GameTicker.Lobby.cs): players waiting in the queue aren't in the lobby
-- [`Content.Server/GameTicking/GameTicker.Player.cs`](../../GameTicking/GameTicker.Player.cs): a full server holds the player in the queue instead
+- [`Content.Server/GameTicking/GameTicker.Player.cs`](../../GameTicking/GameTicker.Player.cs)
+  - a full server holds the player in the queue instead
+  - a queued player is announced as waiting; the queue announces them when let in
+- [`Content.Server/GameTicking/GameTicker.RoundFlow.cs`](../../GameTicking/GameTicker.RoundFlow.cs)
+  - players waiting in the queue stay out of the lobby until let in
+  - players waiting in the queue get no lobby status until let in
 - [`Content.Server/GameTicking/GameTicker.StatusShell.cs`](../../GameTicking/GameTicker.StatusShell.cs): waiting players only count when wg.join_queue.count_in_status is on
 - [`Content.Server/IoC/ServerContentIoC.cs`](../../IoC/ServerContentIoC.cs): holds players a full server has no slot for
 
