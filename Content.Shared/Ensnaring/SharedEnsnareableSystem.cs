@@ -235,7 +235,7 @@ public abstract partial class SharedEnsnareableSystem : EntitySystem
             ensnared.IsEnsnared = ensnared.Container.ContainedEntities.Any(other => other != uid);
             Dirty(target, ensnared);
             UpdateAlert(target, ensnared);
-            RaiseLocalEvent(uid, new EnsnareRemoveEvent(component.WalkSpeed, component.SprintSpeed));
+            RaiseLocalEvent(target, new EnsnareRemoveEvent(component.WalkSpeed, component.SprintSpeed));
             return;
         }
         // WOLFGATE END
