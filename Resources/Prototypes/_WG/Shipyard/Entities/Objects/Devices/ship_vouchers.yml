@@ -43,3 +43,47 @@
     cooldown: 14400 # four hours, same as the Saturn
     vessels:
     - WGFoxtrotII
+
+# Francesca's Bratan voucher
+- type: entity
+  parent: BaseShipVoucher
+  id: WFShipVoucherBratan
+  name: Bratan ship voucher
+  description: Allows you to pull the Bratan out of storage.
+  components:
+  - type: Sprite
+    sprite: _Mono/Objects/Misc/lpcnew.rsi
+    layers:
+    - state: icon
+    - state: screen
+      color: "#aa0000"
+    - state: screen1
+      color: "#aa0000"
+      shader: unshaded
+  - type: ShipyardVoucher
+    destroyOnEmpty: true
+    companyName: PB
+    vessels:
+    - WFBratan
+
+# Samhain's Mudskipper voucher
+- type: entity
+  parent: BaseShipVoucher
+  id: WFShipVoucherMudskipper
+  name: Mudskipper ship voucher
+  description: Allows you to pull her out of storage.
+  components:
+  - type: Sprite
+    sprite: _Mono/Objects/Misc/lpcnew.rsi
+    layers:
+    - state: icon
+    - state: screen
+      color: "#aa00aa"
+    - state: screen8
+      color: "#aa00aa"
+      shader: unshaded
+  - type: ShipyardVoucher
+    destroyOnEmpty: true
+    companyName: SK
+    vessels:
+    - WFMudskipper

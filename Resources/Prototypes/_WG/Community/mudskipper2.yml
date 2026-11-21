@@ -1,0 +1,34 @@
+- type: vessel
+  id: WFMudskipper
+  parent: BaseVessel
+  name: 'ZKR Mudskipper'
+  description: 'Samhain''s Mudskipper. Only he would have the necessary voucher.'
+  price: 64000 # appraised at 50676
+  category: Medium # 290 tiles
+  group: Syndicate # Underground
+  access: Underground
+  purchasable: false # voucher only: WFShipVoucherMudskipper
+  shuttlePath: /SharedMaps/_WG/Community/mudskipper2.yml
+  guidebookPage: null
+  class:
+  - Mercenary
+  engine:
+  - Plasma
+
+- type: gameMap
+  id: WFMudskipper
+  mapName: 'ZKR Mudskipper'
+  mapPath: /SharedMaps/_WG/Community/mudskipper2.yml
+  minPlayers: 0
+  stations:
+    WFMudskipper:
+      stationProto: StandardFrontierVessel
+      components:
+      - type: StationNameSetup
+        mapNameTemplate: 'Mudskipper {1}'
+        nameGenerator:
+          !type:NanotrasenNameGenerator
+          prefixCreator: '14'
+      - type: StationJobs
+        availableJobs:
+          Contractor: [ 0, 0 ]
