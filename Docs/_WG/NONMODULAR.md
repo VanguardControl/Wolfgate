@@ -196,6 +196,10 @@ Standalone edits outside `_WG` that serve no module: files with an untagged `WOL
   - Active defaults to true, so every server built broadcast its list before it was ever chosen
   - one active server per server type, since a second map's broadcast overwrote every console's list
   - one active server per server type, from the asking map first
+- [`Content.Server/Emp/EmpSystem.cs`](../../Content.Server/Emp/EmpSystem.cs)
+  - EMP trigger guard
+  - the tick and entities of the EMP trigger guard in HandleEmpTrigger
+  - one pulse per entity per tick; a trigger-on-collide round fired once per body it overlapped
 - [`Content.Server/Explosion/EntitySystems/ExplosionGridTileFlood.cs`](../../Content.Server/Explosion/EntitySystems/ExplosionGridTileFlood.cs)
   - a freed tile is never scheduled earlier than the current iteration.
   - a blocker never clears earlier than the current iteration.
