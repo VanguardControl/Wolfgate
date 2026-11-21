@@ -5,6 +5,7 @@ using Content.Server._WG.Caverns;
 using Content.Server._WG.Planets;
 using Content.Server._WG.Planets.Atmosphere;
 using Content.Server._WG.Planets.Bounds;
+using Content.Server._WG.Wilderness;
 using Content.Server.Parallax;
 using Content.Server.Popups;
 using Content.Server.Procedural;
@@ -40,6 +41,7 @@ public sealed partial class WGPlanetPoiSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private WGPlanetPreloadSystem _preload = default!;
     [Dependency] private WGTerrainAtmosphereSystem _terrainAtmos = default!;
+    [Dependency] private WGZoneSystem _zones = default!;
 
     /// <summary>The orbit-layer marker over a site.</summary>
     public const string SignalProto = "WGPoiSignal";

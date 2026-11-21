@@ -30,6 +30,7 @@
     - MonolithRuleConflictFourPortStriking
     - WGRuleConflictFiveDeclaringWar # WOLFGATE(ColdWar)
     - WGRuleConflictSixNewPlayers # WOLFGATE(Newbie)
+    - WGWilderness # WOLFGATE(Wilderness): the zones page sits with the conflict rules
 
 #MARK: Core Rules
 

@@ -10,8 +10,9 @@
 <!-- WOLFGATE: rule colours readable on light and dark backgrounds -->-- Or if they stay within [color=#b8860b][bold]512 meters[/bold][/color] of your base for [color=#b8860b][bold]30 seconds[/bold][/color] after being warned.
 -- Or if you catch them spying or sabotaging on your ship or base (that person only).
 
-<!-- WOLFGATE: rule colours readable on light and dark backgrounds -->- Event POIs (vaults, weapons caches, wrecks and other bluespace events), PDV drop pods and Monolithic Fragments are [color=#d93c3c][bold]conflict zones[/bold][/color], even while COLD. TSF and PDV can fight each other within [color=#b8860b][bold]512 meters[/bold][/color] of one without escalation.
--- The fight stays there. Do not hunt them down once they leave.
+<!-- WOLFGATE(Wilderness): conflict zones are Wildernesses, with the mark -->- Event POIs (vaults, weapons caches, wrecks and other bluespace events, planetary vaults), PDV drop pods and Monolithic Fragments are [color=#d93c3c][bold]Wildernesses[/bold][/color]: everything within [color=#b8860b][bold]512 meters[/bold][/color] of one, even while COLD. Your screen shows a red WILDERNESS banner and border while you are in one.
+<!-- WOLFGATE(Wilderness): who may fight and the mark follow the server's settings --><WGWildernessRule/>
+<!-- WOLFGATE(Wilderness): was "The fight stays there. Do not hunt them down once they leave." -->-- Once out of the Wilderness and unmarked, the fight is over. Do not hunt them down. See [textlink="Zones and the Wilderness" link="WGWilderness"].
 
 - [bold]An incident is not a war.[/bold] Force stays with the people and ships involved and ends when one side breaks off.
 

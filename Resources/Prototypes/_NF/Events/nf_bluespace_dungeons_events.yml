@@ -36,6 +36,10 @@
           inherent: true
         - type: IFF
         - type: LinkedLifecycleGridParent
+        # WOLFGATE(Wilderness) START: event sites are Wildernesses
+        - type: WGZoneSource
+          zone: WGWilderness
+        # WOLFGATE END
         # Mono - make it movable
         #- type: ProtectedGrid
         #  preventArtifactTriggers: true

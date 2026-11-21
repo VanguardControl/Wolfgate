@@ -1,0 +1,47 @@
+- type: alertCategory
+  id: WGZone
+
+- type: alert
+  id: WGZoneSafe
+  category: WGZone
+  icons:
+  - sprite: /Textures/_WG/Wilderness/zones.rsi
+    state: safe
+  name: wg-alert-zone-safe-name
+  description: wg-alert-zone-safe-desc
+
+- type: alert
+  id: WGZoneOutpost
+  category: WGZone
+  icons:
+  - sprite: /Textures/_WG/Wilderness/zones.rsi
+    state: outpost
+  name: wg-alert-zone-outpost-name
+  description: wg-alert-zone-outpost-desc
+
+- type: alert
+  id: WGZoneWilderness
+  category: WGZone
+  icons:
+  - sprite: /Textures/_WG/Wilderness/zones.rsi
+    state: wilderness
+  name: wg-alert-zone-wilderness-name
+  description: wg-alert-zone-wilderness-desc
+
+- type: alert
+  id: WGZoneNotSafe
+  category: WGZone
+  icons:
+  - sprite: /Textures/_WG/Wilderness/zones.rsi
+    state: notsafe
+  name: wg-alert-zone-notsafe-name
+  description: wg-alert-zone-notsafe-desc
+
+- type: alert
+  id: WGMarked
+  category: WGZone
+  icons:
+  - sprite: /Textures/_WG/Wilderness/zones.rsi
+    state: marked
+  name: wg-alert-marked-name
+  description: wg-alert-marked-desc

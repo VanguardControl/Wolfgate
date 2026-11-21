@@ -1,0 +1,96 @@
+# Zones the rules give a protection status to. Grids and markers name them in a WGZoneSource.
+
+- type: wgZone
+  id: WGSafeZone
+  kind: Safe
+  priority: 30
+  radius: 256
+  color: "#2e9e4f"
+  title: wg-zone-safe-title
+  summary: wg-zone-safe-summary
+  entered: wg-zone-safe-entered
+  left: wg-zone-safe-left
+  ringLabel: wg-zone-safe-ring
+  alert: WGZoneSafe
+  icon:
+    sprite: _WG/Wilderness/zones.rsi
+    state: safe
+  enterSound:
+    path: /Audio/Misc/notice2.ogg
+  guide: MonolithRuleRoleplaySevenSafeZones
+
+- type: wgZone
+  id: WGFactionOutpost
+  kind: Outpost
+  priority: 20
+  radius: 256
+  color: "#d68c14"
+  title: wg-zone-outpost-title
+  summary: wg-zone-outpost-summary
+  hotTitle: wg-zone-outpost-hot-title
+  hotSummary: wg-zone-outpost-hot-summary
+  entered: wg-zone-outpost-entered
+  left: wg-zone-outpost-left
+  ringLabel: wg-zone-outpost-ring
+  alert: WGZoneOutpost
+  icon:
+    sprite: _WG/Wilderness/zones.rsi
+    state: outpost
+  enterSound:
+    path: /Audio/Misc/notice1.ogg
+  guide: MonolithRuleConflictFourPortStriking
+
+- type: wgZone
+  id: WGWilderness
+  kind: Wilderness
+  priority: 10
+  radius: 512
+  color: "#e0281e"
+  title: wg-zone-wilderness-title
+  summary: wg-zone-wilderness-summary
+  entered: wg-zone-wilderness-entered
+  left: wg-zone-wilderness-left
+  ringLabel: wg-zone-wilderness-ring
+  alert: WGZoneWilderness
+  icon:
+    sprite: _WG/Wilderness/zones.rsi
+    state: wilderness
+  enterSound:
+    path: /Audio/Effects/alert.ogg
+  guide: WGWilderness
+  skulls: true
+  border: true
+
+- type: wgZone
+  id: WGNotSafe
+  kind: NotSafe
+  priority: 5
+  color: "#9aa4ad"
+  title: wg-zone-notsafe-title
+  summary: wg-zone-notsafe-summary
+  entered: wg-zone-notsafe-entered
+  left: wg-zone-notsafe-left
+  ringLabel: wg-zone-notsafe-ring
+  alert: WGZoneNotSafe
+  icon:
+    sprite: _WG/Wilderness/zones.rsi
+    state: notsafe
+  guide: WGWilderness
+  rings: false
+
+- type: wgZone
+  id: WGNotSafeMobile
+  kind: NotSafe
+  priority: 5
+  color: "#9aa4ad"
+  title: wg-zone-notsafe-title
+  summary: wg-zone-notsafe-mobile-summary
+  entered: wg-zone-notsafe-entered
+  left: wg-zone-notsafe-left
+  ringLabel: wg-zone-notsafe-ring
+  alert: WGZoneNotSafe
+  icon:
+    sprite: _WG/Wilderness/zones.rsi
+    state: notsafe
+  guide: MonolithRuleConflictFourPortStriking
+  rings: false

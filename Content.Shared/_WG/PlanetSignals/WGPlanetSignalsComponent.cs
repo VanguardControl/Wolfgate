@@ -18,7 +18,8 @@ public sealed partial class WGPlanetSignalsComponent : Component
 /// <summary>
 /// One thing on a world. A site's name is its Fluent id, empty until the site is identified; a vessel's or a tracked
 /// person's is their own. <paramref name="Expedition"/> is the grid of the ship running an expedition on a site;
-/// <paramref name="Condition"/> is a tracked person's.
+/// <paramref name="Condition"/> is a tracked person's; <paramref name="Marked"/> is whether a vessel has a Wilderness
+/// mark, which its grid can't show from another layer.
 /// </summary>
 [Serializable, NetSerializable]
 public readonly record struct WGPlanetSignal(
@@ -28,7 +29,8 @@ public readonly record struct WGPlanetSignal(
     NetEntity Map,
     WGPlanetSignalLayer Layer,
     NetEntity? Expedition,
-    WGPlanetSignalCondition Condition = WGPlanetSignalCondition.None);
+    WGPlanetSignalCondition Condition = WGPlanetSignalCondition.None,
+    bool Marked = false);
 
 /// <summary>A vessel, a site, or a person whose medical tracker gives them away.</summary>
 public enum WGPlanetSignalKind : byte { Vessel, Site, Person }

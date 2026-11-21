@@ -29,6 +29,10 @@
       # WOLFGATE(TradeGoods): names the station for its role in the sector economy
       - type: WGTradeStation
         id: Frontier
+      # WOLFGATE(Wilderness) START: the Safe Zone round Central
+      - type: WGZoneSource
+        zone: WGSafeZone
+      # WOLFGATE END
       components:
         - type: StationNameSetup
           mapNameTemplate: 'Caelestinus Central'

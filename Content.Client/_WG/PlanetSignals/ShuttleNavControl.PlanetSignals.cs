@@ -88,6 +88,7 @@ public partial class ShuttleNavControl
                 WGPlanetSignalKind.Person => signal.Condition == WGPlanetSignalCondition.Alive ? WgPersonColor : WgPersonHurtColor,
                 _ => WgVesselColor,
             };
+            color = WgMarkSignal(signal.Marked, point, color);
             if (signal.Kind == WGPlanetSignalKind.Person)
             {
                 handle.DrawLine(point - new Vector2(size, 0f), point + new Vector2(size, 0f), color);

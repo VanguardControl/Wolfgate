@@ -35,6 +35,10 @@
         - type: PreventPilot
         - type: ForceAnchor # Added post-FTL, so anchoring is fine.
         - type: ClaimableGrid # Mono
+        # WOLFGATE(Wilderness) START: event sites are Wildernesses
+        - type: WGZoneSource
+          zone: WGWilderness
+        # WOLFGATE END
         paths:
         - /Maps/_NF/Bluespace/cache.yml
     rewardAccounts:
@@ -75,6 +79,10 @@
           preventArtifactTriggers: true
         - type: PreventPilot
         - type: ForceAnchor
+        # WOLFGATE(Wilderness) START: event sites are Wildernesses
+        - type: WGZoneSource
+          zone: WGWilderness
+        # WOLFGATE END
         paths:
         - /Maps/_NF/Bluespace/vault.yml
     rewardAccounts:
@@ -125,6 +133,10 @@
           preventArtifactTriggers: true
         - type: PreventPilot
         - type: ForceAnchor
+        # WOLFGATE(Wilderness) START: event sites are Wildernesses
+        - type: WGZoneSource
+          zone: WGWilderness
+        # WOLFGATE END
         paths:
         - /Maps/_NF/Bluespace/vaultsmall.yml
     rewardAccounts:
@@ -173,6 +185,10 @@
 #        - type: PreventPilot
 #        - type: ForceAnchor
 # Mono edit end
+        # WOLFGATE(Wilderness) START: event sites are Wildernesses
+        - type: WGZoneSource
+          zone: WGWilderness
+        # WOLFGATE END
         paths:
         - /Maps/_NF/Bluespace/syndieftlintercept.yml
 
@@ -204,6 +220,10 @@
         - type: IFF
           color: "#E10F9B"
         - type: LinkedLifecycleGridParent
+        # WOLFGATE(Wilderness) START: event sites are Wildernesses
+        - type: WGZoneSource
+          zone: WGWilderness
+        # WOLFGATE END
         paths:
         - /Maps/_Mono/Bluespace/prefracture.yml
 # Mono edit end

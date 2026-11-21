@@ -1,0 +1,15 @@
+- type: entity
+  id: WGZoneMarker
+  name: zone marker
+  description: The centre of a zone that has no grid of its own, such as a site on a planet.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Transform
+
+# The skull over a marked person. WGSkullOverlay draws it centred above the sprite, apart from the status icon rows,
+# and hides it where they hide.
+- type: factionIcon
+  id: WGSkullIcon
+  icon:
+    sprite: /Textures/_WG/Wilderness/skull_icon.rsi
+    state: skull
