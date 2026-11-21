@@ -7,6 +7,7 @@ using Content.Client.UserInterface.Controls;
 using Content.IntegrationTests.Tests.Interaction;
 using Content.Shared.Examine;
 using Content.Shared._WG.Screentips;
+using Robust.Client.Graphics;
 using Robust.Client.State;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
@@ -80,6 +81,38 @@ public sealed class ScreentipTest : InteractionTest
         });
         await RunTicks(5);
         await Client.WaitAssertion(() => Assert.That(tips.InDark(CTarget!.Value), Is.False, "A lit mob is named."));
+    }
+
+    [Test]
+    public async Task DarknessGateFollowsViewLighting()
+    {
+        await SpawnTarget("MobHuman");
+        var controller = Client.ResolveDependency<IUserInterfaceManager>().GetUIController<ScreentipUIController>();
+        var darkness = Client.System<WGHoverDarknessSystem>();
+        var lightManager = Client.ResolveDependency<ILightManager>();
+        var darknessField = typeof(ScreentipUIController).GetField("_darkness", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        var lightingWas = lightManager.Enabled;
+        await RunTicks(3);
+
+        try
+        {
+            await Client.WaitAssertion(() =>
+            {
+                Assert.That(darknessField.GetValue(controller), Is.SameAs(darkness), "The controller gets the darkness system.");
+
+                var viewport = ((MainViewport) GetWidget<MainViewport>()).Viewport;
+                lightManager.Enabled = true;
+                Assert.That(darkness.HiddenInDark(CTarget!.Value, viewport), Is.True, "An unlit mob is hidden while the view draws lighting.");
+
+                // A ghost's lighting toggle turns lighting off, and then everything is visible.
+                lightManager.Enabled = false;
+                Assert.That(darkness.HiddenInDark(CTarget!.Value, viewport), Is.False, "Nothing is hidden with lighting off.");
+            });
+        }
+        finally
+        {
+            await Client.WaitPost(() => lightManager.Enabled = lightingWas);
+        }
     }
 
     [Test]
