@@ -144,6 +144,12 @@ public sealed partial class WGColdStoreSystem
     /// </summary>
     private void RestoreNext(TimeSpan now)
     {
+        if (_active != null)
+        {
+            StepStagedRestore();
+            return;
+        }
+
         if (_restoreQueue.Count == 0)
             return;
 
@@ -177,14 +183,21 @@ public sealed partial class WGColdStoreSystem
             return;
 
         _restoreQueue.Remove(best.StandIn);
-        TryRestore(best, bestPriority);
+        if (_restoreBudgetMs > 0f)
+            BeginStagedRestore(best, bestPriority);
+        else
+            TryRestore(best, bestPriority);
     }
 
     /// <summary>Restores a stored grid now, whatever its state; for admins and tests. False if it failed.</summary>
     public bool RestoreNow(EntityUid standIn)
     {
         _restoreQueue.Remove(standIn);
-        return _stored.TryGetValue(standIn, out var record) && TryRestore(record, 0f);
+        if (!_stored.TryGetValue(standIn, out var record))
+            return false;
+
+        AbortStagedRestore(record);
+        return TryRestore(record, 0f);
     }
 
     /// <summary>Whether a stored grid's bytes are still held.</summary>
@@ -230,7 +243,15 @@ public sealed partial class WGColdStoreSystem
             return false;
         }
 
-        var grid = loaded.Value.Owner;
+        return FinishRestore(record, loaded.Value.Owner, priority, loadMs, watch, 1, 0);
+    }
+
+    /// <summary>
+    /// Redoes what loading skips and moves a loaded grid from its staging map to where its stand-in is. On a failure
+    /// the grid is deleted and the stand-in and bytes stay.
+    /// </summary>
+    private bool FinishRestore(WGStoredGrid record, EntityUid grid, float priority, double loadMs, Stopwatch watch, int ticks, double worstMs)
+    {
         _reinit.ReinitLoadedShip(grid);
 
         _transform.SetCoordinates(grid, new EntityCoordinates(record.Map, record.Position));
@@ -255,13 +276,17 @@ public sealed partial class WGColdStoreSystem
         Forget(record);
         Del(standIn);
 
-        var total = watch.Elapsed.TotalMilliseconds;
-        _sampleWorstRestore = Math.Max(_sampleWorstRestore, total);
+        // The slowest tick is what a player feels: the last one, or an earlier slice of a load spread over ticks.
+        var last = watch.Elapsed.TotalMilliseconds;
+        var worst = Math.Max(worstMs, last);
+        var total = ticks > 1 ? loadMs + last : last;
+        _sampleWorstRestore = Math.Max(_sampleWorstRestore, worst);
         LastRestore = (record.Name, record.Entities, loadMs, total, record.Bytes);
+        LastRestoreTicks = ticks;
         Restores++;
         RestoresCounter.Inc();
-        var message = $"Restored {record.Name} ({record.Key}): {record.Entities} entities, load {loadMs:0.#} ms, all {total:0.#} ms in one tick, {record.Bytes} bytes.";
-        if (total > _maxRestoreMs)
+        var message = $"Restored {record.Name} ({record.Key}): {record.Entities} entities, load {loadMs:0.#} ms, all {total:0.#} ms over {ticks} tick(s), slowest {worst:0.#} ms, {record.Bytes} bytes.";
+        if (worst > _maxRestoreMs)
             Log.Warning($"{message} Over wg.coldstore.max_restore_ms ({_maxRestoreMs:0} ms).");
         else
             Log.Info(message);
@@ -290,6 +315,7 @@ public sealed partial class WGColdStoreSystem
     /// <summary>Drops a stored grid's record and bytes; the stand-in is the caller's.</summary>
     private void Forget(WGStoredGrid record)
     {
+        AbortStagedRestore(record);
         _stored.Remove(record.StandIn);
         _restoreQueue.Remove(record.StandIn);
         Backend.Remove(record.Key);

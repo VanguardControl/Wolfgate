@@ -138,7 +138,10 @@ links, access and names come back.
 
 Gauges: `wg_coldstore_grids`, `wg_coldstore_entities`, `wg_coldstore_bytes`, `wg_coldstore_worst_restore_ms`, and
 counters for stores, restores, aborts, failed loads and expiries; `wg_entcensus` shows the stored totals.
-`wg.coldstore.max_restore_ms` (50) only marks slow restores in the log, as a load can't be split yet.
+`wg.coldstore.restore_budget_ms` (4) spreads a restore's load over ticks: the bytes are unpacked and parsed on a
+worker thread, then the engine builds the grid that many milliseconds a tick (`MapLoaderSystem.BeginLoadGrid`, a
+Lupine patch). Once what woke the grid is within 150 m the rest is done at once; 0 loads in one call as before.
+`wg.coldstore.max_restore_ms` (50) only marks restores whose slowest tick was over it in the log.
 `wg_coldstore` (Debug) lists stored grids, `wg_coldstore store <grid>` stores one now (skipping only the idle time;
 refused while storing or stasis is off) or says why not, `wg_coldstore restore <stand-in>` brings one back now, and
 `wg_coldstore restore all` queues every one to come back a tick at a time.
@@ -167,6 +170,7 @@ refused while storing or stasis is off) or says why not, `wg_coldstore restore <
 - [`Content.Server/_WG/ColdStorage/WGColdStoreSystem.cs`](WGColdStoreSystem.cs)
 - [`Content.Server/_WG/ColdStorage/WGColdStoreSystem.Eligibility.cs`](WGColdStoreSystem.Eligibility.cs)
 - [`Content.Server/_WG/ColdStorage/WGColdStoreSystem.Restore.cs`](WGColdStoreSystem.Restore.cs)
+- [`Content.Server/_WG/ColdStorage/WGColdStoreSystem.Staged.cs`](WGColdStoreSystem.Staged.cs)
 - [`Content.Server/_WG/ColdStorage/WGEntityPressureSystem.cs`](WGEntityPressureSystem.cs)
 - [`Content.Server/_WG/ColdStorage/WGGridStasis.cs`](WGGridStasis.cs)
 - [`Content.Server/_WG/ColdStorage/WGGridStasisSystem.Attendance.cs`](WGGridStasisSystem.Attendance.cs)
@@ -193,7 +197,9 @@ refused while storing or stasis is off) or says why not, `wg_coldstore restore <
 
 ## Non-modular edits
 
-- [`Content.IntegrationTests/PoolManager.Cvars.cs`](../../../Content.IntegrationTests/PoolManager.Cvars.cs): tests look at grids nobody is near; stasis tests turn it on
+- [`Content.IntegrationTests/PoolManager.Cvars.cs`](../../../Content.IntegrationTests/PoolManager.Cvars.cs)
+  - tests look at grids nobody is near; stasis tests turn it on
+  - restores finish on the tick they start, not after a worker thread
 - [`Content.Server/_Mono/Cleanup/GridCleanupSystem.cs`](../../_Mono/Cleanup/GridCleanupSystem.cs)
   - tighter under entity pressure
   - sooner under entity pressure

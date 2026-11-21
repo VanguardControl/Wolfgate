@@ -42,6 +42,7 @@ public static partial class PoolManager
         ("wg.encounters.simulate", "false"), // WOLFGATE(Encounters): tests spawn real ships unless they turn simulation on
         ("wg.planet_site_stash", "false"), // WOLFGATE(Dormancy): tests look at a formed world's sites with nobody near
         ("wg.stasis.enabled", "false"), // WOLFGATE(ColdStorage): tests look at grids nobody is near; stasis tests turn it on
+        ("wg.coldstore.restore_budget_ms", "0"), // WOLFGATE(ColdStorage): restores finish on the tick they start, not after a worker thread
         ("wg.planet_cargo_hub_chance", "0"), // WOLFGATE(PlanetCargoHubs): a hub would take the room other tests' sites expect
         ("wg.caverns", "false"), // WOLFGATE(Caverns): tests that want a cavern turn caverns on themselves
         ("wg.net.map_scoped_grids", "false"), // WOLFGATE(NetTraffic): test maps have no viewer, and the pair waits for the client to get them

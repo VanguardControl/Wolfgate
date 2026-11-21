@@ -127,6 +127,7 @@ public sealed partial class WGColdStoreSystem : EntitySystem
         Subs.CVar(_cfg, WGColdStoreCVars.MinEntities, value => _minEntities = value, true);
         Subs.CVar(_cfg, WGColdStoreCVars.RestoreRange, value => _restoreRange = value, true);
         Subs.CVar(_cfg, WGColdStoreCVars.MaxRestoreMs, value => _maxRestoreMs = value, true);
+        Subs.CVar(_cfg, WGColdStoreCVars.RestoreBudgetMs, value => _restoreBudgetMs = value, true);
 
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<WGStoredGridComponent, EntityTerminatingEvent>(OnStandInTerminating);
@@ -140,6 +141,7 @@ public sealed partial class WGColdStoreSystem : EntitySystem
     public override void Shutdown()
     {
         base.Shutdown();
+        AbortStagedRestore();
         _logs.GetSawmill("entity_serializer").RemoveHandler(_serializerErrors);
     }
 
@@ -477,6 +479,7 @@ public sealed partial class WGColdStoreSystem : EntitySystem
         if (!_stored.Remove(ent.Owner, out var record))
             return;
 
+        AbortStagedRestore(record);
         Backend.Remove(record.Key);
         StoredEntities -= record.Entities;
         _restoreQueue.Remove(ent.Owner);
@@ -485,6 +488,7 @@ public sealed partial class WGColdStoreSystem : EntitySystem
 
     private void OnRoundRestart(RoundRestartCleanupEvent args)
     {
+        AbortStagedRestore();
         _stored.Clear();
         _neverStore.Clear();
         _skipUntil.Clear();

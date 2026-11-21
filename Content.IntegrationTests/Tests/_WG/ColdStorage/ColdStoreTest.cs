@@ -135,7 +135,7 @@ public sealed class ColdStoreTest
 
             await server.WaitRunTicks(30);
             var restored = await Restore(pair, standIn, "Cold store wreck");
-            await server.WaitAssertion(() =>
+            Action sameAsBefore = () =>
             {
                 var xform = entMan.GetComponent<TransformComponent>(restored);
                 Assert.That(xform.ParentUid, Is.EqualTo(map.MapUid));
@@ -164,14 +164,32 @@ public sealed class ColdStoreTest
                 Assert.That(entMan.GetComponent<DoorComponent>(restoredDoor).State, Is.EqualTo(DoorState.Open), "The open door came back shut.");
                 Assert.That(entMan.GetComponent<MetaDataComponent>(restoredDoor).EntityPaused, Is.False, "The wreck came back paused.");
 
-                TestContext.Out.WriteLine($"First store: {cold.LastStore}; restore: {cold.LastRestore}");
-            });
+                TestContext.Out.WriteLine($"Store: {cold.LastStore}; restore: {cold.LastRestore}");
+            };
+            await server.WaitAssertion(sameAsBefore);
 
             // Again, warm: the first save and load of a process pay for the serializer's start-up.
             await server.WaitRunTicks(30);
             var again = await Store(pair, restored);
-            await Restore(pair, again, "Cold store wreck");
+            restored = await Restore(pair, again, "Cold store wreck");
             await server.WaitPost(() => TestContext.Out.WriteLine($"Second store: {cold.LastStore}; restore: {cold.LastRestore}"));
+
+            // And spread over ticks: parsed off the main thread, then built a slice a tick on a map of its own.
+            await server.WaitRunTicks(30);
+            standIn = await Store(pair, restored);
+            await server.WaitPost(() =>
+            {
+                server.CfgMan.SetCVar(WGColdStoreCVars.RestoreBudgetMs, 0.5f);
+                Assert.That(cold.QueueRestoreAll(), Is.EqualTo(1));
+            });
+            await RunUntil(pair, () => cold.Stored.Count == 0 && !cold.Restoring);
+            await server.WaitPost(() => restored = FindGrid(entMan, "Cold store wreck")!.Value);
+            await server.WaitAssertion(sameAsBefore);
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(cold.LastRestoreTicks, Is.GreaterThan(3), "The load was not spread over ticks.");
+                TestContext.Out.WriteLine($"Staged restore over {cold.LastRestoreTicks} ticks.");
+            });
         }
         finally
         {
@@ -809,6 +827,7 @@ public sealed class ColdStoreTest
         {
             var cfg = pair.Server.CfgMan;
             cfg.SetCVar(WGColdStoreCVars.Enabled, false);
+            cfg.SetCVar(WGColdStoreCVars.RestoreBudgetMs, 0f);
             cfg.SetCVar(WGColdStoreCVars.MinEntities, 150);
             cfg.SetCVar(WGColdStoreCVars.Idle, 900f);
             cfg.SetCVar(WGStasisCVars.Enabled, false);

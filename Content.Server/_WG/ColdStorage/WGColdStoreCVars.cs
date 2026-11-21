@@ -22,7 +22,14 @@ public sealed class WGColdStoreCVars
     public static readonly CVarDef<float> RestoreRange =
         CVarDef.Create("wg.coldstore.restore_range", 600f, CVar.SERVERONLY);
 
-    /// <summary>Milliseconds a restore should take at most; only compared and logged for now, as a load can't be split.</summary>
+    /// <summary>
+    /// Milliseconds a tick a restore's load may take, so a big hull comes back over many ticks; 0 loads it in one call.
+    /// Ignored once what woke the grid is within <see cref="WGColdStoreSystem.UrgentRange"/>.
+    /// </summary>
+    public static readonly CVarDef<float> RestoreBudgetMs =
+        CVarDef.Create("wg.coldstore.restore_budget_ms", 4f, CVar.SERVERONLY);
+
+    /// <summary>Milliseconds a restore's slowest tick should take at most; only compared and logged.</summary>
     public static readonly CVarDef<float> MaxRestoreMs =
         CVarDef.Create("wg.coldstore.max_restore_ms", 50f, CVar.SERVERONLY);
 }
