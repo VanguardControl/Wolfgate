@@ -297,6 +297,7 @@ shot (`MeleeWeaponSystem.SecondaryKey.cs`, `SecondaryKeyGunTest`).
 - [`Resources/Prototypes/_Mono/Recipes/Lathes/merc_weapons.yml`](../../../Resources/Prototypes/_Mono/Recipes/Lathes/merc_weapons.yml): Strix is craftable through research. Lee Enfield, Keyboard, Energy Gun, Viper and MK32 are craftable.
 - [`Resources/Prototypes/_Mono/Research/arsenal.yml`](../../../Resources/Prototypes/_Mono/Research/arsenal.yml): Make Strix craftable through research
 - [`Resources/Prototypes/_Mono/Research/Organizations/mieyo.yml`](../../../Resources/Prototypes/_Mono/Research/Organizations/mieyo.yml): the Sakura needs its .160 smart magazine
+- [`Resources/Prototypes/_Mono/Research/Universal/prerequisites.yml`](../../../Resources/Prototypes/_Mono/Research/Universal/prerequisites.yml): the SKR FMJ box sat in the dynamic pack with no tech to unlock it
 - [`Resources/Prototypes/_NF/Recipes/Lathes/Packs/Deprecated/mercenary_techfab.yml`](../../../Resources/Prototypes/_NF/Recipes/Lathes/Packs/Deprecated/mercenary_techfab.yml)
   - LiberationVend weapons made craftable.
   - Make Strix and energy gun craftable through research.
