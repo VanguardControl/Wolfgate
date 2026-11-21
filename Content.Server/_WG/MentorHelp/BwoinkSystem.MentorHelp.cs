@@ -74,18 +74,35 @@ public sealed partial class BwoinkSystem
         WgRecordHistory(player, staffMsg, playerMsg);
     }
 
-    /// <summary>The text of the latest line a player wrote in their ahelp this round, or null.</summary>
+    /// <summary>
+    /// The text of the latest line a player wrote in their open ahelp, or null. Lines from before the ahelp was last
+    /// resolved don't count.
+    /// </summary>
     public string? LastPlayerAHelpText(NetUserId player)
     {
         if (!_wgHistory.TryGetValue(player, out var lines))
             return null;
 
-        var last = lines.LastOrDefault(l => l.Staff.TrueSender == player);
-        if (last.Staff == null)
+        _wgResolvedLine.TryGetValue(player, out var resolved);
+        BwoinkTextMessage? last = null;
+        for (var i = lines.Count - 1; i >= 0; i--)
+        {
+            var staff = lines[i].Staff;
+            if (resolved != null && ReferenceEquals(staff, resolved))
+                break;
+
+            if (staff.TrueSender == player)
+            {
+                last = staff;
+                break;
+            }
+        }
+
+        if (last == null)
             return null;
 
         // Staff lines read "(TAG) name: text"; the text is everything after the first ": ".
-        var plain = FormattedMessage.RemoveMarkupPermissive(last.Staff.Text);
+        var plain = FormattedMessage.RemoveMarkupPermissive(last.Text);
         var split = plain.IndexOf(": ", StringComparison.Ordinal);
         return split < 0 ? plain.Trim() : plain[(split + 2)..].Trim();
     }

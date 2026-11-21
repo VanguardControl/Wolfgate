@@ -47,3 +47,4 @@ wg-mentor-cmd-list-row = { $player }: { $tier }, { $state }
 wg-mentor-state-active = active
 wg-mentor-state-inactive = inactive
 wg-mentor-state-suspended = suspended
+wg-mentor-cmd-failed = That didn't go through; the error is in the server log.

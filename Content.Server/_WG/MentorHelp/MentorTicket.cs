@@ -27,6 +27,9 @@ public sealed class MentorTicket
     public DateTime OpenedAt;
     public TimeSpan OpenedTime;
     public TimeSpan LastMessageTime;
+
+    /// <summary>When the staff fallback clock started: at opening, and again at reopening.</summary>
+    public TimeSpan FallbackFrom;
     public DateTime? FirstAnswerAt;
 
     public NetUserId? Claimer;

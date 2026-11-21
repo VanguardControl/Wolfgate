@@ -27,8 +27,8 @@ public sealed class MentorHelpExtrasTest
 
         var player = server.ResolveDependency<IPlayerManager>().Sessions.Single();
         var (trainee, senior) = await MentorHelpTicketTest.TwoMentors(pair);
-        await MentorHelpTicketTest.Run(pair, () => mentors.SetTierAsync(senior.UserId, MentorTier.Senior, null));
-        await MentorHelpTicketTest.Run(pair, () => mentors.SetTierAsync(trainee.UserId, MentorTier.Trainee, null));
+        Assert.That(await MentorHelpTicketTest.Run(pair, () => mentors.SetTierAsync(senior.UserId, MentorTier.Senior, null)));
+        Assert.That(await MentorHelpTicketTest.Run(pair, () => mentors.SetTierAsync(trainee.UserId, MentorTier.Trainee, null)));
 
         var title = $"Docking {Guid.NewGuid():N}"[..20];
         var answer = new MentorCannedAnswer { Title = title, Text = "Open the shuttle console.", GuideEntry = "Shuttles" };

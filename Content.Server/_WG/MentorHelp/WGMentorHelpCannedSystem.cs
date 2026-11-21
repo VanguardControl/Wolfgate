@@ -8,6 +8,8 @@ using Content.Shared._WG.MentorHelp;
 using Content.Shared._WG.Mentors;
 using Content.Shared.Administration;
 using Content.Shared.Database;
+using Microsoft.EntityFrameworkCore;
+using Timer = Robust.Shared.Timing.Timer;
 using Robust.Server.Player;
 using Robust.Shared.Enums;
 using Robust.Shared.Player;
@@ -32,7 +34,10 @@ public sealed class WGMentorHelpCannedSystem : EntitySystem
     [Dependency] private WGMentorSystem _mentors = default!;
     [Dependency] private IPlayerManager _players = default!;
 
+    private static readonly TimeSpan ReloadRetryDelay = TimeSpan.FromSeconds(30);
+
     private List<MentorCannedAnswer> _answers = new();
+    private int _loadVersion;
 
     public override void Initialize()
     {
@@ -74,7 +79,18 @@ public sealed class WGMentorHelpCannedSystem : EntitySystem
             UpdatedAt = DateTime.UtcNow,
         };
 
-        await _db.SaveMentorCannedAsync(row);
+        try
+        {
+            await _db.SaveMentorCannedAsync(row);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // Another editor deleted it while this one had it open.
+            RaiseNetworkEvent(new WGMentorHelpNoticeEvent { Text = Loc.GetString("wg-mhelp-canned-gone") }, editor);
+            await LoadAsync();
+            return false;
+        }
+
         _adminLog.Add(LogType.WGMentorHelp, LogImpact.Low, $"{editor.Name} saved canned answer #{row.Id} \"{title}\"");
         await LoadAsync();
         return true;
@@ -83,32 +99,51 @@ public sealed class WGMentorHelpCannedSystem : EntitySystem
     /// <summary>Deletes a canned answer. False when refused or there was none.</summary>
     public async Task<bool> DeleteAsync(ICommonSession editor, int id)
     {
-        if (!CanEdit(editor) || !await _db.DeleteMentorCannedAsync(id))
+        if (!CanEdit(editor))
             return false;
 
-        _adminLog.Add(LogType.WGMentorHelp, LogImpact.Low, $"{editor.Name} deleted canned answer #{id}");
+        var deleted = await _db.DeleteMentorCannedAsync(id);
+        if (deleted)
+            _adminLog.Add(LogType.WGMentorHelp, LogImpact.Low, $"{editor.Name} deleted canned answer #{id}");
+
+        // Reload either way: a delete that found nothing may mean the cached list is stale.
         await LoadAsync();
-        return true;
+        return deleted;
     }
 
+    /// <summary>
+    /// Reads the answers and sends them to responders. Only the newest load applies its result; a failed read is tried
+    /// again later, so a committed edit always reaches the cache.
+    /// </summary>
     private async Task LoadAsync()
     {
+        var version = ++_loadVersion;
+        List<WolfgateMentorCanned> rows;
         try
         {
-            var rows = await _db.GetMentorCannedAsync();
-            _answers = rows.Select(r => new MentorCannedAnswer
-            {
-                Id = r.Id,
-                Title = r.Title,
-                Text = r.Text,
-                GuideEntry = r.GuideEntry,
-            }).ToList();
+            rows = await _db.GetMentorCannedAsync();
         }
         catch (Exception e)
         {
             Log.Error($"Could not load the canned answers: {e}");
+            Timer.Spawn(ReloadRetryDelay, () =>
+            {
+                if (version == _loadVersion)
+                    _ = LoadAsync();
+            });
             return;
         }
+
+        if (version != _loadVersion)
+            return;
+
+        _answers = rows.Select(r => new MentorCannedAnswer
+        {
+            Id = r.Id,
+            Title = r.Title,
+            Text = r.Text,
+            GuideEntry = r.GuideEntry,
+        }).ToList();
 
         foreach (var session in _players.Sessions)
         {
@@ -130,11 +165,24 @@ public sealed class WGMentorHelpCannedSystem : EntitySystem
 
     private void OnSave(WGMentorCannedSaveRequest ev, EntitySessionEventArgs args)
     {
-        _ = SaveAsync(args.SenderSession, ev.Answer);
+        _ = Guard(SaveAsync(args.SenderSession, ev.Answer));
     }
 
     private void OnDelete(WGMentorCannedDeleteRequest ev, EntitySessionEventArgs args)
     {
-        _ = DeleteAsync(args.SenderSession, ev.Id);
+        _ = Guard(DeleteAsync(args.SenderSession, ev.Id));
+    }
+
+    /// <summary>Logs a failed edit instead of leaving it unobserved.</summary>
+    private async Task Guard(Task<bool> edit)
+    {
+        try
+        {
+            await edit;
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Could not edit a canned answer: {e}");
+        }
     }
 }

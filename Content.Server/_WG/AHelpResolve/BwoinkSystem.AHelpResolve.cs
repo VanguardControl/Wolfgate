@@ -12,6 +12,9 @@ public sealed partial class BwoinkSystem
     /// </summary>
     private readonly HashSet<NetUserId> _claimedAHelps = new();
 
+    /// <summary>The line that last resolved each player's ahelp, so lines before it count as answered.</summary>
+    private readonly Dictionary<NetUserId, BwoinkTextMessage> _wgResolvedLine = new();
+
     /// <summary>
     /// Whether a player has an ahelp that staff have answered and not resolved.
     /// </summary>
@@ -64,6 +67,7 @@ public sealed partial class BwoinkSystem
 
         // Kept with the ahelp, so staff who connect later see it was resolved instead of an open ticket.
         WgRecordHistory(playerChannel, adminMsg, playerMsg);
+        _wgResolvedLine[playerChannel] = adminMsg;
 
         _sawmill.Info($"{adminName} resolved the ahelp of {playerChannel}");
     }

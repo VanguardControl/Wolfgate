@@ -90,9 +90,12 @@ public sealed class MentorHelpWindow : DefaultWindow
     private readonly LineEdit _cannedTitle = new() { HorizontalExpand = true };
     private readonly LineEdit _cannedText = new() { HorizontalExpand = true };
     private readonly LineEdit _cannedGuide = new() { HorizontalExpand = true };
+    // The answer picked in the list (an index), and the one the editor saves to (an id; 0 for a new answer).
     private int _cannedSelected = -1;
+    private int _cannedEditing;
     private bool _ownTyping;
-    private bool _ticketTyping;
+    private int? _typingTicket;
+    private readonly Dictionary<int, string> _drafts = new();
     private readonly BoxContainer _queue = Column();
     private readonly RichTextLabel _ticketHeader = new();
     private readonly BoxContainer _ticketLines = Column();
@@ -126,10 +129,17 @@ public sealed class MentorHelpWindow : DefaultWindow
         _tabs.SetTabTitle(1, Loc.GetString("wg-mhelp-queue-title"));
     }
 
-    /// <summary>Fills the question box, as when a how-to question comes over from the ahelp.</summary>
+    /// <summary>
+    /// Fills the question box, as when a how-to question comes over from the ahelp; the reply box instead when the
+    /// player already has an open question, since the question box is hidden then.
+    /// </summary>
     public void SetQuestion(string text)
     {
-        _question.Text = text;
+        if (_state.Own is { Status: not MentorTicketStatus.Closed })
+            _ownReply.Text = text;
+        else
+            _question.Text = text;
+
         _tabs.CurrentTab = 0;
     }
 
@@ -325,14 +335,16 @@ public sealed class MentorHelpWindow : DefaultWindow
         var editRow = Row();
         editRow.AddChild(Button("wg-mhelp-canned-new", () =>
         {
-            _cannedSelected = -1;
-            FillCannedEditor();
+            _cannedEditing = 0;
+            _cannedTitle.Text = string.Empty;
+            _cannedText.Text = string.Empty;
+            _cannedGuide.Text = string.Empty;
         }));
         editRow.AddChild(Button("wg-mhelp-canned-save", SaveCanned));
         editRow.AddChild(Button("wg-mhelp-canned-delete", () =>
         {
-            if (SelectedCanned() is { } answer)
-                CannedDeleted?.Invoke(answer.Id);
+            if (_cannedEditing != 0)
+                CannedDeleted?.Invoke(_cannedEditing);
         }));
         _cannedEditor.AddChild(editRow);
         _cannedEditor.Visible = false;
@@ -416,7 +428,7 @@ public sealed class MentorHelpWindow : DefaultWindow
             var id = ticket.Id;
             entry.OnPressed += _ =>
             {
-                _selected = id;
+                SelectTicket(id);
                 UpdateQueue();
             };
             _queue.AddChild(entry);
@@ -586,9 +598,11 @@ public sealed class MentorHelpWindow : DefaultWindow
         _ticketReply.Text = $"{_ticketReply.Text.TrimEnd()} {text}".TrimStart();
     }
 
+    /// <summary>Loads the picked answer into the editor; from then on Save and Delete act on that answer's id.</summary>
     private void FillCannedEditor()
     {
         var answer = SelectedCanned();
+        _cannedEditing = answer?.Id ?? 0;
         _cannedTitle.Text = answer?.Title ?? string.Empty;
         _cannedText.Text = answer?.Text ?? string.Empty;
         _cannedGuide.Text = answer?.GuideEntry ?? string.Empty;
@@ -598,7 +612,7 @@ public sealed class MentorHelpWindow : DefaultWindow
     {
         CannedSaved?.Invoke(new MentorCannedAnswer
         {
-            Id = SelectedCanned()?.Id ?? 0,
+            Id = _cannedEditing,
             Title = _cannedTitle.Text,
             Text = _cannedText.Text,
             GuideEntry = _cannedGuide.Text.Trim().Length > 0 ? _cannedGuide.Text.Trim() : null,
@@ -616,11 +630,53 @@ public sealed class MentorHelpWindow : DefaultWindow
 
     private void SetTicketTyping(bool typing)
     {
-        if (typing == _ticketTyping || _selected is not { } id)
+        if (_selected is not { } id)
             return;
 
-        _ticketTyping = typing;
-        TypingChanged?.Invoke(id, typing);
+        if (typing && _typingTicket == id || !typing && _typingTicket == null)
+            return;
+
+        if (typing)
+        {
+            _typingTicket = id;
+            TypingChanged?.Invoke(id, true);
+        }
+        else
+        {
+            StopTicketTyping();
+        }
+    }
+
+    /// <summary>Tells the server the responder stopped typing in the ticket they were typing in.</summary>
+    private void StopTicketTyping()
+    {
+        if (_typingTicket is not { } id)
+            return;
+
+        _typingTicket = null;
+        TypingChanged?.Invoke(id, false);
+    }
+
+    /// <summary>
+    /// Switches the selected ticket: the draft and typing mark stay with the ticket they belong to, and the new
+    /// ticket's own draft comes back.
+    /// </summary>
+    private void SelectTicket(int id)
+    {
+        if (_selected == id)
+            return;
+
+        StopTicketTyping();
+        if (_selected is { } previous)
+        {
+            if (_ticketReply.Text.Length > 0)
+                _drafts[previous] = _ticketReply.Text;
+            else
+                _drafts.Remove(previous);
+        }
+
+        _selected = id;
+        _ticketReply.Text = _drafts.Remove(id, out var draft) ? draft : string.Empty;
     }
 
     private static string QueueEntry(MentorHelpTicketView ticket)
@@ -689,7 +745,8 @@ public sealed class MentorHelpWindow : DefaultWindow
 
         PostPressed?.Invoke(id, text);
         _ticketReply.Text = string.Empty;
-        _ticketTyping = false;
+        _drafts.Remove(id);
+        _typingTicket = null;
     }
 
     private void Rate(bool up)

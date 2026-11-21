@@ -18,6 +18,7 @@ public sealed class MentorCommand : LocalizedEntityCommands
 {
     [Dependency] private IAdminManager _admin = default!;
     [Dependency] private IPlayerLocator _locator = default!;
+    [Dependency] private ILogManager _log = default!;
     [Dependency] private WGMentorSystem _mentors = default!;
 
     public override string Command => "mentor";
@@ -46,7 +47,21 @@ public sealed class MentorCommand : LocalizedEntityCommands
             return;
         }
 
-        _ = Staff(shell, args);
+        _ = StaffGuarded(shell, args);
+    }
+
+    /// <summary>Runs a staff subcommand and reports a database failure instead of dropping it.</summary>
+    private async Task StaffGuarded(IConsoleShell shell, string[] args)
+    {
+        try
+        {
+            await Staff(shell, args);
+        }
+        catch (Exception e)
+        {
+            _log.GetSawmill("mentor").Error($"mentor {string.Join(' ', args)} failed: {e}");
+            shell.WriteError(Loc.GetString("wg-mentor-cmd-failed"));
+        }
     }
 
     public override CompletionResult GetCompletion(IConsoleShell shell, string[] args)
@@ -143,13 +158,12 @@ public sealed class MentorCommand : LocalizedEntityCommands
                 if (await Locate(shell, args[1]) is not { } user)
                     return;
 
-                if (!await _mentors.RestoreAsync(user, actor))
+                if (await _mentors.RestoreAsync(user, actor) is not { } tier)
                 {
                     shell.WriteError(Loc.GetString("wg-mentor-cmd-not-restorable", ("player", args[1])));
                     return;
                 }
 
-                var tier = _mentors.GetTier(user) ?? MentorTier.Trainee;
                 shell.WriteLine(Loc.GetString("wg-mentor-cmd-done",
                     ("player", args[1]), ("tier", MentorRows.TierName(tier))));
                 return;

@@ -28,6 +28,7 @@ public abstract partial class ServerDbBase
                 .SetProperty(t => t.Topic, ticket.Topic)
                 .SetProperty(t => t.SecretRole, ticket.SecretRole)
                 .SetProperty(t => t.Newbie, ticket.Newbie)
+                .SetProperty(t => t.FromAhelp, ticket.FromAhelp)
                 .SetProperty(t => t.FirstAnswerAt, ticket.FirstAnswerAt)
                 .SetProperty(t => t.ClaimedBy, ticket.ClaimedBy)
                 .SetProperty(t => t.ClosedAt, ticket.ClosedAt)

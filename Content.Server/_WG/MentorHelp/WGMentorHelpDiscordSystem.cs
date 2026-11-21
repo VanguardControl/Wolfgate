@@ -32,8 +32,12 @@ public sealed class WGMentorHelpDiscordSystem : EntitySystem
         }, true);
     }
 
+    // Spoiler-safe tickets stay out of the channel entirely: mentors in the round can read it.
     public void Opened(MentorTicket ticket)
     {
+        if (ticket.Secret)
+            return;
+
         var topic = ticket.Topic != null ? Loc.GetString($"wg-mhelp-topic-{ticket.Topic}") : Loc.GetString("wg-mhelp-topic-other");
         Send(Loc.GetString("wg-mhelp-discord-opened",
             ("ticket", ticket.Id), ("character", ticket.CharacterName), ("topic", topic)));
@@ -41,7 +45,7 @@ public sealed class WGMentorHelpDiscordSystem : EntitySystem
 
     public void Line(MentorTicket ticket, MentorTicketLine line)
     {
-        if (line.RespondersOnly)
+        if (line.RespondersOnly || ticket.Secret)
             return;
 
         var sender = line.Role == MentorSenderRole.Player ? ticket.CharacterName : line.SenderName;
@@ -50,6 +54,9 @@ public sealed class WGMentorHelpDiscordSystem : EntitySystem
 
     public void Closed(MentorTicket ticket)
     {
+        if (ticket.Secret)
+            return;
+
         var reason = ticket.CloseReason is { } r ? WGMentorHelpSystem.ReasonToDb(r) : string.Empty;
         Send(Loc.GetString("wg-mhelp-discord-closed", ("ticket", ticket.Id), ("reason", reason)));
     }

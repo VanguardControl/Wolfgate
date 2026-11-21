@@ -6,6 +6,8 @@ namespace Content.Client._WG.Mentors;
 /// <summary>This player's mentor status from the server, and how many mentors are on duty.</summary>
 public sealed class WGClientMentorSystem : EntitySystem
 {
+    [Dependency] private IClientNetManager _net = default!;
+
     public bool IsMentor { get; private set; }
 
     public MentorTier Tier { get; private set; }
@@ -34,6 +36,26 @@ public sealed class WGClientMentorSystem : EntitySystem
         SubscribeNetworkEvent<WGMentorStatusEvent>(OnStatus);
         SubscribeNetworkEvent<WGMentorCountEvent>(OnCount);
         SubscribeNetworkEvent<WGMentorRosterEvent>(OnRoster);
+        _net.Disconnect += OnDisconnect;
+    }
+
+    public override void Shutdown()
+    {
+        base.Shutdown();
+        _net.Disconnect -= OnDisconnect;
+    }
+
+    /// <summary>Forgets the last server's mentor state, so nothing shows as a mentor until the next server says so.</summary>
+    private void OnDisconnect(object? sender, NetDisconnectedArgs args)
+    {
+        IsMentor = false;
+        Tier = MentorTier.Trainee;
+        OnDuty = false;
+        OnDutyCount = 0;
+        _mentors.Clear();
+        StatusChanged?.Invoke();
+        CountChanged?.Invoke();
+        RosterChanged?.Invoke();
     }
 
     private void OnRoster(WGMentorRosterEvent ev)

@@ -102,3 +102,6 @@ wg-mhelp-canned-guide = Guidebook page id (optional)
 wg-mhelp-canned-new = New
 wg-mhelp-canned-save = Save
 wg-mhelp-canned-delete = Delete
+wg-mhelp-asker-unknown = Unknown character
+wg-mhelp-disabled = Mentor Help is turned off right now.
+wg-mhelp-canned-gone = That canned answer was deleted, so your change wasn't saved.

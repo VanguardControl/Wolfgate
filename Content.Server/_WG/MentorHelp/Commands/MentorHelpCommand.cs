@@ -44,6 +44,9 @@ public sealed class MentorHelpCommand : LocalizedEntityCommands
             MentorHelpOpenResult.Muted => Loc.GetString("wg-mhelp-muted"),
             MentorHelpOpenResult.Cooldown => Loc.GetString("wg-mhelp-cooldown",
                 ("seconds", _cfg.GetCVar(MentorHelpCVars.TicketCooldown))),
+            MentorHelpOpenResult.Empty => Help,
+            MentorHelpOpenResult.Disabled => Loc.GetString("wg-mhelp-disabled"),
+            MentorHelpOpenResult.AlreadyOpen => Loc.GetString("wg-mhelp-one-open"),
             _ => null,
         };
 

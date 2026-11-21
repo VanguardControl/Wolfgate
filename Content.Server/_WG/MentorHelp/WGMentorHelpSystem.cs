@@ -72,6 +72,11 @@ public sealed class WGMentorHelpSystem : EntitySystem
 
     private static readonly TimeSpan CheckInterval = TimeSpan.FromSeconds(1);
 
+    /// <summary>How many times a ticket's row is tried before its writes are given up.</summary>
+    private const int InsertAttempts = 5;
+
+    private static readonly TimeSpan InsertRetryDelay = TimeSpan.FromSeconds(10);
+
     /// <summary>How long a typing mark lasts without a fresh one.</summary>
     private static readonly TimeSpan TypingTimeout = TimeSpan.FromSeconds(10);
 
@@ -92,6 +97,8 @@ public sealed class WGMentorHelpSystem : EntitySystem
         SubscribeNetworkEvent<WGMentorHelpFromAHelpRequest>(OnFromAHelpRequest);
         SubscribeNetworkEvent<WGMentorHelpTypingRequest>(OnTypingRequest);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+        SubscribeLocalEvent<PlayerAttachedEvent>(args => OnAttachChanged(args.Player));
+        SubscribeLocalEvent<PlayerDetachedEvent>(args => OnAttachChanged(args.Player));
 
         _players.PlayerStatusChanged += OnPlayerStatusChanged;
         _admin.OnPermsChanged += OnPermsChanged;
@@ -186,6 +193,7 @@ public sealed class WGMentorHelpSystem : EntitySystem
             FromAhelp = fromAhelp,
             OpenedAt = DateTime.UtcNow,
             OpenedTime = now,
+            FallbackFrom = now,
             LastMessageTime = now,
         };
 
@@ -237,6 +245,8 @@ public sealed class WGMentorHelpSystem : EntitySystem
         ticket.CloseReason = null;
         ticket.ClosedAt = null;
         ticket.LastMessageTime = _timing.RealTime;
+        // An unanswered ticket gets a full claim window again before it falls back to staff.
+        ticket.FallbackFrom = _timing.RealTime;
         Update(ticket);
 
         _adminLog.Add(LogType.WGMentorHelp, LogImpact.Low, $"{player.Name} reopened mentor ticket #{ticket.Id}");
@@ -325,11 +335,15 @@ public sealed class WGMentorHelpSystem : EntitySystem
 
         var from = ticket.ClaimerName;
         SetClaimer(ticket, responder.UserId, responder.Name);
+        string? accepted = null;
         if (note != null && Clean(note, MaxLength, out var clean, out _))
+        {
+            accepted = clean;
             AddLine(ticket, MentorSenderRole.Mentor, responder, clean, respondersOnly: true);
+        }
 
         _adminLog.Add(LogType.WGMentorHelp, LogImpact.Low,
-            $"{responder.Name} took over mentor ticket #{ticket.Id} from {from}{(note != null ? $": {note}" : "")}");
+            $"{responder.Name} took over mentor ticket #{ticket.Id} from {from}{(accepted != null ? $": {accepted}" : "")}");
         Publish(ticket);
         return true;
     }
@@ -419,10 +433,19 @@ public sealed class WGMentorHelpSystem : EntitySystem
 
         if (GetOpenTicket(player) is { } open)
         {
-            if (!PostAsPlayer(session, text))
+            if (!Clean(text, MaxLength, out _, out _))
                 return false;
 
+            // Set before posting, so responders get the flag with the line; posting writes it with the ticket state.
+            var wasFromAhelp = open.FromAhelp;
             open.FromAhelp = true;
+            if (!PostAsPlayer(session, text))
+            {
+                open.FromAhelp = wasFromAhelp;
+                return false;
+            }
+
+            Update(open);
         }
         else if (Open(session, text, null, false, fromAhelp: true) != MentorHelpOpenResult.Opened)
         {
@@ -497,7 +520,7 @@ public sealed class WGMentorHelpSystem : EntitySystem
                     Publish(ticket);
             }
 
-            if (ticket.Claimer == null && !ticket.Answered && now - ticket.OpenedTime >= fallback)
+            if (ticket.Claimer == null && !ticket.Answered && now - ticket.FallbackFrom >= fallback)
                 Fallback(ticket);
             else if (now - ticket.LastMessageTime >= idle)
                 Close(ticket, MentorCloseReason.Idle, null);
@@ -767,15 +790,37 @@ public sealed class WGMentorHelpSystem : EntitySystem
         ticket.Writes = InsertAsync(ticket, row);
     }
 
+    /// <summary>
+    /// Writes the ticket's row, retrying a failed insert; the writes queued behind it wait. Before each retry it looks
+    /// for a row an uncertain earlier attempt may have committed, so a ticket is never stored twice.
+    /// </summary>
     private async Task InsertAsync(MentorTicket ticket, WolfgateMentorTicket row)
     {
-        try
+        for (var attempt = 1; attempt <= InsertAttempts; attempt++)
         {
-            ticket.DbId = await _db.AddMentorTicketAsync(row);
-        }
-        catch (Exception e)
-        {
-            Log.Error($"Could not store mentor ticket #{ticket.Id}: {e}");
+            try
+            {
+                if (attempt > 1)
+                {
+                    var existing = await _db.GetMentorTicketsAsync(row.PlayerUserId, null, row.OpenedAt.AddSeconds(-1), 10);
+                    if (existing.FirstOrDefault(t => Math.Abs((t.OpenedAt - row.OpenedAt).TotalMilliseconds) < 1) is { } found)
+                    {
+                        ticket.DbId = found.Id;
+                        return;
+                    }
+                }
+
+                row.Id = 0;
+                ticket.DbId = await _db.AddMentorTicketAsync(row);
+                return;
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Could not store mentor ticket #{ticket.Id} (attempt {attempt} of {InsertAttempts}): {e}");
+            }
+
+            if (attempt < InsertAttempts)
+                await Task.Delay(InsertRetryDelay);
         }
     }
 
@@ -809,6 +854,7 @@ public sealed class WGMentorHelpSystem : EntitySystem
             Topic = ticket.Topic,
             SecretRole = ticket.Secret,
             Newbie = ticket.Newbie,
+            FromAhelp = ticket.FromAhelp,
             FirstAnswerAt = ticket.FirstAnswerAt,
             ClaimedBy = ticket.Claimer?.UserId,
             ClosedAt = ticket.ClosedAt,
@@ -919,8 +965,9 @@ public sealed class WGMentorHelpSystem : EntitySystem
         if (_mind.TryGetMind(session, out _, out var mind) && !string.IsNullOrWhiteSpace(mind.CharacterName))
             return mind.CharacterName;
 
+        // Never the username: preferences can still be loading just after a player connects.
         var prefs = _prefs.GetPreferencesOrNull(session.UserId);
-        return prefs?.SelectedCharacter.Name ?? session.Name;
+        return prefs?.SelectedCharacter.Name is { Length: > 0 } name ? name : Loc.GetString("wg-mhelp-asker-unknown");
     }
 
     private bool SameGrid(ICommonSession a, ICommonSession b)
@@ -1051,16 +1098,44 @@ public sealed class WGMentorHelpSystem : EntitySystem
     {
         if (args.NewStatus == SessionStatus.InGame)
             SendState(args.Session);
+        else if (args.NewStatus == SessionStatus.Disconnected)
+            ReleaseClaims(args.Session.UserId, null);
     }
 
     private void OnPermsChanged(AdminPermsChangedEventArgs args)
     {
+        ReleaseClaims(args.Player.UserId, args.Player);
         SendState(args.Player);
     }
 
     private void OnMentorStatusChanged(ICommonSession session)
     {
+        ReleaseClaims(session.UserId, session);
         SendState(session);
+    }
+
+    /// <summary>Entering or leaving a body changes which spoiler-safe tickets a mentor may see.</summary>
+    private void OnAttachChanged(ICommonSession session)
+    {
+        if (IsResponder(session))
+            SendState(session);
+    }
+
+    /// <summary>
+    /// Lets go of the tickets a player holds once they can no longer answer them (off duty, revoked, disconnected,
+    /// lost the flag), so unanswered ones go back to the queue and the staff fallback.
+    /// </summary>
+    private void ReleaseClaims(NetUserId user, ICommonSession? session)
+    {
+        foreach (var ticket in _tickets.Values)
+        {
+            if (ticket.Closed || ticket.Claimer != user || session != null && CanSee(session, ticket))
+                continue;
+
+            SetClaimer(ticket, null, null);
+            _adminLog.Add(LogType.WGMentorHelp, LogImpact.Low, $"Mentor ticket #{ticket.Id} released: its claimer can no longer answer");
+            Publish(ticket);
+        }
     }
 
     #endregion

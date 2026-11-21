@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Content.Server.Administration;
 using Content.Server.Administration.Logs;
@@ -36,6 +37,8 @@ public sealed class WGMentorSystem : EntitySystem
     /// <summary>Active mentors who are connected, by user.</summary>
     private readonly Dictionary<NetUserId, WolfgateMentor> _active = new();
     private readonly HashSet<NetUserId> _onDuty = new();
+    private readonly Dictionary<NetUserId, SemaphoreSlim> _gates = new();
+    private readonly Dictionary<NetUserId, int> _generations = new();
     private int _sentCount = -1;
 
     public override void Initialize()
@@ -128,7 +131,7 @@ public sealed class WGMentorSystem : EntitySystem
     /// Puts a player on the roster at a tier, or changes the tier of one already on it. A row left by revocation or
     /// resignation is reused, keeping its history.
     /// </summary>
-    public async Task GrantAsync(NetUserId user, MentorTier tier, NetUserId? actor, string source)
+    private async Task GrantCore(NetUserId user, MentorTier tier, NetUserId? actor, string source)
     {
         var now = DateTime.UtcNow;
         var row = await _db.GetMentorAsync(user.UserId);
@@ -158,8 +161,7 @@ public sealed class WGMentorSystem : EntitySystem
         Reload(user, row);
     }
 
-    /// <summary>Changes the tier of a player on the roster. False when they aren't on it.</summary>
-    public async Task<bool> SetTierAsync(NetUserId user, MentorTier tier, NetUserId? actor)
+    private async Task<bool> SetTierCore(NetUserId user, MentorTier tier, NetUserId? actor)
     {
         var row = await _db.GetMentorAsync(user.UserId);
         if (row == null || !MentorRows.OnRoster(row))
@@ -182,8 +184,7 @@ public sealed class WGMentorSystem : EntitySystem
         return true;
     }
 
-    /// <summary>Takes a player off the roster with a reason, keeping the row's history. False when they weren't on it.</summary>
-    public async Task<bool> RevokeAsync(NetUserId user, NetUserId? actor, string reason)
+    private async Task<bool> RevokeCore(NetUserId user, NetUserId? actor, string reason)
     {
         var row = await _db.GetMentorAsync(user.UserId);
         if (row == null || !MentorRows.OnRoster(row))
@@ -200,12 +201,11 @@ public sealed class WGMentorSystem : EntitySystem
         return true;
     }
 
-    /// <summary>Makes a suspended or inactive mentor active again. False when they were neither.</summary>
-    public async Task<bool> RestoreAsync(NetUserId user, NetUserId? actor)
+    private async Task<MentorTier?> RestoreCore(NetUserId user, NetUserId? actor)
     {
         var row = await _db.GetMentorAsync(user.UserId);
         if (row == null || row.State is not (MentorRows.StateSuspended or MentorRows.StateInactive))
-            return false;
+            return null;
 
         row.State = MentorRows.StateActive;
         row.LastActiveAt = DateTime.UtcNow;
@@ -216,7 +216,64 @@ public sealed class WGMentorSystem : EntitySystem
 
         Notify(user, Loc.GetString("wg-mentor-restored"));
         Reload(user, row);
-        return true;
+        return MentorRows.TierFromDb(row.Tier);
+    }
+
+    /// <summary>
+    /// Puts a player on the roster at a tier, or changes the tier of one already on it. A row left by revocation or
+    /// resignation is reused, keeping its history.
+    /// </summary>
+    public Task GrantAsync(NetUserId user, MentorTier tier, NetUserId? actor, string source)
+    {
+        return Serialized(user, async () =>
+        {
+            await GrantCore(user, tier, actor, source);
+            return true;
+        });
+    }
+
+    /// <summary>Changes the tier of a player on the roster. False when they aren't on it.</summary>
+    public Task<bool> SetTierAsync(NetUserId user, MentorTier tier, NetUserId? actor)
+    {
+        return Serialized(user, () => SetTierCore(user, tier, actor));
+    }
+
+    /// <summary>Takes a player off the roster with a reason, keeping the row's history. False when they weren't on it.</summary>
+    public Task<bool> RevokeAsync(NetUserId user, NetUserId? actor, string reason)
+    {
+        return Serialized(user, () => RevokeCore(user, actor, reason));
+    }
+
+    /// <summary>Makes a suspended or inactive mentor active again. Their stored tier, or null when they were neither.</summary>
+    public Task<MentorTier?> RestoreAsync(NetUserId user, NetUserId? actor)
+    {
+        return Serialized(user, () => RestoreCore(user, actor));
+    }
+
+    /// <summary>
+    /// Runs one roster change for a player at a time, read to save, and marks the player's row as changed so a
+    /// connection load that read it earlier doesn't apply its stale copy.
+    /// </summary>
+    private async Task<T> Serialized<T>(NetUserId user, Func<Task<T>> change)
+    {
+        if (!_gates.TryGetValue(user, out var gate))
+            _gates[user] = gate = new SemaphoreSlim(1, 1);
+
+        await gate.WaitAsync();
+        try
+        {
+            return await change();
+        }
+        finally
+        {
+            _generations[user] = Generation(user) + 1;
+            gate.Release();
+        }
+    }
+
+    private int Generation(NetUserId user)
+    {
+        return _generations.GetValueOrDefault(user);
     }
 
     private void OnPlayerStatusChanged(object? sender, SessionStatusEventArgs args)
@@ -241,6 +298,7 @@ public sealed class WGMentorSystem : EntitySystem
 
     private async Task LoadAsync(ICommonSession session)
     {
+        var generation = Generation(session.UserId);
         WolfgateMentor? row;
         try
         {
@@ -254,7 +312,8 @@ public sealed class WGMentorSystem : EntitySystem
             return;
         }
 
-        if (session.Status == SessionStatus.Disconnected)
+        // A roster change since the read has already put the newer row in memory.
+        if (session.Status == SessionStatus.Disconnected || Generation(session.UserId) != generation)
             return;
 
         Reload(session.UserId, row, fresh: true);
@@ -295,6 +354,7 @@ public sealed class WGMentorSystem : EntitySystem
         }
 
         BroadcastCount();
+        SendRosterToStaff();
     }
 
     private void Changed(ICommonSession session)
