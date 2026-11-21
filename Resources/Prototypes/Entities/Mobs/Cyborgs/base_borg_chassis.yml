@@ -114,6 +114,14 @@
     - Traffic
     - Common
     - Science
+  # WOLFGATE(Cyborgs) START: encryption key slots behind the chassis lock and panel, adding to the built-in channels
+  - type: EncryptionKeyHolder
+    keySlots: 8
+    examineWhileLocked: false
+    keysExtractionMethod: Cutting
+    keysUnlocked: false
+  - type: WGBorgRadioKeys
+  # WOLFGATE END
   - type: CollectiveMind
     channels:
     - Binary
@@ -298,6 +306,7 @@
         - borg_brain
         - borg_module
         - cell_slot
+        - key_slots # WOLFGATE(Cyborgs): installed keys drop when the chassis is destroyed
       - !type:DoActsBehavior
         acts: [ "Destruction" ]
   #- type: HandheldLight # Mono - Light removal PR: Borg Adjustments
