@@ -23,7 +23,7 @@ public sealed class WildernessCVars
 
     /// <summary>Minutes the mark lasts after leaving a Wilderness.</summary>
     public static readonly CVarDef<float> SkullMinutes =
-        CVarDef.Create("wg.wilderness.skull_minutes", 10f, CVar.SERVER | CVar.REPLICATED);
+        CVarDef.Create("wg.wilderness.skull_minutes", 5f, CVar.SERVER | CVar.REPLICATED);
 
     /// <summary>A HUD setting's value: shown everywhere it applies.</summary>
     public const string ShowAlways = "always";

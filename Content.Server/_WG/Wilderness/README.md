@@ -16,7 +16,7 @@ Ships and people carry their own Wilderness mark, `WGSkullComponent`:
   marked. People aboard a ship don't count towards a mark of their own; the ship does. `wg.wilderness.skull_on_foot`
   turns staying on foot off.
 - **Holding and running out.** Any mark holds at full while its carrier is in a Wilderness (a person by the ship
-  they're aboard) and runs out `wg.wilderness.skull_minutes` (10) after leaving, whether or not its player is connected.
+  they're aboard) and runs out `wg.wilderness.skull_minutes` (5) after leaving, whether or not its player is connected.
 - **Pilots.** A pilot (`PilotComponent` at a shuttle console) and the ship that console is on share a mark: an
   unmarked ship flown by a marked pilot takes the pilot's mark and time left, and an unmarked pilot of a marked ship
   takes the ship's. Crew who aren't flying keep their own.
@@ -33,7 +33,8 @@ the zone for a few seconds on entering danger or under the cursor, and opens the
 on crossing in; and a faint, still border while marked. It shows the player's own mark, or else their ship's. Each part
 has a client setting (`wg.wilderness.banner`, `titles`, `sounds`: always, danger or off; `screen_border`: wilderness,
 marked or off; `zone_chat`, read by the server for the crossing lines). Danger means a Wilderness, an outpost at war,
-or being marked, and is the default for all three. The
+or being marked, and is the default for all three. A ghost sees none of it. The same crossing's title and sound, and
+its chat line or the "still marked" line, wait 60 s before they repeat, so hopping over an edge stays quiet. The
 player gets one zone alert: the zone's, with a sweep counting down to the mark in a Wilderness, or the mark's, counting
 down once out. `WGSkullOverlay` draws an 8 px skull centred over each marked person, like the status icons, and hidden
 where they are. Every radar (helm, mass scanner, gunnery and drone consoles) draws each zone's edge, and a marked ship's

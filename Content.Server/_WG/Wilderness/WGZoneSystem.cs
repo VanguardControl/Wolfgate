@@ -15,6 +15,7 @@ using Robust.Server.Player;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
+using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
@@ -56,6 +57,13 @@ public sealed partial class WGZoneSystem : EntitySystem
     private readonly Dictionary<EntityUid, List<WGZoneRing>> _rings = new();
     private readonly List<(EntityUid Mob, EntityUid Subject, WGZonePrototype? Zone)> _alertsDue = new();
 
+    /// <summary>How long a repeatable zone message stays quiet for a player after it is sent.</summary>
+    private static readonly TimeSpan MessageCooldown = TimeSpan.FromSeconds(60);
+
+    /// <summary>When each player was last sent each repeatable message.</summary>
+    private readonly Dictionary<(NetUserId User, string Key), TimeSpan> _told = new();
+    private readonly List<(NetUserId User, string Key)> _toldDrop = new();
+
     /// <summary>A zone's centre this tick: where it is, how wide its source is, and how far past that it reaches.</summary>
     private readonly record struct Source(EntityUid Uid, MapId Map, Vector2 Centre, float Size, float Reach, WGZonePrototype Zone, bool Rings);
 
@@ -86,6 +94,7 @@ public sealed partial class WGZoneSystem : EntitySystem
 
         _nextRings = now + RingInterval;
         UpdateRings();
+        PruneTold(now);
     }
 
     private void OnDetached(Entity<WGInZoneComponent> ent, ref PlayerDetachedEvent args)
@@ -194,7 +203,7 @@ public sealed partial class WGZoneSystem : EntitySystem
             if (current == null)
                 return;
 
-            if (old != null && WantsZoneChat(session))
+            if (old != null && WantsZoneChat(session) && Due(session, $"left/{old.ID}/{current.Place}"))
                 Tell(session, Loc.GetString(old.Left, ("place", current.Place)), old.Color);
 
             RemComp<WGInZoneComponent>(mob);
@@ -220,7 +229,7 @@ public sealed partial class WGZoneSystem : EntitySystem
         current.Hot = hot;
         Dirty(mob, current);
 
-        if (WantsZoneChat(session))
+        if (WantsZoneChat(session) && Due(session, $"{zone.ID}/{place}"))
             Tell(session, Loc.GetString(zone.Entered, ("place", place), ("summary", WGZoneText.Summary(zone, hot, _cfg.GetCVar(WildernessCVars.OpenToAll), _onFoot))), zone.Color);
     }
 
@@ -228,6 +237,34 @@ public sealed partial class WGZoneSystem : EntitySystem
     private bool WantsZoneChat(ICommonSession session)
     {
         return _netCfg.GetClientCVar(session.Channel, WildernessCVars.ZoneChat);
+    }
+
+    /// <summary>
+    /// Whether a repeatable message is past its cooldown for this player, and if so starts it again, so hopping back and
+    /// forth over a zone's edge doesn't repeat it.
+    /// </summary>
+    private bool Due(ICommonSession session, string key)
+    {
+        var now = _timing.CurTime;
+        if (_told.TryGetValue((session.UserId, key), out var last) && now - last < MessageCooldown)
+            return false;
+
+        _told[(session.UserId, key)] = now;
+        return true;
+    }
+
+    /// <summary>Forgets cooldowns that have run out.</summary>
+    private void PruneTold(TimeSpan now)
+    {
+        _toldDrop.Clear();
+        foreach (var (key, last) in _told)
+        {
+            if (now - last >= MessageCooldown)
+                _toldDrop.Add(key);
+        }
+
+        foreach (var key in _toldDrop)
+            _told.Remove(key);
     }
 
     private void Tell(ICommonSession session, string message, Color color)

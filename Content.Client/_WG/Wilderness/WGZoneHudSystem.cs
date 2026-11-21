@@ -6,6 +6,7 @@ using Content.Client.UserInterface.Systems.Info;
 using Content.Client.UserInterface.Systems.MenuBar.Widgets;
 using Content.Shared._WG.Vehicles.Core;
 using Content.Shared._WG.Wilderness;
+using Content.Shared.Ghost;
 using Robust.Client.Audio;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
@@ -52,6 +53,12 @@ public sealed class WGZoneHudSystem : EntitySystem
 
     /// <summary>Decibels taken off every zone sound.</summary>
     private const float SoundQuieter = -6f;
+
+    /// <summary>How long the same crossing or mark stays quiet after its title and sound, so edge-hopping doesn't repeat them.</summary>
+    private static readonly TimeSpan AnnounceCooldown = TimeSpan.FromSeconds(60);
+
+    /// <summary>When each zone (by id and place), or the mark, last had its title and sound.</summary>
+    private readonly Dictionary<string, TimeSpan> _announced = new();
 
     private WGZoneBanner? _banner;
     private readonly WGZoneBorderOverlay _border = new();
@@ -101,11 +108,13 @@ public sealed class WGZoneHudSystem : EntitySystem
     {
         base.FrameUpdate(frameTime);
 
-        if (_player.LocalEntity is not { } mob)
+        // A ghost has no zone or mark of its own, whatever grid it floats over or follows someone onto.
+        if (_player.LocalEntity is not { } mob || HasComp<GhostComponent>(mob))
         {
             HideBanner();
             HideBorder();
             ClearTitle();
+            Forget();
             return;
         }
 
@@ -185,29 +194,37 @@ public sealed class WGZoneHudSystem : EntitySystem
 
         if (marked && !_lastMarked)
         {
-            if (Allows(WildernessCVars.Titles, true))
-                ShowTitle(Loc.GetString("wg-zone-title-marked"), Loc.GetString("wg-zone-title-marked-sub"), MarkColor);
-            if (Allows(WildernessCVars.Sounds, true))
-                Play(MarkedSound);
+            if (Fresh("marked"))
+            {
+                if (Allows(WildernessCVars.Titles, true))
+                    ShowTitle(Loc.GetString("wg-zone-title-marked"), Loc.GetString("wg-zone-title-marked-sub"), MarkColor);
+                if (Allows(WildernessCVars.Sounds, true))
+                    Play(MarkedSound);
+            }
+
             _openFor = DetailsOpen;
         }
         else if (id != _lastZone || place != _lastPlace)
         {
             if (zone != null && inZone != null)
             {
-                if (Allows(WildernessCVars.Titles, danger))
-                {
-                    var title = Loc.GetString("wg-zone-title-entering", ("title", WGZoneText.Title(zone, inZone.Hot)));
-                    ShowTitle(title, inZone.Place, zone.Color);
-                }
-
-                if (zone.EnterSound != null && Allows(WildernessCVars.Sounds, danger))
-                    Play(zone.EnterSound);
-
                 if (danger)
                     _openFor = DetailsOpen;
+
+                if (Fresh($"{zone.ID}/{inZone.Place}"))
+                {
+                    if (Allows(WildernessCVars.Titles, danger))
+                    {
+                        var title = Loc.GetString("wg-zone-title-entering", ("title", WGZoneText.Title(zone, inZone.Hot)));
+                        ShowTitle(title, inZone.Place, zone.Color);
+                    }
+
+                    if (zone.EnterSound != null && Allows(WildernessCVars.Sounds, danger))
+                        Play(zone.EnterSound);
+                }
             }
-            else if (_lastZone != null && _proto.TryIndex<WGZonePrototype>(_lastZone, out var old) && Allows(WildernessCVars.Titles, _lastDanger))
+            else if (_lastZone != null && _proto.TryIndex<WGZonePrototype>(_lastZone, out var old)
+                && Allows(WildernessCVars.Titles, _lastDanger) && Fresh($"left/{_lastZone}/{_lastPlace}"))
             {
                 ShowTitle(Loc.GetString("wg-zone-title-leaving", ("title", Loc.GetString(old.Title))), string.Empty, Color.FromHex("#c8ccd0"));
             }
@@ -217,6 +234,17 @@ public sealed class WGZoneHudSystem : EntitySystem
         _lastPlace = place;
         _lastMarked = marked;
         _lastDanger = danger;
+    }
+
+    /// <summary>Whether this announcement is past its cooldown, and if so starts it again.</summary>
+    private bool Fresh(string key)
+    {
+        var now = _timing.RealTime;
+        if (_announced.TryGetValue(key, out var last) && now - last < AnnounceCooldown)
+            return false;
+
+        _announced[key] = now;
+        return true;
     }
 
     private void Play(SoundSpecifier sound)

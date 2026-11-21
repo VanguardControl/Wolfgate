@@ -127,7 +127,7 @@ public sealed partial class WGZoneSystem
             {
                 skull.ExpiresAt = now + _skullLength;
                 Dirty(uid, skull);
-                TellAboard(uid, "wg-zone-skull-leaving");
+                TellAboard(uid, "wg-zone-skull-leaving", repeatable: true);
             }
             else if (now >= expires)
             {
@@ -231,8 +231,11 @@ public sealed partial class WGZoneSystem
         return FindZone(xform.MapID, centre, size, xform.GridUid, HasComp<MapGridComponent>(uid) ? uid : null) is { Zone.Skulls: true };
     }
 
-    /// <summary>Tells whoever a mark is carried by: a person, or everyone aboard a ship or vehicle.</summary>
-    private void TellAboard(EntityUid carrier, string key)
+    /// <summary>
+    /// Tells whoever a mark is carried by: a person, or everyone aboard a ship or vehicle. A repeatable message, one
+    /// that edge-hopping sends again and again, waits out its cooldown for each player.
+    /// </summary>
+    private void TellAboard(EntityUid carrier, string key, bool repeatable = false)
     {
         var minutes = _skullLength.TotalMinutes;
         var message = Loc.GetString(key,
@@ -242,7 +245,8 @@ public sealed partial class WGZoneSystem
 
         if (TryComp<ActorComponent>(carrier, out var actor))
         {
-            Tell(actor.PlayerSession, message, SkullColor);
+            if (!repeatable || Due(actor.PlayerSession, key))
+                Tell(actor.PlayerSession, message, SkullColor);
             return;
         }
 
@@ -250,7 +254,10 @@ public sealed partial class WGZoneSystem
             return;
 
         foreach (var session in sessions)
-            Tell(session, message, SkullColor);
+        {
+            if (!repeatable || Due(session, key))
+                Tell(session, message, SkullColor);
+        }
     }
 
     /// <summary>Marks a ship or person now, as if they had stayed in a Wilderness. For admins and tests.</summary>
