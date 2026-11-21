@@ -4,6 +4,7 @@ using Content.IntegrationTests.Pair;
 using Content.IntegrationTests.Tests._WG.Drydock;
 using Content.Server._WG.Unstuck;
 using Content.Shared._WG.Vehicles.Core;
+using Content.Shared.Cuffs;
 using Content.Shared.Interaction;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
@@ -73,6 +74,26 @@ public sealed class UnstuckTest
             Assert.That(unstuck.TryUnstuck(mob, out var message), Is.True, message);
             Assert.That(em.GetComponent<TransformComponent>(mob).MapID, Is.EqualTo(em.GetComponent<TransformComponent>(vehicle).MapID),
                 "The dead body isn't back outside by the vehicle.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A cuffed occupant of an unlocked vehicle stays in, as the door wouldn't let them out either.</summary>
+    [Test]
+    public async Task CuffedStayInAVehicle()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var (_, mob) = await Board(pair);
+
+        await server.WaitAssertion(() =>
+        {
+            var cuffs = em.SpawnEntity("Handcuffs", em.GetComponent<TransformComponent>(mob).Coordinates);
+            Assert.That(server.System<SharedCuffableSystem>().TryAddNewCuffs(mob, mob, cuffs), Is.True, "The cuffs didn't go on.");
+            Assert.That(server.System<WGUnstuckSystem>().TryUnstuck(mob, out _), Is.False, "A cuffed body slipped out of the vehicle.");
+            Assert.That(em.HasComponent<VehicleInteriorOccupantComponent>(mob), Is.True, "A cuffed body left the vehicle.");
         });
 
         await pair.CleanReturnAsync();

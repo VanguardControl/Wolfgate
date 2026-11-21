@@ -3,6 +3,7 @@ using Content.Server.Administration.Logs;
 using Content.Server.Atmos.EntitySystems;
 using Content.Shared._WG.Unstuck;
 using Content.Shared._WG.Vehicles.Core;
+using Content.Shared.ActionBlocker;
 using Content.Shared.Buckle;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Database;
@@ -29,6 +30,7 @@ namespace Content.Server._WG.Unstuck;
 /// </summary>
 public sealed class WGUnstuckSystem : EntitySystem
 {
+    [Dependency] private ActionBlockerSystem _actionBlocker = default!;
     [Dependency] private IAdminLogManager _adminLog = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private AtmosphereSystem _atmosphere = default!;
@@ -155,7 +157,7 @@ public sealed class WGUnstuckSystem : EntitySystem
 
     /// <summary>
     /// Puts an occupant, living, dead or a ghost, out through the vehicle's exits, unbuckling them from their seat.
-    /// A locked vehicle still holds the living.
+    /// A locked vehicle still holds the living, as do cuffs, stuns and being down.
     /// </summary>
     private bool TryLeaveVehicle(EntityUid user, EntityUid vehicle, out string message)
     {
@@ -166,12 +168,17 @@ public sealed class WGUnstuckSystem : EntitySystem
             return false;
         }
 
-        if (!ghost
-            && !_mobState.IsDead(user)
-            && TryComp<VehicleLockComponent>(vehicle, out var vehicleLock)
-            && vehicleLock.Locked)
+        var living = !ghost && !_mobState.IsDead(user);
+        if (living && TryComp<VehicleLockComponent>(vehicle, out var vehicleLock) && vehicleLock.Locked)
         {
             message = Loc.GetString("wg-unstuck-vehicle-locked");
+            return false;
+        }
+
+        // The living get out only as they could through a door: not cuffed, stunned or down.
+        if (living && !_actionBlocker.CanInteract(user, null))
+        {
+            message = Loc.GetString("wg-unstuck-vehicle-restrained");
             return false;
         }
 
