@@ -116,9 +116,9 @@ namespace Content.IntegrationTests.Tests
                     .ToList();
             });
 
-            for (var first = 0; first < protoIds.Count; first += SpawnAllSlice)
+            for (var first = 0; first < protoIds.Count; first += SameSpotSlice)
             {
-                var slice = protoIds.Skip(first).Take(SpawnAllSlice).ToList();
+                var slice = protoIds.Skip(first).Take(SameSpotSlice).ToList();
                 var map = await pair.CreateTestMap();
                 await server.WaitPost(() =>
                 {
@@ -200,6 +200,12 @@ namespace Content.IntegrationTests.Tests
         // WOLFGATE END
 
         // WOLFGATE(Ci) START: timed progress of the spawn-all slices, so a slow core shard shows where the time goes
+        /// <summary>
+        /// Prototypes per slice of the same-spot test. Smaller than <see cref="SpawnAllSlice"/>: in one spot, portals,
+        /// EMPs and the like act on everything piled with them, so a slice's cost grows with its square.
+        /// </summary>
+        private const int SameSpotSlice = 1000;
+
         /// <summary>
         /// Runs a slice's 450 ticks in thirds, logging after each. A slice whose first third is over 30 seconds has its
         /// prototypes written out, to bisect what made it slow.

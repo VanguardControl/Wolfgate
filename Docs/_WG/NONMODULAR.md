@@ -113,6 +113,7 @@ Standalone edits outside `_WG` that serve no module: files with an untagged `WOL
 - [`Content.Packaging/ClientPackaging.cs`](../../Content.Packaging/ClientPackaging.cs): ship the licence texts and legal notes in the client zip
 - [`Content.Server/_Crescent/ShipShields/ShipShieldsSystem.Commands.cs`](../../Content.Server/_Crescent/ShipShields/ShipShieldsSystem.Commands.cs): restore the licence header removed by Kill Spdx
 - [`Content.Server/_Crescent/ShipShields/ShipShieldsSystem.Emitter.cs`](../../Content.Server/_Crescent/ShipShields/ShipShieldsSystem.Emitter.cs): restore the licence header removed by Kill Spdx
+- [`Content.Server/_DV/Mail/EntitySystems/DelayedItemSystem.cs`](../../Content.Server/_DV/Mail/EntitySystems/DelayedItemSystem.cs): a placeholder leaves its container as it is deleted; spawning onto it then logged an error
 - [`Content.Server/_ES/TileFires/ESTileFireSystem.cs`](../../Content.Server/_ES/TileFires/ESTileFireSystem.cs): a grid deleted mid-explosion has no transform left to fire
 - [`Content.Server/_FarHorizons/Power/Generation/FissionGenerator/NuclearCentrifugeComponent.cs`](../../Content.Server/_FarHorizons/Power/Generation/FissionGenerator/NuclearCentrifugeComponent.cs): relabelled MIT as in HardLight b602e8d485
 - [`Content.Server/_FarHorizons/Power/Generation/FissionGenerator/NuclearCentrifugeSystem.cs`](../../Content.Server/_FarHorizons/Power/Generation/FissionGenerator/NuclearCentrifugeSystem.cs): relabelled MIT as in HardLight b602e8d485
