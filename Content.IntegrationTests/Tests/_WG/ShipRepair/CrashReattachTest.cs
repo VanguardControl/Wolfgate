@@ -143,7 +143,7 @@ public sealed class CrashReattachTest
 
             for (var d = 0; d < 4; d++)
             {
-                if (MathF.Abs(shuttle.LinearThrust[d] - expected[d]) > 1f || !shuttle.LinearThrusters[d].SetEquals(members[d]))
+                if (MathF.Abs(shuttle.LinearThrust[d] - expected[d]) > 1f || shuttle.LinearThrusters[d].Count != members[d].Count || !members[d].SetEquals(shuttle.LinearThrusters[d]))
                     drift.Add($"bank {d}: {shuttle.LinearThrust[d]:F0} N from {shuttle.LinearThrusters[d].Count} engines, running engines give {expected[d]:F0} N from {members[d].Count}");
             }
 
