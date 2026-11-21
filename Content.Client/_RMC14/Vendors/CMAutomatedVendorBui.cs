@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Client._WG.SpecialistKits; // WOLFGATE(SpecialistKits)
 using Content.Shared._RMC14.Vendors;
 using Content.Shared.Mind;
 using Content.Shared.Roles.Jobs;
@@ -101,6 +102,8 @@ public sealed class CMAutomatedVendorBui : BoundUserInterface
                         uiEntry.TooltipLabel.ToolTip = entity.Description;
                         uiEntry.TooltipLabel.TooltipDelay = 0;
                         uiEntry.TooltipLabel.TooltipSupplier = _ => tooltip;
+                        // WOLFGATE(SpecialistKits): a specialist kit lists its gear in a drop-down under its row
+                        WGKitContents.Attach(uiEntry, entity, _prototype, EntMan.ComponentFactory);
 
                         var sectionI = sectionIndex;
                         var entryI = entryIndex;
@@ -258,8 +261,11 @@ public sealed class CMAutomatedVendorBui : BoundUserInterface
     private FormattedMessage GetSectionName(CMVendorUserComponent? user, CMVendorSection section)
     {
         var name = new FormattedMessage();
-        name.PushTag(new MarkupNode("bold", new MarkupParameter(section.Name.ToUpperInvariant()), null));
-        name.AddText(section.Name.ToUpperInvariant());
+        // WOLFGATE(SpecialistKits) START: a section name may be a Fluent message, shown in the player's language
+        var sectionName = Loc.TryGetString(section.Name, out var localized) ? localized : section.Name;
+        name.PushTag(new MarkupNode("bold", new MarkupParameter(sectionName.ToUpperInvariant()), null));
+        name.AddText(sectionName.ToUpperInvariant());
+        // WOLFGATE END
 
         if (section.TakeAll != null)
         {
