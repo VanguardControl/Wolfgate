@@ -142,6 +142,7 @@ public sealed partial class WGColdStoreSystem
     /// Whether anything outside the grid holds its uid and would be left pointing at nothing: worldgen debris, contract
     /// wrecks, claims and deeds, game rules, admin event targets, corruption and NPC pilots. Systems that pin a grid
     /// while they work on it (magnets, drydocks, ropes, beams, hacks, autodock, hull retirement) are excluded by the pin.
+    /// Paused holders count too, such as a claim in a locker on a grid in stasis.
     /// </summary>
     private string? ReferenceReason(EntityUid grid)
     {
@@ -156,42 +157,42 @@ public sealed partial class WGColdStoreSystem
                 return "wg-coldstore-why-contract";
         }
 
-        var claims = EntityQueryEnumerator<WGSalvageClaimComponent>();
+        var claims = AllEntityQuery<WGSalvageClaimComponent>();
         while (claims.MoveNext(out var claim))
         {
             if (claim.Ship == grid)
                 return "wg-coldstore-why-claim";
         }
 
-        var claimDrops = EntityQueryEnumerator<WGSalvageClaimDropComponent>();
+        var claimDrops = AllEntityQuery<WGSalvageClaimDropComponent>();
         while (claimDrops.MoveNext(out var drop))
         {
             if (drop.Ship == grid)
                 return "wg-coldstore-why-claim";
         }
 
-        var deeds = EntityQueryEnumerator<WGEncounterDeedComponent>();
+        var deeds = AllEntityQuery<WGEncounterDeedComponent>();
         while (deeds.MoveNext(out var deed))
         {
             if (deed.Ship == grid)
                 return "wg-coldstore-why-claim";
         }
 
-        var deedDrops = EntityQueryEnumerator<WGEncounterDeedDropComponent>();
+        var deedDrops = AllEntityQuery<WGEncounterDeedDropComponent>();
         while (deedDrops.MoveNext(out var deedDrop))
         {
             if (deedDrop.Ship == grid)
                 return "wg-coldstore-why-claim";
         }
 
-        var squatters = EntityQueryEnumerator<WGShipSquatterComponent>();
+        var squatters = AllEntityQuery<WGShipSquatterComponent>();
         while (squatters.MoveNext(out var squatter))
         {
             if (squatter.Ship == grid)
                 return "wg-coldstore-why-claim";
         }
 
-        var rules = EntityQueryEnumerator<RuleGridsComponent>();
+        var rules = AllEntityQuery<RuleGridsComponent>();
         while (rules.MoveNext(out var rule))
         {
             var loaded = rule.MapGrids;
@@ -199,7 +200,7 @@ public sealed partial class WGColdStoreSystem
                 return "wg-coldstore-why-rule";
         }
 
-        var errors = EntityQueryEnumerator<BluespaceErrorRuleComponent>();
+        var errors = AllEntityQuery<BluespaceErrorRuleComponent>();
         while (errors.MoveNext(out var error))
         {
             var spawned = error.GridsUid;
@@ -207,28 +208,28 @@ public sealed partial class WGColdStoreSystem
                 return "wg-coldstore-why-rule";
         }
 
-        var targets = EntityQueryEnumerator<WGEventTargetComponent>();
+        var targets = AllEntityQuery<WGEventTargetComponent>();
         while (targets.MoveNext(out var target))
         {
             if (target.Grid == grid)
                 return "wg-coldstore-why-rule";
         }
 
-        var corruption = EntityQueryEnumerator<WGCorruptionComponent>();
+        var corruption = AllEntityQuery<WGCorruptionComponent>();
         while (corruption.MoveNext(out var tile))
         {
             if (tile.Grid == grid)
                 return "wg-coldstore-why-corruption";
         }
 
-        var pilots = EntityQueryEnumerator<WGPilotDutyComponent>();
+        var pilots = AllEntityQuery<WGPilotDutyComponent>();
         while (pilots.MoveNext(out var pilot))
         {
             if (pilot.DockTarget == grid || pilot.FollowTarget == grid)
                 return "wg-coldstore-why-npc";
         }
 
-        var autodocks = EntityQueryEnumerator<WGAutoDockComponent>();
+        var autodocks = AllEntityQuery<WGAutoDockComponent>();
         while (autodocks.MoveNext(out var autodock))
         {
             if (autodock.TargetGrid == grid)

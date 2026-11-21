@@ -27,7 +27,23 @@ public sealed partial class AtmosphereSystem
 
     private void OnWGGridUnpaused(Entity<GridAtmosphereComponent> ent, ref EntityUnpausedEvent args) => WGAtmospheresChanged();
 
-    private void OnWGGridStasisChanged(Entity<GridAtmosphereComponent> ent, ref WGGridStasisChangedEvent args) => WGAtmospheresChanged();
+    /// <summary>Marks the list stale; a grid entering stasis also leaves a run carried over from a tick out of budget.</summary>
+    private void OnWGGridStasisChanged(Entity<GridAtmosphereComponent> ent, ref WGGridStasisChangedEvent args)
+    {
+        WGAtmospheresChanged();
+        if (!args.InStasis)
+            return;
+
+        for (var i = _currentRunAtmosphere.Count - 1; i >= 0; i--)
+        {
+            if (_currentRunAtmosphere[i].Owner != ent.Owner)
+                continue;
+
+            _currentRunAtmosphere.RemoveAt(i);
+            if (_currentRunAtmosphereIndex > i)
+                _currentRunAtmosphereIndex--;
+        }
+    }
 
     /// <summary>
     /// Fills a new run with every grid atmosphere, walking the entities only after one was added or removed or a cached

@@ -130,11 +130,14 @@ public sealed partial class WGGridStasisSystem : EntitySystem
         return _grids.TryGetValue(grid, out var rec) && rec.State is WGGridStasisState.Pausing or WGGridStasisState.Paused;
     }
 
-    /// <summary>Wakes everything on a grid this tick and keeps it awake for at least <paramref name="hold"/> (60 s by default).</summary>
-    public void Wake(EntityUid grid, TimeSpan? hold = null)
+    /// <summary>
+    /// Wakes everything on a grid this tick and keeps it awake for at least <paramref name="hold"/> (60 s by default).
+    /// False if stasis is off, when nothing is done.
+    /// </summary>
+    public bool Wake(EntityUid grid, TimeSpan? hold = null)
     {
         if (!_enabled)
-            return;
+            return false;
 
         var until = _timing.CurTime + (hold ?? DefaultHold);
         if (!_holds.TryGetValue(grid, out var held) || held < until)
@@ -142,6 +145,8 @@ public sealed partial class WGGridStasisSystem : EntitySystem
 
         if (_grids.TryGetValue(grid, out var rec))
             WakeWhole(rec);
+
+        return true;
     }
 
     /// <summary>Marks a grid busy for a reason: it can't enter stasis while any pin is held, and wakes now if it is in it.</summary>
@@ -155,17 +160,19 @@ public sealed partial class WGGridStasisSystem : EntitySystem
             WakeWhole(rec);
     }
 
-    /// <summary>Lets go of a pin; the grid's idle time counts from now.</summary>
-    public void Unpin(EntityUid grid, string reason)
+    /// <summary>Lets go of a pin; the grid's idle time counts from now. False if that pin wasn't held.</summary>
+    public bool Unpin(EntityUid grid, string reason)
     {
         if (!_pins.TryGetValue(grid, out var reasons) || !reasons.Remove(reason))
-            return;
+            return false;
 
         if (reasons.Count == 0)
             _pins.Remove(grid);
 
         if (_grids.TryGetValue(grid, out var rec))
             rec.IdleSince = null;
+
+        return true;
     }
 
     /// <summary>Whether a grid holds any pin.</summary>
@@ -333,12 +340,18 @@ public sealed partial class WGGridStasisSystem : EntitySystem
 
         foreach (var grid in _gone)
         {
-            if (_grids.Remove(grid, out var gone))
-                _inFlight.Remove(gone);
-
-            _pins.Remove(grid);
-            _holds.Remove(grid);
+            Drop(grid);
         }
+    }
+
+    /// <summary>Forgets a deleted grid: its record, pins and holds.</summary>
+    private void Drop(EntityUid grid)
+    {
+        if (_grids.Remove(grid, out var gone))
+            _inFlight.Remove(gone);
+
+        _pins.Remove(grid);
+        _holds.Remove(grid);
     }
 
     private void BeginPausing(WGStasisGrid rec)
@@ -393,10 +406,17 @@ public sealed partial class WGGridStasisSystem : EntitySystem
         _inFlight.Remove(rec);
     }
 
+    /// <summary>Whether the grid's map is paused, which pauses everything on it; nothing there may be unpaused.</summary>
+    private bool OnPausedMap(WGStasisGrid rec)
+    {
+        return _xformQuery.TryComp(rec.Grid, out var xform) && xform.MapUid is { } map
+               && _metaQuery.TryComp(map, out var mapMeta) && mapMeta.EntityPaused;
+    }
+
     /// <summary>Unpauses what a grid paused from an index on, unless its map is paused.</summary>
     private void WakeFrom(WGStasisGrid rec, int start)
     {
-        if (_xformQuery.TryComp(rec.Grid, out var xform) && xform.MapUid is { } map && _metaQuery.TryComp(map, out var mapMeta) && mapMeta.EntityPaused)
+        if (OnPausedMap(rec))
             return;
 
         for (var i = start; i < rec.Paused.Count; i++)
@@ -431,7 +451,7 @@ public sealed partial class WGGridStasisSystem : EntitySystem
         foreach (var rec in _work)
         {
             _tickWork += $" wake {rec.Grid};";
-            if (rec.Urgent)
+            if (rec.Urgent || OnPausedMap(rec))
             {
                 WakeFrom(rec, rec.Cursor);
                 FinishWaking(rec);
@@ -466,6 +486,14 @@ public sealed partial class WGGridStasisSystem : EntitySystem
                 return;
 
             _tickWork += $" pause {rec.Grid};";
+
+            // Deleted since it was last looked at.
+            if (TerminatingOrDeleted(rec.Grid))
+            {
+                Drop(rec.Grid);
+                continue;
+            }
+
             if (!rec.Gathered)
             {
                 Gather(rec);

@@ -11,28 +11,31 @@ keeps only what someone can see or use loaded, in three tiers:
 |---|---|---|---|
 | Live | Someone is aboard or near. Simulated as now. | Full | - |
 | Stasis | Nobody near for a few minutes. Paused where it stands; keeps every entity and all state. | Memory only | One tick |
-| Stored | In stasis long enough. Saved to the database and deleted, leaving one stand-in entity. | A database row | A second or two, spread over ticks, before anyone can see it |
+| Stored | In stasis long enough. Saved and deleted, leaving one stand-in entity. Kept in server memory for the round (a database row is planned). | Its compressed bytes | One tick for now, before anyone can see it |
 
 A stored grid's stand-in keeps its place in the world: its radar blip, name, owner, position, drift and outline. A
-player approaching, plotting a jump to it, or an owner logging in brings the grid back before it is in view. Time that
-passed while stored (fuel, power, spoilage) is applied when it wakes, not simulated.
+player approaching or plotting a jump to it brings the grid back before it is in view. Planned: an owner logging in
+waking it, and applying the time that passed while stored (fuel, power, spoilage) when it wakes; today it resumes as it
+was saved.
 
 The unit is always a whole grid, never single entities: a ship is a closed unit with its own air, power and links, so
 it can be saved and rebuilt intact. Anything outside that points into a grid (a deed, a dock, an NPC's home) points at
 the stand-in.
 
-Because stored grids live in the database, the world survives a restart or a crash. A restart becomes a pause, not
-the end of a round.
+Planned, not built: keeping stored grids in the database, so the world survives a restart or a crash and a restart
+becomes a pause, not the end of a round. Today stored grids are held in server memory and dropped at round end, like
+everything else in the round.
 
 ## Parts
 
 1. **Census** (`EntityCensus`, built): what the entities are and what is spawning.
-2. **Pressure governor**: tightens cleanup and spawn budgets as the count climbs.
+2. **Pressure governor** (built): tightens cleanup and spawn budgets as the count climbs.
 3. **Stasis** (built): the planet site stash (`Dormancy`) extended to grids in space.
-4. **Store and restore**: saving a grid to the database, the stand-in, waking on approach, catch-up on wake.
-5. **Engine (Lupine, server-only)**: grid loading spread over ticks so a restore never stalls a tick, and a per-player
-   always-visible set so unchanged grids aren't re-added for every player every tick.
-6. **Persistence**: restoring the stored world after a restart.
+4. **Store and restore** (built for wrecks, in memory): the stand-in and waking on approach. Catch-up on wake is
+   planned.
+5. **Engine (Lupine, server-only)** (planned): grid loading spread over ticks so a restore never stalls a tick, and a
+   per-player always-visible set so unchanged grids aren't re-added for every player every tick.
+6. **Persistence** (planned): stored grids in the database, restored after a restart.
 
 ## Stasis
 
@@ -113,8 +116,9 @@ veto with `WGColdStoreCheckEvent`. A grid whose save fails is put back and never
 
 Storing is one grid at a time: the hull is parked and copied in slices by `WGHullRetireSystem.CopyParked` (nothing is
 ever stripped), the YAML is written and gzipped on a worker and kept by an `IWGColdStoreBackend` (in memory for now),
-then the stand-in is placed, `WGGridStoredEvent` is raised and the hull is deleted in slices. Any throw or serializer
-error aborts. The stand-in sits at the centre of the grid's bounds with `WGStoredGridComponent`, a static body with no
+then the stand-in is placed, `WGGridStoredEvent` is raised and the hull is deleted in slices. Any throw, or a
+serializer error logged while one of its own slices runs, aborts. The kept hull is never pruned or stripped, so an
+abort puts it back unchanged; if its map went meanwhile it is deleted as the map would have deleted it. The stand-in sits at the centre of the grid's bounds with `WGStoredGridComponent`, a static body with no
 fixtures and a `RadarBlip` the size of those bounds in the grid's IFF colour (none for a hidden grid); it shows no
 label or tile outline. Space and grid cleanup leave it alone.
 
@@ -122,8 +126,9 @@ A stand-in is restored, nearest first and one a tick, by a viewer or arrival wit
 within half of it, a blast near it, `wg_coldstore restore`, or storing being turned off. The grid is loaded onto a
 paused staging map in one tick, run through `UsedShipReinitSystem.ReinitLoadedShip` (device net, wires, nav map,
 shields and the other map-init state a load skips), placed, nudged off any grid now in the way, held awake 60 s and
-`WGGridRestoredEvent` is raised. A failed load keeps the stand-in and bytes, logs an error and is retried once a minute,
-three times. A grid that grid cleanup would have deleted keeps cleanup's clock while stored, reset by a player near;
+`WGGridRestoredEvent` is raised. A failed load, or a hull that still overlaps a grid after being moved on eight times,
+keeps the stand-in and bytes, logs an error and stays queued for a retry once a minute, three tries in all; after that
+only an admin restore tries it again. A grid that grid cleanup would have deleted keeps cleanup's clock while stored, reset by a player near;
 when it runs out the stand-in and bytes are deleted. Records are dropped at round end.
 
 Known losses on a round trip: gas in pipe nets, wire layouts (redone by the re-init), turret links to hardpoints and
@@ -134,8 +139,9 @@ links, access and names come back.
 Gauges: `wg_coldstore_grids`, `wg_coldstore_entities`, `wg_coldstore_bytes`, `wg_coldstore_worst_restore_ms`, and
 counters for stores, restores, aborts, failed loads and expiries; `wg_entcensus` shows the stored totals.
 `wg.coldstore.max_restore_ms` (50) only marks slow restores in the log, as a load can't be split yet.
-`wg_coldstore` (Debug) lists stored grids, `wg_coldstore store <grid>` stores one now (skipping only the idle time) or
-says why not, and `wg_coldstore restore <stand-in|all>` brings them back.
+`wg_coldstore` (Debug) lists stored grids, `wg_coldstore store <grid>` stores one now (skipping only the idle time;
+refused while storing or stasis is off) or says why not, `wg_coldstore restore <stand-in>` brings one back now, and
+`wg_coldstore restore all` queues every one to come back a tick at a time.
 
 ## Limits
 
@@ -203,8 +209,8 @@ says why not, and `wg_coldstore restore <stand-in|all>` brings them back.
 - [`Content.Server/Salvage/SalvageSystem.Magnet.cs`](../../Salvage/SalvageSystem.Magnet.cs)
   - split pieces are salvage too
   - the magnet's grid may sleep again
-  - salvage stays out of stasis until the magnet lets go
-  - the magnet's own grid stays out of stasis too
+  - salvage stays out of stasis until the magnet lets go, if its lease is still live
+  - the magnet's own grid stays out of stasis too, if its lease is still live
 - [`Content.Server/Shuttles/Systems/ShuttleConsoleLockSystem.cs`](../../Shuttles/Systems/ShuttleConsoleLockSystem.cs): a deed on a paused holder still counts
 
 <!-- WOLFGATE-GENERATED END -->

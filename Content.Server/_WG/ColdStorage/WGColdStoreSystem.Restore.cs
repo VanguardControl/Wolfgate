@@ -62,7 +62,6 @@ public sealed partial class WGColdStoreSystem
         if (now < _nextGrids)
             return;
 
-        var elapsed = _nextGrids == TimeSpan.Zero ? 0f : (float) (now - _nextGrids + GridsEvery).TotalSeconds;
         _nextGrids = now + GridsEvery;
         foreach (var (standIn, record) in _stored)
         {
@@ -70,7 +69,7 @@ public sealed partial class WGColdStoreSystem
                 Queue(standIn, _restoreRange / 2f);
         }
 
-        AdvanceCleanup(elapsed);
+        AdvanceCleanup(now);
         SampleGauges();
     }
 
@@ -80,12 +79,42 @@ public sealed partial class WGColdStoreSystem
             _restoreQueue[standIn] = priority;
     }
 
+    /// <summary>Whether a stored grid may be tried now: not failed, or due a retry under the cap, or asked for by an admin.</summary>
+    private static bool Due(WGStoredGrid record, TimeSpan now)
+    {
+        return record.State != WGStoredState.Failed
+               || record.RetryOverride
+               || record.Failures < MaxFailures && now >= record.NextRetry;
+    }
+
+    /// <summary>Whether a stored grid will never be tried again without an admin.</summary>
+    private static bool GivenUp(WGStoredGrid record)
+    {
+        return record.State == WGStoredState.Failed && record.Failures >= MaxFailures && !record.RetryOverride;
+    }
+
+    /// <summary>
+    /// Queues every stored grid to come back, one a tick; for admins. Each gets one more try even past the failure
+    /// cap. Gives how many were queued.
+    /// </summary>
+    public int QueueRestoreAll()
+    {
+        foreach (var (standIn, record) in _stored)
+        {
+            record.RetryOverride = true;
+            Queue(standIn, float.MaxValue);
+        }
+
+        return _stored.Count;
+    }
+
     /// <summary>With storing off, every stored grid comes back, one a tick.</summary>
     private void QueueAll()
     {
-        foreach (var standIn in _stored.Keys)
+        foreach (var (standIn, record) in _stored)
         {
-            Queue(standIn, float.MaxValue);
+            if (!GivenUp(record))
+                Queue(standIn, float.MaxValue);
         }
 
         if (_timing.CurTime >= _nextGrids)
@@ -109,50 +138,71 @@ public sealed partial class WGColdStoreSystem
         }
     }
 
-    /// <summary>Restores the nearest queued stand-in, skipping failed ones not due another try.</summary>
+    /// <summary>
+    /// Restores the nearest queued stand-in that is due. Failed ones waiting for a retry stay queued; gone ones and
+    /// ones given up on are dropped.
+    /// </summary>
     private void RestoreNext(TimeSpan now)
     {
-        while (_restoreQueue.Count > 0)
+        if (_restoreQueue.Count == 0)
+            return;
+
+        _dropped.Clear();
+        WGStoredGrid? best = null;
+        var bestPriority = float.MaxValue;
+        foreach (var (standIn, priority) in _restoreQueue)
         {
-            var best = EntityUid.Invalid;
-            var bestPriority = float.MaxValue;
-            foreach (var (standIn, priority) in _restoreQueue)
+            if (!_stored.TryGetValue(standIn, out var record) || GivenUp(record))
             {
-                if (!best.IsValid() || priority < bestPriority)
-                {
-                    best = standIn;
-                    bestPriority = priority;
-                }
+                _dropped.Add(standIn);
+                continue;
             }
 
-            _restoreQueue.Remove(best);
-            if (!_stored.TryGetValue(best, out var record))
+            if (!Due(record, now))
                 continue;
 
-            if (record.State == WGStoredState.Failed && (record.Failures >= MaxFailures || now < record.NextRetry))
-                continue;
-
-            TryRestore(record);
-            return;
+            if (best == null || priority < bestPriority)
+            {
+                best = record;
+                bestPriority = priority;
+            }
         }
+
+        foreach (var standIn in _dropped)
+        {
+            _restoreQueue.Remove(standIn);
+        }
+
+        if (best == null)
+            return;
+
+        _restoreQueue.Remove(best.StandIn);
+        TryRestore(best, bestPriority);
     }
 
-    /// <summary>Restores a stored grid now, whatever its state; for admins and tests. False if its load failed.</summary>
+    /// <summary>Restores a stored grid now, whatever its state; for admins and tests. False if it failed.</summary>
     public bool RestoreNow(EntityUid standIn)
     {
         _restoreQueue.Remove(standIn);
-        return _stored.TryGetValue(standIn, out var record) && TryRestore(record);
+        return _stored.TryGetValue(standIn, out var record) && TryRestore(record, 0f);
+    }
+
+    /// <summary>Whether a stored grid's bytes are still held.</summary>
+    public bool HasBytes(EntityUid standIn)
+    {
+        return _stored.TryGetValue(standIn, out var record) && Backend.TryGet(record.Key, out _);
     }
 
     /// <summary>
     /// Loads a stored grid onto a paused staging map, redoes what loading skips, and moves it where its stand-in is.
-    /// A failed load keeps the stand-in and the bytes.
+    /// A failure keeps the stand-in and the bytes, and queues a retry at <paramref name="priority"/> until the cap.
     /// </summary>
-    private bool TryRestore(WGStoredGrid record)
+    private bool TryRestore(WGStoredGrid record, float priority)
     {
+        record.RetryOverride = false;
         if (!Backend.TryGet(record.Key, out var bytes))
         {
-            Fail(record, "its bytes are missing");
+            Fail(record, "its bytes are missing", priority);
             return false;
         }
 
@@ -167,7 +217,7 @@ public sealed partial class WGColdStoreSystem
             if (!_loader.TryLoadGrid(Comp<MapComponent>(staging).MapId, new StringReader(text), record.Key, out loaded))
             {
                 DropStaging();
-                Fail(record, "the load returned nothing");
+                Fail(record, "the load returned nothing", priority);
                 return false;
             }
 
@@ -176,7 +226,7 @@ public sealed partial class WGColdStoreSystem
         catch (Exception e)
         {
             DropStaging();
-            Fail(record, $"{e.GetType().Name}: {e.Message}");
+            Fail(record, $"{e.GetType().Name}: {e.Message}", priority);
             return false;
         }
 
@@ -186,7 +236,13 @@ public sealed partial class WGColdStoreSystem
         _transform.SetCoordinates(grid, new EntityCoordinates(record.Map, record.Position));
         _transform.SetLocalRotation(grid, record.Rotation);
         Still(grid);
-        ClearOverlaps(grid);
+        if (!ClearOverlaps(grid))
+        {
+            // The copy goes; the stand-in and bytes stay for a later try, when the way may be clear.
+            Del(grid);
+            Fail(record, "it would overlap another grid wherever it was moved", priority);
+            return false;
+        }
 
         var cleanup = EnsureComp<GridCleanupGridComponent>(grid);
         cleanup.CleanupAccumulator = record.CleanupAccumulator;
@@ -213,7 +269,8 @@ public sealed partial class WGColdStoreSystem
         return true;
     }
 
-    private void Fail(WGStoredGrid record, string why)
+    /// <summary>Marks a failed try and keeps a retry queued until the cap, so a one-off trigger isn't lost.</summary>
+    private void Fail(WGStoredGrid record, string why, float priority)
     {
         record.State = WGStoredState.Failed;
         record.Failures++;
@@ -221,7 +278,13 @@ public sealed partial class WGColdStoreSystem
         record.LastError = why;
         Failures++;
         FailuresCounter.Inc();
-        Log.Error($"Could not restore stored grid {record.Name} ({record.Key}), try {record.Failures} of {MaxFailures}: {why}. Its stand-in and bytes are kept.");
+        var retry = record.Failures < MaxFailures;
+        if (retry)
+            Queue(record.StandIn, priority);
+
+        var kept = Backend.TryGet(record.Key, out _) ? "Its stand-in and bytes are kept" : "Its stand-in is kept";
+        var next = retry ? $"; tried again in {RetryEvery.TotalSeconds:0} s" : "; left for an admin";
+        Log.Error($"Could not restore stored grid {record.Name} ({record.Key}), try {record.Failures} of {MaxFailures}: {why}. {kept}{next}.");
     }
 
     /// <summary>Drops a stored grid's record and bytes; the stand-in is the caller's.</summary>
@@ -252,11 +315,11 @@ public sealed partial class WGColdStoreSystem
         _stagingMap = null;
     }
 
-    /// <summary>Moves a restored hull off any grid it landed on, a hull's width at a time.</summary>
-    private void ClearOverlaps(EntityUid grid)
+    /// <summary>Moves a restored hull off any grid it landed on, a hull's width at a time. False if it is still on one.</summary>
+    private bool ClearOverlaps(EntityUid grid)
     {
         var xform = Transform(grid);
-        for (var i = 0; i < ClearAttempts; i++)
+        for (var i = 0; ; i++)
         {
             var bounds = _lookup.GetWorldAABB(grid, xform);
             _overlaps.Clear();
@@ -272,7 +335,10 @@ public sealed partial class WGColdStoreSystem
             }
 
             if (!other.IsValid())
-                return;
+                return true;
+
+            if (i == ClearAttempts)
+                return false;
 
             var away = bounds.Center - _lookup.GetWorldAABB(other).Center;
             var direction = away.LengthSquared() > 0.01f ? Vector2.Normalize(away) : Vector2.UnitY;
@@ -283,13 +349,11 @@ public sealed partial class WGColdStoreSystem
 
     /// <summary>
     /// Runs grid cleanup's clock on stored candidates: reset by a player near, else advanced; one that runs out is
-    /// deleted with its bytes, as grid cleanup would have deleted the grid.
+    /// deleted with its bytes, as grid cleanup would have deleted the grid. Players are measured from the grid's
+    /// position, and a grid's own distance override isn't scaled by pressure, both as grid cleanup does.
     /// </summary>
-    private void AdvanceCleanup(float seconds)
+    private void AdvanceCleanup(TimeSpan now)
     {
-        if (seconds <= 0f)
-            return;
-
         var duration = _gridCleanup.WGCleanupDuration;
         _expired.Clear();
         foreach (var (standIn, record) in _stored)
@@ -297,12 +361,19 @@ public sealed partial class WGColdStoreSystem
             if (!record.CleanupCandidate)
                 continue;
 
-            var distance = record.CleanupDistance * _gridCleanup.WGRadiusScale;
-            if (_cleanupHelper.HasNearbyPlayers(new EntityCoordinates(record.Map, record.WorldBounds.Center), distance))
+            var seconds = (float) (now - record.CleanupSeen).TotalSeconds;
+            record.CleanupSeen = now;
+            var distance = record.CleanupDistanceFixed
+                ? record.CleanupDistance
+                : record.CleanupDistance * _gridCleanup.WGRadiusScale;
+            if (_cleanupHelper.HasNearbyPlayers(new EntityCoordinates(record.Map, record.Position), distance))
             {
                 record.CleanupAccumulator = TimeSpan.Zero;
                 continue;
             }
+
+            if (seconds <= 0f)
+                continue;
 
             record.CleanupAccumulator += TimeSpan.FromSeconds(seconds * record.CleanupRate);
             if (record.CleanupAccumulator >= duration)
@@ -323,4 +394,5 @@ public sealed partial class WGColdStoreSystem
     }
 
     private readonly List<EntityUid> _expired = new();
+    private readonly List<EntityUid> _dropped = new();
 }

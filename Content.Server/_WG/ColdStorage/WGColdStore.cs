@@ -115,7 +115,16 @@ public sealed class WGStoredGrid
     public float CleanupRate;
     public float CleanupDistance;
 
+    /// <summary>The distance is the grid's own override, which entity pressure doesn't scale.</summary>
+    public bool CleanupDistanceFixed;
+
+    /// <summary>When the clock was last advanced or reset.</summary>
+    public TimeSpan CleanupSeen;
+
     public int Failures;
     public TimeSpan NextRetry;
     public string? LastError;
+
+    /// <summary>An admin asked for it back: the next try ignores the retry delay and the failure cap.</summary>
+    public bool RetryOverride;
 }

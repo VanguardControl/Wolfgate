@@ -31,14 +31,7 @@ public sealed partial class WGColdStoreCommand : LocalizedEntityCommands
 
         if (args[0] == "restore" && args[1] == "all")
         {
-            var restored = 0;
-            foreach (var standIn in _coldStore.Stored.Keys.ToList())
-            {
-                if (_coldStore.RestoreNow(standIn))
-                    restored++;
-            }
-
-            shell.WriteLine(Loc.GetString("cmd-wg_coldstore-restored-all", ("count", restored)));
+            shell.WriteLine(Loc.GetString("cmd-wg_coldstore-queued-all", ("count", _coldStore.QueueRestoreAll())));
             return;
         }
 
@@ -63,9 +56,12 @@ public sealed partial class WGColdStoreCommand : LocalizedEntityCommands
             return;
         }
 
-        shell.WriteLine(_coldStore.RestoreNow(uid.Value)
-            ? Loc.GetString("cmd-wg_coldstore-restored", ("entity", args[1]))
-            : Loc.GetString("cmd-wg_coldstore-restore-failed", ("entity", args[1])));
+        if (_coldStore.RestoreNow(uid.Value))
+            shell.WriteLine(Loc.GetString("cmd-wg_coldstore-restored", ("entity", args[1])));
+        else if (_coldStore.HasBytes(uid.Value))
+            shell.WriteError(Loc.GetString("cmd-wg_coldstore-restore-failed", ("entity", args[1])));
+        else
+            shell.WriteError(Loc.GetString("cmd-wg_coldstore-restore-no-bytes", ("entity", args[1])));
     }
 
     private void List(IConsoleShell shell)

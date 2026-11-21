@@ -10,10 +10,13 @@ using Content.IntegrationTests.Tests._WG.Planets;
 using Content.Server._Mono.Radar;
 using Content.Server._NF.Shipyard.Systems;
 using Content.Server._WG.ColdStorage;
+using Content.Server._WG.Encounters.Components;
 using Content.Server._WG.Shipyard;
 using Content.Server.Power.EntitySystems;
 using Content.Shared._Mono.CCVar;
+using Content.Shared._WG.Explosion;
 using Content.Shared.CCVar;
+using Content.Shared.DeviceLinking;
 using Content.Shared.Doors.Components;
 using Content.Shared.Doors.Systems;
 using Content.Shared.Power.Components;
@@ -149,7 +152,8 @@ public sealed class ColdStoreTest
                     .Where(k => before.GetValueOrDefault(k) != after.GetValueOrDefault(k))
                     .Select(k => $"{k} {before.GetValueOrDefault(k)}->{after.GetValueOrDefault(k)}").ToList();
                 TestContext.Out.WriteLine($"Savable entities before {savable}, after {tree.Count}; differences: {string.Join(", ", diff)}");
-                Assert.That(tree.Count, Is.EqualTo(savable), $"The entity count changed: {string.Join(", ", diff)}");
+                Assert.That(diff, Is.Empty, "Prototypes came back in other numbers.");
+                Assert.That(tree.Count, Is.EqualTo(savable), "The entity count changed.");
 
                 Assert.That(tree.Any(u => Proto(entMan, u) == "PowerCellHigh" && entMan.TryGetComponent<BatteryComponent>(u, out var b)
                     && Math.Abs(b.CurrentCharge / b.MaxCharge - 0.37f) < 0.01f), Is.True, "The drained cell came back charged.");
@@ -273,6 +277,13 @@ public sealed class ColdStoreTest
 
                 Assert.That(cold.Stored, Is.Empty);
                 Assert.That(cold.Storing, Is.False);
+
+                // Off, nothing is stored, even by hand.
+                var fine = BuildWreck(pair, map.MapId, new Vector2(9000f, 3000f), "Fine wreck");
+                server.CfgMan.SetCVar(WGColdStoreCVars.Enabled, false);
+                Assert.That(cold.TryStore(fine, true, out why), Is.False);
+                Assert.That(why, Is.EqualTo("wg-coldstore-why-disabled"));
+                Assert.That(cold.Storing, Is.False);
             });
         }
         finally
@@ -326,6 +337,260 @@ public sealed class ColdStoreTest
         }
         finally
         {
+            await Disable(pair);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// A store that aborts after its copy began leaves the wreck as it was: a link to a device on another grid, which
+    /// the copy won't hold, isn't pruned from the live hull.
+    /// </summary>
+    [Test]
+    public async Task AnAbortedStoreKeepsLinksOffTheWreck()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var cold = server.System<WGColdStoreSystem>();
+        var xforms = server.System<SharedTransformSystem>();
+        var map = await pair.CreateTestMap();
+        var origin = new Vector2(0f, 3000f);
+        EntityUid grid = default, button = default, door = default;
+
+        await Enable(pair);
+        try
+        {
+            await server.WaitPost(() =>
+            {
+                grid = BuildWreck(pair, map.MapId, origin, "Linked wreck");
+                button = entMan.SpawnEntity("SignalButton", new EntityCoordinates(grid, new Vector2(3.5f, 1.5f)));
+
+                // Linked while in range, then taken far off.
+                var maps = server.System<SharedMapSystem>();
+                var other = maps.CreateGridEntity(map.MapId);
+                xforms.SetLocalPosition(other.Owner, origin + new Vector2(Size + 1f, 0f));
+                maps.SetTile(other.Owner, other.Comp, Vector2i.Zero, map.Tile.Tile);
+                door = entMan.SpawnEntity("Airlock", new EntityCoordinates(other.Owner, new Vector2(0.5f, 0.5f)));
+                entMan.System<SharedDeviceLinkSystem>().LinkDefaults(null, button, door);
+                var ports = entMan.GetComponent<DeviceLinkSourceComponent>(button).LinkedPorts;
+                Assert.That(ports.ContainsKey(door), Is.True, "Precondition: the button is linked to the door.");
+                xforms.SetLocalPosition(other.Owner, origin + new Vector2(5000f, 0f));
+
+                server.System<WGHullRetireSystem>().FailNextKeptCopy = true;
+                Assert.That(cold.TryStore(grid, true, out var why), Is.True, why);
+            });
+            await RunUntil(pair, () => !cold.Storing);
+
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(cold.Aborts, Is.EqualTo(1), "Precondition: the store aborted.");
+                Assert.That(entMan.Deleted(grid), Is.False);
+                var ports = entMan.GetComponent<DeviceLinkSourceComponent>(button).LinkedPorts;
+                Assert.That(ports.ContainsKey(door), Is.True, "The aborted store pruned the wreck's link to another grid.");
+                var sources = entMan.GetComponent<DeviceLinkSinkComponent>(door).LinkedSources;
+                Assert.That(sources, Does.Contain(button));
+            });
+        }
+        finally
+        {
+            await Disable(pair);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A store that aborts after the wreck's map was deleted deletes the parked wreck instead of leaving it parked.</summary>
+    [Test]
+    public async Task AnAbortWithItsMapGoneDeletesTheWreck()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var cold = server.System<WGColdStoreSystem>();
+        await pair.CreateTestMap();
+        EntityUid grid = default;
+
+        await Enable(pair);
+        try
+        {
+            await server.WaitPost(() =>
+            {
+                var doomedMap = server.System<SharedMapSystem>().CreateMap(out var mapId);
+                grid = BuildWreck(pair, mapId, new Vector2(0f, 3000f), "Orphaned wreck");
+                server.System<WGHullRetireSystem>().FailNextKeptCopy = true;
+                Assert.That(cold.TryStore(grid, true, out var why), Is.True, why);
+                Assert.That(entMan.GetComponent<TransformComponent>(grid).MapUid, Is.Not.EqualTo(doomedMap), "Precondition: the wreck is parked.");
+                entMan.DeleteEntity(doomedMap);
+            });
+            await RunUntil(pair, () => !cold.Storing);
+            await RunUntil(pair, () => entMan.Deleted(grid), 120);
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(cold.Aborts, Is.EqualTo(1));
+                Assert.That(server.System<WGGridStasisSystem>().IsPinned(grid), Is.False, "The park pin outlived the wreck.");
+            });
+        }
+        finally
+        {
+            await Disable(pair);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A claim on the wreck held by something paused, such as a locker on a grid in stasis, still keeps it.</summary>
+    [Test]
+    public async Task APausedClaimHolderKeepsTheWreck()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var cold = server.System<WGColdStoreSystem>();
+        var map = await pair.CreateTestMap();
+
+        await Enable(pair);
+        try
+        {
+            await server.WaitAssertion(() =>
+            {
+                var grid = BuildWreck(pair, map.MapId, new Vector2(0f, 3000f), "Claimed wreck");
+                var holder = entMan.SpawnEntity(null, new MapCoordinates(new Vector2(-5000f, 3000f), map.MapId));
+                entMan.AddComponent<WGSalvageClaimComponent>(holder).Ship = grid;
+                entMan.System<MetaDataSystem>().SetEntityPaused(holder, true);
+
+                Assert.That(cold.TryStore(grid, true, out var why), Is.False, "A wreck with a paused claim was stored.");
+                Assert.That(why, Is.EqualTo("wg-coldstore-why-claim"));
+                entMan.DeleteEntity(holder);
+            });
+        }
+        finally
+        {
+            await Disable(pair);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// A blast that brings back a wreck whose load fails keeps it queued: other stand-ins aren't held up while it waits,
+    /// and it is tried again when due.
+    /// </summary>
+    [Test]
+    public async Task AFailedRestoreFromABlastIsRetried()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var cold = server.System<WGColdStoreSystem>();
+        var map = await pair.CreateTestMap();
+        var originA = new Vector2(0f, 3000f);
+        var originB = new Vector2(3000f, 3000f);
+        EntityUid a = default, b = default;
+
+        await Enable(pair);
+        var failureLevel = pair.ServerLogHandler.FailureLevel;
+        try
+        {
+            await server.WaitPost(() =>
+            {
+                a = BuildWreck(pair, map.MapId, originA, "Retried wreck");
+                b = BuildWreck(pair, map.MapId, originB, "Waiting wreck");
+            });
+            var standA = await Store(pair, a);
+            var standB = await Store(pair, b);
+            WGStoredGrid record = default!;
+            byte[] good = default!;
+
+            // The failed load logs errors, which is the point.
+            pair.ServerLogHandler.FailureLevel = LogLevel.Fatal;
+            await server.WaitPost(() =>
+            {
+                record = cold.Stored[standA];
+                Assert.That(cold.Backend.TryGet(record.Key, out good), Is.True);
+                cold.Backend.Put(record.Key, Gzip("this: [is not a grid"), new WGColdStoreMeta(record.Name, record.Entities, record.StoredAt));
+                Blast(entMan, map.MapId, originA);
+            });
+            await RunUntil(pair, () => record.Failures == 1, 30);
+            Assert.That(entMan.Deleted(standA), Is.False, "Precondition: the load failed.");
+
+            await server.WaitPost(() => Blast(entMan, map.MapId, originB));
+            await RunUntil(pair, () => entMan.Deleted(standB), 30);
+            Assert.That(entMan.Deleted(standA), Is.False);
+
+            await server.WaitPost(() =>
+            {
+                cold.Backend.Put(record.Key, good, new WGColdStoreMeta(record.Name, record.Entities, record.StoredAt));
+                record.NextRetry = TimeSpan.Zero;
+            });
+            await RunUntil(pair, () => entMan.Deleted(standA), 30);
+
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(FindGrid(entMan, "Retried wreck"), Is.Not.Null);
+                Assert.That(FindGrid(entMan, "Waiting wreck"), Is.Not.Null);
+                Assert.That(cold.Failures, Is.EqualTo(1));
+                Assert.That(cold.Restores, Is.EqualTo(2));
+            });
+        }
+        finally
+        {
+            pair.ServerLogHandler.FailureLevel = failureLevel;
+            await Disable(pair);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A wreck that would come back on top of another grid however far it is moved stays stored, bytes and all.</summary>
+    [Test]
+    public async Task ARestoreOntoAGridKeepsTheStandIn()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var cold = server.System<WGColdStoreSystem>();
+        var map = await pair.CreateTestMap();
+        var origin = new Vector2(0f, 3000f);
+        EntityUid grid = default;
+
+        await Enable(pair);
+        var failureLevel = pair.ServerLogHandler.FailureLevel;
+        try
+        {
+            await server.WaitPost(() => grid = BuildWreck(pair, map.MapId, origin, "Buried wreck"));
+            var standIn = await Store(pair, grid);
+            WGStoredGrid record = default!;
+
+            // A strip of hull 600 m long right through where the wreck was: no eight hull-widths clear it.
+            pair.ServerLogHandler.FailureLevel = LogLevel.Fatal;
+            await server.WaitPost(() =>
+            {
+                record = cold.Stored[standIn];
+                var maps = server.System<SharedMapSystem>();
+                var strip = maps.CreateGridEntity(map.MapId);
+                server.System<SharedTransformSystem>().SetLocalPosition(strip.Owner, origin);
+                var tiles = new List<(Vector2i, Tile)>();
+                for (var x = 0; x < Size; x++)
+                for (var y = -300; y < 300; y++)
+                    tiles.Add((new Vector2i(x, y), map.Tile.Tile));
+                maps.SetTiles(strip.Owner, strip.Comp, tiles);
+            });
+            await RunUntil(pair, () => record.Failures >= 1, 120);
+
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(entMan.Deleted(standIn), Is.False, "The stand-in went with a restore that couldn't be placed.");
+                Assert.That(cold.Stored.ContainsKey(standIn), Is.True);
+                Assert.That(cold.Backend.TryGet(record.Key, out _), Is.True, "The bytes were dropped.");
+                Assert.That(FindGrid(entMan, "Buried wreck"), Is.Null, "The overlapping copy was left in the world.");
+                Assert.That(record.LastError, Does.Contain("overlap"));
+            });
+        }
+        finally
+        {
+            pair.ServerLogHandler.FailureLevel = failureLevel;
             await Disable(pair);
         }
 
@@ -489,13 +754,15 @@ public sealed class ColdStoreTest
             var at = new EntityCoordinates(grid.Owner, new Vector2(0.5f, 0.5f));
             var box = entMan.SpawnEntity("BoxCardboard", at);
             var storage = entMan.System<SharedStorageSystem>();
+            var pens = new List<EntityUid>();
             for (var i = 0; i < 2; i++)
             {
                 var item = entMan.SpawnEntity("Pen", at);
                 storage.Insert(box, item, out _, playSound: false);
+                pens.Add(item);
             }
 
-            Assert.That(entMan.GetComponent<StorageComponent>(box).StoredItems, Has.Count.GreaterThanOrEqualTo(2), "Precondition: two items in the box.");
+            Assert.That(pens.All(entMan.GetComponent<StorageComponent>(box).StoredItems.ContainsKey), Is.True, "Precondition: both pens in the box.");
 
             var options = SerializationOptions.Default with
             {
@@ -506,6 +773,8 @@ public sealed class ColdStoreTest
             };
             entMan.System<ShipyardSystem>().WGStripUnsavable(grid.Owner, options);
             Assert.That(entMan.HasComponent<StorageComponent>(box), Is.True, "The strip step took a healthy box's storage.");
+            var stored = entMan.GetComponent<StorageComponent>(box).StoredItems;
+            Assert.That(pens.All(stored.ContainsKey), Is.True, "The strip step dropped a pen from the box's stored items.");
             entMan.DeleteEntity(grid.Owner);
         });
 
@@ -601,6 +870,13 @@ public sealed class ColdStoreTest
             entMan.SpawnEntity("SheetSteel1", new EntityCoordinates(grid.Owner, new Vector2(1.5f + i, 3.5f)));
 
         return grid.Owner;
+    }
+
+    /// <summary>Raises a small blast's shockwave over a wreck built at <paramref name="origin"/>.</summary>
+    private static void Blast(IEntityManager entMan, MapId mapId, Vector2 origin)
+    {
+        var blast = new ExplosionShockwaveEvent(new MapCoordinates(origin + new Vector2(Size / 2f, Size / 2f), mapId), 3, null);
+        entMan.EventBus.RaiseEvent(EventSource.Local, ref blast);
     }
 
     private static EntityUid? FindGrid(IEntityManager entMan, string name)

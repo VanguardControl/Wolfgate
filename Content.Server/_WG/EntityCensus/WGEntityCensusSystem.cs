@@ -110,7 +110,7 @@ public sealed class WGEntityCensusSystem : EntitySystem
 
     private readonly System.Diagnostics.Stopwatch _watch = new();
     private readonly Dictionary<EntityUid, WGCensusKind> _gridKinds = new();
-    private readonly Dictionary<EntityUid, bool> _gridStasis = new();
+    private readonly HashSet<EntityUid> _stasisGrids = new();
     private readonly HashSet<string> _prototypeLabels = new();
     private readonly HashSet<string> _spawnLabels = new();
     private Dictionary<string, int> _deleted = new();
@@ -215,7 +215,7 @@ public sealed class WGEntityCensusSystem : EntitySystem
         _snapshot = EntityManager.GetEntities().ToArray();
         _cursor = 0;
         _gridKinds.Clear();
-        _gridStasis.Clear();
+        _stasisGrids.Clear();
         _building = new WGCensus { Taken = _timing.CurTime };
     }
 
@@ -242,15 +242,11 @@ public sealed class WGEntityCensusSystem : EntitySystem
         census.Prototypes[id] = census.Prototypes.GetValueOrDefault(id) + 1;
     }
 
-    /// <summary>Whether a grid is in stasis, asked once per grid a census.</summary>
+    /// <summary>Whether a grid is in stasis now, as a census walk spans ticks; each sleeping grid is counted once.</summary>
     private bool InStasis(WGCensus census, EntityUid grid)
     {
-        if (_gridStasis.TryGetValue(grid, out var known))
-            return known;
-
         var asleep = _stasis.IsInStasis(grid);
-        _gridStasis[grid] = asleep;
-        if (asleep)
+        if (asleep && _stasisGrids.Add(grid))
             census.StasisGrids++;
 
         return asleep;

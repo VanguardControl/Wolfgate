@@ -380,7 +380,7 @@ public sealed partial class SalvageSystem
 
             data.Comp.ActiveEntities ??= new List<EntityUid>();
             data.Comp.ActiveEntities?.Add(mapChild);
-            WGPinSalvage(data, mapChild); // WOLFGATE(ColdStorage): salvage stays out of stasis until the magnet lets go
+            WGPinOffered(data, seed, mapChild); // WOLFGATE(ColdStorage): salvage stays out of stasis until the magnet lets go, if its lease is still live
 
             // Handle mob restrictions
             var children = salvXForm.ChildEnumerator;
@@ -395,7 +395,7 @@ public sealed partial class SalvageSystem
         }
 
         Report(magnet.Owner, MagnetChannel, "salvage-system-announcement-arrived", ("timeLeft", data.Comp.ActiveTime.TotalSeconds));
-        WGPinMagnetGrid(data, magnetGridUid); // WOLFGATE(ColdStorage): the magnet's own grid stays out of stasis too
+        WGPinMagnetGrid(data, seed, magnetGridUid); // WOLFGATE(ColdStorage): the magnet's own grid stays out of stasis too, if its lease is still live
         _mapSystem.DeleteMap(salvMapXform.MapID);
 
         data.Comp.Announced = false;

@@ -29,7 +29,7 @@ public sealed partial class WGHullRetireSystem : EntitySystem
     [Dependency] private ShipyardSystem _shipyard = default!;
     [Dependency] private WGGridStasisSystem _stasis = default!;
 
-    /// <summary>Held until the hull is deleted, which drops it.</summary>
+    /// <summary>Held until the hull is deleted.</summary>
     private const string StasisPin = "hull-retire";
 
     private const double TickBudgetMs = 4;
@@ -47,6 +47,12 @@ public sealed partial class WGHullRetireSystem : EntitySystem
 
     /// <summary>Makes the next kept copy throw, for tests of what a failed save leaves.</summary>
     internal bool FailNextKeptCopy;
+
+    /// <summary>The kept copy whose slice is running on the main thread right now, so errors logged meanwhile are its own.</summary>
+    public WGParkedCopy? Slicing { get; private set; }
+
+    /// <summary>The thread running <see cref="Slicing"/>; 0 when none is.</summary>
+    public int SlicingThread { get; private set; }
 
     private sealed class RetiringHull
     {
@@ -224,6 +230,7 @@ public sealed partial class WGHullRetireSystem : EntitySystem
                 continue;
 
             _hulls.Dequeue();
+            _stasis.Unpin(hull.Grid, StasisPin);
             Last = (hull.Name, hull.CopyMs, hull.CopyTicks, hull.DeleteMs, hull.DeleteTicks, hull.WorstMs);
             Log.Info($"Retired {hull.Name}: copy {hull.CopyMs:0} ms over {hull.CopyTicks} ticks, delete {hull.DeleteMs:0} ms over {hull.DeleteTicks} ticks, longest {hull.WorstMs:0} ms.");
         }
@@ -246,15 +253,17 @@ public sealed partial class WGHullRetireSystem : EntitySystem
     private void CopySlice(RetiringHull hull, HullCopy copy)
     {
         var lifted = LiftCarried(copy);
+        Slicing = copy.Parked;
+        SlicingThread = Environment.CurrentManagedThreadId;
         try
         {
+            copy.Serializer ??= BeginCopy(hull, copy);
+
             if (copy.Parked != null && FailNextKeptCopy)
             {
                 FailNextKeptCopy = false;
                 throw new InvalidOperationException("Failure forced by a test.");
             }
-
-            copy.Serializer ??= BeginCopy(hull, copy);
 
             while (copy.Next < copy.Entities.Count)
             {
@@ -295,6 +304,8 @@ public sealed partial class WGHullRetireSystem : EntitySystem
         }
         finally
         {
+            Slicing = null;
+            SlicingThread = 0;
             foreach (var proto in lifted)
             {
                 proto.MapSavable = false;
@@ -304,7 +315,9 @@ public sealed partial class WGHullRetireSystem : EntitySystem
 
     private EntitySerializer BeginCopy(RetiringHull hull, HullCopy copy)
     {
-        _shipyard.WGPruneDeadKeys(hull.Grid);
+        // A kept hull may come back, so it is never changed: dead keys that break the save fail the copy instead.
+        if (copy.Parked == null)
+            _shipyard.WGPruneDeadKeys(hull.Grid);
 
         // The event can add entities to save, such as a grid's chunk entities.
         copy.Roots = new HashSet<EntityUid> { hull.Grid };
@@ -439,6 +452,9 @@ public sealed class WGParkedCopy
 
     /// <summary>Set once serialising is over; <see cref="Text"/> may still be being written.</summary>
     public bool Done;
+
+    /// <summary>Errors the serializer logged while this copy's own slices ran.</summary>
+    public int Errors;
 
     public double CopyMs;
     public int CopyTicks;

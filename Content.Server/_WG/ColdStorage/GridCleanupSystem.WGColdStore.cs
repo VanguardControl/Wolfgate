@@ -13,13 +13,15 @@ public sealed partial class GridCleanupSystem
 
     /// <summary>
     /// Whether grid cleanup would be counting down on a grid as it stands, players left out, with its clock so far,
-    /// the seconds the clock gains per second and the player distance that resets it (before pressure scaling).
+    /// the seconds the clock gains per second and the player distance that resets it (before pressure scaling, which
+    /// a grid's own override never gets).
     /// </summary>
-    internal bool WGColdStoreCandidate(EntityUid uid, out TimeSpan accumulator, out float rate, out float distance)
+    internal bool WGColdStoreCandidate(EntityUid uid, out TimeSpan accumulator, out float rate, out float distance, out bool distanceFixed)
     {
         accumulator = TimeSpan.Zero;
         rate = 0f;
         distance = 0f;
+        distanceFixed = false;
         if (!TryComp<MapGridComponent>(uid, out _) || !TryComp<PhysicsComponent>(uid, out var body))
             return false;
 
@@ -30,6 +32,7 @@ public sealed partial class GridCleanupSystem
         var scale = MathF.Max(MathF.Min(tiles / _aggressiveTiles, 1f), 0.01f);
         rate = state.CleanupAcceleration / scale;
         distance = state.DistanceOverride ?? _maxDistance * scale * scale;
+        distanceFixed = state.DistanceOverride != null;
 
         // The same tests as ShouldEntityCleanup, players excepted; the price is that of the grid as it is stored.
         return !HasComp<MapComponent>(uid)

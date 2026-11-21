@@ -64,8 +64,10 @@ using Robust.Shared.Utility;
 namespace Content.IntegrationTests.Tests._WG.ColdStorage;
 
 /// <summary>
-/// Measures what a grid loses when it is saved, deleted and loaded back, for the Stored tier of Cold Storage. Prints a
-/// report to the test output; it fails only when the harness itself breaks.
+/// Measures what a grid loses when it is saved, deleted and loaded back, for the Stored tier of Cold Storage. Leg A is
+/// the stock serializer; leg B is a synthetic comparison that prunes dead keys, carries unsavable entities and strips on
+/// failure as the resale path does, in one go rather than through the sliced copy. Prints a report to the test output,
+/// then fails only if the harness itself broke.
 /// </summary>
 [TestFixture]
 [Explicit]
@@ -96,7 +98,7 @@ public sealed class GridRoundTripAudit
         ErrorOnOrphan = false,
     };
 
-    /// <summary>Full audit of a few grids: mutate, save raw and with the resale pipeline, reload, diff.</summary>
+    /// <summary>Full audit of a few grids: mutate, save raw and with a synthetic prune/carry/strip, reload, diff.</summary>
     [Test]
     public async Task Representative()
     {
@@ -104,6 +106,7 @@ public sealed class GridRoundTripAudit
         var ctx = new Ctx(pair);
         var report = new StringBuilder();
         var total = new Leg("all grids");
+        var harnessErrors = new List<string>();
 
         using (ctx.CaptureLogs())
         {
@@ -117,13 +120,18 @@ public sealed class GridRoundTripAudit
                 catch (Exception e)
                 {
                     section.AppendLine($"!! harness error on {source}: {e}");
+                    harnessErrors.Add($"{source}: {e.GetType().Name}: {e.Message}");
+                }
+                finally
+                {
+                    await pair.Server.WaitPost(ctx.DropMaps);
                 }
 
                 report.Append(section);
             }
         }
 
-        report.AppendLine("################ ALL GRIDS, leg A (raw save) and B (resale pipeline) combined ################");
+        report.AppendLine("################ ALL GRIDS, leg A (raw save) and B (synthetic prune/carry/strip) combined ################");
         report.AppendLine(total.Render(TopRows * 2));
         report.AppendLine("################ ALL GRIDS, copies after settling (A and B combined; compare with the at-load totals above) ################");
         report.AppendLine(ctx.Settled.Render(TopRows * 2));
@@ -136,6 +144,8 @@ public sealed class GridRoundTripAudit
         {
             TestContext.Out.WriteLine($"!! pair did not return cleanly (a failed load left the world inconsistent): {e.Message}");
         }
+
+        Assert.That(harnessErrors, Is.Empty, "The harness broke; the report above is incomplete.");
     }
 
     /// <summary>
@@ -148,6 +158,7 @@ public sealed class GridRoundTripAudit
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = false, Dirty = true });
         var ctx = new Ctx(pair);
         var section = new StringBuilder();
+        string? harnessError = null;
         using (ctx.CaptureLogs())
         {
             try
@@ -157,6 +168,11 @@ public sealed class GridRoundTripAudit
             catch (Exception e)
             {
                 section.AppendLine($"!! harness error: {e}");
+                harnessError = $"{e.GetType().Name}: {e.Message}";
+            }
+            finally
+            {
+                await pair.Server.WaitPost(ctx.DropMaps);
             }
         }
 
@@ -169,6 +185,8 @@ public sealed class GridRoundTripAudit
         {
             TestContext.Out.WriteLine($"!! pair did not return cleanly (world left inconsistent): {e.Message}");
         }
+
+        Assert.That(harnessError, Is.Null, "The harness broke; the report above is incomplete.");
     }
 
     /// <summary>Lighter pass over every shipyard vessel: save, reload, entity counts, failures and sizes.</summary>
@@ -182,6 +200,7 @@ public sealed class GridRoundTripAudit
         var missing = new Dictionary<string, Tally>();
         var rawFailures = new Dictionary<string, Tally>();
         var loadFailures = new List<string>();
+        var harnessErrors = 0;
         var watch = Stopwatch.StartNew();
 
         using (ctx.CaptureLogs())
@@ -193,7 +212,7 @@ public sealed class GridRoundTripAudit
                 ctx.Phase = $"{vessel.ID} load file";
                 await ctx.Pair.Server.WaitPost(() =>
                 {
-                    map = ctx.Maps.CreateMap(out var mapId);
+                    map = ctx.NewMap(out var mapId);
                     if (ctx.Loader.TryLoadGrid(mapId, vessel.ShuttlePath, out var g))
                         grid = g.Value.Owner;
                 });
@@ -240,7 +259,7 @@ public sealed class GridRoundTripAudit
                         ctx.E.DeleteEntity(grid);
                         ctx.E.DeleteEntity(map);
 
-                        var paused = ctx.Maps.CreateMap(out var pausedId);
+                        var paused = ctx.NewMap(out var pausedId);
                         ctx.Maps.SetPaused(pausedId, true);
                         sw.Restart();
                         if (!ctx.Loader.TryLoadGrid(pausedId, new StringReader(text), vessel.ID, out var loaded))
@@ -266,8 +285,11 @@ public sealed class GridRoundTripAudit
                     catch (Exception e)
                     {
                         loadFailures.Add($"{vessel.ID}: harness error {e.GetType().Name}: {e.Message}");
-                        if (ctx.E.EntityExists(map))
-                            ctx.E.DeleteEntity(map);
+                        harnessErrors++;
+                    }
+                    finally
+                    {
+                        ctx.DropMaps();
                     }
                 });
             }
@@ -301,6 +323,7 @@ public sealed class GridRoundTripAudit
         Publish("EveryVessel", sb);
 
         await pair.CleanReturnAsync();
+        Assert.That(harnessErrors, Is.Zero, "The harness broke on some vessels; see the report's load failures.");
     }
 
     /// <summary>Writes the report to the test output and to a file beside the test binaries, since passing tests' output is hidden.</summary>
@@ -329,7 +352,7 @@ public sealed class GridRoundTripAudit
         ctx.Phase = "load file";
         await server.WaitPost(() =>
         {
-            liveMap = ctx.Maps.CreateMap(out var mapId);
+            liveMap = ctx.NewMap(out var mapId);
             var sw = Stopwatch.StartNew();
             if (!ctx.Loader.TryLoadGrid(mapId, path, out var g))
                 throw new Exception($"Could not load {path}");
@@ -391,8 +414,9 @@ public sealed class GridRoundTripAudit
             // Which components throw, found with every grid entity's id reserved first (as a real save does).
             unsavable.AddRange(FindUnsavable(ctx, grid));
 
-            // Leg B: what the resale pipeline does: prune, carry unsavable mobs, strip on failure.
-            ctx.Phase = "save B (pipeline)";
+            // Leg B: a synthetic prune, carry and strip on failure, as the resale path does them, done in one go with
+            // the stock serializer; neither the sliced resale copy nor cold storage's kept copy, which never prunes.
+            ctx.Phase = "save B (synthetic prune/carry/strip)";
             var prunedBefore = PruneCounts(ctx, grid);
             sw.Restart();
             ctx.Yard.WGPruneDeadKeys(grid);
@@ -484,7 +508,7 @@ public sealed class GridRoundTripAudit
         await pair.RunTicksSync(ctx.Ticks(GapSeconds));
 
         var legA = new Leg("A raw");
-        var legB = new Leg("B pipeline");
+        var legB = new Leg("B synthetic prune/carry/strip");
         var loadA = await LoadAndDiff(ctx, textA, source, before, legA, mutations, false);
         var loadB = await LoadAndDiff(ctx, textB, source, before, legB, mutations, true);
 
@@ -496,7 +520,7 @@ public sealed class GridRoundTripAudit
             ctx.Phase = "MapInit check load";
             await server.WaitPost(() =>
             {
-                var map = ctx.Maps.CreateMap(out var mapId);
+                var map = ctx.NewMap(out var mapId);
                 Entity<MapGridComponent>? g = null;
                 bool loadedOk;
                 try
@@ -639,7 +663,7 @@ public sealed class GridRoundTripAudit
         ctx.Phase = $"load {leg.Name}";
         await ctx.Pair.Server.WaitPost(() =>
         {
-            var map = ctx.Maps.CreateMap(out var mapId);
+            var map = ctx.NewMap(out var mapId);
             ctx.Maps.SetPaused(mapId, true);
             var sw = Stopwatch.StartNew();
             Entity<MapGridComponent>? g;
@@ -1848,6 +1872,28 @@ public sealed class GridRoundTripAudit
         public int Ticks(float seconds)
         {
             return Math.Max(1, (int) (seconds * _timing.TickRate));
+        }
+
+        private readonly List<EntityUid> _tempMaps = new();
+
+        /// <summary>A map for one leg, deleted by <see cref="DropMaps"/> if the leg doesn't delete it.</summary>
+        public EntityUid NewMap(out MapId mapId)
+        {
+            var map = Maps.CreateMap(out mapId);
+            _tempMaps.Add(map);
+            return map;
+        }
+
+        /// <summary>Deletes every map a leg left, such as one whose load threw; call on the server thread.</summary>
+        public void DropMaps()
+        {
+            foreach (var map in _tempMaps)
+            {
+                if (E.EntityExists(map) && !E.IsQueuedForDeletion(map))
+                    E.DeleteEntity(map);
+            }
+
+            _tempMaps.Clear();
         }
 
         /// <summary>Records warnings and errors instead of failing the test on them.</summary>

@@ -41,17 +41,23 @@ public sealed partial class WGStasisCommand : LocalizedEntityCommands
         switch (args[0])
         {
             case "wake":
-                _stasis.Wake(grid.Value);
-                shell.WriteLine(Loc.GetString("cmd-wg_stasis-woken", ("grid", args[1])));
+                var asleep = _stasis.IsInStasis(grid.Value);
+                if (!_stasis.Wake(grid.Value))
+                    shell.WriteError(Loc.GetString("cmd-wg_stasis-disabled"));
+                else
+                    shell.WriteLine(Loc.GetString(asleep ? "cmd-wg_stasis-woken" : "cmd-wg_stasis-held", ("grid", args[1])));
                 break;
             case "pin":
                 _stasis.Pin(grid.Value, AdminPin);
                 shell.WriteLine(Loc.GetString("cmd-wg_stasis-pinned", ("grid", args[1])));
                 break;
             default:
-                _stasis.Unpin(grid.Value, AdminPin);
-                shell.WriteLine(Loc.GetString("cmd-wg_stasis-unpinned", ("grid", args[1]),
-                    ("held", _stasis.IsPinned(grid.Value))));
+                if (!_stasis.Unpin(grid.Value, AdminPin))
+                    shell.WriteError(Loc.GetString("cmd-wg_stasis-not-pinned", ("grid", args[1])));
+                else if (_stasis.IsPinned(grid.Value))
+                    shell.WriteLine(Loc.GetString("cmd-wg_stasis-unpinned-held", ("grid", args[1])));
+                else
+                    shell.WriteLine(Loc.GetString("cmd-wg_stasis-unpinned", ("grid", args[1])));
                 break;
         }
     }

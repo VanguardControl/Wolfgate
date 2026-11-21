@@ -238,14 +238,18 @@ public sealed class GridStasisTest
             });
             await Look(pair);
             Assert.That(stasis.IsInStasis(wreck.Grid), Is.False, "A pinned grid went into stasis.");
-            await server.WaitPost(() => stasis.Unpin(wreck.Grid, "test"));
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(stasis.Unpin(wreck.Grid, "test"), Is.True, "Letting go of a held pin said it wasn't held.");
+                Assert.That(stasis.Unpin(wreck.Grid, "test"), Is.False, "Letting go of a pin twice said it was held.");
+            });
             await Look(pair);
             Assert.That(stasis.IsInStasis(wreck.Grid), Is.True, "The grid stayed awake after its pin was let go.");
 
             // Wake holds it for as long as asked, then lets it sleep.
             await server.WaitAssertion(() =>
             {
-                stasis.Wake(wreck.Grid, TimeSpan.FromSeconds(2));
+                Assert.That(stasis.Wake(wreck.Grid, TimeSpan.FromSeconds(2)), Is.True);
                 Assert.That(Paused(entMan, wreck.Mouse), Is.False, "Wake left things paused.");
             });
             await Look(pair);
@@ -266,6 +270,82 @@ public sealed class GridStasisTest
         finally
         {
             await server.WaitPost(() => server.CfgMan.SetCVar(WGStasisCVars.Enabled, false));
+        }
+
+        await server.WaitAssertion(() => Assert.That(stasis.Wake(wreck.Grid), Is.False, "Wake said it worked with stasis off."));
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// A grid deleted after it began going into stasis is dropped without breaking the tick, and a grid whose map is
+    /// paused while it wakes over several ticks has nothing unpaused on that map.
+    /// </summary>
+    [Test]
+    public async Task DeletedGridsAndPausedMapsAreLeftAlone()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var stasis = server.System<WGGridStasisSystem>();
+        var maps = server.System<SharedMapSystem>();
+        var map = await pair.CreateTestMap();
+        var viewer = await PlanetFixture.AttachViewer(pair, map.MapUid, Far);
+        var origin = new Vector2(300f, 0f);
+        var wakeRange = server.CfgMan.GetCVar(WGStasisCVars.WakeRange);
+        Wreck doomed = default!, wreck = default!;
+
+        await Enable(pair);
+        try
+        {
+            // With no budget, the grid is marked as going into stasis but nothing on it is gathered yet.
+            await server.WaitPost(() =>
+            {
+                server.CfgMan.SetCVar(WGStasisCVars.Budget, 0f);
+                doomed = BuildWreck(pair, map.MapId, origin);
+            });
+            await Look(pair);
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(stasis.Grids[doomed.Grid].State, Is.EqualTo(WGGridStasisState.Pausing), "Precondition: the grid is going into stasis.");
+                entMan.DeleteEntity(doomed.Grid);
+                server.CfgMan.SetCVar(WGStasisCVars.Budget, 1000f);
+            });
+            await server.WaitRunTicks(1);
+            await server.WaitAssertion(() => Assert.That(stasis.Grids.ContainsKey(doomed.Grid), Is.False, "The deleted grid's record was kept."));
+
+            // Asleep, then woken over several ticks by a viewer inside the wake range but outside the urgent one.
+            await server.WaitPost(() =>
+            {
+                server.CfgMan.SetCVar(WGStasisCVars.WakeRange, stasis.UrgentRange + 100f);
+                wreck = BuildWreck(pair, map.MapId, origin);
+            });
+            await Look(pair);
+            Assert.That(stasis.IsInStasis(wreck.Grid), Is.True, "Precondition: the wreck sleeps.");
+            await server.WaitPost(() => server.CfgMan.SetCVar(WGStasisCVars.Budget, 0f));
+            await Move(pair, viewer, map.MapUid, At(origin, stasis.UrgentRange + 50f));
+            await Look(pair, 1);
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(stasis.Grids[wreck.Grid].State, Is.EqualTo(WGGridStasisState.Waking), "Precondition: the wreck is waking bit by bit.");
+                maps.SetPaused(map.MapId, true);
+                server.CfgMan.SetCVar(WGStasisCVars.Budget, 1000f);
+            });
+            await server.WaitRunTicks(1);
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(Paused(entMan, wreck.Item), Is.True, "Waking unpaused an item on a paused map.");
+                Assert.That(Paused(entMan, wreck.Mouse), Is.True, "Waking unpaused a mouse on a paused map.");
+            });
+        }
+        finally
+        {
+            await server.WaitPost(() =>
+            {
+                maps.SetPaused(map.MapId, false);
+                server.CfgMan.SetCVar(WGStasisCVars.WakeRange, wakeRange);
+                server.CfgMan.SetCVar(WGStasisCVars.Budget, 2f);
+                server.CfgMan.SetCVar(WGStasisCVars.Enabled, false);
+            });
         }
 
         await pair.CleanReturnAsync();

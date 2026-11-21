@@ -1,7 +1,6 @@
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Content.Server._Mono.Cleanup;
 using Content.Server._Mono.Radar;
@@ -66,7 +65,7 @@ public sealed partial class WGColdStoreSystem : EntitySystem
     /// <summary>Grids found ineligible lately, not looked at again until then.</summary>
     private readonly Dictionary<EntityUid, TimeSpan> _skipUntil = new();
 
-    private readonly ErrorCounter _serializerErrors = new();
+    private ErrorCounter _serializerErrors = default!;
     private StoreJob? _job;
     private TimeSpan _nextCandidates;
 
@@ -99,21 +98,23 @@ public sealed partial class WGColdStoreSystem : EntitySystem
         public EntityUid Grid;
         public WGStoredGrid Record = default!;
         public WGParkedCopy Copy = default!;
-        public int ErrorsAtStart;
         public Task<(byte[]? Bytes, double Ms)>? Zip;
         public double WriteMs;
         public bool Deleting;
     }
 
-    /// <summary>Counts errors the entity serializer logs, which a store treats as a failed save.</summary>
-    private sealed class ErrorCounter : ILogHandler
+    /// <summary>
+    /// Counts errors the entity serializer logs on the main thread while a kept copy's slice runs, which a store treats
+    /// as a failed save. Other saves between slices, or on other threads, aren't counted.
+    /// </summary>
+    private sealed class ErrorCounter(WGHullRetireSystem retire) : ILogHandler
     {
-        public int Count;
-
         public void Log(string sawmillName, LogEvent message)
         {
-            if (message.Level >= LogEventLevel.Error)
-                Interlocked.Increment(ref Count);
+            if (message.Level >= LogEventLevel.Error
+                && retire.SlicingThread == Environment.CurrentManagedThreadId
+                && retire.Slicing is { } copy)
+                copy.Errors++;
         }
     }
 
@@ -129,6 +130,7 @@ public sealed partial class WGColdStoreSystem : EntitySystem
 
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<WGStoredGridComponent, EntityTerminatingEvent>(OnStandInTerminating);
+        _serializerErrors = new ErrorCounter(_hullRetire);
         _logs.GetSawmill("entity_serializer").AddHandler(_serializerErrors);
 
         InitializeEligibility();
@@ -198,7 +200,11 @@ public sealed partial class WGColdStoreSystem : EntitySystem
     /// </summary>
     public bool TryStore(EntityUid grid, bool force, out string? reason)
     {
-        reason = _job != null ? "wg-coldstore-why-busy" : Ineligible(grid, force);
+        if (!_enabled || !_stasis.Enabled)
+            reason = "wg-coldstore-why-disabled";
+        else
+            reason = _job != null ? "wg-coldstore-why-busy" : Ineligible(grid, force);
+
         if (reason != null)
             return false;
 
@@ -229,7 +235,8 @@ public sealed partial class WGColdStoreSystem : EntitySystem
         };
 
         record.CleanupCandidate = _gridCleanup.WGColdStoreCandidate(grid, out record.CleanupAccumulator,
-            out record.CleanupRate, out record.CleanupDistance);
+            out record.CleanupRate, out record.CleanupDistance, out record.CleanupDistanceFixed);
+        record.CleanupSeen = record.StoredAt;
 
         // The park map is paused, which resets every paused flag on the way; nothing is left for stasis to undo.
         _stasis.Forget(grid);
@@ -237,7 +244,6 @@ public sealed partial class WGColdStoreSystem : EntitySystem
         {
             Grid = grid,
             Record = record,
-            ErrorsAtStart = Volatile.Read(ref _serializerErrors.Count),
             Copy = _hullRetire.CopyParked(grid),
         };
     }
@@ -269,7 +275,7 @@ public sealed partial class WGColdStoreSystem : EntitySystem
                 return;
             }
 
-            if (Volatile.Read(ref _serializerErrors.Count) != job.ErrorsAtStart)
+            if (job.Copy.Errors != 0)
             {
                 Abort(job, "the serializer logged errors");
                 return;
@@ -350,13 +356,18 @@ public sealed partial class WGColdStoreSystem : EntitySystem
         if (Deleted(job.Grid))
             return;
 
-        _hullRetire.ReleaseParked(job.Grid);
-        if (Exists(record.Map))
+        if (!Exists(record.Map))
         {
-            _transform.SetCoordinates(job.Grid, new EntityCoordinates(record.Map, record.Position));
-            _transform.SetLocalRotation(job.Grid, record.Rotation);
-            Still(job.Grid);
+            // Nowhere to put it back: it goes as the map would have taken it.
+            _hullRetire.Retire(job.Grid);
+            Log.Warning($"Could not store {record.Name}: {why}. Its map is gone, so it is deleted from the parking map.");
+            return;
         }
+
+        _hullRetire.ReleaseParked(job.Grid);
+        _transform.SetCoordinates(job.Grid, new EntityCoordinates(record.Map, record.Position));
+        _transform.SetLocalRotation(job.Grid, record.Rotation);
+        Still(job.Grid);
 
         Log.Warning($"Could not store {record.Name}: {why}. It is back where it was and won't be stored again this round.");
     }

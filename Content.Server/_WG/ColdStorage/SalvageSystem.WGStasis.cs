@@ -1,4 +1,5 @@
 using Content.Server._WG.ColdStorage;
+using Content.Server.Salvage.Magnet;
 
 namespace Content.Server.Salvage;
 
@@ -18,10 +19,26 @@ public sealed partial class SalvageSystem
         _wgStasis.Pin(salvage, WGMagnetPin(data));
     }
 
-    /// <summary>Pins the grid the magnet sits on until the lease ends.</summary>
-    private void WGPinMagnetGrid(EntityUid data, EntityUid? grid)
+    /// <summary>
+    /// Whether the lease an offer was taken for is still the magnet's. Generation is awaited, and the lease may have
+    /// ended meanwhile; nothing would ever release a pin taken for it then.
+    /// </summary>
+    private bool WGLeaseLive(Entity<SalvageMagnetDataComponent> data, int seed)
     {
-        if (grid is not { } pinned)
+        return !TerminatingOrDeleted(data) && data.Comp.EndTime != null && data.Comp.ActiveSeed == seed;
+    }
+
+    /// <summary>Pins salvage an offer brought in, if its lease is still running.</summary>
+    private void WGPinOffered(Entity<SalvageMagnetDataComponent> data, int seed, EntityUid salvage)
+    {
+        if (WGLeaseLive(data, seed))
+            WGPinSalvage(data, salvage);
+    }
+
+    /// <summary>Pins the grid the magnet sits on until the lease ends, if it is still running.</summary>
+    private void WGPinMagnetGrid(Entity<SalvageMagnetDataComponent> data, int seed, EntityUid? grid)
+    {
+        if (grid is not { } pinned || !WGLeaseLive(data, seed))
             return;
 
         WGUnpinMagnetGrid(data);
