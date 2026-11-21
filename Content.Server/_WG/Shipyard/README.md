@@ -54,6 +54,8 @@ share from its slot, or from the counter of a trader hosting it (`ShipyardHostCa
 
 ### Prototypes
 
+- [`Resources/Prototypes/_WG/Shipyard/arbiter.yml`](../../../Resources/Prototypes/_WG/Shipyard/arbiter.yml)
+- [`Resources/Prototypes/_WG/Shipyard/bailiff.yml`](../../../Resources/Prototypes/_WG/Shipyard/bailiff.yml)
 - [`Resources/Prototypes/_WG/Shipyard/baron.yml`](../../../Resources/Prototypes/_WG/Shipyard/baron.yml)
 - [`Resources/Prototypes/_WG/Shipyard/brute.yml`](../../../Resources/Prototypes/_WG/Shipyard/brute.yml)
 - [`Resources/Prototypes/_WG/Shipyard/bucket.yml`](../../../Resources/Prototypes/_WG/Shipyard/bucket.yml)
@@ -65,7 +67,10 @@ share from its slot, or from the counter of a trader hosting it (`ShipyardHostCa
 - [`Resources/Prototypes/_WG/Shipyard/foxtrot_ii.yml`](../../../Resources/Prototypes/_WG/Shipyard/foxtrot_ii.yml)
 - [`Resources/Prototypes/_WG/Shipyard/hammerhead.yml`](../../../Resources/Prototypes/_WG/Shipyard/hammerhead.yml)
 - [`Resources/Prototypes/_WG/Shipyard/hermes.yml`](../../../Resources/Prototypes/_WG/Shipyard/hermes.yml)
+- [`Resources/Prototypes/_WG/Shipyard/jurist.yml`](../../../Resources/Prototypes/_WG/Shipyard/jurist.yml)
 - [`Resources/Prototypes/_WG/Shipyard/lathe_recipes.yml`](../../../Resources/Prototypes/_WG/Shipyard/lathe_recipes.yml)
+- [`Resources/Prototypes/_WG/Shipyard/magistrat.yml`](../../../Resources/Prototypes/_WG/Shipyard/magistrat.yml)
+- [`Resources/Prototypes/_WG/Shipyard/prosecutor.yml`](../../../Resources/Prototypes/_WG/Shipyard/prosecutor.yml)
 - [`Resources/Prototypes/_WG/Shipyard/reach.yml`](../../../Resources/Prototypes/_WG/Shipyard/reach.yml)
 - [`Resources/Prototypes/_WG/Shipyard/Reaver/despot.yml`](../../../Resources/Prototypes/_WG/Shipyard/Reaver/despot.yml)
 - [`Resources/Prototypes/_WG/Shipyard/Reaver/huolian.yml`](../../../Resources/Prototypes/_WG/Shipyard/Reaver/huolian.yml)
@@ -95,6 +100,8 @@ share from its slot, or from the counter of a trader hosting it (`ShipyardHostCa
 
 ### Shared maps
 
+- [`Resources/SharedMaps/_WG/Shipyard/Shuttles/arbiter.yml`](../../../Resources/SharedMaps/_WG/Shipyard/Shuttles/arbiter.yml)
+- [`Resources/SharedMaps/_WG/Shipyard/Shuttles/bailiff.yml`](../../../Resources/SharedMaps/_WG/Shipyard/Shuttles/bailiff.yml)
 - [`Resources/SharedMaps/_WG/Shipyard/Shuttles/baron.yml`](../../../Resources/SharedMaps/_WG/Shipyard/Shuttles/baron.yml)
 - [`Resources/SharedMaps/_WG/Shipyard/Shuttles/brute.yml`](../../../Resources/SharedMaps/_WG/Shipyard/Shuttles/brute.yml)
 - [`Resources/SharedMaps/_WG/Shipyard/Shuttles/bucket.yml`](../../../Resources/SharedMaps/_WG/Shipyard/Shuttles/bucket.yml)
@@ -105,6 +112,9 @@ share from its slot, or from the counter of a trader hosting it (`ShipyardHostCa
 - [`Resources/SharedMaps/_WG/Shipyard/Shuttles/foxtrot_ii.yml`](../../../Resources/SharedMaps/_WG/Shipyard/Shuttles/foxtrot_ii.yml)
 - [`Resources/SharedMaps/_WG/Shipyard/Shuttles/hammerhead.yml`](../../../Resources/SharedMaps/_WG/Shipyard/Shuttles/hammerhead.yml)
 - [`Resources/SharedMaps/_WG/Shipyard/Shuttles/hermes.yml`](../../../Resources/SharedMaps/_WG/Shipyard/Shuttles/hermes.yml)
+- [`Resources/SharedMaps/_WG/Shipyard/Shuttles/jurist.yml`](../../../Resources/SharedMaps/_WG/Shipyard/Shuttles/jurist.yml)
+- [`Resources/SharedMaps/_WG/Shipyard/Shuttles/magistrat.yml`](../../../Resources/SharedMaps/_WG/Shipyard/Shuttles/magistrat.yml)
+- [`Resources/SharedMaps/_WG/Shipyard/Shuttles/prosecutor.yml`](../../../Resources/SharedMaps/_WG/Shipyard/Shuttles/prosecutor.yml)
 - [`Resources/SharedMaps/_WG/Shipyard/Shuttles/reach.yml`](../../../Resources/SharedMaps/_WG/Shipyard/Shuttles/reach.yml)
 - [`Resources/SharedMaps/_WG/Shipyard/Shuttles/Reaver/despot.yml`](../../../Resources/SharedMaps/_WG/Shipyard/Shuttles/Reaver/despot.yml)
 - [`Resources/SharedMaps/_WG/Shipyard/Shuttles/Reaver/huolian.yml`](../../../Resources/SharedMaps/_WG/Shipyard/Shuttles/Reaver/huolian.yml)
@@ -139,7 +149,10 @@ share from its slot, or from the counter of a trader hosting it (`ShipyardHostCa
   - zero entries do not count
 - [`Content.Shared/Damage/DamageSpecifierDictionarySerializer.cs`](../../../Content.Shared/Damage/DamageSpecifierDictionarySerializer.cs): adds writing support so DamageSpecifier can round-trip through DamageDict
 - [`Content.Shared/VendingMachines/VendingMachineComponent.cs`](../../../Content.Shared/VendingMachines/VendingMachineComponent.cs): a data definition, so a live machine's stock can be written out with its grid
-- [`Resources/Prototypes/_Mono/Entities/Objects/Devices/ship_vouchers.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Devices/ship_vouchers.yml): New WG T0 Ships
+- [`Resources/Prototypes/_Mono/Entities/Objects/Devices/ship_vouchers.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Devices/ship_vouchers.yml)
+  - New WG T0 Ships
+  - new CASC T0 ships on the Colonial voucher
+  - new CASC T1 ships on the Colonial voucher
 - [`Resources/Prototypes/_Mono/Outpost/caelestinus.yml`](../../../Resources/Prototypes/_Mono/Outpost/caelestinus.yml): ships sold anywhere on this station end up on the used ship lot
 - [`Resources/Prototypes/_Mono/Recipes/Lathes/Packs/Factions/phaethon_dynasty.yml`](../../../Resources/Prototypes/_Mono/Recipes/Lathes/Packs/Factions/phaethon_dynasty.yml): Foxtrot-II voucher
 - [`Resources/Prototypes/_Mono/Roles/Jobs/Medical/medic.yml`](../../../Resources/Prototypes/_Mono/Roles/Jobs/Medical/medic.yml): free Triage or Stubby

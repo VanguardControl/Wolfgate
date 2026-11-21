@@ -1,0 +1,36 @@
+#Author: SUI  (Discord)
+
+- type: vessel
+  id: Prosecutor
+  parent: BaseVessel
+  name: 'CASC Prosecutor'
+  description: 'A fast deployement boarding vessel able to lock ship of any size in place and is equiped with many breaching supply.'
+  price: 116412 # appraised at 97010
+  purchasable: false # T1 - voucher only
+  category: Medium
+  group: Sr
+  access: Brig
+  mapchecker_group_override: Security
+  shuttlePath: /SharedMaps/_WG/Shipyard/Shuttles/prosecutor.yml
+  guidebookPage: Null
+  class:
+  - Patrol
+  - Pursuit
+  - Detainment
+  engine:
+  - AME
+
+- type: gameMap
+  id: Prosecutor
+  mapName: 'Prosecutor'
+  mapPath: /SharedMaps/_WG/Shipyard/Shuttles/prosecutor.yml
+  minPlayers: 0
+  stations:
+    Prosecutor:
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Prosecutor SEC{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'

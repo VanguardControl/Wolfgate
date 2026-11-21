@@ -1,0 +1,34 @@
+#Author: SUI  (Discord)
+
+- type: vessel
+  id: Arbiter
+  parent: BaseVessel
+  name: 'CASC Arbiter'
+  description: 'A small fighter designed with escorting larger vessels in mind. It is equiped with two AC-35 and a TARNYX 90mm EMP canon.'
+  price: 43916 # appraised at 36597
+  category: Small
+  group: Sr
+  access: Brig
+  mapchecker_group_override: Security
+  shuttlePath: /SharedMaps/_WG/Shipyard/Shuttles/arbiter.yml
+  guidebookPage: Null
+  class:
+  - Patrol
+  - Pursuit
+  engine:
+  - Uranium
+
+- type: gameMap
+  id: Arbiter
+  mapName: 'Arbiter'
+  mapPath: /SharedMaps/_WG/Shipyard/Shuttles/arbiter.yml
+  minPlayers: 0
+  stations:
+    Arbiter:
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Arbiter SEC{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'

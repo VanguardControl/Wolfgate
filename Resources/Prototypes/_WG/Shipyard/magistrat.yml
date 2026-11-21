@@ -1,0 +1,35 @@
+#Author: SUI  (Discord)
+
+- type: vessel
+  id: Magistrat
+  parent: BaseVessel
+  name: 'CASC Magistrat'
+  description: 'A medium armored and manuverable fighter designed to scare trespacer. It is equiped with a four Phalanx point defence and a Bofor and 32 EMP shell.'
+  price: 69228 # appraised at 57690
+  category: Small
+  group: Sr
+  access: Brig
+  mapchecker_group_override: Security
+  shuttlePath: /SharedMaps/_WG/Shipyard/Shuttles/magistrat.yml
+  guidebookPage: Null
+  class:
+  - Brawler
+  - Patrol
+  - Pursuit
+  engine:
+  - Bananium
+
+- type: gameMap
+  id: Magistrat
+  mapName: 'Magistrat'
+  mapPath: /SharedMaps/_WG/Shipyard/Shuttles/magistrat.yml
+  minPlayers: 0
+  stations:
+    Magistrat:
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Magistrat SEC{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'

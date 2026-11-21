@@ -773,6 +773,10 @@
     vessels:
     - Hornet
     - Lightning
+    # WOLFGATE(Shipyard) START: new CASC T0 ships on the Colonial voucher
+    - Arbiter
+    - Magistrat
+    # WOLFGATE END
 
 # Start T1
 - type: entity
@@ -796,3 +800,7 @@
     companyName: Colonial
     vessels:
     - Petra
+    # WOLFGATE(Shipyard) START: new CASC T1 ships on the Colonial voucher
+    - Prosecutor
+    - Bailiff
+    # WOLFGATE END

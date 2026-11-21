@@ -1,0 +1,37 @@
+#Author: SUI  (Discord)
+
+- type: vessel
+  id: Bailiff
+  parent: BaseVessel
+  name: 'CASC Bailiff'
+  description: 'a long distance combat vessel made to fight armored vessels, the Bailiff is armed with four Equinox 90mm Sabot cannon and 2 Ion disruptor.'
+  price: 163675 # appraised at 136396
+  purchasable: false # T1 - voucher only
+  category: Medium
+  group: Sr
+  access: Brig
+  mapchecker_group_override: Security
+  shuttlePath: /SharedMaps/_WG/Shipyard/Shuttles/bailiff.yml
+  guidebookPage: Null
+  class:
+  - Corvette
+  - Brawler
+  - Patrol
+  - Pursuit
+  engine:
+  - Bananium
+
+- type: gameMap
+  id: Bailiff
+  mapName: 'Bailiff'
+  mapPath: /SharedMaps/_WG/Shipyard/Shuttles/bailiff.yml
+  minPlayers: 0
+  stations:
+    Bailiff:
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Bailiff SEC{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'

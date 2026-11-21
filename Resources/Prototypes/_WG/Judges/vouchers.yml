@@ -4,7 +4,7 @@
   parent: BaseShipVoucher
   id: WGShipVoucherJudge
   name: judge ship voucher
-  description: Allows for one free CASC Lightning or Hornet purchase from the Frontier Staff Shipyard. Destroyed on sale.
+  description: Allows for one free CASC Lightning, Hornet or an Arbiter purchase from the Frontier Staff Shipyard. Destroyed on sale.
   components:
   - type: Sprite
     layers:
@@ -18,3 +18,4 @@
     vessels:
     - Lightning
     - Hornet
+    - Arbiter
