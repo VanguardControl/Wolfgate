@@ -185,10 +185,6 @@ says why not, and `wg_coldstore restore <stand-in|all>` brings them back.
 
 - [`Resources/Locale/en-US/_WG/ColdStorage/cold-storage.ftl`](../../../Resources/Locale/en-US/_WG/ColdStorage/cold-storage.ftl)
 
-### Docs
-
-- [`Docs/_WG/ColdStorage/README.md`](../../../Docs/_WG/ColdStorage/README.md)
-
 ## Non-modular edits
 
 - [`Content.IntegrationTests/PoolManager.Cvars.cs`](../../../Content.IntegrationTests/PoolManager.Cvars.cs): tests look at grids nobody is near; stasis tests turn it on
