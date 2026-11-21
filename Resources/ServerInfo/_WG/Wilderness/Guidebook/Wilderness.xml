@@ -1,7 +1,7 @@
 <Document>
 # Zones and the Wilderness
 
-Some places change what the rules protect. An alert shows the zone you are in, and a line in chat says when you cross in or out. Where you can be attacked (a Wilderness, an outpost at war, or anywhere while you are marked) a banner also shows at the top, with a title and a sound as you cross in. Shuttle consoles and mass scanners draw each zone's edge as a dashed ring. Click the banner to open the rule behind it.
+Some places change what the rules protect. An alert shows the zone you are in, and a line in chat says when you cross in or out. Where you can be attacked (a Wilderness, an outpost at war, or anywhere while you are marked) a banner also shows at the top, with a title and a sound as you cross in. Shuttle consoles and mass scanners draw most zones' edges as a dashed ring, but not all: some sites, such as PDV drop pods and Helios, keep theirs off radar as they keep their names. Click the banner to open the rule behind it.
 
 ## [color=#2e9e4f]Safe Zone[/color]
 Caelestinus Central and everything within 256 m of it. Policy protects everyone here who is not causing trouble: no theft, no unprovoked attacks. Green banner. See [textlink="Safe Zones" link="MonolithRuleRoleplaySevenSafeZones"].

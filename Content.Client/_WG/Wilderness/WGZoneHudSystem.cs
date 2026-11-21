@@ -43,7 +43,7 @@ public sealed class WGZoneHudSystem : EntitySystem
     private static readonly Color MarkColor = Color.FromHex("#ff3b30");
     private static readonly SoundSpecifier MarkedSound = new SoundPathSpecifier("/Audio/Effects/alert.ogg");
     private const string DefaultGuide = "WGWilderness";
-    private static readonly SpriteSpecifier MarkedIcon = newSpriteSpecifier.Rsi(new ResPath("/Textures/_WG/Wilderness/zones.rsi"), "marked");
+    private static readonly SpriteSpecifier MarkedIcon = new SpriteSpecifier.Rsi(new ResPath("/Textures/_WG/Wilderness/zones.rsi"), "marked");
 
     private const float TitleHold = 1.5f;
     private const float DetailsOpen = 5f;
