@@ -14,6 +14,7 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Movement.Pulling.Components;
 using Content.Shared.Movement.Pulling.Systems;
 using Content.Shared.Popups;
+using Content.Shared.Stunnable;
 using Robust.Shared.Containers;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -182,7 +183,8 @@ public sealed class WGUnstuckSystem : EntitySystem
         }
 
         // The living get out only as they could through a door: not cuffed, stunned or down.
-        if (living && !_actionBlocker.CanInteract(user, null))
+        // Being knocked down doesn't block interaction, so it is checked on its own.
+        if (living && (!_actionBlocker.CanInteract(user, null) || HasComp<KnockedDownComponent>(user)))
         {
             message = Loc.GetString("wg-unstuck-vehicle-restrained");
             return false;

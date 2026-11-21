@@ -10,6 +10,7 @@ using Content.Shared.Cuffs;
 using Content.Shared.Interaction;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Stunnable;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -96,6 +97,26 @@ public sealed class UnstuckTest
             Assert.That(server.System<SharedCuffableSystem>().TryAddNewCuffs(mob, mob, cuffs), Is.True, "The cuffs didn't go on.");
             Assert.That(server.System<WGUnstuckSystem>().TryUnstuck(mob, out _), Is.False, "A cuffed body slipped out of the vehicle.");
             Assert.That(em.HasComponent<VehicleInteriorOccupantComponent>(mob), Is.True, "A cuffed body left the vehicle.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A knocked-down occupant stays in, though being down doesn't block interaction.</summary>
+    [Test]
+    public async Task KnockedDownStayInAVehicle()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var (_, mob) = await Board(pair);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(server.System<SharedStunSystem>().TryKnockdown(mob, TimeSpan.FromSeconds(30), true), Is.True,
+                "The body wasn't knocked down.");
+            Assert.That(server.System<WGUnstuckSystem>().TryUnstuck(mob, out _), Is.False, "A knocked-down body slipped out of the vehicle.");
+            Assert.That(em.HasComponent<VehicleInteriorOccupantComponent>(mob), Is.True, "A knocked-down body left the vehicle.");
         });
 
         await pair.CleanReturnAsync();
@@ -203,6 +224,57 @@ public sealed class UnstuckTest
             var tile = server.System<SharedMapSystem>()
                 .TileIndicesFor(grid, em.GetComponent<MapGridComponent>(grid), em.GetComponent<TransformComponent>(mob).Coordinates);
             Assert.That(tile, Is.EqualTo(WallTile - new Vector2i(0, 1)), "The body was pulled through the wall to the air.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// A body in a wall two tiles thick, as near the air beyond it as the airless floor below, comes out below: the air
+    /// would win the tie, but the second wall is in the way.
+    /// </summary>
+    [Test]
+    public async Task AirDoesNotPullThroughASecondWall()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var grid = map.Grid.Owner;
+        var airRow = WallTile.Y + 2;
+
+        await server.WaitPost(() =>
+        {
+            DrydockTest.SetFloor(pair, grid, 5);
+            for (var x = 0; x < 5; x++)
+            {
+                DrydockTest.SpawnAnchored(pair, grid, WallProto, new Vector2i(x, WallTile.Y));
+                DrydockTest.SpawnAnchored(pair, grid, WallProto, new Vector2i(x, WallTile.Y + 1));
+            }
+        });
+        await server.WaitRunTicks(5);
+
+        await server.WaitAssertion(() =>
+        {
+            var atmos = server.System<AtmosphereSystem>();
+            for (var x = 0; x < 5; x++)
+            {
+                var mix = atmos.GetTileMixture(grid, map.MapUid, new Vector2i(x, airRow), true);
+                Assert.That(mix, Is.Not.Null, "The floor beyond the walls has no air to fill.");
+                mix!.AdjustMoles(Gas.Oxygen, Atmospherics.MolesCellStandard * 0.21f);
+                mix.AdjustMoles(Gas.Nitrogen, Atmospherics.MolesCellStandard * 0.79f);
+                mix.Temperature = Atmospherics.T20C;
+            }
+
+            Assert.That(atmos.IsTileMixtureProbablySafe(grid, map.MapUid, new Vector2i(WallTile.X, airRow)), Is.True, "The air beyond isn't breathable.");
+            Assert.That(atmos.IsTileMixtureProbablySafe(grid, map.MapUid, WallTile - new Vector2i(0, 1)), Is.False, "The floor below has air.");
+
+            // 1.49 tiles from the floor below and 1.51 from the air, inside the tie.
+            var mob = em.SpawnEntity(MobProto, new EntityCoordinates(grid, WallTile.X + 0.5f, WallTile.Y + 0.99f));
+            Assert.That(server.System<WGUnstuckSystem>().TryUnstuck(mob, out var message), Is.True, message);
+            var tile = server.System<SharedMapSystem>()
+                .TileIndicesFor(grid, em.GetComponent<MapGridComponent>(grid), em.GetComponent<TransformComponent>(mob).Coordinates);
+            Assert.That(tile, Is.EqualTo(WallTile - new Vector2i(0, 1)), "The body was moved through the second wall to the air.");
         });
 
         await pair.CleanReturnAsync();
