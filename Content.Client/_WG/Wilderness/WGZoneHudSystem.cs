@@ -1,6 +1,9 @@
+using System.Linq;
 using Content.Client._WG.Announcements;
-using Content.Client.UserInterface.Systems.MenuBar.Widgets;
+using Content.Client.Guidebook.Controls;
 using Content.Client.UserInterface.Systems.Guidebook;
+using Content.Client.UserInterface.Systems.Info;
+using Content.Client.UserInterface.Systems.MenuBar.Widgets;
 using Content.Shared._WG.Vehicles.Core;
 using Content.Shared._WG.Wilderness;
 using Robust.Client.Audio;
@@ -38,7 +41,8 @@ public sealed class WGZoneHudSystem : EntitySystem
 
     private static readonly Color MarkColor = Color.FromHex("#ff3b30");
     private static readonly SoundSpecifier MarkedSound = new SoundPathSpecifier("/Audio/Effects/alert.ogg");
-    private static readonly SpriteSpecifier MarkedIcon = new SpriteSpecifier.Rsi(new ResPath("/Textures/_WG/Wilderness/zones.rsi"), "marked");
+    private const string DefaultGuide = "WGWilderness";
+    private static readonly SpriteSpecifier MarkedIcon = newSpriteSpecifier.Rsi(new ResPath("/Textures/_WG/Wilderness/zones.rsi"), "marked");
 
     private const float TitleHold = 1.5f;
     private const float DetailsOpen = 5f;
@@ -370,6 +374,10 @@ public sealed class WGZoneHudSystem : EntitySystem
         return _banner;
     }
 
+    /// <summary>
+    /// Opens the zone's rule. Rule pages aren't in the guidebook's tree, so it opens on the core rules and then follows
+    /// a link to the page, as a link inside the rules would.
+    /// </summary>
     private void OpenRule()
     {
         if (_player.LocalEntity is not { } mob
@@ -377,9 +385,11 @@ public sealed class WGZoneHudSystem : EntitySystem
             || !_proto.TryIndex(inZone.Zone, out var zone)
             || zone.Guide is not { } guide)
         {
-            guide = "WGWilderness";
+            guide = DefaultGuide;
         }
 
-        _ui.GetUIController<GuidebookUIController>().OpenGuidebook(selected: guide);
+        var rules = _ui.GetUIController<InfoUIController>().GetCoreRuleEntry().ID;
+        _ui.GetUIController<GuidebookUIController>().OpenGuidebook(selected: rules);
+        _ui.WindowRoot.Children.OfType<GuidebookWindow>().FirstOrDefault()?.HandleClick(guide.Id);
     }
 }
