@@ -1,0 +1,3 @@
+- type: wgFeatureBan
+  id: WGAppearanceStudio
+  name: wg-feature-ban-appearance-studio

@@ -958,6 +958,11 @@ namespace Content.Server.Database.Migrations.Postgres
                         .HasColumnType("integer")
                         .HasColumnName("age");
 
+                    b.Property<string>("AppearanceStudio")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("appearance_studio");
+
                     b.Property<string>("AugmentUnlocks")
                         .IsRequired()
                         .HasColumnType("text")

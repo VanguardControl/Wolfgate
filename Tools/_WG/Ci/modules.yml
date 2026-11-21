@@ -10,6 +10,7 @@ external:
     readme: Content.Server/Symphony/README.md
     paths:
       - Content.*/Symphony/**
+      - Content.IntegrationTests/Tests/Symphony/**
       - "**/*.Symphony.cs"
       - Resources/Locale/en-US/symphony/**
 

@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Content.Server._WG.CustomMarkings;
+using Content.Shared._WG.AppearanceStudio;
 using Content.Shared._WG.CustomMarkings;
 using Microsoft.EntityFrameworkCore;
 
@@ -167,6 +168,20 @@ public abstract partial class ServerDbBase
             foreach (var marking in CustomMarkingRules.FromStored(list))
             {
                 worn.Add(marking.Hash);
+            }
+        }
+
+        // Appearance Studio warps are stored as art too, and a saved character lists them the same way.
+        var studios = await ctx.Profile
+            .Where(p => p.AppearanceStudio != "")
+            .Select(p => p.AppearanceStudio)
+            .ToListAsync(cancel);
+
+        foreach (var studio in studios)
+        {
+            foreach (var warp in StudioRules.Warps(StudioRules.FromStored(studio)))
+            {
+                worn.Add(warp);
             }
         }
 

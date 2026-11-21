@@ -93,7 +93,8 @@ public sealed class CustomMarkingResources : IContentRoot, IDisposable
     /// Whether the animation plays back to the first frame. An RSI can only run through its frames and start over,
     /// so the sprite gets a sheet with the way back drawn out.
     /// </param>
-    public void Store(string name, byte[] png, int[]? frameTimes = null, byte[]? erase = null, Vector2i? size = null, bool pingPong = false)
+    /// <param name="linear">Whether the sheet holds data, such as a displacement map, and loads without sRGB.</param>
+    public void Store(string name, byte[] png, int[]? frameTimes = null, byte[]? erase = null, Vector2i? size = null, bool pingPong = false, bool linear = false)
     {
         var rsi = Relative(name);
         var shownTimes = frameTimes;
@@ -122,7 +123,7 @@ public sealed class CustomMarkingResources : IContentRoot, IDisposable
 
         // The manifest goes in last: it is what makes the RSI loadable.
         var frame = size ?? new Vector2i(CustomMarkingRules.FrameSize, CustomMarkingRules.FrameSize);
-        _root.AddOrUpdateFile(rsi / "meta.json", Meta(frame, shownTimes));
+        _root.AddOrUpdateFile(rsi / "meta.json", Meta(frame, shownTimes, linear));
     }
 
     /// <summary>A body sprite sheet with its frames in play order, or null when it can't be read.</summary>
@@ -140,13 +141,14 @@ public sealed class CustomMarkingResources : IContentRoot, IDisposable
         return art.Played();
     }
 
-    private static byte[] Meta(Vector2i size, int[]? frameTimes)
+    private static byte[] Meta(Vector2i size, int[]? frameTimes, bool linear)
     {
         var meta = new StringBuilder();
         meta.Append("{\"version\":1,\"license\":\"CC-BY-SA-3.0\",\"copyright\":\"Drawn by a player\",\"size\":{\"x\":")
             .Append(size.X)
             .Append(",\"y\":")
             .Append(size.Y)
+            .Append(linear ? "},\"load\":{\"srgb\":false" : string.Empty)
             .Append("},\"states\":[{\"name\":\"")
             .Append(State)
             .Append("\",\"directions\":")

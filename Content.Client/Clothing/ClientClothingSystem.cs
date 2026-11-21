@@ -4,6 +4,7 @@ using System.Numerics;
 using Content.Client.DisplacementMap;
 using Content.Client.Inventory;
 using Content.Client._WG.LegStyle; // WOLFGATE(LegStyle)
+using Content.Client._WG.AppearanceStudio; // WOLFGATE(AppearanceStudio)
 using Content.Client._WG.ClothingLayer; // WOLFGATE(ClothingLayer)
 using Content.Client._WG.NeckSuits; // WOLFGATE(NeckSuits)
 using Content.Shared.Clothing;
@@ -58,6 +59,7 @@ public sealed partial class ClientClothingSystem : ClothingSystem
     [Dependency] private InventorySystem _inventorySystem = default!;
     [Dependency] private DisplacementMapSystem _displacement = default!;
     [Dependency] private LegStyleSystem _legStyle = default!; // WOLFGATE(LegStyle)
+    [Dependency] private StudioSpriteSystem _studioSprite = default!; // WOLFGATE(AppearanceStudio)
     [Dependency] private ClothingLayerSystem _clothingLayer = default!; // WOLFGATE(ClothingLayer)
     [Dependency] private WGNeckSuitVisualsSystem _neckSuit = default!; // WOLFGATE(NeckSuits)
 
@@ -313,6 +315,10 @@ public sealed partial class ClientClothingSystem : ClothingSystem
 
         displacementData = _legStyle.GetDisplacement(equipee, slot, displacementData); // WOLFGATE(LegStyle): picked legs decide the map for the slots they reshape
         displacementData = _neckSuit.GetDisplacement(equipee, equipment, inventory, displacementData); // WOLFGATE(NeckSuits): a suit in a neck slot uses the outer-suit map
+        // WOLFGATE(AppearanceStudio) START: a warp the player painted for this slot replaces the species map
+        if (_studioSprite.TryGetWornWarp(equipee, slot, out var studioWarp))
+            displacementData = studioWarp;
+        // WOLFGATE END
 
         // add the new layers
         foreach (var (key, layerData) in ev.Layers)
