@@ -216,6 +216,7 @@ Standalone edits outside `_WG` that serve no module: files with an untagged `WOL
 - [`Content.Server/Lightning/LightningSystem.cs`](../../Content.Server/Lightning/LightningSystem.cs)
   - restore the licence header removed by Kill Spdx
   - call the private overload; the public one recursed forever
+- [`Content.Server/Medical/VomitSystem.cs`](../../Content.Server/Medical/VomitSystem.cs): no body, no stomach; a hairball hitting a bodiless mob logged a resolve error
 - [`Content.Server/Mind/MindSystem.cs`](../../Content.Server/Mind/MindSystem.cs): a session whose data is already gone (a client torn down mid-delete) failed the asserts with a KeyNotFoundException
 - [`Content.Server/Mining/MiningSystem.cs`](../../Content.Server/Mining/MiningSystem.cs): restore the licence header removed by Kill Spdx
 - [`Content.Server/Movement/Systems/LagCompensationSystem.cs`](../../Content.Server/Movement/Systems/LagCompensationSystem.cs): restore the licence header removed by Kill Spdx
