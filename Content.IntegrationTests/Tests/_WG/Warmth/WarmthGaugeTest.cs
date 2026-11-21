@@ -123,12 +123,14 @@ public sealed class WarmthGaugeTest
         var coldGauge = 0;
         var coldRaw = 0f;
         var coldCore = 0f;
+        var coldSkin = 0f;
         var bodyTemperature = server.System<Content.Server._WG.Wolfmed.Life.WolfmedBodyTemperatureSystem>();
         await server.WaitPost(() =>
         {
             coldGauge = entMan.GetComponent<WGWarmthComponent>(mob).Gauge;
             coldRaw = entMan.GetComponent<WGWarmthComponent>(mob).LastGauge;
             coldCore = bodyTemperature.GetCore(mob) ?? 0f;
+            coldSkin = Skin();
             entMan.SpawnEntity("Bonfire", new EntityCoordinates(map.Grid.Owner, 1.5f, 0.5f));
         });
 
@@ -137,12 +139,13 @@ public sealed class WarmthGaugeTest
         {
             await pair.RunTicksSync(pair.SecondsToTicks(5f));
             // The trend reads Warming only while the gauge climbs, which can fall between two polls; a higher gauge counts
-            // too. A body chilled past the gauge's floor reads 0 until its core comes back up, so a rising core counts as well.
+            // too. A body chilled past the gauge's floor reads 0 until its core comes back up, so a rising core counts as well,
+            // and so does its skin, which the fire heats first and which a soaked body in the wind may hold under its core.
             await server.WaitPost(() =>
             {
                 var now = entMan.GetComponent<WGWarmthComponent>(mob);
                 warming = now.Trend == WGWarmthTrend.Warming || now.Gauge > coldGauge || now.LastGauge > coldRaw
-                          || bodyTemperature.GetCore(mob) > coldCore + 0.05f;
+                          || bodyTemperature.GetCore(mob) > coldCore + 0.05f || Skin() > coldSkin + 1f;
             });
         }
 
@@ -150,11 +153,16 @@ public sealed class WarmthGaugeTest
         {
             var warmth = entMan.GetComponent<WGWarmthComponent>(mob);
             Assert.That(warmth.NearWarmth, Is.True, "A lit bonfire at arm's reach did not show on the gauge.");
-            Assert.That(warming, Is.True, "A body at a bonfire never started warming.");
+            Assert.That(warming, Is.True,
+                $"A body at a bonfire never started warming: skin {Skin():0.0} K (was {coldSkin:0.0}), core "
+                + $"{bodyTemperature.GetCore(mob):0.00} K (was {coldCore:0.00}), gauge {warmth.Gauge} (was {coldGauge}), "
+                + $"wetness {warmth.Wetness:0.00}, wind chill {warmth.WindChill:0.00}.");
             Assert.That(warmth.Gauge, Is.GreaterThanOrEqualTo(coldGauge));
         });
 
         await server.WaitPost(() => server.PlayerMan.SetAttachedEntity(pair.Player!, null));
         await pair.CleanReturnAsync();
+
+        float Skin() => entMan.GetComponent<Content.Server.Temperature.Components.TemperatureComponent>(mob).CurrentTemperature;
     }
 }
