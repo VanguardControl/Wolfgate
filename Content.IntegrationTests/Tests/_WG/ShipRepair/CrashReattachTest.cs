@@ -29,6 +29,7 @@ using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 using static Content.IntegrationTests.Tests._WG.Planets.PlanetFixture;
 
@@ -84,6 +85,9 @@ public sealed class CrashReattachTest
         var wreck = await CrashAndRebuild(pair);
         var hull = wreck.Hull;
 
+        // A thorough crew rebuilds every missing fitting too, cables under the new floor included.
+        var unbuilt = await RebuildFittings(pair, wreck);
+
         // The engines the test switched off to force the crash go back on, as a crew would.
         await server.WaitPost(() =>
         {
@@ -97,6 +101,7 @@ public sealed class CrashReattachTest
 
         var report = new StringBuilder();
         report.AppendLine($"before the crash: {wreck.Before}");
+        report.AppendLine($"fittings the SRD could not rebuild: {(unbuilt.Count == 0 ? "none" : string.Join(", ", unbuilt))}");
         await server.WaitPost(() => report.AppendLine($"grounded: {Describe(em, hull)}"));
 
         // Off the planet on the hop that leaving orbit uses.
@@ -376,6 +381,57 @@ public sealed class CrashReattachTest
         });
 
         return new Wreck(hull, user, world, switchedOff, before, detached, rebuilt, wrong, extra);
+    }
+
+    /// <summary>Clicks the SRD at every blueprint fitting missing from the hull until none is left; returns those it couldn't rebuild.</summary>
+    private static async Task<List<string>> RebuildFittings(TestPair pair, Wreck wreck)
+    {
+        var server = pair.Server;
+        var em = server.EntMan;
+        var protos = server.ResolveDependency<IPrototypeManager>();
+        var factory = server.ResolveDependency<IComponentFactory>();
+        var hull = wreck.Hull;
+        var tool = EntityUid.Invalid;
+        var missing = new List<(string Proto, Vector2 Position)>();
+
+        for (var round = 0; round < 30; round++)
+        {
+            await server.WaitPost(() =>
+            {
+                tool = server.System<SharedHandsSystem>().GetActiveItem(wreck.User) ?? EntityUid.Invalid;
+                missing.Clear();
+                var data = em.GetComponent<ShipRepairDataComponent>(hull);
+                foreach (var chunk in data.Chunks.Values)
+                {
+                    foreach (var spec in chunk.Entities.Values)
+                    {
+                        var proto = data.EntityPalette[spec.ProtoIndex];
+                        if (!protos.TryIndex(proto, out var entProto) || !entProto.TryGetComponent<ShipRepairableComponent>(out _, factory))
+                            continue;
+
+                        if (spec.OriginalEntity is { } net && em.TryGetEntity(net, out var original) && !em.Deleted(original.Value)
+                            && em.GetComponent<TransformComponent>(original.Value).GridUid == hull)
+                            continue;
+
+                        missing.Add((proto.Id, spec.LocalPosition));
+                    }
+                }
+
+                foreach (var (_, position) in missing)
+                {
+                    server.System<SharedChargesSystem>().AddCharges(tool, 10000);
+                    Click(em, wreck.User, tool, new EntityCoordinates(hull, position));
+                }
+            });
+
+            if (missing.Count == 0)
+                break;
+
+            await server.WaitRunTicks(2);
+        }
+
+        await server.WaitRunTicks(pair.SecondsToTicks(2f));
+        return missing.Select(m => m.Proto).ToList();
     }
 
     /// <summary>The hull's body, thrust banks and linear engines, for a failure message.</summary>
