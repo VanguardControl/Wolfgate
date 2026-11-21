@@ -56,6 +56,41 @@ public sealed class WarmthGaugeTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>
+    /// A body's first reading can land just after its metabolism's once-a-second heat, a few tenths over normal. The
+    /// recovery alone took three minutes to bring that back to normal, and no cold reached the core until it did, so
+    /// such a body was still near normal after four minutes in a blizzard and too warm for a bonfire to warm.
+    /// </summary>
+    [Test]
+    public async Task CoreAFewTenthsOverNormalCoolsWithinAMinute()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var map = await pair.CreateTestMap();
+        EntityUid mob = default;
+
+        await server.WaitPost(() => mob = entMan.SpawnEntity("MobHuman", new EntityCoordinates(map.Grid.Owner, 0.5f, 0.5f)));
+        await pair.RunTicksSync(pair.SecondsToTicks(2f));
+
+        await server.WaitAssertion(() =>
+        {
+            var system = server.System<Content.Server._WG.Wolfmed.Life.WolfmedBodyTemperatureSystem>();
+            var temperature = entMan.GetComponent<Content.Server.Temperature.Components.TemperatureComponent>(mob);
+            var normal = system.GetLines(mob)!.Value.Normal;
+            system.SetCore(mob, normal + 0.2f);
+            temperature.CurrentTemperature = 264f;
+            for (var i = 0; i < 60; i++)
+            {
+                system.Tick(mob, 1f);
+            }
+
+            Assert.That(system.GetCore(mob), Is.LessThan(normal - 1f), "A core a little over normal held off the cold.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     [Test]
     public async Task GaugeFollowsTheColdAndAFire()
     {
