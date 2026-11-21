@@ -152,6 +152,8 @@ public sealed partial class WGColdStoreSystem : EntitySystem
         if (_job != null)
             StepJob(_job);
 
+        GiveBackKept();
+
         var now = _timing.CurTime;
         if (!_enabled || !_stasis.Enabled)
         {
@@ -242,6 +244,7 @@ public sealed partial class WGColdStoreSystem : EntitySystem
 
         // The park map is paused, which resets every paused flag on the way; nothing is left for stasis to undo.
         _stasis.Forget(grid);
+        KeepUnsaved(grid);
         _job = new StoreJob
         {
             Grid = grid,
@@ -367,6 +370,7 @@ public sealed partial class WGColdStoreSystem : EntitySystem
         }
 
         _hullRetire.ReleaseParked(job.Grid);
+        DropKept(job.Grid);
         _transform.SetCoordinates(job.Grid, new EntityCoordinates(record.Map, record.Position));
         _transform.SetLocalRotation(job.Grid, record.Rotation);
         Still(job.Grid);

@@ -1,4 +1,11 @@
 #nullable enable
+using Content.Shared.Weapons.Ranged.Components;
+using Content.Shared.Storage.Components;
+using Content.Shared.NodeContainer;
+using Content.Shared.Atmos;
+using Content.Shared._Crescent.Hardpoints;
+using Content.Server.NodeContainer.Nodes;
+using Content.Server.NodeContainer.NodeGroups;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -805,6 +812,81 @@ public sealed class ColdStoreTest
             Assert.That(pens.All(stored.ContainsKey), Is.True, "The strip step dropped a pen from the box's stored items.");
             entMan.DeleteEntity(grid.Owner);
         });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// State a save does not write comes back: gas in a pipe, which crate an item is in, a gun's modified fire rate
+    /// and a ship gun's hardpoint.
+    /// </summary>
+    [Test]
+    public async Task UnsavedStateComesBack()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var map = await pair.CreateTestMap();
+        EntityUid grid = default, pipe = default;
+
+        await server.WaitPost(() =>
+        {
+            grid = BuildWreck(pair, map.MapId, new Vector2(0f, 6000f), "Kept wreck");
+            pipe = entMan.SpawnEntity("GasPipeStraight", new EntityCoordinates(grid, new Vector2(2.5f, 4.5f)));
+            var crate = Tree(entMan, grid).Single(u => Proto(entMan, u) == "CrateGenericSteel");
+            var crowbar = entMan.SpawnEntity("Crowbar", new EntityCoordinates(grid, new Vector2(1.5f, 1.5f)));
+            Assert.That(entMan.System<SharedEntityStorageSystem>().Insert(crowbar, crate), Is.True);
+            entMan.SpawnEntity("WeaponPistolMk58", new EntityCoordinates(grid, new Vector2(3.5f, 1.5f)));
+            entMan.SpawnEntity("HardpointDebugLight", new EntityCoordinates(grid, new Vector2(4.5f, 4.5f)));
+            entMan.SpawnEntity("WGIonDisruptor", new EntityCoordinates(grid, new Vector2(4.5f, 4.5f)));
+        });
+        await server.WaitRunTicks(10);
+
+        await server.WaitAssertion(() =>
+        {
+            var node = entMan.GetComponent<NodeContainerComponent>(pipe).Nodes.Values.OfType<PipeNode>().First();
+            Assert.That(node.NodeGroup, Is.InstanceOf<IPipeNet>(), "Precondition: the pipe has a net.");
+            ((IPipeNet) node.NodeGroup!).Air.AdjustMoles(Gas.Plasma, 30f);
+
+            var gun = Tree(entMan, grid).Single(u => Proto(entMan, u) == "WGIonDisruptor");
+            Assert.That(entMan.GetComponent<HardpointAnchorableOnlyComponent>(gun).anchoredTo, Is.Not.Null,
+                "Precondition: the gun is on its hardpoint.");
+        });
+
+        await Enable(pair);
+        try
+        {
+            var standIn = await Store(pair, grid);
+            await server.WaitRunTicks(30);
+            var restored = await Restore(pair, standIn, "Kept wreck");
+            await server.WaitRunTicks(30);
+            await server.WaitAssertion(() => Assert.Multiple(() =>
+            {
+                var tree = Tree(entMan, restored);
+                var newPipe = tree.Single(u => Proto(entMan, u) == "GasPipeStraight");
+                var node = entMan.GetComponent<NodeContainerComponent>(newPipe).Nodes.Values.OfType<PipeNode>().First();
+                Assert.That(node.NodeGroup, Is.InstanceOf<IPipeNet>());
+                Assert.That(((IPipeNet) node.NodeGroup!).Air.GetMoles(Gas.Plasma), Is.EqualTo(30f).Within(0.01f), "The pipe came back empty.");
+                Assert.That(entMan.Count<WGKeptPipeGasComponent>(), Is.Zero, "A pipe still carries its kept gas.");
+
+                var crate = tree.Single(u => Proto(entMan, u) == "CrateGenericSteel");
+                var crowbar = tree.Single(u => Proto(entMan, u) == "Crowbar");
+                Assert.That(entMan.TryGetComponent<InsideEntityStorageComponent>(crowbar, out var inside) && inside.Storage == crate,
+                    Is.True, "The crowbar does not know which crate it is in.");
+
+                var pistol = tree.Single(u => Proto(entMan, u) == "WeaponPistolMk58");
+                Assert.That(entMan.GetComponent<GunComponent>(pistol).FireRateModified, Is.GreaterThan(0f), "The pistol has no fire rate.");
+
+                var gun = tree.Single(u => Proto(entMan, u) == "WGIonDisruptor");
+                var hardpoint = tree.Single(u => Proto(entMan, u) == "HardpointDebugLight");
+                Assert.That(entMan.GetComponent<HardpointAnchorableOnlyComponent>(gun).anchoredTo, Is.EqualTo(hardpoint), "The gun is off its hardpoint.");
+                Assert.That(entMan.GetComponent<HardpointComponent>(hardpoint).anchoring, Is.EqualTo(gun));
+            }));
+        }
+        finally
+        {
+            await Disable(pair);
+        }
 
         await pair.CleanReturnAsync();
     }

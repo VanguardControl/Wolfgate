@@ -132,9 +132,13 @@ keeps the stand-in and bytes, logs an error and stays queued for a retry once a 
 only an admin restore tries it again. A grid that grid cleanup would have deleted keeps cleanup's clock while stored, reset by a player near;
 when it runs out the stand-in and bytes are deleted. Records are dropped at round end.
 
-Known losses on a round trip: gas in pipe nets, wire layouts (redone by the re-init), turret links to hardpoints and
-gunnery, a few links that aren't data fields, sounds playing, and radiation suit hoods, which a load deletes for a
-reason not yet known. Power, breakers, doors, lockers, stacks, damage, solutions, tile air, canisters, decals, device
+State a save does not write is carried or redone. Each pipe carries its share of its net's gas through the save in a
+`WGKeptPipeGasComponent` and gives it back once its net exists. The re-init relinks ship guns to their hardpoints (so
+they rejoin gunnery when power returns), tells locker contents which locker they are in and refreshes gun modifiers.
+
+Known losses on a round trip: wire layouts and cut wires (redone fresh by the re-init), links between research,
+reactor, turbine and monitoring machines, sounds playing, and radiation suit hoods, which a load deletes for a reason
+not yet known. Power, breakers, doors, lockers, stacks, damage, solutions, tile air, canisters, decals, device
 links, access and names come back.
 
 Gauges: `wg_coldstore_grids`, `wg_coldstore_entities`, `wg_coldstore_bytes`, `wg_coldstore_worst_restore_ms`, and
@@ -170,6 +174,7 @@ refused while storing or stasis is off) or says why not, `wg_coldstore restore <
 - [`Content.Server/_WG/ColdStorage/WGColdStoreCVars.cs`](WGColdStoreCVars.cs)
 - [`Content.Server/_WG/ColdStorage/WGColdStoreSystem.cs`](WGColdStoreSystem.cs)
 - [`Content.Server/_WG/ColdStorage/WGColdStoreSystem.Eligibility.cs`](WGColdStoreSystem.Eligibility.cs)
+- [`Content.Server/_WG/ColdStorage/WGColdStoreSystem.Keep.cs`](WGColdStoreSystem.Keep.cs)
 - [`Content.Server/_WG/ColdStorage/WGColdStoreSystem.Restore.cs`](WGColdStoreSystem.Restore.cs)
 - [`Content.Server/_WG/ColdStorage/WGColdStoreSystem.Staged.cs`](WGColdStoreSystem.Staged.cs)
 - [`Content.Server/_WG/ColdStorage/WGEntityPressureSystem.cs`](WGEntityPressureSystem.cs)
@@ -179,6 +184,7 @@ refused while storing or stasis is off) or says why not, `wg_coldstore restore <
 - [`Content.Server/_WG/ColdStorage/WGGridStasisSystem.Exemptions.cs`](WGGridStasisSystem.Exemptions.cs)
 - [`Content.Server/_WG/ColdStorage/WGGridStasisSystem.Policy.cs`](WGGridStasisSystem.Policy.cs)
 - [`Content.Server/_WG/ColdStorage/WGGridStasisSystem.Wakes.cs`](WGGridStasisSystem.Wakes.cs)
+- [`Content.Server/_WG/ColdStorage/WGKeptPipeGasComponent.cs`](WGKeptPipeGasComponent.cs)
 - [`Content.Server/_WG/ColdStorage/WGPressureCVars.cs`](WGPressureCVars.cs)
 - [`Content.Server/_WG/ColdStorage/WGStasisCommand.cs`](WGStasisCommand.cs)
 - [`Content.Server/_WG/ColdStorage/WGStasisCVars.cs`](WGStasisCVars.cs)

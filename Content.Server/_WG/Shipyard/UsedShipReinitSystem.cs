@@ -6,12 +6,17 @@ using Content.Server.Pinpointer;
 using Content.Server.Power.Components;
 using Content.Server.Power.EntitySystems;
 using Content.Server.Wires;
+using Content.Shared._Crescent.Hardpoints;
 using Content.Shared._Crescent.ShipShields;
 using Content.Shared._Mono.Economy.Components;
 using Content.Shared._WG.ShipPa;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.DeviceNetwork.Components;
 using Content.Shared.Pinpointer;
+using Content.Server.Storage.Components;
+using Content.Shared.Storage.Components;
+using Content.Shared.Weapons.Ranged.Components;
+using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
@@ -34,6 +39,8 @@ public sealed partial class UsedShipReinitSystem : EntitySystem
     [Dependency] private PowerChargeSystem _powerCharge = default!;
     [Dependency] private ShipPaSystem _shipPa = default!;
     [Dependency] private WiresSystem _wires = default!;
+    [Dependency] private SharedHardpointSystem _hardpoints = default!;
+    [Dependency] private SharedGunSystem _guns = default!;
 
     /// <summary>
     /// Walks a freshly loaded grid and redoes the map-init work its entities never got. Every step is
@@ -91,6 +98,33 @@ public sealed partial class UsedShipReinitSystem : EntitySystem
 
         ResetUpgradeBaselines(uid);
         EnsureCashSlot(uid);
+        RelinkUnsaved(uid);
+    }
+
+    /// <summary>
+    /// Redoes links and figures that are not data fields, so a load leaves them empty: a ship gun's hardpoint (without
+    /// it the gun never joins gunnery), which locker an item is in (its air comes from there), and a gun's modified
+    /// fire rate and spread (zero until something refreshes them, and a gun with no fire rate can't shoot).
+    /// </summary>
+    private void RelinkUnsaved(EntityUid uid)
+    {
+        if (TryComp<HardpointAnchorableOnlyComponent>(uid, out var mount)
+            && !_hardpoints.WgIsMounted(mount)
+            && Transform(uid).Anchored)
+        {
+            _hardpoints.TryAnchorToHardpoint(uid, mount);
+        }
+
+        if (TryComp<EntityStorageComponent>(uid, out var storage) && storage.Contents != null)
+        {
+            foreach (var held in storage.Contents.ContainedEntities)
+            {
+                EnsureComp<InsideEntityStorageComponent>(held).Storage = uid;
+            }
+        }
+
+        if (HasComp<GunComponent>(uid))
+            _guns.RefreshModifiers(uid);
     }
 
     /// <summary>
