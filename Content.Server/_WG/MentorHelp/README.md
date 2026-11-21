@@ -117,7 +117,7 @@ Read and written through `ServerDbManager.MentorHelp.cs`.
 
 ## Non-modular edits
 
-- [`Content.Client/Administration/UI/Bwoink/BwoinkControl.xaml`](../../../Content.Client/Administration/UI/Bwoink/BwoinkControl.xaml): send a how-to ahelp to Mentor Help, open the Mentor Help queue
+- [`Content.Client/Administration/UI/Bwoink/BwoinkControl.xaml`](../../../Content.Client/Administration/UI/Bwoink/BwoinkControl.xaml): Mentor Help on a row of its own, so it doesn't squeeze the player list
 - [`Content.Client/Administration/UI/Bwoink/BwoinkControl.xaml.cs`](../../../Content.Client/Administration/UI/Bwoink/BwoinkControl.xaml.cs)
   - mentor badge and open question mark
   - Mentor Help buttons and markers
