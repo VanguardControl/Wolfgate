@@ -72,10 +72,11 @@ public sealed class WGMentorHelpSystem : EntitySystem
 
     private static readonly TimeSpan CheckInterval = TimeSpan.FromSeconds(1);
 
-    /// <summary>How many times a ticket's row is tried before its writes are given up.</summary>
+    /// <summary>How many quick retries a ticket's row gets before retrying once a minute.</summary>
     private const int InsertAttempts = 5;
 
     private static readonly TimeSpan InsertRetryDelay = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan InsertSlowRetryDelay = TimeSpan.FromMinutes(1);
 
     /// <summary>How long a typing mark lasts without a fresh one.</summary>
     private static readonly TimeSpan TypingTimeout = TimeSpan.FromSeconds(10);
@@ -791,12 +792,13 @@ public sealed class WGMentorHelpSystem : EntitySystem
     }
 
     /// <summary>
-    /// Writes the ticket's row, retrying a failed insert; the writes queued behind it wait. Before each retry it looks
-    /// for a row an uncertain earlier attempt may have committed, so a ticket is never stored twice.
+    /// Writes the ticket's row, retrying a failed insert until the database takes it: quickly at first, then once a
+    /// minute. The writes queued behind it wait, so none is lost. Before each retry it looks for a row an uncertain
+    /// earlier attempt may have committed, so a ticket is never stored twice.
     /// </summary>
     private async Task InsertAsync(MentorTicket ticket, WolfgateMentorTicket row)
     {
-        for (var attempt = 1; attempt <= InsertAttempts; attempt++)
+        for (var attempt = 1; ; attempt++)
         {
             try
             {
@@ -816,11 +818,12 @@ public sealed class WGMentorHelpSystem : EntitySystem
             }
             catch (Exception e)
             {
-                Log.Error($"Could not store mentor ticket #{ticket.Id} (attempt {attempt} of {InsertAttempts}): {e}");
+                // Log each failure in the quick phase, then only every tenth slow retry.
+                if (attempt <= InsertAttempts || attempt % 10 == 0)
+                    Log.Error($"Could not store mentor ticket #{ticket.Id} (attempt {attempt}): {e}");
             }
 
-            if (attempt < InsertAttempts)
-                await Task.Delay(InsertRetryDelay);
+            await Task.Delay(attempt < InsertAttempts ? InsertRetryDelay : InsertSlowRetryDelay);
         }
     }
 

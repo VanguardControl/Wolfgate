@@ -16,7 +16,14 @@ public sealed partial class BwoinkSystem
         _ahelpCategories[player] = category;
         var message = new BwoinkTextMessage(player, player, text, category: category);
         OnBwoinkInternal(message, player, null, playerName, channel, false, true, false);
+
+        // Marked so staff can't send it straight back to Mentor Help, where it would only time out again.
+        if (_wgHistory.TryGetValue(player, out var lines) && lines.Count > 0)
+            _wgFromMentorHelp.Add(lines[^1].Staff);
     }
+
+    /// <summary>Ahelp lines Mentor Help put in a player's name (a fallback), which a hand-off back must skip.</summary>
+    private readonly HashSet<BwoinkTextMessage> _wgFromMentorHelp = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>
     /// Shows staff a Mentor Help ticket in a player's ahelp, with a sound, under a category and a ticket tag; kept in
@@ -76,7 +83,7 @@ public sealed partial class BwoinkSystem
 
     /// <summary>
     /// The text of the latest line a player wrote in their open ahelp, or null. Lines from before the ahelp was last
-    /// resolved don't count.
+    /// resolved don't count, nor do questions Mentor Help forwarded on its own.
     /// </summary>
     public string? LastPlayerAHelpText(NetUserId player)
     {
@@ -91,7 +98,7 @@ public sealed partial class BwoinkSystem
             if (resolved != null && ReferenceEquals(staff, resolved))
                 break;
 
-            if (staff.TrueSender == player)
+            if (staff.TrueSender == player && !_wgFromMentorHelp.Contains(staff))
             {
                 last = staff;
                 break;

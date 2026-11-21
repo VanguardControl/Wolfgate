@@ -87,4 +87,55 @@ public sealed class MentorAHelpHandoffTest
         await MentorHelpTicketTest.RestoreLoginLocal(pair);
         await pair.CleanReturnAsync();
     }
+
+    /// <summary>A question Mentor Help forwarded to staff can't be sent straight back; a new ahelp line can.</summary>
+    [Test]
+    public async Task FallbackQuestionIsNotSentBack()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true, InLobby = true });
+        var server = pair.Server;
+        var help = server.System<WGMentorHelpSystem>();
+        var bwoink = server.System<ServerBwoinkSystem>();
+        var admins = server.ResolveDependency<IAdminManager>();
+        var cfg = server.ResolveDependency<IConfigurationManager>();
+
+        var player = server.ResolveDependency<IPlayerManager>().Sessions.Single();
+        var staff = await MentorHelpTicketTest.FreshDummy(pair, "staff");
+        await server.WaitPost(() => admins.PromoteHost(staff));
+        await MentorHelpTicketTest.WaitFor(pair, () => admins.HasAdminFlag(staff, AdminFlags.Adminhelp), "Staff never got Adminhelp.");
+
+        MentorTicket ticket = null!;
+        await server.WaitPost(() =>
+        {
+            cfg.SetCVar(MentorHelpCVars.TicketCooldown, 0);
+            cfg.SetCVar(MentorHelpCVars.FallbackMinutes, 0.01f);
+            Assert.That(help.Open(player, "Nobody answers this", null, false), Is.EqualTo(MentorHelpOpenResult.Opened));
+            ticket = help.GetOpenTicket(player.UserId)!;
+        });
+
+        await MentorHelpTicketTest.WaitFor(pair, () => ticket.Closed, "The ticket never fell back.");
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(ticket.CloseReason, Is.EqualTo(MentorCloseReason.Fallback));
+            Assert.That(bwoink.LastPlayerAHelpText(player.UserId), Is.Null, "The forwarded question isn't the player's own line.");
+            Assert.That(help.OpenFromAHelp(staff, player.UserId), Is.False, "It can't be sent back to Mentor Help.");
+            cfg.SetCVar(MentorHelpCVars.FallbackMinutes, 5f);
+        });
+
+        // A line the player writes themselves can still be handed over.
+        await pair.Client.WaitPost(() =>
+            pair.Client.System<ClientBwoinkSystem>().Send(player.UserId, "Actually, how do I dock?", true, false));
+        await MentorHelpTicketTest.WaitFor(pair, () => bwoink.LastPlayerAHelpText(player.UserId) == "Actually, how do I dock?",
+            "The new ahelp line never reached the server.");
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(help.OpenFromAHelp(staff, player.UserId));
+            help.End(player);
+            cfg.SetCVar(MentorHelpCVars.TicketCooldown, 30);
+        });
+
+        await MentorHelpTicketTest.RestoreLoginLocal(pair);
+        await pair.CleanReturnAsync();
+    }
 }

@@ -1,11 +1,13 @@
 #nullable enable
 using System.Linq;
+using Content.Client._WG.MentorHelp;
 using Content.IntegrationTests.Pair;
 using Content.Server._WG.MentorHelp;
 using Content.Server._WG.Mentors;
 using Content.Server.Administration.Managers;
 using Content.Server.Preferences.Managers;
 using Content.Shared._WG.MentorHelp;
+using Content.Shared._WG.Mentors;
 using Content.Shared.Administration;
 using Robust.Server.Player;
 using Robust.Shared.GameObjects;
@@ -121,6 +123,75 @@ public sealed class MentorHelpRoutingTest
             server.ResolveDependency<Robust.Shared.Configuration.IConfigurationManager>().SetCVar(MentorHelpCVars.TicketCooldown, 30);
         });
 
+        await MentorHelpTicketTest.RestoreLoginLocal(pair);
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A spoiler-safe ticket leaves a mentor's client when they enter the round and comes back when they leave it.</summary>
+    [Test]
+    public async Task SecretTicketFollowsTheMentorInAndOutOfTheRound()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true, InLobby = true });
+        var server = pair.Server;
+        var help = server.System<WGMentorHelpSystem>();
+        var mentors = server.System<WGMentorSystem>();
+        var players = server.ResolveDependency<IPlayerManager>();
+        var admins = server.ResolveDependency<IAdminManager>();
+        var entities = server.ResolveDependency<IEntityManager>();
+
+        // The connected client is the mentor; it must not be staff, who see every ticket.
+        var mentor = players.Sessions.Single();
+        await server.WaitPost(() =>
+        {
+            if (admins.IsAdmin(mentor, includeDeAdmin: true))
+                admins.DeAdmin(mentor);
+        });
+        await MentorHelpTicketTest.Run(pair, async () =>
+        {
+            await mentors.GrantAsync(mentor.UserId, MentorTier.Mentor, null, MentorRows.SourceStaff);
+            return true;
+        });
+
+        var asker = await MentorHelpTicketTest.FreshDummy(pair, "asker");
+        var id = 0;
+        await server.WaitPost(() =>
+        {
+            Assert.That(mentors.IsOnDuty(mentor.UserId));
+            Assert.That(help.Open(asker, "About my secret role", null, true), Is.EqualTo(MentorHelpOpenResult.Opened));
+            id = help.GetOpenTicket(asker.UserId)!.Id;
+        });
+
+        bool ClientHas() => pair.Client.System<WGClientMentorHelpSystem>().Tickets.ContainsKey(id);
+
+        // Polled on the client's own thread.
+        async Task WaitClient(bool expected, string message)
+        {
+            var met = false;
+            for (var i = 0; i < 300 && !met; i++)
+            {
+                await pair.RunTicksSync(1);
+                await pair.Client.WaitPost(() => met = ClientHas() == expected);
+            }
+
+            Assert.That(met, message);
+        }
+
+        await WaitClient(true, "The mentor out of the round never got the ticket.");
+
+        EntityUid body = default;
+        await server.WaitPost(() =>
+        {
+            entities.System<SharedMapSystem>().CreateMap(out var mapId);
+            body = entities.SpawnEntity("CrateGenericSteel", new MapCoordinates(0, 0, mapId));
+            players.SetAttachedEntity(mentor, body);
+        });
+        await WaitClient(false, "The ticket stayed after the mentor entered the round.");
+
+        await server.WaitPost(() => players.SetAttachedEntity(mentor, null));
+        await WaitClient(true, "The ticket didn't come back after the mentor left the round.");
+
+        await server.WaitPost(() => help.End(asker));
+        await MentorHelpTicketTest.Run(pair, () => mentors.RevokeAsync(mentor.UserId, null, "Testing"));
         await MentorHelpTicketTest.RestoreLoginLocal(pair);
         await pair.CleanReturnAsync();
     }

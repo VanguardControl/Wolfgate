@@ -158,7 +158,7 @@ public sealed class WGMentorSystem : EntitySystem
         Notify(user, wasActive
             ? Loc.GetString("wg-mentor-tier-changed", ("tier", MentorRows.TierName(tier)))
             : Loc.GetString("wg-mentor-granted", ("tier", MentorRows.TierName(tier))));
-        Reload(user, row);
+        Commit(user, row);
     }
 
     private async Task<bool> SetTierCore(NetUserId user, MentorTier tier, NetUserId? actor)
@@ -180,7 +180,7 @@ public sealed class WGMentorSystem : EntitySystem
             $"{Name(actor)} changed the mentor tier of {Name(user)}: {row.Tier}");
 
         Notify(user, Loc.GetString("wg-mentor-tier-changed", ("tier", MentorRows.TierName(tier))));
-        Reload(user, row);
+        Commit(user, row);
         return true;
     }
 
@@ -197,7 +197,7 @@ public sealed class WGMentorSystem : EntitySystem
         _adminLog.Add(LogType.WGMentor, LogImpact.Medium, $"{Name(actor)} revoked mentor from {Name(user)}: {reason}");
 
         Notify(user, Loc.GetString("wg-mentor-revoked", ("reason", reason)));
-        Reload(user, row);
+        Commit(user, row);
         return true;
     }
 
@@ -215,7 +215,7 @@ public sealed class WGMentorSystem : EntitySystem
         _adminLog.Add(LogType.WGMentor, LogImpact.Medium, $"{Name(actor)} restored mentor to {Name(user)}");
 
         Notify(user, Loc.GetString("wg-mentor-restored"));
-        Reload(user, row);
+        Commit(user, row);
         return MentorRows.TierFromDb(row.Tier);
     }
 
@@ -250,10 +250,7 @@ public sealed class WGMentorSystem : EntitySystem
         return Serialized(user, () => RestoreCore(user, actor));
     }
 
-    /// <summary>
-    /// Runs one roster change for a player at a time, read to save, and marks the player's row as changed so a
-    /// connection load that read it earlier doesn't apply its stale copy.
-    /// </summary>
+    /// <summary>Runs one roster change for a player at a time, from its read to its save.</summary>
     private async Task<T> Serialized<T>(NetUserId user, Func<Task<T>> change)
     {
         if (!_gates.TryGetValue(user, out var gate))
@@ -266,9 +263,18 @@ public sealed class WGMentorSystem : EntitySystem
         }
         finally
         {
-            _generations[user] = Generation(user) + 1;
             gate.Release();
         }
+    }
+
+    /// <summary>
+    /// Takes a saved roster change into memory and marks the player's row as changed, so a connection load that read
+    /// the older row doesn't apply it. A change that saved nothing doesn't come here and leaves the load alone.
+    /// </summary>
+    private void Commit(NetUserId user, WolfgateMentor row)
+    {
+        _generations[user] = Generation(user) + 1;
+        Reload(user, row);
     }
 
     private int Generation(NetUserId user)
