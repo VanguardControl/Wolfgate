@@ -52,6 +52,12 @@ public sealed class JoinQueueTest
             Assert.That(players.Sessions, Has.Length.EqualTo(1));
             Assert.That(players.Sessions[0].Status, Is.EqualTo(SessionStatus.Connected), "the full server let the player into the game");
             Assert.That(serverQueue.WaitingCount, Is.EqualTo(1));
+
+            // The hub count includes the queue unless the setting is off.
+            Assert.That(serverQueue.HiddenFromStatus, Is.Zero);
+            cfg.SetCVar(JoinQueueCVars.CountInStatus, false);
+            Assert.That(serverQueue.HiddenFromStatus, Is.EqualTo(1));
+            cfg.SetCVar(JoinQueueCVars.CountInStatus, true);
         });
         await client.WaitAssertion(() =>
         {

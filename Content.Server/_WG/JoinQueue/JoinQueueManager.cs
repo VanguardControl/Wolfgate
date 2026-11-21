@@ -43,6 +43,9 @@ public sealed partial class JoinQueueManager
     /// <summary>Connected players waiting in the queue. Safe to read from any thread.</summary>
     public int WaitingCount => _waiting;
 
+    /// <summary>Waiting players to leave out of the reported player count. Safe to read from any thread.</summary>
+    public int HiddenFromStatus => _cfg.GetCVar(JoinQueueCVars.CountInStatus) ? 0 : _waiting;
+
     private bool Enabled => _cfg.GetCVar(JoinQueueCVars.Enabled);
     private int Cap => _cfg.GetCVar(CCVars.SoftMaxPlayers);
     private TimeSpan Hold => TimeSpan.FromSeconds(Math.Max(0f, _cfg.GetCVar(JoinQueueCVars.HoldSeconds)));

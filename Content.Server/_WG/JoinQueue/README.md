@@ -10,7 +10,9 @@ the lobby or the game as usual.
   they are away goes to the next connected player, and their place stays.
 - The queue holds `wg.join_queue.max_size` (50) players; past that the server refuses the connection as before.
   `wg.join_queue.enabled` turns the queue off, and everyone waiting is then let in.
-- Waiting players don't count towards the cap, the hub's player count or the lobby's.
+- Waiting players don't count towards the cap or the lobby's player count. The count the hub and launcher show
+  includes them, so a full server with a queue reads over its cap (120/100); `wg.join_queue.count_in_status` off
+  shows only players in the game.
 - The engine's `net.max_connections` must be above the cap plus the queue size, or the engine refuses the connection
   before the queue sees it.
 
@@ -68,7 +70,7 @@ the player was let in: the screen says so until the lobby or the game takes over
 - [`Content.Server/Entry/EntryPoint.cs`](../../Entry/EntryPoint.cs): holds players a full server has no slot for
 - [`Content.Server/GameTicking/GameTicker.Lobby.cs`](../../GameTicking/GameTicker.Lobby.cs): players waiting in the queue aren't in the lobby
 - [`Content.Server/GameTicking/GameTicker.Player.cs`](../../GameTicking/GameTicker.Player.cs): a full server holds the player in the queue instead
-- [`Content.Server/GameTicking/GameTicker.StatusShell.cs`](../../GameTicking/GameTicker.StatusShell.cs): players waiting in the queue aren't playing
+- [`Content.Server/GameTicking/GameTicker.StatusShell.cs`](../../GameTicking/GameTicker.StatusShell.cs): waiting players only count when wg.join_queue.count_in_status is on
 - [`Content.Server/IoC/ServerContentIoC.cs`](../../IoC/ServerContentIoC.cs): holds players a full server has no slot for
 
 <!-- WOLFGATE-GENERATED END -->
