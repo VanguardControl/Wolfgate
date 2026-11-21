@@ -49,6 +49,7 @@ public sealed class WGMentorHelpSystem : EntitySystem
 {
     [Dependency] private IAdminLogManager _adminLog = default!;
     [Dependency] private IAdminManager _admin = default!;
+    [Dependency] private IBanManager _bans = default!;
     [Dependency] private BwoinkSystem _bwoink = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IServerDbManager _db = default!;
@@ -117,6 +118,12 @@ public sealed class WGMentorHelpSystem : EntitySystem
     /// <summary>Every ticket held this round, open and recently closed.</summary>
     public IReadOnlyDictionary<int, MentorTicket> Tickets => _tickets;
 
+    /// <summary>Whether a connected player has a Mentor Help mute (the <c>Mentor:Help</c> role ban).</summary>
+    public bool IsMuted(NetUserId player)
+    {
+        return _bans.GetRoleBans(player)?.Contains(MentorBans.HelpRole) == true;
+    }
+
     /// <summary>A player's open ticket, or null.</summary>
     public MentorTicket? GetOpenTicket(NetUserId player)
     {
@@ -167,6 +174,9 @@ public sealed class WGMentorHelpSystem : EntitySystem
     {
         if (!_cfg.GetCVar(MentorCVars.Enabled))
             return MentorHelpOpenResult.Disabled;
+
+        if (IsMuted(player.UserId))
+            return MentorHelpOpenResult.Muted;
 
         if (!Clean(text, MaxLength, out var clean, out var refusal))
             return refusal;
@@ -266,6 +276,9 @@ public sealed class WGMentorHelpSystem : EntitySystem
             ticket.RatingComment = clean;
 
         Update(ticket);
+        if (ticket.Claimer is { } claimer)
+            _ = PromoteAfterWrites(ticket, claimer);
+
         _adminLog.Add(LogType.WGMentorHelp, LogImpact.Low,
             $"{player.Name} rated mentor ticket #{ticket.Id} {(up ? "up" : "down")}{(ticket.RatingComment != null ? $": {ticket.RatingComment}" : "")}");
         Publish(ticket);
@@ -539,6 +552,8 @@ public sealed class WGMentorHelpSystem : EntitySystem
         ticket.ClosedTime = _timing.RealTime;
         ticket.ClosedAt = DateTime.UtcNow;
         Update(ticket);
+        if (ticket.Claimer is { } claimer && (reason == MentorCloseReason.Resolved || reason == MentorCloseReason.Player && ticket.Answered))
+            _ = PromoteAfterWrites(ticket, claimer);
 
         var notice = reason switch
         {
@@ -847,6 +862,21 @@ public sealed class WGMentorHelpSystem : EntitySystem
         {
             Log.Error($"Could not write mentor ticket #{ticket.Id}: {e}");
         }
+    }
+
+    /// <summary>Checks the credited mentor for promotion once the ticket's state is in the database.</summary>
+    private async Task PromoteAfterWrites(MentorTicket ticket, NetUserId mentor)
+    {
+        try
+        {
+            await ticket.Writes;
+        }
+        catch (Exception)
+        {
+            // A failed write is logged where it happens; the count just misses this ticket.
+        }
+
+        await _mentors.CheckPromotionAsync(mentor);
     }
 
     private void Update(MentorTicket ticket)

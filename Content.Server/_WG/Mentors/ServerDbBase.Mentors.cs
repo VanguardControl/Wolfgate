@@ -5,6 +5,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Content.Server.Database;
 
+/// <summary>A closed ticket as the leaderboard counts it: who held it, how it ended, and everyone who answered.</summary>
+public sealed record MentorBoardTicket(
+    Guid? ClaimedBy,
+    string CloseReason,
+    DateTime OpenedAt,
+    DateTime? FirstAnswerAt,
+    int? Rating,
+    List<Guid> Responders);
+
 // The mentor roster and applications.
 public abstract partial class ServerDbBase
 {
@@ -91,6 +100,51 @@ public abstract partial class ServerDbBase
             .ToListAsync(cancel);
 
         return applications.Select(NormalizeTimes).ToList();
+    }
+
+    public async Task<(int Resolved, int Rated, int Helpful)> GetMentorCreditAsync(Guid mentor, CancellationToken cancel = default)
+    {
+        await using var db = await GetDb(cancel);
+
+        var ratings = await db.DbContext.WolfgateMentorTicket
+            .AsNoTracking()
+            .Where(t => t.ClaimedBy == mentor && t.ClosedAt != null)
+            .Where(t => t.CloseReason == "resolved" || (t.CloseReason == "player" && t.FirstAnswerAt != null))
+            .Select(t => t.Rating)
+            .ToListAsync(cancel);
+
+        return (ratings.Count, ratings.Count(r => r != null), ratings.Count(r => r > 0));
+    }
+
+    public async Task<List<MentorBoardTicket>> GetMentorBoardTicketsAsync(DateTime? since, CancellationToken cancel = default)
+    {
+        await using var db = await GetDb(cancel);
+
+        var tickets = await db.DbContext.WolfgateMentorTicket
+            .AsNoTracking()
+            .Where(t => t.ClosedAt != null && (since == null || t.ClosedAt >= since))
+            .Select(t => new
+            {
+                t.ClaimedBy,
+                t.CloseReason,
+                t.OpenedAt,
+                t.FirstAnswerAt,
+                t.Rating,
+                Responders = t.Messages
+                    .Where(m => m.SenderRole == "mentor" || m.SenderRole == "staff")
+                    .Select(m => m.SenderUserId)
+                    .ToList(),
+            })
+            .ToListAsync(cancel);
+
+        return tickets.Select(t => new MentorBoardTicket(
+                t.ClaimedBy,
+                t.CloseReason ?? "",
+                NormalizeDatabaseTime(t.OpenedAt),
+                NormalizeDatabaseTime(t.FirstAnswerAt),
+                t.Rating,
+                t.Responders.OfType<Guid>().Distinct().ToList()))
+            .ToList();
     }
 
     private WolfgateMentor NormalizeTimes(WolfgateMentor mentor)

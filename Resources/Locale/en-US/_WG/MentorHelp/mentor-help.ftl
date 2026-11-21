@@ -91,6 +91,7 @@ wg-mhelp-canned-edit = Edit
 wg-mhelp-sound-option = Play a sound for new questions
 
 guide-entry-wg-mentor-help = Getting help
+wg-mhelp-muted = You're locked out of the Mentor Help system right now. You can still use the Admin Help.
 
 # DRAFT: not on the strings page yet; Moon to confirm or rewrite before the PR.
 ui-options-function-wg-open-mentor-help = Open Mentor Help

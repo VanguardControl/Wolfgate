@@ -164,6 +164,7 @@ public sealed class MentorHelpUIController : UIController,
             Canned = _help.Canned,
             CanEditCanned = _help.CanEditCanned,
             Sound = _cfg.GetCVar(MentorHelpCVars.Sound),
+            Tier = _mentors?.Tier ?? MentorTier.Trainee,
         });
     }
 

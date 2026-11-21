@@ -33,6 +33,34 @@ public static class SymphonyLinkTickets
     private const string LockSql = "SELECT pg_advisory_xact_lock(hashtextextended(@user, 0))";
 
     /// <summary>
+    /// Whether the player holds a live Discord link, without minting a ticket. Null when this server is not on
+    /// PostgreSQL, where the panel has no bridge.
+    /// </summary>
+    public static async Task<bool?> IsLinkedAsync(IConfigurationManager cfg, NetUserId userId)
+    {
+        if (!string.Equals(cfg.GetCVar(CCVars.DatabaseEngine), "postgres", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        await using var connection = new NpgsqlConnection(ConnectionString(cfg));
+        await connection.OpenAsync();
+        await using var linked = new NpgsqlCommand(LinkedSql, connection);
+        linked.Parameters.AddWithValue("user", userId.UserId);
+        return await linked.ExecuteScalarAsync() is true;
+    }
+
+    private static string ConnectionString(IConfigurationManager cfg)
+    {
+        return new NpgsqlConnectionStringBuilder
+        {
+            Host = cfg.GetCVar(CCVars.DatabasePgHost),
+            Port = cfg.GetCVar(CCVars.DatabasePgPort),
+            Database = cfg.GetCVar(CCVars.DatabasePgDatabase),
+            Username = cfg.GetCVar(CCVars.DatabasePgUsername),
+            Password = cfg.GetCVar(CCVars.DatabasePgPassword),
+        }.ConnectionString;
+    }
+
+    /// <summary>
     /// Finds or mints the player's ticket. Returns linked when they already hold a live link, and then mints nothing;
     /// otherwise the ticket to hand them. Both false and null when this server is not on PostgreSQL, where the panel
     /// has no bridge.

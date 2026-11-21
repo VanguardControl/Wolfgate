@@ -31,6 +31,12 @@ public partial interface IServerDbManager
         string? state,
         Guid? userId,
         CancellationToken cancel = default);
+
+    /// <summary>A mentor's resolved tickets (resolved, or ended by the asker after an answer), how many were rated and how many helpful.</summary>
+    Task<(int Resolved, int Rated, int Helpful)> GetMentorCreditAsync(Guid mentor, CancellationToken cancel = default);
+
+    /// <summary>Tickets closed since a time (all when null), for the leaderboard.</summary>
+    Task<List<MentorBoardTicket>> GetMentorBoardTicketsAsync(DateTime? since, CancellationToken cancel = default);
 }
 
 public sealed partial class ServerDbManager
@@ -84,5 +90,17 @@ public sealed partial class ServerDbManager
     {
         DbReadOpsMetric.Inc();
         return RunDbCommand(() => _db.GetMentorApplicationsAsync(state, userId, cancel));
+    }
+
+    public Task<(int Resolved, int Rated, int Helpful)> GetMentorCreditAsync(Guid mentor, CancellationToken cancel = default)
+    {
+        DbReadOpsMetric.Inc();
+        return RunDbCommand(() => _db.GetMentorCreditAsync(mentor, cancel));
+    }
+
+    public Task<List<MentorBoardTicket>> GetMentorBoardTicketsAsync(DateTime? since, CancellationToken cancel = default)
+    {
+        DbReadOpsMetric.Inc();
+        return RunDbCommand(() => _db.GetMentorBoardTicketsAsync(since, cancel));
     }
 }

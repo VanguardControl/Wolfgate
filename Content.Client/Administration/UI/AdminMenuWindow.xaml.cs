@@ -24,6 +24,7 @@ public sealed partial class AdminMenuWindow : DefaultWindow
         MasterTabContainer.SetTabTitle((int) TabIndex.Players, Loc.GetString("admin-menu-players-tab"));
         MasterTabContainer.SetTabTitle((int) TabIndex.Objects, Loc.GetString("admin-menu-objects-tab"));
         MasterTabContainer.SetTabTitle((int) TabIndex.Wolfgate, Loc.GetString("admin-menu-wolfgate-tab")); // WOLFGATE(Administration)
+        MasterTabContainer.SetTabTitle((int) TabIndex.WGMentors, Loc.GetString("wg-mentor-tab")); // WOLFGATE(Mentors)
         MasterTabContainer.OnTabChanged += OnTabChanged;
     }
 
@@ -52,5 +53,6 @@ public sealed partial class AdminMenuWindow : DefaultWindow
         Players,
         Objects,
         Wolfgate, // WOLFGATE(Administration)
+        WGMentors, // WOLFGATE(Mentors)
     }
 }

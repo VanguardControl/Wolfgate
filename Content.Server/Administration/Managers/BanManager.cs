@@ -4,9 +4,11 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Content.Server._WG.Mentors; // WOLFGATE(Mentors)
 using Content.Server.Chat.Managers;
 using Content.Server.Database;
 using Content.Server.GameTicking;
+using Content.Shared._WG.Mentors; // WOLFGATE(Mentors)
 using Content.Shared.CCVar;
 using Content.Shared.Database;
 using Content.Shared.Players;
@@ -237,12 +239,12 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
     // Removing it will clutter the note list. Please also make sure that department bans are applied to roles with the same DateTimeOffset.
     public async void CreateRoleBan(NetUserId? target, string? targetUsername, NetUserId? banningAdmin, (IPAddress, int)? addressRange, ImmutableTypedHwid? hwid, string role, uint? minutes, NoteSeverity severity, string reason, DateTimeOffset timeOfBan)
     {
-        if (!_prototypeManager.TryIndex(role, out JobPrototype? _))
+        if (!MentorBans.IsRole(role) && !_prototypeManager.TryIndex(role, out JobPrototype? _)) // WOLFGATE(Mentors): mentor bans aren't jobs
         {
             throw new ArgumentException($"Invalid role '{role}'", nameof(role));
         }
 
-        role = string.Concat(JobPrefix, role);
+        role = MentorBans.IsRole(role) ? role : string.Concat(JobPrefix, role); // WOLFGATE(Mentors): mentor bans keep their own prefix
         DateTimeOffset? expires = null;
         if (minutes > 0)
         {
@@ -281,6 +283,11 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
         {
             SendRoleBans(session);
         }
+
+        // WOLFGATE(Mentors) START: a mentor ban suspends the mentor at once
+        if (target != null && MentorBans.IsRole(role))
+            _systems.GetEntitySystem<WGMentorSystem>().OnMentorRoleBan(target.Value, role, expires, reason);
+        // WOLFGATE END
     }
 
     public async Task<string> PardonRoleBan(int banId, NetUserId? unbanningAdmin, DateTimeOffset unbanTime)

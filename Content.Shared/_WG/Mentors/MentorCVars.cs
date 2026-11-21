@@ -46,6 +46,10 @@ public sealed class MentorCVars
     public static readonly CVarDef<bool> ShowCrown =
         CVarDef.Create("wg.mentor.show_crown", true, CVar.CLIENT | CVar.REPLICATED | CVar.ARCHIVE);
 
+    /// <summary>Set once this player was told they have the hours to apply, so the notice comes once.</summary>
+    public static readonly CVarDef<bool> EligibleNoticed =
+        CVarDef.Create("wg.mentor.eligible_noticed", false, CVar.CLIENT | CVar.REPLICATED | CVar.ARCHIVE);
+
     /// <summary>Whether this mentor starts every connection off duty.</summary>
     public static readonly CVarDef<bool> StartOffDuty =
         CVarDef.Create("wg.mentor.start_off_duty", false, CVar.CLIENT | CVar.REPLICATED | CVar.ARCHIVE);

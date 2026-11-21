@@ -2,7 +2,9 @@ using System.Linq;
 using System.Numerics;
 using Content.Client.UserInterface.Controls;
 using Content.Client.UserInterface.Systems.Guidebook;
+using Content.Client._WG.Mentors;
 using Content.Shared._WG.MentorHelp;
+using Content.Shared._WG.Mentors;
 using Content.Shared.Guidebook;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
@@ -27,6 +29,7 @@ public sealed class MentorHelpWindowState
     public IReadOnlyList<MentorCannedAnswer> Canned = Array.Empty<MentorCannedAnswer>();
     public bool CanEditCanned;
     public bool Sound;
+    public MentorTier Tier;
 }
 
 /// <summary>
@@ -54,6 +57,8 @@ public sealed class MentorHelpWindow : DefaultWindow
     private readonly Label _onDuty = new();
     private readonly TabContainer _tabs = new() { VerticalExpand = true };
     private readonly Label _notice = new() { FontColorOverride = Color.Khaki };
+    private readonly MentorBoardControl _board = new() { VerticalExpand = true };
+    private readonly MentorApplicationsControl _applications = new() { VerticalExpand = true };
 
     // The player's side.
     private readonly BoxContainer _form = Column();
@@ -127,7 +132,21 @@ public sealed class MentorHelpWindow : DefaultWindow
         _tabs.AddChild(BuildQueue());
         _tabs.SetTabTitle(0, Loc.GetString("wg-mhelp-window-title"));
         _tabs.SetTabTitle(1, Loc.GetString("wg-mhelp-queue-title"));
+        _tabs.AddChild(_board);
+        _tabs.AddChild(_applications);
+        _tabs.SetTabTitle(BoardTab, Loc.GetString("wg-mentor-board-tab"));
+        _tabs.SetTabTitle(ApplicationsTab, Loc.GetString("wg-mentor-tab-applications"));
+        _tabs.OnTabChanged += tab =>
+        {
+            if (tab == BoardTab)
+                _board.Request();
+            else if (tab == ApplicationsTab)
+                _applications.Request();
+        };
     }
+
+    private const int BoardTab = 2;
+    private const int ApplicationsTab = 3;
 
     /// <summary>
     /// Fills the question box, as when a how-to question comes over from the ahelp; the reply box instead when the
@@ -158,7 +177,9 @@ public sealed class MentorHelpWindow : DefaultWindow
 
         var showQueue = state.Responder || state.IsMentor;
         _tabs.SetTabVisible(1, showQueue);
-        if (!showQueue)
+        _tabs.SetTabVisible(BoardTab, state.IsMentor || state.Staff);
+        _tabs.SetTabVisible(ApplicationsTab, state.IsMentor && state.Tier == MentorTier.Senior);
+        if (!showQueue || !_tabs.GetTabVisible(_tabs.CurrentTab))
             _tabs.CurrentTab = 0;
 
         UpdateQueue();

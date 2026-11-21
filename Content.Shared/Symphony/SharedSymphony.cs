@@ -28,9 +28,12 @@ public static class SharedSymphony
     /// for players without giving a stealthed admin away. Version 16 added the census: wolfgate_census and
     /// wolfgate_census_response, which the panel reads, and /symphony/census, /symphony/census/delete. Version 19 added
     /// /symphony/logs: the server's own latest log lines, every level it logs at, for the panel's live server log (17 and
-    /// 18 are kept for the character creator).
+    /// 18 are kept for the character creator). Version 20 added mentors: wolfgate_mentor and
+    /// wolfgate_mentor_application, which the panel reads, /symphony/mentors (the roster, and grant, revoke, tier and
+    /// restore), /symphony/mentors/refresh, /symphony/mentors/application (approve or deny) and
+    /// /symphony/mentors/leaderboard.
     /// </summary>
-    public const int ModuleVersion = 19;
+    public const int ModuleVersion = 20;
 
     /// <summary>
     /// Key of the one-time Discord link URL in a whitelist refusal's structured properties.

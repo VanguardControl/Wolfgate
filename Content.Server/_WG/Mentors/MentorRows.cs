@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Content.Server.Database;
@@ -21,7 +23,13 @@ public static class MentorRows
     /// <summary>Whether a row's player is on the roster, active or not.</summary>
     public static bool OnRoster(WolfgateMentor row)
     {
-        return row.State is StateActive or StateInactive or StateSuspended;
+        return OnRoster(row.State);
+    }
+
+    /// <summary>Whether a stored state is on the roster.</summary>
+    public static bool OnRoster(string state)
+    {
+        return state is StateActive or StateInactive or StateSuspended;
     }
 
     public static string TierToDb(MentorTier tier)
@@ -68,6 +76,55 @@ public static class MentorRows
     public static string TierName(MentorTier tier)
     {
         return Loc.GetString($"wg-mentor-tier-{TierToDb(tier)}");
+    }
+
+    /// <summary>One entry of a row's history.</summary>
+    public readonly record struct HistoryEntry(DateTime At, Guid? By, string What, string? Why);
+
+    /// <summary>A row's history, oldest first. Entries that don't parse are skipped.</summary>
+    public static List<HistoryEntry> History(WolfgateMentor row)
+    {
+        var entries = new List<HistoryEntry>();
+        JsonArray? list;
+        try
+        {
+            list = JsonNode.Parse(row.History) as JsonArray;
+        }
+        catch (JsonException)
+        {
+            return entries;
+        }
+
+        if (list == null)
+            return entries;
+
+        foreach (var node in list)
+        {
+            if (node is not JsonObject entry
+                || entry["what"]?.GetValue<string>() is not { } what
+                || !DateTime.TryParse(entry["at"]?.GetValue<string>(), null, DateTimeStyles.RoundtripKind, out var at))
+            {
+                continue;
+            }
+
+            Guid? by = Guid.TryParse(entry["by"]?.GetValue<string>(), out var parsed) ? parsed : null;
+            entries.Add(new HistoryEntry(at.ToUniversalTime(), by, what, entry["why"]?.GetValue<string>()));
+        }
+
+        return entries;
+    }
+
+    /// <summary>When the latest history entry with this text was made, or null.</summary>
+    public static DateTime? LastEntryTime(WolfgateMentor row, string what)
+    {
+        var history = History(row);
+        for (var i = history.Count - 1; i >= 0; i--)
+        {
+            if (history[i].What == what)
+                return history[i].At;
+        }
+
+        return null;
     }
 
     /// <summary>Adds an entry to a row's history: when, who (user id, or null for the server), what and why.</summary>

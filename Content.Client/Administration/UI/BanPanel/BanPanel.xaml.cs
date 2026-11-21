@@ -151,6 +151,7 @@ public sealed partial class BanPanel : DefaultWindow
         }
 
         CreateRoleGroup("Antagonist", prototypeManager.EnumeratePrototypes<AntagPrototype>().Select(p => p.ID), Color.Red);
+        WGAddMentorRoles(); // WOLFGATE(Mentors): mentor ban and Mentor Help mute boxes
     }
 
     private void CreateRoleGroup(string roleName, IEnumerable<string> roleList, Color color)

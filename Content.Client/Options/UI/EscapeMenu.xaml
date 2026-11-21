@@ -17,6 +17,8 @@
         <Button Access="Public" Name="FeedbackButton" Text="{Loc 'wg-feedback-button'}" StyleClasses="ButtonColorGreen" />
         <!-- WOLFGATE(Census): census list with the count yet to answer -->
         <census:CensusButton Access="Public" Name="CensusButton" />
+        <!-- WOLFGATE(Mentors): the Mentoring page, to apply or manage being a Mentor -->
+        <Button Access="Public" Name="MentoringButton" Text="{Loc 'wg-mentor-page-button'}" />
         <ui:VoteCallMenuButton />
         <!-- WOLFGATE(InRoundCreator): opens the character creator over the round -->
         <Button Access="Public" Name="CharacterButton" Text="{Loc 'wg-escape-character-creator'}" ToolTip="{Loc 'wg-escape-character-creator-tooltip'}" />

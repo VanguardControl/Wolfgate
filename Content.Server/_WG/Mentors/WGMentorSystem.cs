@@ -21,7 +21,7 @@ namespace Content.Server._WG.Mentors;
 /// The mentor roster: loads a connecting player's row, keeps active mentors and their duty in memory, tells each
 /// client its own status and everyone the on-duty count, and makes the roster changes staff and the panel ask for.
 /// </summary>
-public sealed class WGMentorSystem : EntitySystem
+public sealed partial class WGMentorSystem : EntitySystem
 {
     [Dependency] private IAdminLogManager _adminLog = default!;
     [Dependency] private IAdminManager _admin = default!;
@@ -48,6 +48,7 @@ public sealed class WGMentorSystem : EntitySystem
         _players.PlayerStatusChanged += OnPlayerStatusChanged;
         _admin.OnPermsChanged += OnPermsChanged;
         Subs.CVar(_cfg, MentorCVars.Enabled, _ => RefreshAll());
+        InitializeUpkeep();
     }
 
     public override void Shutdown()
@@ -131,7 +132,7 @@ public sealed class WGMentorSystem : EntitySystem
     /// Puts a player on the roster at a tier, or changes the tier of one already on it. A row left by revocation or
     /// resignation is reused, keeping its history.
     /// </summary>
-    private async Task GrantCore(NetUserId user, MentorTier tier, NetUserId? actor, string source)
+    private async Task GrantCore(NetUserId user, MentorTier tier, NetUserId? actor, string source, bool notify)
     {
         var now = DateTime.UtcNow;
         var row = await _db.GetMentorAsync(user.UserId);
@@ -155,9 +156,13 @@ public sealed class WGMentorSystem : EntitySystem
         _adminLog.Add(LogType.WGMentor, LogImpact.Medium,
             $"{Name(actor)} {(wasActive ? "changed the mentor tier of" : "granted mentor to")} {Name(user)}: {row.Tier}");
 
-        Notify(user, wasActive
-            ? Loc.GetString("wg-mentor-tier-changed", ("tier", MentorRows.TierName(tier)))
-            : Loc.GetString("wg-mentor-granted", ("tier", MentorRows.TierName(tier))));
+        if (notify)
+        {
+            Notify(user, wasActive
+                ? Loc.GetString("wg-mentor-tier-changed", ("tier", MentorRows.TierName(tier)))
+                : Loc.GetString("wg-mentor-granted", ("tier", MentorRows.TierName(tier))));
+        }
+
         Commit(user, row);
     }
 
@@ -223,11 +228,12 @@ public sealed class WGMentorSystem : EntitySystem
     /// Puts a player on the roster at a tier, or changes the tier of one already on it. A row left by revocation or
     /// resignation is reused, keeping its history.
     /// </summary>
-    public Task GrantAsync(NetUserId user, MentorTier tier, NetUserId? actor, string source)
+    /// <param name="notify">False when the caller tells the player itself, as an approved application does.</param>
+    public Task GrantAsync(NetUserId user, MentorTier tier, NetUserId? actor, string source, bool notify = true)
     {
         return Serialized(user, async () =>
         {
-            await GrantCore(user, tier, actor, source);
+            await GrantCore(user, tier, actor, source, notify);
             return true;
         });
     }
@@ -271,7 +277,7 @@ public sealed class WGMentorSystem : EntitySystem
     /// Takes a saved roster change into memory and marks the player's row as changed, so a connection load that read
     /// the older row doesn't apply it. A change that saved nothing doesn't come here and leaves the load alone.
     /// </summary>
-    private void Commit(NetUserId user, WolfgateMentor row)
+    private void Commit(NetUserId user, WolfgateMentor? row)
     {
         _generations[user] = Generation(user) + 1;
         Reload(user, row);
@@ -306,9 +312,12 @@ public sealed class WGMentorSystem : EntitySystem
     {
         var generation = Generation(session.UserId);
         WolfgateMentor? row;
+        var lastActive = DateTime.UtcNow;
         try
         {
             row = await _db.GetMentorAsync(session.UserId.UserId);
+            if (row != null)
+                lastActive = row.LastActiveAt;
             if (row != null && MentorRows.OnRoster(row))
                 await _db.SetMentorLastActiveAsync(session.UserId.UserId, DateTime.UtcNow);
         }
@@ -323,6 +332,8 @@ public sealed class WGMentorSystem : EntitySystem
             return;
 
         Reload(session.UserId, row, fresh: true);
+        if (row is { } loaded)
+            _ = Guard(() => CheckOnConnectAsync(session.UserId, loaded, lastActive));
     }
 
     /// <summary>Takes a changed row into memory for a connected player and tells them and everyone else.</summary>

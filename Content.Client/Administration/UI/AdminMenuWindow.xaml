@@ -1,3 +1,4 @@
+<!-- WOLFGATE(Mentors): xmlns:mentors for the Mentors tab -->
 <DefaultWindow
     xmlns="https://spacestation14.io"
     xmlns:adminTab="clr-namespace:Content.Client.Administration.UI.Tabs.AdminTab"
@@ -7,7 +8,8 @@
     xmlns:playerTab="clr-namespace:Content.Client.Administration.UI.Tabs.PlayerTab"
     xmlns:objectsTab="clr-namespace:Content.Client.Administration.UI.Tabs.ObjectsTab"
     xmlns:panic="clr-namespace:Content.Client.Administration.UI.Tabs.PanicBunkerTab"
-    xmlns:wgTabs="clr-namespace:Content.Client._WG.Administration.UI.Tabs">
+    xmlns:wgTabs="clr-namespace:Content.Client._WG.Administration.UI.Tabs"
+    xmlns:mentors="clr-namespace:Content.Client._WG.Mentors">
     <TabContainer Name="MasterTabContainer">
         <adminTab:AdminTab />
         <adminbusTab:AdminbusTab />
@@ -19,5 +21,7 @@
         <objectsTab:ObjectsTab Name="ObjectsTabControl" Access="Public" />
         <!-- WOLFGATE(Administration): admin tooling tab (xmlns:wgTabs above) -->
         <wgTabs:WolfgateTab />
+        <!-- WOLFGATE(Mentors): the staff Mentors tab -->
+        <mentors:MentorStaffTab />
     </TabContainer>
 </DefaultWindow>
