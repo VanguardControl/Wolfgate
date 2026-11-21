@@ -1,0 +1,1296 @@
+# Starter patterns: rare items no lathe otherwise prints. The catalogue in Docs/_WG/Blueprints/DESIGN.md replaces them.
+
+- type: wgBlueprintPattern
+  id: WGPatternOmnitool
+  name: wg-pattern-omnitool
+  description: wg-pattern-omnitool-desc
+  tier: 1
+  icon: Omnitool
+  recipes:
+  - WGPatternOmnitool
+
+- type: wgBlueprintPattern
+  id: WGPatternJetpackBlack
+  name: wg-pattern-jetpack-black
+  description: wg-pattern-jetpack-black-desc
+  tier: 1
+  icon: JetpackBlack
+  recipes:
+  - WGPatternJetpackBlack
+
+- type: wgBlueprintPattern
+  id: WGPatternThermalGlasses
+  name: wg-pattern-thermal-glasses
+  description: wg-pattern-thermal-glasses-desc
+  tier: 2
+  icon: ClothingEyesGlassesThermal
+  recipes:
+  - WGPatternThermalGlasses
+
+- type: wgBlueprintPattern
+  id: WGPatternHandTeleporter
+  name: wg-pattern-hand-teleporter
+  description: wg-pattern-hand-teleporter-desc
+  tier: 3
+  icon: HandTeleporter
+  recipes:
+  - WGPatternHandTeleporter
+
+# Printed at the protolathe once the pattern is unlocked on its server.
+- type: latheRecipePack
+  id: WGBlueprintPatterns
+  recipes:
+  - WGPatternOmnitool
+  - WGPatternJetpackBlack
+  - WGPatternThermalGlasses
+  - WGPatternHandTeleporter
+  - WGPatternAdminGlasses
+  - WGPatternArmoredHardhat
+  - WGPatternKnockbackStick
+  - WGPatternClockworkShield
+  - WGPatternRadBarrier
+  - WGPatternRadioMic
+  - WGPatternThungerstGoggles
+  - WGPatternMultiversalHud
+  - WGPatternIroncladArmor
+  - WGPatternIroncladHelmet
+  - WGPatternPirateCaptainHardsuit
+  - WGPatternMirrorShield
+  - WGPatternHotPotato
+  - WGPatternLaserLmg
+  - WGPatternLaserLmgBattery
+  - WGPatternCovertArmor
+  - WGPatternBehonkerEye
+  - WGPatternWetFloorMine
+  - WGPatternExperimentalRcd
+  - WGPatternHypereutacticBlade
+  - WGPatternMinigun
+  - WGPatternRocketSalvo
+  - WGPatternPowerSink
+  - WGPatternHealingStaff
+  - WGPatternCellRevolver
+  - WGPatternCellRevolverCell
+  - WGPatternCenturyTacsuit
+  - WGPatternArmoredEva
+  - WGPatternBreachingAnchor
+  - WGPatternMiningPulsar
+  - WGPatternCellSmg
+  - WGPatternCellSmgCell
+  - WGPatternCellSniper
+  - WGPatternCellSniperCell
+  - WGPatternAshstormMg
+  - WGPatternOverchargedCellsRevolver
+  - WGPatternOverchargedCellsSmg
+  - WGPatternOverchargedCellsSniper
+  - WGPatternMantisBladesLeft
+  - WGPatternMantisBladesRight
+  - WGPatternSandevistan
+  - WGPatternCenturionTacsuit
+  - WGPatternDirectorSuit
+  - WGPatternElitePirateSuit
+  - WGPatternEmpAmmoSmg46
+  - WGPatternEmpAmmoAcp45
+  - WGPatternEmpAmmoPistol57
+  - WGPatternRapidHypo
+  - WGPatternBorgArmsModule
+  - WGPatternHeavyPulseCannon
+  - WGPatternXrayCellsRevolver
+  - WGPatternXrayCellsSmg
+  - WGPatternXrayCellsSniper
+  - WGPatternPulseCellsRevolver
+  - WGPatternPulseCellsSmg
+  - WGPatternPulseCellsSniper
+
+- type: latheRecipe
+  id: WGPatternOmnitool
+  result: Omnitool
+  categories:
+  - WGPatterns
+  completetime: 6
+  materials:
+    Steel: 1500
+    Plastic: 500
+    Gold: 200
+
+- type: latheRecipe
+  id: WGPatternJetpackBlack
+  result: JetpackBlack
+  categories:
+  - WGPatterns
+  completetime: 8
+  materials:
+    Steel: 3000
+    Plasteel: 1000
+
+- type: latheRecipe
+  id: WGPatternThermalGlasses
+  result: ClothingEyesGlassesThermal
+  categories:
+  - WGPatterns
+  completetime: 10
+  materials:
+    Glass: 800
+    Silver: 400
+    Gold: 400
+    Uranium: 200
+
+- type: latheRecipe
+  id: WGPatternHandTeleporter
+  result: HandTeleporter
+  categories:
+  - WGPatterns
+  completetime: 20
+  materials:
+    Steel: 1000
+    Silver: 800
+    Gold: 800
+    Diamond: 300
+    WGExoticMatter: 300
+
+- type: latheCategory
+  id: WGPatterns
+  name: lathe-category-wg-patterns
+
+# Recovered from the sector's dead ends: items nothing else hands out.
+
+# Tier 1
+
+- type: wgBlueprintPattern
+  id: WGPatternAdminGlasses
+  name: wg-pattern-admin-glasses
+  description: wg-pattern-admin-glasses-desc
+  tier: 1
+  icon: ClothingEyesGlassesCommand
+  recipes:
+  - WGPatternAdminGlasses
+
+- type: wgBlueprintPattern
+  id: WGPatternArmoredHardhat
+  name: wg-pattern-armored-hardhat
+  description: wg-pattern-armored-hardhat-desc
+  tier: 1
+  icon: ClothingHeadHatHardhatArmored
+  recipes:
+  - WGPatternArmoredHardhat
+
+- type: wgBlueprintPattern
+  id: WGPatternKnockbackStick
+  name: wg-pattern-knockback-stick
+  description: wg-pattern-knockback-stick-desc
+  tier: 1
+  icon: WeaponMeleeKnockbackStick
+  recipes:
+  - WGPatternKnockbackStick
+
+- type: wgBlueprintPattern
+  id: WGPatternClockworkShield
+  name: wg-pattern-clockwork-shield
+  description: wg-pattern-clockwork-shield-desc
+  tier: 1
+  icon: ClockworkShield
+  recipes:
+  - WGPatternClockworkShield
+
+- type: wgBlueprintPattern
+  id: WGPatternRadBarrier
+  name: wg-pattern-rad-barrier
+  description: wg-pattern-rad-barrier-desc
+  tier: 1
+  icon: RadiationBlockingProjector
+  recipes:
+  - WGPatternRadBarrier
+
+- type: wgBlueprintPattern
+  id: WGPatternRadioMic
+  name: wg-pattern-radio-mic
+  description: wg-pattern-radio-mic-desc
+  tier: 1
+  icon: MicrophoneRadio
+  recipes:
+  - WGPatternRadioMic
+
+- type: wgBlueprintPattern
+  id: WGPatternThungerstGoggles
+  name: wg-pattern-thungerst-goggles
+  description: wg-pattern-thungerst-goggles-desc
+  tier: 1
+  icon: ClothingEyesHudOnionBeer
+  recipes:
+  - WGPatternThungerstGoggles
+
+- type: wgBlueprintPattern
+  id: WGPatternCellRevolver
+  name: wg-pattern-cell-revolver
+  description: wg-pattern-cell-revolver-desc
+  tier: 1
+  icon: WeaponLaserCellRevolver
+  recipes:
+  - WGPatternCellRevolver
+  - WGPatternCellRevolverCell
+
+- type: wgBlueprintPattern
+  id: WGPatternCenturyTacsuit
+  name: wg-pattern-century-tacsuit
+  description: wg-pattern-century-tacsuit-desc
+  tier: 1
+  icon: ClothingOuterHardsuitCCTCMedium
+  recipes:
+  - WGPatternCenturyTacsuit
+
+- type: wgBlueprintPattern
+  id: WGPatternArmoredEva
+  name: wg-pattern-armored-eva
+  description: wg-pattern-armored-eva-desc
+  tier: 1
+  icon: ClothingOuterHardsuitUNSAArmoredEva
+  recipes:
+  - WGPatternArmoredEva
+
+- type: wgBlueprintPattern
+  id: WGPatternBreachingAnchor
+  name: wg-pattern-breaching-anchor
+  description: wg-pattern-breaching-anchor-desc
+  tier: 1
+  icon: PirateBreachingAnchor
+  recipes:
+  - WGPatternBreachingAnchor
+
+- type: wgBlueprintPattern
+  id: WGPatternMiningPulsar
+  name: wg-pattern-mining-pulsar
+  description: wg-pattern-mining-pulsar-desc
+  tier: 1
+  icon: M25Flatpack
+  recipes:
+  - WGPatternMiningPulsar
+
+# Tier 2
+
+- type: wgBlueprintPattern
+  id: WGPatternMultiversalHud
+  name: wg-pattern-multiversal-hud
+  description: wg-pattern-multiversal-hud-desc
+  tier: 2
+  icon: ClothingEyesHudMultiversal
+  recipes:
+  - WGPatternMultiversalHud
+
+- type: wgBlueprintPattern
+  id: WGPatternIronclad
+  name: wg-pattern-ironclad
+  description: wg-pattern-ironclad-desc
+  tier: 2
+  icon: ClothingOuterArmorPodWars
+  recipes:
+  - WGPatternIroncladArmor
+  - WGPatternIroncladHelmet
+
+- type: wgBlueprintPattern
+  id: WGPatternPirateCaptainHardsuit
+  name: wg-pattern-pirate-captain-hardsuit
+  description: wg-pattern-pirate-captain-hardsuit-desc
+  tier: 2
+  icon: ClothingOuterHardsuitPirateCap
+  recipes:
+  - WGPatternPirateCaptainHardsuit
+
+- type: wgBlueprintPattern
+  id: WGPatternMirrorShield
+  name: wg-pattern-mirror-shield
+  description: wg-pattern-mirror-shield-desc
+  tier: 2
+  icon: MirrorShield
+  recipes:
+  - WGPatternMirrorShield
+
+- type: wgBlueprintPattern
+  id: WGPatternHotPotato
+  name: wg-pattern-hot-potato
+  description: wg-pattern-hot-potato-desc
+  tier: 2
+  icon: HotPotato
+  recipes:
+  - WGPatternHotPotato
+
+- type: wgBlueprintPattern
+  id: WGPatternLaserLmg
+  name: wg-pattern-laser-lmg
+  description: wg-pattern-laser-lmg-desc
+  tier: 2
+  icon: ClothingBackpackLMGBattery
+  recipes:
+  - WGPatternLaserLmg
+  - WGPatternLaserLmgBattery
+
+# The storage pack spawns with the EL-20 gun in its slot.
+
+- type: wgBlueprintPattern
+  id: WGPatternCovertArmor
+  name: wg-pattern-covert-armor
+  description: wg-pattern-covert-armor-desc
+  tier: 2
+  icon: ClothingOuterArmourInvisible
+  recipes:
+  - WGPatternCovertArmor
+
+- type: wgBlueprintPattern
+  id: WGPatternBehonkerEye
+  name: wg-pattern-behonker-eye
+  description: wg-pattern-behonker-eye-desc
+  tier: 2
+  icon: WeaponBehonkerLaser
+  recipes:
+  - WGPatternBehonkerEye
+
+- type: wgBlueprintPattern
+  id: WGPatternWetFloorMine
+  name: wg-pattern-wet-floor-mine
+  description: wg-pattern-wet-floor-mine-desc
+  tier: 2
+  icon: WetFloorSignMineExplosive
+  recipes:
+  - WGPatternWetFloorMine
+
+- type: wgBlueprintPattern
+  id: WGPatternCellSmg
+  name: wg-pattern-cell-smg
+  description: wg-pattern-cell-smg-desc
+  tier: 2
+  icon: WeaponLaserCellSMG
+  recipes:
+  - WGPatternCellSmg
+  - WGPatternCellSmgCell
+
+- type: wgBlueprintPattern
+  id: WGPatternCellSniper
+  name: wg-pattern-cell-sniper
+  description: wg-pattern-cell-sniper-desc
+  tier: 2
+  icon: WeaponLaserCellSniper
+  recipes:
+  - WGPatternCellSniper
+  - WGPatternCellSniperCell
+
+- type: wgBlueprintPattern
+  id: WGPatternAshstormMg
+  name: wg-pattern-ashstorm-mg
+  description: wg-pattern-ashstorm-mg-desc
+  tier: 2
+  icon: WeaponLaserCellMG
+  recipes:
+  - WGPatternAshstormMg
+
+- type: wgBlueprintPattern
+  id: WGPatternOverchargedCells
+  name: wg-pattern-overcharged-cells
+  description: wg-pattern-overcharged-cells-desc
+  tier: 2
+  icon: PowerCellOverchargedSMG
+  recipes:
+  - WGPatternOverchargedCellsRevolver
+  - WGPatternOverchargedCellsSmg
+  - WGPatternOverchargedCellsSniper
+
+- type: wgBlueprintPattern
+  id: WGPatternMantisBlades
+  name: wg-pattern-mantis-blades
+  description: wg-pattern-mantis-blades-desc
+  tier: 2
+  icon: AutosurgeonLeftMantisBlade
+  recipes:
+  - WGPatternMantisBladesLeft
+  - WGPatternMantisBladesRight
+
+- type: wgBlueprintPattern
+  id: WGPatternSandevistan
+  name: wg-pattern-sandevistan
+  description: wg-pattern-sandevistan-desc
+  tier: 2
+  icon: AutosurgeonSandevistan
+  recipes:
+  - WGPatternSandevistan
+
+- type: wgBlueprintPattern
+  id: WGPatternCenturionTacsuit
+  name: wg-pattern-centurion-tacsuit
+  description: wg-pattern-centurion-tacsuit-desc
+  tier: 2
+  icon: ClothingOuterHardsuitCCTCMediumPremium
+  recipes:
+  - WGPatternCenturionTacsuit
+
+- type: wgBlueprintPattern
+  id: WGPatternDirectorSuit
+  name: wg-pattern-director-suit
+  description: wg-pattern-director-suit-desc
+  tier: 2
+  icon: ClothingOuterHardsuitUIDirector
+  recipes:
+  - WGPatternDirectorSuit
+
+- type: wgBlueprintPattern
+  id: WGPatternElitePirateSuit
+  name: wg-pattern-elite-pirate-suit
+  description: wg-pattern-elite-pirate-suit-desc
+  tier: 2
+  icon: ClothingOuterHardsuitPirateElite
+  recipes:
+  - WGPatternElitePirateSuit
+
+- type: wgBlueprintPattern
+  id: WGPatternEmpAmmo
+  name: wg-pattern-emp-ammo
+  description: wg-pattern-emp-ammo-desc
+  tier: 2
+  icon: AmmoBox57x28mmEmp
+  recipes:
+  - WGPatternEmpAmmoSmg46
+  - WGPatternEmpAmmoAcp45
+  - WGPatternEmpAmmoPistol57
+
+- type: wgBlueprintPattern
+  id: WGPatternRapidHypo
+  name: wg-pattern-rapid-hypo
+  description: wg-pattern-rapid-hypo-desc
+  tier: 2
+  icon: CentCommHypo
+  recipes:
+  - WGPatternRapidHypo
+
+- type: wgBlueprintPattern
+  id: WGPatternBorgArmsModule
+  name: wg-pattern-borg-arms-module
+  description: wg-pattern-borg-arms-module-desc
+  tier: 2
+  icon: BorgModuleAdvancedWeapon
+  recipes:
+  - WGPatternBorgArmsModule
+
+# Tier 3
+
+- type: wgBlueprintPattern
+  id: WGPatternExperimentalRcd
+  name: wg-pattern-experimental-rcd
+  description: wg-pattern-experimental-rcd-desc
+  tier: 3
+  icon: RCDExperimental
+  recipes:
+  - WGPatternExperimentalRcd
+
+- type: wgBlueprintPattern
+  id: WGPatternHypereutacticBlade
+  name: wg-pattern-hypereutactic-blade
+  description: wg-pattern-hypereutactic-blade-desc
+  tier: 3
+  icon: HyperEutacticBlade
+  recipes:
+  - WGPatternHypereutacticBlade
+
+- type: wgBlueprintPattern
+  id: WGPatternMinigun
+  name: wg-pattern-minigun
+  description: wg-pattern-minigun-desc
+  tier: 3
+  icon: WeaponMinigun
+  recipes:
+  - WGPatternMinigun
+
+- type: wgBlueprintPattern
+  id: WGPatternRocketSalvo
+  name: wg-pattern-rocket-salvo
+  description: wg-pattern-rocket-salvo-desc
+  tier: 3
+  icon: WeaponLauncherMultipleRocket
+  recipes:
+  - WGPatternRocketSalvo
+
+- type: wgBlueprintPattern
+  id: WGPatternPowerSink
+  name: wg-pattern-power-sink
+  description: wg-pattern-power-sink-desc
+  tier: 3
+  icon: PowerSink
+  recipes:
+  - WGPatternPowerSink
+
+- type: wgBlueprintPattern
+  id: WGPatternHealingStaff
+  name: wg-pattern-healing-staff
+  description: wg-pattern-healing-staff-desc
+  tier: 3
+  icon: WeaponStaffHealing
+  recipes:
+  - WGPatternHealingStaff
+
+- type: wgBlueprintPattern
+  id: WGPatternHeavyPulseCannon
+  name: wg-pattern-heavy-pulse-cannon
+  description: wg-pattern-heavy-pulse-cannon-desc
+  tier: 3
+  icon: WeaponHeavyPulseCannon
+  recipes:
+  - WGPatternHeavyPulseCannon
+
+- type: wgBlueprintPattern
+  id: WGPatternXrayCells
+  name: wg-pattern-xray-cells
+  description: wg-pattern-xray-cells-desc
+  tier: 3
+  icon: PowerCellXraySniper
+  recipes:
+  - WGPatternXrayCellsRevolver
+  - WGPatternXrayCellsSmg
+  - WGPatternXrayCellsSniper
+
+- type: wgBlueprintPattern
+  id: WGPatternPulseCells
+  name: wg-pattern-pulse-cells
+  description: wg-pattern-pulse-cells-desc
+  tier: 3
+  icon: PowerCellPulseSniper
+  recipes:
+  - WGPatternPulseCellsRevolver
+  - WGPatternPulseCellsSmg
+  - WGPatternPulseCellsSniper
+
+# Their recipes
+
+- type: latheRecipe
+  id: WGPatternAdminGlasses
+  result: ClothingEyesGlassesCommand
+  categories:
+  - WGPatterns
+  completetime: 6
+  materials:
+    Glass: 1000
+    Plastic: 600
+    Steel: 500
+    Silver: 300
+
+- type: latheRecipe
+  id: WGPatternArmoredHardhat
+  result: ClothingHeadHatHardhatArmored
+  categories:
+  - WGPatterns
+  completetime: 6
+  materials:
+    Steel: 1500
+    Plasteel: 500
+    Plastic: 500
+
+- type: latheRecipe
+  id: WGPatternKnockbackStick
+  result: WeaponMeleeKnockbackStick
+  categories:
+  - WGPatterns
+  completetime: 6
+  materials:
+    Wood: 1000
+    Steel: 1000
+    Plastic: 500
+
+- type: latheRecipe
+  id: WGPatternClockworkShield
+  result: ClockworkShield
+  categories:
+  - WGPatterns
+  completetime: 8
+  materials:
+    Steel: 2000
+    Plasteel: 500
+    Gold: 300
+
+- type: latheRecipe
+  id: WGPatternRadBarrier
+  result: RadiationBlockingProjector
+  categories:
+  - WGPatterns
+  completetime: 6
+  materials:
+    Steel: 1000
+    Glass: 600
+    Plastic: 500
+    Silver: 200
+
+- type: latheRecipe
+  id: WGPatternRadioMic
+  result: MicrophoneRadio
+  categories:
+  - WGPatterns
+  completetime: 6
+  materials:
+    Steel: 800
+    Plastic: 800
+    Glass: 300
+    Gold: 200
+
+- type: latheRecipe
+  id: WGPatternThungerstGoggles
+  result: ClothingEyesHudOnionBeer
+  categories:
+  - WGPatterns
+  completetime: 6
+  materials:
+    Glass: 800
+    Plastic: 800
+    Steel: 400
+
+# --- Tier II: Lost ---
+
+- type: latheRecipe
+  id: WGPatternMultiversalHud
+  result: ClothingEyesHudMultiversal
+  categories:
+  - WGPatterns
+  completetime: 10
+  materials:
+    Glass: 2000
+    Plastic: 1500
+    Silver: 1000
+    Gold: 800
+    Uranium: 300
+
+- type: latheRecipe
+  id: WGPatternIroncladArmor
+  result: ClothingOuterArmorPodWars
+  categories:
+  - WGPatterns
+  completetime: 12
+  materials:
+    Steel: 3000
+    Plasteel: 2000
+    Durathread: 500
+    Silver: 500
+
+- type: latheRecipe
+  id: WGPatternIroncladHelmet
+  result: ClothingHeadHelmetPodWars
+  categories:
+  - WGPatterns
+  completetime: 8
+  materials:
+    Steel: 1500
+    Plasteel: 1000
+    Silver: 300
+
+- type: latheRecipe
+  id: WGPatternPirateCaptainHardsuit
+  result: ClothingOuterHardsuitPirateCap
+  categories:
+  - WGPatterns
+  completetime: 14
+  materials:
+    Steel: 3000
+    Plasteel: 2500
+    Durathread: 800
+    Gold: 600
+    Glass: 600
+
+- type: latheRecipe
+  id: WGPatternMirrorShield
+  result: MirrorShield
+  categories:
+  - WGPatterns
+  completetime: 12
+  materials:
+    Glass: 3000
+    Silver: 1500
+    Plasteel: 1000
+    Gold: 500
+
+- type: latheRecipe
+  id: WGPatternHotPotato
+  result: HotPotato
+  categories:
+  - WGPatterns
+  completetime: 10
+  materials:
+    Steel: 2500
+    Plastic: 1000
+    Uranium: 800
+    Gold: 400
+    Silver: 400
+
+- type: latheRecipe
+  id: WGPatternLaserLmg
+  result: ClothingBackpackLMGBattery
+  categories:
+  - WGPatterns
+  completetime: 14
+  materials:
+    Steel: 4000
+    Plasteel: 2000
+    Plastic: 1500
+    Gold: 1000
+    Silver: 800
+    Uranium: 500
+
+- type: latheRecipe
+  id: WGPatternLaserLmgBattery
+  result: MilitaryPowerCellLMG
+  categories:
+  - WGPatterns
+  completetime: 6
+  materials:
+    Steel: 1500
+    Plastic: 500
+    Gold: 400
+    Silver: 300
+
+- type: latheRecipe
+  id: WGPatternCovertArmor
+  result: ClothingOuterArmourInvisible
+  categories:
+  - WGPatterns
+  completetime: 12
+  materials:
+    Plasteel: 2500
+    Durathread: 1500
+    Glass: 1000
+    Silver: 1000
+    Bluespace: 500
+
+- type: latheRecipe
+  id: WGPatternBehonkerEye
+  result: WeaponBehonkerLaser
+  categories:
+  - WGPatterns
+  completetime: 12
+  materials:
+    Glass: 1500
+    Steel: 1500
+    Gold: 1000
+    Silver: 800
+    Uranium: 500
+    Bananium: 500
+
+- type: latheRecipe
+  id: WGPatternWetFloorMine
+  result: WetFloorSignMineExplosive
+  categories:
+  - WGPatterns
+  completetime: 10
+  materials:
+    Steel: 2000
+    Plastic: 2000
+    Uranium: 600
+    Silver: 400
+
+# --- Tier III: Forgotten ---
+
+- type: latheRecipe
+  id: WGPatternExperimentalRcd
+  result: RCDExperimental
+  categories:
+  - WGPatterns
+  completetime: 20
+  materials:
+    Steel: 3000
+    Plasteel: 2000
+    Gold: 1000
+    Bluespace: 1000
+    Diamond: 800
+    WGExoticMatter: 400
+
+- type: latheRecipe
+  id: WGPatternHypereutacticBlade
+  result: HyperEutacticBlade
+  categories:
+  - WGPatterns
+  completetime: 20
+  materials:
+    Plasteel: 3000
+    Silver: 1500
+    Gold: 1500
+    Diamond: 1500
+    Uranium: 1000
+    WGExoticMatter: 500
+
+- type: latheRecipe
+  id: WGPatternMinigun
+  result: WeaponMinigun
+  categories:
+  - WGPatterns
+  completetime: 25
+  materials:
+    Steel: 6000
+    Plasteel: 3000
+    Gold: 800
+    Diamond: 500
+    WGExoticMatter: 400
+
+- type: latheRecipe
+  id: WGPatternRocketSalvo
+  result: WeaponLauncherMultipleRocket
+  categories:
+  - WGPatterns
+  completetime: 22
+  materials:
+    Steel: 5000
+    Plasteel: 2500
+    Gold: 800
+    Diamond: 500
+    WGExoticMatter: 400
+
+- type: latheRecipe
+  id: WGPatternPowerSink
+  result: PowerSink
+  categories:
+  - WGPatterns
+  completetime: 20
+  materials:
+    Steel: 4000
+    Plasteel: 2000
+    Gold: 1500
+    Uranium: 1000
+    Diamond: 500
+    WGExoticMatter: 500
+
+- type: latheRecipe
+  id: WGPatternHealingStaff
+  result: WeaponStaffHealing
+  categories:
+  - WGPatterns
+  completetime: 25
+  materials:
+    Wood: 2000
+    Gold: 2000
+    Silver: 1500
+    Diamond: 1500
+    Bluespace: 1000
+    WGExoticMatter: 600
+
+- type: latheRecipe
+  id: WGPatternCellRevolver
+  result: WeaponLaserCellRevolver
+  categories:
+  - WGPatterns
+  completetime: 10
+  materials:
+    Steel: 1200
+    Glass: 600
+    Plastic: 300
+    Silver: 300
+
+- type: latheRecipe
+  id: WGPatternCellRevolverCell
+  result: PowerCellIRRevolver
+  categories:
+  - WGPatterns
+  completetime: 6
+  materials:
+    Steel: 400
+    Glass: 300
+    Plastic: 200
+    Gold: 100
+
+- type: latheRecipe
+  id: WGPatternCenturyTacsuit
+  result: ClothingOuterHardsuitCCTCMedium
+  categories:
+  - WGPatterns
+  completetime: 12
+  materials:
+    Steel: 2000
+    Plasteel: 800
+    Plastic: 600
+    Cloth: 300
+
+- type: latheRecipe
+  id: WGPatternArmoredEva
+  result: ClothingOuterHardsuitUNSAArmoredEva
+  categories:
+  - WGPatterns
+  completetime: 10
+  materials:
+    Steel: 1000
+    Plasteel: 600
+    Plastic: 1200
+    Cloth: 400
+
+- type: latheRecipe
+  id: WGPatternBreachingAnchor
+  result: PirateBreachingAnchor
+  categories:
+  - WGPatterns
+  completetime: 10
+  materials:
+    Steel: 2500
+    Plasteel: 500
+
+- type: latheRecipe
+  id: WGPatternMiningPulsar
+  result: M25Flatpack
+  categories:
+  - WGPatterns
+  completetime: 10
+  materials:
+    Steel: 2500
+    Glass: 500
+    Plasteel: 500
+    Silver: 300
+
+- type: latheRecipe
+  id: WGPatternCellSmg
+  result: WeaponLaserCellSMG
+  categories:
+  - WGPatterns
+  completetime: 12
+  materials:
+    Steel: 2000
+    Glass: 1000
+    Plastic: 500
+    Plasteel: 300
+    Silver: 800
+    Gold: 500
+
+- type: latheRecipe
+  id: WGPatternCellSmgCell
+  result: PowerCellIRSMG
+  categories:
+  - WGPatterns
+  completetime: 6
+  materials:
+    Steel: 500
+    Glass: 400
+    Silver: 200
+    Gold: 200
+
+- type: latheRecipe
+  id: WGPatternCellSniper
+  result: WeaponLaserCellSniper
+  categories:
+  - WGPatterns
+  completetime: 14
+  materials:
+    Steel: 2500
+    Glass: 1200
+    Plastic: 500
+    Plasteel: 300
+    Silver: 800
+    Gold: 600
+
+- type: latheRecipe
+  id: WGPatternCellSniperCell
+  result: PowerCellIRSniper
+  categories:
+  - WGPatterns
+  completetime: 6
+  materials:
+    Steel: 600
+    Glass: 500
+    Silver: 200
+    Gold: 300
+
+- type: latheRecipe
+  id: WGPatternAshstormMg
+  result: WeaponLaserCellMG
+  categories:
+  - WGPatterns
+  completetime: 16
+  materials:
+    Steel: 3000
+    Glass: 1000
+    Plastic: 800
+    Plasteel: 500
+    Silver: 1000
+    Gold: 800
+    Uranium: 500
+
+- type: latheRecipe
+  id: WGPatternOverchargedCellsRevolver
+  result: PowerCellOverchargedRevolver
+  categories:
+  - WGPatterns
+  completetime: 8
+  materials:
+    Steel: 800
+    Glass: 600
+    Silver: 500
+    Gold: 500
+    Uranium: 300
+
+- type: latheRecipe
+  id: WGPatternOverchargedCellsSmg
+  result: PowerCellOverchargedSMG
+  categories:
+  - WGPatterns
+  completetime: 8
+  materials:
+    Steel: 800
+    Glass: 600
+    Silver: 500
+    Gold: 500
+    Uranium: 300
+
+- type: latheRecipe
+  id: WGPatternOverchargedCellsSniper
+  result: PowerCellOverchargedSniper
+  categories:
+  - WGPatterns
+  completetime: 8
+  materials:
+    Steel: 800
+    Glass: 600
+    Silver: 500
+    Gold: 500
+    Uranium: 300
+
+- type: latheRecipe
+  id: WGPatternMantisBladesLeft
+  result: AutosurgeonLeftMantisBlade
+  categories:
+  - WGPatterns
+  completetime: 12
+  materials:
+    Steel: 2500
+    Plasteel: 1500
+    Plastic: 500
+    Silver: 1000
+    Gold: 800
+
+- type: latheRecipe
+  id: WGPatternMantisBladesRight
+  result: AutosurgeonRightMantisBlade
+  categories:
+  - WGPatterns
+  completetime: 12
+  materials:
+    Steel: 2500
+    Plasteel: 1500
+    Plastic: 500
+    Silver: 1000
+    Gold: 800
+
+- type: latheRecipe
+  id: WGPatternSandevistan
+  result: AutosurgeonSandevistan
+  categories:
+  - WGPatterns
+  completetime: 14
+  materials:
+    Steel: 2000
+    Plasteel: 1000
+    Silver: 1500
+    Gold: 1500
+    Uranium: 800
+    Bluespace: 500
+
+- type: latheRecipe
+  id: WGPatternCenturionTacsuit
+  result: ClothingOuterHardsuitCCTCMediumPremium
+  categories:
+  - WGPatterns
+  completetime: 14
+  materials:
+    Steel: 2500
+    Plasteel: 2000
+    Plastic: 800
+    Silver: 800
+    Gold: 500
+
+- type: latheRecipe
+  id: WGPatternDirectorSuit
+  result: ClothingOuterHardsuitUIDirector
+  categories:
+  - WGPatterns
+  completetime: 16
+  materials:
+    Steel: 2500
+    Plasteel: 2500
+    Plastic: 500
+    Silver: 1000
+    Gold: 1000
+    Uranium: 500
+
+- type: latheRecipe
+  id: WGPatternElitePirateSuit
+  result: ClothingOuterHardsuitPirateElite
+  categories:
+  - WGPatterns
+  completetime: 16
+  materials:
+    Steel: 3000
+    Plasteel: 3000
+    Plastic: 500
+    Silver: 800
+    Gold: 600
+
+- type: latheRecipe
+  id: WGPatternEmpAmmoSmg46
+  result: AmmoBox46x30mmEmp
+  categories:
+  - WGPatterns
+  completetime: 10
+  materials:
+    Steel: 1000
+    Plastic: 500
+    Silver: 500
+    Gold: 300
+    Uranium: 200
+
+- type: latheRecipe
+  id: WGPatternEmpAmmoAcp45
+  result: AmmoBox45_ACPEmp
+  categories:
+  - WGPatterns
+  completetime: 10
+  materials:
+    Steel: 1000
+    Plastic: 500
+    Silver: 500
+    Gold: 300
+    Uranium: 200
+
+- type: latheRecipe
+  id: WGPatternEmpAmmoPistol57
+  result: AmmoBox57x28mmEmp
+  categories:
+  - WGPatterns
+  completetime: 10
+  materials:
+    Steel: 1000
+    Plastic: 500
+    Silver: 500
+    Gold: 300
+    Uranium: 200
+
+- type: latheRecipe
+  id: WGPatternRapidHypo
+  result: CentCommHypo
+  categories:
+  - WGPatterns
+  completetime: 12
+  materials:
+    Steel: 1000
+    Glass: 1500
+    Plastic: 800
+    Silver: 800
+    Gold: 600
+    Bluespace: 400
+
+- type: latheRecipe
+  id: WGPatternBorgArmsModule
+  result: BorgModuleAdvancedWeapon
+  categories:
+  - WGPatterns
+  completetime: 12
+  materials:
+    Steel: 1500
+    Glass: 1000
+    Plastic: 500
+    Plasteel: 1000
+    Silver: 1000
+    Gold: 1000
+
+- type: latheRecipe
+  id: WGPatternHeavyPulseCannon
+  result: WeaponHeavyPulseCannon
+  categories:
+  - WGPatterns
+  completetime: 24
+  materials:
+    Steel: 4000
+    Plasteel: 3000
+    Silver: 1500
+    Gold: 1500
+    Uranium: 1000
+    Diamond: 800
+    Bluespace: 500
+    WGExoticMatter: 400
+
+- type: latheRecipe
+  id: WGPatternXrayCellsRevolver
+  result: PowerCellXrayRevolver
+  categories:
+  - WGPatterns
+  completetime: 12
+  materials:
+    Steel: 1000
+    Glass: 1000
+    Silver: 600
+    Gold: 1000
+    Uranium: 1000
+    Diamond: 500
+    Bluespace: 400
+    WGExoticMatter: 300
+
+- type: latheRecipe
+  id: WGPatternXrayCellsSmg
+  result: PowerCellXraySMG
+  categories:
+  - WGPatterns
+  completetime: 12
+  materials:
+    Steel: 1000
+    Glass: 1000
+    Silver: 600
+    Gold: 1000
+    Uranium: 1000
+    Diamond: 500
+    Bluespace: 400
+    WGExoticMatter: 300
+
+- type: latheRecipe
+  id: WGPatternXrayCellsSniper
+  result: PowerCellXraySniper
+  categories:
+  - WGPatterns
+  completetime: 12
+  materials:
+    Steel: 1000
+    Glass: 1000
+    Silver: 600
+    Gold: 1000
+    Uranium: 1000
+    Diamond: 500
+    Bluespace: 400
+    WGExoticMatter: 300
+
+- type: latheRecipe
+  id: WGPatternPulseCellsRevolver
+  result: PowerCellPulseRevolver
+  categories:
+  - WGPatterns
+  completetime: 12
+  materials:
+    Steel: 1000
+    Glass: 1000
+    Silver: 600
+    Gold: 1000
+    Uranium: 1000
+    Diamond: 500
+    Bluespace: 400
+    WGExoticMatter: 300
+
+- type: latheRecipe
+  id: WGPatternPulseCellsSmg
+  result: PowerCellPulseSMG
+  categories:
+  - WGPatterns
+  completetime: 12
+  materials:
+    Steel: 1000
+    Glass: 1000
+    Silver: 600
+    Gold: 1000
+    Uranium: 1000
+    Diamond: 500
+    Bluespace: 400
+    WGExoticMatter: 300
+
+- type: latheRecipe
+  id: WGPatternPulseCellsSniper
+  result: PowerCellPulseSniper
+  categories:
+  - WGPatterns
+  completetime: 12
+  materials:
+    Steel: 1000
+    Glass: 1000
+    Silver: 600
+    Gold: 1000
+    Uranium: 1000
+    Diamond: 500
+    Bluespace: 400
+    WGExoticMatter: 300

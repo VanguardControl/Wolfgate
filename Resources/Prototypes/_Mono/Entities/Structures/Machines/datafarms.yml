@@ -102,9 +102,14 @@
 - type: entity
   id: DatafarmResearchFaction
   parent: BaseDataFarmIndestructible
-  name: bolted data farm (Research)
-  suffix: 35 PPS
-  description: A power-hungry server dedicated towards scraping data from... somewhere. This one generates research points at a rate of 200 per second. It seems to be bolted to the floor.
+  # WOLFGATE(Blueprints) START: research datafarms are decoding arrays; nothing earns points passively
+  # name: bolted data farm (Research)
+  # suffix: 35 PPS
+  # description: A power-hungry server dedicated towards scraping data from... somewhere. This one generates research points at a rate of 200 per second. It seems to be bolted to the floor.
+  name: bolted decoding array
+  suffix: Faction
+  description: A power-hungry rack of processors that tears through pattern shard glyphs. Every powered one linked to a research server makes that server's R&D consoles decode shards faster. It's bolted to the floor.
+  # WOLFGATE END
   components:
   - type: ResearchClient
   - type: ResearchPointSource
@@ -116,9 +121,14 @@
 - type: entity
   id: DatafarmResearchFaction200
   parent: BaseDataFarmIndestructible
-  name: bolted data farm (Research)
-  suffix: 200 PPS
-  description: A power-hungry server dedicated towards scraping data from... somewhere. This one generates research points at a rate of 200 per second. It seems to be bolted to the floor.
+  # WOLFGATE(Blueprints) START: research datafarms are decoding arrays; nothing earns points passively
+  # name: bolted data farm (Research)
+  # suffix: 200 PPS
+  # description: A power-hungry server dedicated towards scraping data from... somewhere. This one generates research points at a rate of 200 per second. It seems to be bolted to the floor.
+  name: bolted decoding array
+  suffix: Outpost
+  description: A power-hungry rack of processors that tears through pattern shard glyphs. Every powered one linked to a research server makes that server's R&D consoles decode shards faster. It's bolted to the floor.
+  # WOLFGATE END
   components:
   - type: ResearchClient
   - type: ResearchPointSource
@@ -130,8 +140,12 @@
 - type: entity
   id: DatafarmResearch
   parent: [BaseDataFarmResearch, ConstructibleMachine]
-  name: data farm (Research)
-  description: A power-hungry server dedicated towards scraping data from... somewhere. This one generates research points at a rate of 20 per second.
+  # WOLFGATE(Blueprints) START: research datafarms are decoding arrays; nothing earns points passively
+  # name: data farm (Research)
+  # description: A power-hungry server dedicated towards scraping data from... somewhere. This one generates research points at a rate of 20 per second.
+  name: decoding array
+  description: A power-hungry rack of processors that tears through pattern shard glyphs. Every powered one linked to a research server makes that server's R&D consoles decode shards faster.
+  # WOLFGATE END
   components:
   - type: PointLight
     radius: 1.1

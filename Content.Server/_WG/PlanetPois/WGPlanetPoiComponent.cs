@@ -127,6 +127,9 @@ public sealed class WGPlanetPoiSite
     public EntityUid? ContractClaim;
     public bool Cleared;
 
+    /// <summary>The blueprint locator whose hunt has hidden shards here (Blueprints module).</summary>
+    public EntityUid? BlueprintClaim;
+
     /// <summary>When an expedition cleared the site; it is offered again once it has had time to fill back up.</summary>
     public TimeSpan ClearedAt;
 
