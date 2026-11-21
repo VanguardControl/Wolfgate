@@ -120,6 +120,7 @@ public sealed class CrashReattachTest
         Assert.That(arrived, Is.True, "The rebuilt hull never came out in space.");
         await server.WaitRunTicks(pair.SecondsToTicks(2f));
         await server.WaitPost(() => report.AppendLine($"in space: {Describe(em, hull)}"));
+        TestContext.Out.WriteLine(report.ToString());
 
         var drift = new List<string>();
         var held = ShuttleButtons.None;
