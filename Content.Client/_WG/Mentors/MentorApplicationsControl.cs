@@ -1,3 +1,4 @@
+using Content.Client.Administration.UI.CustomControls;
 using Content.Shared._WG.Mentors;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
