@@ -56,8 +56,8 @@ public sealed class WGUnstuckSystem : EntitySystem
     /// <summary>Tiles within this much of the same distance count as a tie, which breathable air breaks.</summary>
     private const float TieDistance = 0.05f;
 
-    /// <summary>The share of a tile between checks along the way to a candidate tile.</summary>
-    private const float LineStep = 0.2f;
+    /// <summary>How close, as a share of the line, two grid crossings must be to count as passing through a corner.</summary>
+    private const float CornerEpsilon = 1e-5f;
 
     private static readonly TimeSpan Cooldown = TimeSpan.FromSeconds(30);
 
@@ -279,20 +279,63 @@ public sealed class WGUnstuckSystem : EntitySystem
         return found;
     }
 
-    /// <summary>Whether the way from the entity to a tile crosses a solid tile other than the one it is stuck in.</summary>
+    /// <summary>
+    /// Whether the way from the entity to a tile crosses a solid tile other than the one it is stuck in. Walks every
+    /// tile the straight line enters, so one it only clips at a corner still counts.
+    /// </summary>
     private bool BehindSolid(Entity<MapGridComponent> grid, Vector2 from, Vector2 to, Vector2i origin, Vector2i target, int mask)
     {
         var tileSize = grid.Comp.TileSize;
-        var steps = (int) MathF.Ceiling((to - from).Length() / (tileSize * LineStep));
-        for (var i = 1; i < steps; i++)
+        var start = from / tileSize;
+        var delta = to / tileSize - start;
+        var x = (int) MathF.Floor(start.X);
+        var y = (int) MathF.Floor(start.Y);
+        var stepX = Math.Sign(delta.X);
+        var stepY = Math.Sign(delta.Y);
+
+        // The share of the line between grid lines on each axis, and how far along it the next one is.
+        var spanX = stepX != 0 ? 1f / MathF.Abs(delta.X) : float.PositiveInfinity;
+        var spanY = stepY != 0 ? 1f / MathF.Abs(delta.Y) : float.PositiveInfinity;
+        var nextX = stepX > 0 ? (x + 1 - start.X) * spanX : stepX < 0 ? (start.X - x) * spanX : float.PositiveInfinity;
+        var nextY = stepY > 0 ? (y + 1 - start.Y) * spanY : stepY < 0 ? (start.Y - y) * spanY : float.PositiveInfinity;
+
+        var steps = Math.Abs(target.X - x) + Math.Abs(target.Y - y);
+        for (var i = 0; i < steps && (x != target.X || y != target.Y); i++)
         {
-            var point = Vector2.Lerp(from, to, i / (float) steps);
-            var indices = new Vector2i((int) MathF.Floor(point.X / tileSize), (int) MathF.Floor(point.Y / tileSize));
-            if (indices != origin && indices != target && IsObstructed(grid, indices, mask))
+            if (MathF.Abs(nextX - nextY) < CornerEpsilon)
+            {
+                // Through a corner: both tiles beside it count, so a body can't slip between two that meet there.
+                if (Crosses(x + stepX, y) || Crosses(x, y + stepY))
+                    return true;
+
+                x += stepX;
+                y += stepY;
+                nextX += spanX;
+                nextY += spanY;
+                i++;
+            }
+            else if (nextX < nextY)
+            {
+                x += stepX;
+                nextX += spanX;
+            }
+            else
+            {
+                y += stepY;
+                nextY += spanY;
+            }
+
+            if (Crosses(x, y))
                 return true;
         }
 
         return false;
+
+        bool Crosses(int tileX, int tileY)
+        {
+            var indices = new Vector2i(tileX, tileY);
+            return indices != origin && indices != target && IsObstructed(grid, indices, mask);
+        }
     }
 
     /// <summary>Whether something anchored on the tile would block the entity.</summary>

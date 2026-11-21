@@ -280,6 +280,38 @@ public sealed class UnstuckTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>
+    /// A body in the corner of an L of walls doesn't come out through the corner onto the diagonal floor beyond it, though
+    /// that floor is nearest: the way there clips the wall beside the corner.
+    /// </summary>
+    [Test]
+    public async Task DoesNotSlipPastACorner()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var grid = map.Grid.Owner;
+
+        await server.WaitAssertion(() =>
+        {
+            DrydockTest.SetFloor(pair, grid, 5);
+            DrydockTest.SpawnAnchored(pair, grid, WallProto, WallTile);
+            DrydockTest.SpawnAnchored(pair, grid, WallProto, WallTile + new Vector2i(1, 0));
+            DrydockTest.SpawnAnchored(pair, grid, WallProto, WallTile + new Vector2i(0, 1));
+
+            // 0.81 tiles from the diagonal floor's centre, whose path clips the wall to the right; 1.47 from the floor below.
+            var mob = em.SpawnEntity(MobProto, new EntityCoordinates(grid, WallTile.X + 0.95f, WallTile.Y + 0.9f));
+            Assert.That(server.System<WGUnstuckSystem>().TryUnstuck(mob, out var message), Is.True, message);
+            var tile = server.System<SharedMapSystem>()
+                .TileIndicesFor(grid, em.GetComponent<MapGridComponent>(grid), em.GetComponent<TransformComponent>(mob).Coordinates);
+            Assert.That(tile, Is.Not.EqualTo(WallTile + new Vector2i(1, 1)), "The body slipped past the corner.");
+            Assert.That(tile, Is.EqualTo(WallTile - new Vector2i(0, 1)), "The body didn't land on the nearest floor it could reach.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>A body on open floor, or standing against a wall, is left where it is.</summary>
     [Test]
     public async Task FreeBodyIsNotMoved()
