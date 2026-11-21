@@ -8353,3 +8353,214 @@ Entries:
   id: 100532
   time: '2026-11-21T04:33:53.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/769
+- author: Sushiburger
+  changes:
+    - type: Add
+      message: >-
+        New Strix revolver. In Vagrant loadouts and behind Advanced Mercenary
+        Weaponry Production.
+    - type: Tweak
+      message: >-
+        Changed Vagrant loadouts to be more in line with what's in the
+        LiberationVend.
+    - type: Tweak
+      message: >-
+        Changed Mercenary techfab recipes to be more in line with what's in the
+        LiberationVend. Lee Enfield, Keyboard, Energy Gun, Viper and MK32 now
+        craftable in the fab. Energy Gun is behind energy weapons research.
+  id: 100533
+  time: '2026-11-21T07:57:25.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/751
+- author: Erol509
+  changes:
+    - type: Tweak
+      message: Cyborg recharger was buffed to make charging modsuits less of a chore
+  id: 100534
+  time: '2026-11-21T07:59:16.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/757
+- author: ImogenOC
+  changes:
+    - type: Fix
+      message: >-
+        An EMP round that hits a crowd now pulses once instead of once for every
+        person it touches.
+  id: 100535
+  time: '2026-11-21T08:01:27.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/765
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: >-
+        Ranged mobs such as the Monolithic Gestalt fire on right-click again
+        instead of attempting a disarm.
+  id: 100536
+  time: '2026-11-21T08:02:49.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/759
+- author: ImogenOC
+  changes:
+    - type: Fix
+      message: >-
+        Stepping away from a fire or a heater no longer holds off the cold for
+        minutes.
+  id: 100537
+  time: '2026-11-21T09:12:27.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/771
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Fixed four tests that failed at random.
+  id: 100538
+  time: '2026-11-21T09:27:55.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/774
+- author: ImogenOC
+  changes:
+    - type: Add
+      message: >-
+        Added an "Unstick me" button to the game menu that frees you if you get
+        stuck inside a wall, or puts you back outside a vehicle such as an APC,
+        even when dead.
+  id: 100539
+  time: '2026-11-21T10:29:20.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/767
+- author: Balls2zawall
+  changes:
+    - type: Tweak
+      message: ADS Strongholds are be a more difficult to destroy.
+  id: 100540
+  time: '2026-11-21T10:35:06.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/773
+- author: ImogenOC
+  changes:
+    - type: Tweak
+      message: >-
+        The name of what's under your cursor now shows at the top of the screen
+        by default. You can still move it next to the cursor in Game Options >
+        Wolfgate > Interface.
+    - type: Tweak
+      message: >-
+        Hovering no longer names or outlines players or mobs standing in the
+        dark.
+    - type: Fix
+      message: >-
+        The name under your cursor no longer shows things behind walls or out of
+        sight.
+    - type: Tweak
+      message: >-
+        Game Options now has SS14 and Wolfgate master tabs. Every Wolfgate and
+        fork setting, including fork keybinds, moved to the Wolfgate side, and
+        the search bar finds settings on either side.
+  id: 100541
+  time: '2026-11-21T11:00:41.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/760
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: The server runs faster at high population.
+  id: 100542
+  time: '2026-11-21T11:29:54.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/775
+- author: ImogenOC
+  changes:
+    - type: Fix
+      message: >-
+        Ships repaired after crashing on a planet can be flown again once they
+        leave orbit.
+  id: 100543
+  time: '2026-11-21T13:59:34.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/768
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: Roads to points of interest no longer run through water.
+    - type: Fix
+      message: CI fixes, nothing player-facing
+  id: 100544
+  time: '2026-11-21T14:34:52.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/776
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Fixed a rare server physics error when many objects pile onto a
+        structure.
+  id: 100545
+  time: '2026-11-21T15:08:34.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/777
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Custom markings can glow. Paint on the new Glow layer in the marking
+        editor.
+    - type: Add
+      message: >-
+        Regular markings, hair, facial hair and eyes can be set to glow in the
+        character creator.
+    - type: Add
+      message: >-
+        Side mirroring in the marking editor: drawing on one side view draws on
+        the other too.
+    - type: Add
+      message: >-
+        Custom markings now belong to the character they were drawn for. Press
+        "All characters" in the library to share one.
+    - type: Tweak
+      message: >-
+        Reworked the custom marking editor, with icon tools and a draggable
+        frame strip.
+  id: 100546
+  time: '2026-11-21T15:53:12.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/758
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Crates bought from a vendor are no longer deleted when they pile up
+        against a wall.
+    - type: Fix
+      message: >-
+        Filling a bottle or beaker a little at a time no longer flashes it to
+        full.
+    - type: Fix
+      message: The camera returns to your character after you leave a wheelchair.
+    - type: Fix
+      message: >-
+        Flying off a ship in the air keeps you at the ship's height instead of
+        dropping you to the ground.
+    - type: Fix
+      message: >-
+        A refused ship voucher no longer starts its cooldown, and vouchers show
+        how many uses they have left.
+    - type: Fix
+      message: Synths recharge in cyborg recharging stations.
+    - type: Tweak
+      message: Nanite Repair Drones now go with any synthetic body and no organic one.
+    - type: Fix
+      message: >-
+        A cuffed synthetic can no longer isolate its arms or hands to slip the
+        cuffs.
+    - type: Fix
+      message: Dead birds fit in crates.
+    - type: Fix
+      message: The TSFMC door remote opens Halcyon doors again.
+    - type: Fix
+      message: The Caracara's air mixer makes normal air.
+    - type: Fix
+      message: The Wolf Snake's plasma door closes off its shield generator.
+    - type: Fix
+      message: The 8x65 SKR ammo box can be researched.
+    - type: Fix
+      message: Avali blood triggers the artefact Blood node.
+    - type: Fix
+      message: Turbines on resold ships should no longer arrive unanchored.
+    - type: Tweak
+      message: The Lattice beam is drawn underneath ships and stations.
+    - type: Tweak
+      message: >-
+        The Coda can no longer be written down: paper, labels, PDA notes,
+        NanoChat, announcements and news.
+    - type: Tweak
+      message: The cockpit remembers your selected weapons when the helm reopens.
+  id: 100547
+  time: '2026-11-21T16:25:26.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/778

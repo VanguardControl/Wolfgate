@@ -1,0 +1,37 @@
+- type: entity
+  name: pill
+  suffix: Samhain
+  parent: Pill
+  id: PillSamhain
+  description: "Your pills: an improvised mix of immunosuppressant and anti-inflammatory agents. May have psychoactive properties."
+  components:
+  - type: Pill
+    pillType: 17
+  - type: Sprite
+    state: pill18
+  - type: SolutionContainerManager
+    solutions:
+      food:
+        maxVol: 20
+        reagents:
+        - ReagentId: WFAnvil
+          Quantity: 5
+        - ReagentId: Spaceacillin
+          Quantity: 5
+        - ReagentId: Meroxzine
+          Quantity: 3
+        - ReagentId: Sugar
+          Quantity: 1
+        - ReagentId: JuiceBerry
+          Quantity: 1
+
+- type: entity
+  parent: PillCanister
+  id: PillCanisterSamhain
+  suffix: Samhain
+  description: "The label has a set of letters scribbled onto it, but doesn't actually name the contents."
+  components:
+  - type: StorageFill
+    contents:
+    - id: PillSamhain
+      amount: 10
