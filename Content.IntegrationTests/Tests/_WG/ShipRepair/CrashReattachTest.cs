@@ -48,6 +48,7 @@ public sealed class CrashReattachTest
         EntityUid User,
         CavernFixture.World World,
         List<EntityUid> SwitchedOff,
+        string Before,
         int Detached,
         int Rebuilt,
         List<Vector2i> Wrong,
@@ -95,6 +96,7 @@ public sealed class CrashReattachTest
         await server.WaitRunTicks(pair.SecondsToTicks(2f));
 
         var report = new StringBuilder();
+        report.AppendLine($"before the crash: {wreck.Before}");
         await server.WaitPost(() => report.AppendLine($"grounded: {Describe(em, hull)}"));
 
         // Off the planet on the hop that leaving orbit uses.
@@ -224,8 +226,10 @@ public sealed class CrashReattachTest
 
         // Every engine off: no lift, so the touchdown is a crash.
         var switchedOff = new List<EntityUid>();
+        var before = string.Empty;
         await server.WaitPost(() =>
         {
+            before = Describe(em, hull);
             foreach (var uid in Children(em, hull))
             {
                 if (em.TryGetComponent<ThrusterComponent>(uid, out var thruster) && thruster.Type == ThrusterType.Linear && thruster.Enabled)
@@ -370,7 +374,7 @@ public sealed class CrashReattachTest
             extra = maps.GetAllTiles(hull, grid).Count(tile => !expected.ContainsKey(tile.GridIndices));
         });
 
-        return new Wreck(hull, user, world, switchedOff, detached, rebuilt, wrong, extra);
+        return new Wreck(hull, user, world, switchedOff, before, detached, rebuilt, wrong, extra);
     }
 
     /// <summary>The hull's body, thrust banks and linear engines, for a failure message.</summary>
@@ -408,7 +412,38 @@ public sealed class CrashReattachTest
         return $"{body.BodyType}/{body.BodyStatus}, mass {body.Mass:F0}, damping {body.LinearDamping:F2}, " +
                $"banks [{string.Join(", ", shuttle.LinearThrust.Select(t => t.ToString("F0")))}] " +
                $"from [{string.Join(", ", shuttle.LinearThrusters.Select(b => b.Count))}] engines ({offGrid} not on the hull), " +
-               $"linear engines {engines}: {enabled} enabled, {on} on, {powered} powered, {cooling} cooling; marks {marks}";
+               $"linear engines {engines}: {enabled} enabled, {on} on, {powered} powered, {cooling} cooling; marks {marks}\n" +
+               $"  power: {DescribePower(em, hull)}";
+    }
+
+    /// <summary>Every supplier, battery and APC on the hull, and how each engine is fed.</summary>
+    private static string DescribePower(IEntityManager em, EntityUid hull)
+    {
+        var parts = new List<string>();
+        foreach (var uid in Children(em, hull))
+        {
+            var name = em.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID ?? "?";
+            var anchored = em.GetComponent<TransformComponent>(uid).Anchored ? "" : " UNANCHORED";
+            if (em.TryGetComponent<PowerSupplierComponent>(uid, out var supplier))
+                parts.Add($"{name}{anchored} supplies {supplier.CurrentSupply:F0}/{supplier.MaxSupply:F0}{(supplier.Enabled ? "" : " off")}");
+
+            if (em.TryGetComponent<Content.Shared.Power.Components.BatteryComponent>(uid, out var battery))
+            {
+                var net = em.TryGetComponent<PowerNetworkBatteryComponent>(uid, out var netBattery)
+                    ? $" out {netBattery.CurrentSupply:F0}/{netBattery.MaxSupply:F0}{(netBattery.CanDischarge ? "" : " no-discharge")}"
+                    : "";
+                var apc = em.TryGetComponent<ApcComponent>(uid, out var apcComp)
+                    ? $"{(apcComp.MainBreakerEnabled ? "" : " breaker-off")}{(em.HasComponent<WGCrashApcFaultComponent>(uid) ? " FAULT" : "")}"
+                    : "";
+                parts.Add($"{name}{anchored} charge {battery.CurrentCharge:F0}/{battery.MaxCharge:F0}{net}{apc}");
+            }
+
+            if (em.TryGetComponent<ThrusterComponent>(uid, out var thruster) && thruster.Type == ThrusterType.Linear
+                && em.TryGetComponent<ApcPowerReceiverComponent>(uid, out var receiver))
+                parts.Add($"engine {uid} load {receiver.Load:F0}{(receiver.Provider == null ? " NO-PROVIDER" : "")}{(receiver.Powered ? " powered" : " unpowered")}");
+        }
+
+        return string.Join("; ", parts);
     }
 
     /// <summary>Every grid linked to a hull.</summary>
