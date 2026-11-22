@@ -532,7 +532,7 @@
       collection: VulpkaninHowls
     Awoo:
       collection: VulpkaninHowls
-    HarpyHonk:
+    BorgHarpyHonk:
       collection: HarpyHonks
     HarpyRing:
       collection: HarpyRings
@@ -540,7 +540,7 @@
       collection: HarpyPews
     HarpyBang:
       collection: HarpyBangs
-    HarpyBeep:
+    BorgHarpyBeep:
       collection: HarpyBeeps
     HarpyRev:
       collection: HarpyRevs
@@ -614,7 +614,7 @@
       collection: VulpkaninHowls
     Awoo:
       collection: VulpkaninHowls
-    HarpyHonk:
+    BorgHarpyHonk:
       collection: HarpyHonks
     HarpyRing:
       collection: HarpyRings
@@ -622,7 +622,7 @@
       collection: HarpyPews
     HarpyBang:
       collection: HarpyBangs
-    HarpyBeep:
+    BorgHarpyBeep:
       collection: HarpyBeeps
     HarpyRev:
       collection: HarpyRevs
