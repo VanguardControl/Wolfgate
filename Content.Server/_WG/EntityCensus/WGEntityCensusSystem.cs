@@ -92,8 +92,8 @@ public sealed class WGEntityCensusSystem : EntitySystem
     private readonly HashSet<EntityUid> _uncounted = new();
     private readonly List<EntityUid> _counted = new();
 
-    /// <summary>Prototype-less entities made since the last count, with what each looked like when it was made.</summary>
-    private readonly List<(EntityUid Uid, string Provisional)> _pending = new();
+    /// <summary>Live prototype-less entities made since the last count, not yet counted as made.</summary>
+    private readonly HashSet<EntityUid> _pending = new();
 
     private static readonly Gauge KindGauge = Metrics.CreateGauge(
         "wg_entities",
@@ -190,8 +190,30 @@ public sealed class WGEntityCensusSystem : EntitySystem
         }
 
         // One made without a prototype gets what makes it what it is after this: a grid is not yet a grid. It is
-        // named for now by what it has, and again when the count is finished.
-        _pending.Add((ent.Owner, NameOf(ent.Owner, ent.Comp)));
+        // named for now by what it has, in case it is deleted first, and again when it is counted.
+        NameOf(ent.Owner, ent.Comp);
+        _pending.Add(ent.Owner);
+    }
+
+    /// <summary>
+    /// Names the prototype-less entities made since the last count by what they turned out to be, and counts them
+    /// as made. Run before a count walks the entities, so it names each the same way.
+    /// </summary>
+    private void ResolvePending()
+    {
+        foreach (var uid in _pending)
+        {
+            var id = NoPrototype;
+            if (_metaQuery.TryComp(uid, out var meta))
+            {
+                _unnamed.Remove(uid);
+                id = NameOf(uid, meta);
+            }
+
+            _spawned[id] = _spawned.GetValueOrDefault(id) + 1;
+        }
+
+        _pending.Clear();
     }
 
     /// <summary>Counts the prototype-less entities made since the last count under what they turned out to be.</summary>
@@ -214,19 +236,7 @@ public sealed class WGEntityCensusSystem : EntitySystem
             _uncounted.Remove(uid);
         }
 
-        foreach (var (uid, provisional) in _pending)
-        {
-            var id = provisional;
-            if (_metaQuery.TryComp(uid, out var meta) && meta.EntityLifeStage < EntityLifeStage.Terminating)
-            {
-                _unnamed.Remove(uid);
-                id = NameOf(uid, meta);
-            }
-
-            _spawned[id] = _spawned.GetValueOrDefault(id) + 1;
-        }
-
-        _pending.Clear();
+        ResolvePending();
     }
 
     private void OnEntityDeleted(Entity<MetaDataComponent> ent)
@@ -237,7 +247,7 @@ public sealed class WGEntityCensusSystem : EntitySystem
         _deleted[id] = _deleted.GetValueOrDefault(id) + 1;
 
         // Made and deleted without ever being counted as made: it counts both ways, under the same name.
-        if (_uncounted.Remove(ent.Owner))
+        if (_uncounted.Remove(ent.Owner) | _pending.Remove(ent.Owner))
             _spawned[id] = _spawned.GetValueOrDefault(id) + 1;
     }
 
@@ -329,6 +339,7 @@ public sealed class WGEntityCensusSystem : EntitySystem
 
     private void Begin()
     {
+        ResolvePending();
         _snapshot = EntityManager.GetEntities().ToArray();
         _cursor = 0;
         _gridKinds.Clear();

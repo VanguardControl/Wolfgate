@@ -1,4 +1,5 @@
 using Content.Shared._NF.Shipyard.Components;
+using Content.Shared.Mind;
 using Content.Shared.Station.Components;
 using System.Linq;
 using System.Collections.Generic;
@@ -129,6 +130,25 @@ public sealed class EntityCensusTest
             var gone = census.TakeNow();
             Assert.That(gone.Deleted.Keys.Any(k => k.StartsWith("(none: ") && k.Contains("MapGrid")), Is.True,
                 "A deleted grid was counted under a bare (none).");
+
+            // One that becomes what it is after it is made is named the same way in both tables of one count.
+            var mind = entMan.SpawnEntity(null, MapCoordinates.Nullspace);
+            entMan.AddComponent<MindComponent>(mind);
+            var named = census.TakeNow();
+            Assert.Multiple(() =>
+            {
+                Assert.That(named.Prototypes.GetValueOrDefault("(none: Mind)") - gone.Prototypes.GetValueOrDefault("(none: Mind)"),
+                    Is.EqualTo(1), "The live table does not name it for what it became.");
+                Assert.That(named.Spawned.GetValueOrDefault("(none: Mind)"), Is.EqualTo(1), "The spawn table names it otherwise.");
+            });
+
+            // Made and deleted between counts: counted once each way, under one name.
+            var brief = entMan.SpawnEntity(null, MapCoordinates.Nullspace);
+            entMan.AddComponent<MindComponent>(brief);
+            entMan.DeleteEntity(brief);
+            var flow = census.TakeNow();
+            Assert.That(flow.Spawned.Where(p => p.Key.StartsWith("(none")).Sum(p => p.Value), Is.EqualTo(1));
+            Assert.That(flow.Deleted.Where(p => p.Key.StartsWith("(none")).Sum(p => p.Value), Is.EqualTo(1));
         });
 
         await pair.CleanReturnAsync();
