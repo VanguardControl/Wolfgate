@@ -32,6 +32,8 @@ public sealed class WGWildernessRule : RichTextLabel, IDocumentTag
         message.PushNewline();
         message.AddMarkupPermissive(Loc.GetString("wg-wilderness-rule-attack",
             ("minutes", cfg.GetCVar(WildernessCVars.SkullMinutes))));
+        message.PushNewline();
+        message.AddMarkupPermissive(Loc.GetString("wg-wilderness-rule-standing"));
         SetMessage(message);
         control = this;
         return true;

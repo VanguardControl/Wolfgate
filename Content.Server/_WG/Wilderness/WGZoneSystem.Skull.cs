@@ -120,6 +120,14 @@ public sealed partial class WGZoneSystem
         var skulls = EntityQueryEnumerator<WGSkullComponent>();
         while (skulls.MoveNext(out var uid, out var skull))
         {
+            if (skull.Staff)
+            {
+                // A standing mark never runs out; on a grid it ends once the grid is no longer a ship.
+                if (HasComp<MapGridComponent>(uid) && !IsShip(uid))
+                    _drop.Add(uid);
+                continue;
+            }
+
             if (_inWild.Contains(uid))
                 continue;
 
@@ -137,8 +145,9 @@ public sealed partial class WGZoneSystem
 
         foreach (var uid in _drop)
         {
+            var staff = Comp<WGSkullComponent>(uid).Staff;
             RemComp<WGSkullComponent>(uid);
-            TellAboard(uid, "wg-zone-skull-expired");
+            TellAboard(uid, staff ? "wg-zone-skull-staff-ended" : "wg-zone-skull-expired");
         }
 
         UpdatePilots(now);
@@ -200,7 +209,25 @@ public sealed partial class WGZoneSystem
                 Inherit(ship, pilotSkull.ExpiresAt, now);
             else if (shipSkull != null && pilotSkull == null)
                 Inherit(pilot, shipSkull.ExpiresAt, now);
+            else if (pilotSkull is { Staff: true } && shipSkull != null)
+                KeepFull(ship, shipSkull, now);
+            else if (shipSkull is { Staff: true } && pilotSkull != null)
+                KeepFull(pilot, pilotSkull, now);
         }
+    }
+
+    /// <summary>
+    /// Keeps a running mark full while it is shared with a standing one, so it runs out only after the pilot and ship
+    /// part, not again and again while they don't.
+    /// </summary>
+    private void KeepFull(EntityUid carrier, WGSkullComponent skull, TimeSpan now)
+    {
+        var full = now + _skullLength;
+        if (skull.ExpiresAt is not { } current || current > full - TopUp)
+            return;
+
+        skull.ExpiresAt = full;
+        Dirty(carrier, skull);
     }
 
     /// <summary>Gives a ship or person a mark passed on by its pilot or ship.</summary>
@@ -260,12 +287,26 @@ public sealed partial class WGZoneSystem
         }
     }
 
-    /// <summary>Marks a ship or person now, as if they had stayed in a Wilderness. For admins and tests.</summary>
+    /// <summary>
+    /// Marks a ship or person now, as if they had stayed in a Wilderness. For admins and tests. A standing mark becomes
+    /// an ordinary one.
+    /// </summary>
     public void Mark(EntityUid carrier)
     {
         RemComp<WGWildernessDwellComponent>(carrier);
         var skull = EnsureComp<WGSkullComponent>(carrier);
         skull.ExpiresAt = _timing.CurTime + _skullLength;
+        skull.Staff = false;
+        Dirty(carrier, skull);
+    }
+
+    /// <summary>Gives a ship or person a standing mark, which lasts until staff clear it or they die or are destroyed.</summary>
+    public void MarkStanding(EntityUid carrier)
+    {
+        RemComp<WGWildernessDwellComponent>(carrier);
+        var skull = EnsureComp<WGSkullComponent>(carrier);
+        skull.ExpiresAt = null;
+        skull.Staff = true;
         Dirty(carrier, skull);
     }
 }

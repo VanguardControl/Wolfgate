@@ -13,6 +13,13 @@ public sealed partial class WGSkullComponent : Component
     /// <summary>When the mark runs out; null while still in a Wilderness, where it is held at full.</summary>
     [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoNetworkedField, AutoPausedField]
     public TimeSpan? ExpiresAt;
+
+    /// <summary>
+    /// A standing mark staff set: it never runs out, and ends only when staff clear it, a person dies or a ship is
+    /// destroyed. <see cref="ExpiresAt"/> stays null.
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public bool Staff;
 }
 
 /// <summary>A ship or person in a Wilderness and not yet marked: when they came in.</summary>

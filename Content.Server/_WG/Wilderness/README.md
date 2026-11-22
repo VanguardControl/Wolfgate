@@ -43,10 +43,16 @@ which has no tag, and a ship past the range names show. A vessel on another laye
 doesn't have, is marked through its world's signal list (`WGPlanetSignal.Marked`).
 
 Staff (the `Admin` flag) mark and clear by hand (`WGZoneSystem.Admin.cs`): right-click a person, or anything aboard a
-ship, for the Admin verbs, or run `wg_zone info|mark|clear [ship] [player or entity id]` (no target is yourself).
-Whoever is marked or cleared is told in chat. Clearing a pilot also clears the ship they fly, and clearing a ship its
-pilots, since either would pass the mark straight back. A staff mark follows the usual rules after that: it holds in a
-Wilderness and runs out `skull_minutes` after leaving.
+ship, for the Admin verbs, or run `wg_zone info|mark|standing|clear [ship] [player or entity id]` (no target is
+yourself). Whoever is marked or cleared is told in chat. Clearing a pilot also clears the ship they fly, and clearing a
+ship its pilots, since either would pass the mark straight back. An ordinary staff mark follows the usual rules after
+that: it holds in a Wilderness and runs out `skull_minutes` after leaving.
+
+A **standing mark** (`WGSkullComponent.Staff`) is staff-only and never runs out. It ends when staff clear it, when its
+person dies, or when its ship is destroyed: the grid is deleted, or it stops counting as a ship (no deed, or no longer a
+claimed wreck). A pilot and ship sharing one take an ordinary mark kept full while they fly together, which runs out as
+usual once they part. Clearing the partner of a standing mark leaves the standing mark alone, so the partner is marked
+again at once. Attacks and the Wilderness never shorten it.
 
 The zone icons are built by `Tools/_WG/Wilderness/make_icons.py` from the radar marker glyphs.
 

@@ -13,6 +13,8 @@ using Content.Server.Shuttles.Systems;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._WG.Wilderness;
 using Content.Shared.Mind;
+using Content.Shared.Mobs;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.Players;
 using Content.Shared.Shuttles.Components;
 using Content.Shared.Weapons.Ranged;
@@ -428,9 +430,9 @@ public sealed class WGWildernessTest
                 "a staff mark outside a Wilderness should run down.");
             Assert.That(em.HasComponent<WGSkullComponent>(pilot), Is.True, "the pilot didn't share the ship's staff mark.");
 
-            var cleared = zones.StaffClear(ship);
+            var cleared = zones.StaffClear(ship, out _);
             Assert.That(cleared, Does.Contain(pilot), "clearing a ship left its pilot's mark, which would mark it again.");
-            zones.StaffClear(walker);
+            zones.StaffClear(walker, out _);
         });
         await pair.RunSeconds(2f);
 
@@ -439,6 +441,67 @@ public sealed class WGWildernessTest
             Assert.That(em.HasComponent<WGSkullComponent>(ship), Is.False, "the ship's mark came back after staff cleared it.");
             Assert.That(em.HasComponent<WGSkullComponent>(pilot), Is.False, "the pilot's mark came back after staff cleared the ship.");
             Assert.That(em.HasComponent<WGSkullComponent>(walker), Is.False);
+            Reset(cfg);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task AStandingMarkLastsUntilClearedDeathOrTheShipIsGone()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = false });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var cfg = server.ResolveDependency<IConfigurationManager>();
+        var map = await pair.CreateTestMap();
+        var zones = server.System<WGZoneSystem>();
+        EntityUid ship = default, pilot = default, walker = default, kept = default;
+
+        await server.WaitPost(() =>
+        {
+            cfg.SetCVar(WildernessCVars.DwellSeconds, 60f);
+            cfg.SetCVar(WildernessCVars.SkullMinutes, 0.05f);
+            ship = Ship(em, map, new Vector2(2000f, 0f));
+            pilot = Crewman(em, ship);
+            Helm(em, ship, pilot);
+            walker = Crewman(em, Ship(em, map, new Vector2(4000f, 0f)));
+            kept = Crewman(em, Ship(em, map, new Vector2(6000f, 0f)));
+
+            zones.StaffMark(ship, standing: true);
+            zones.StaffMark(walker, standing: true);
+            zones.StaffMark(kept, standing: true);
+        });
+        // Longer than an ordinary mark's 3 s, out of every Wilderness.
+        await pair.RunSeconds(6f);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.TryGetComponent<WGSkullComponent>(ship, out var shipMark) && shipMark.Staff && shipMark.ExpiresAt == null, Is.True,
+                "a standing mark on a ship ran down.");
+            Assert.That(em.TryGetComponent<WGSkullComponent>(kept, out var keptMark) && keptMark.Staff, Is.True, "a standing mark on a person ran out.");
+            Assert.That(em.TryGetComponent<WGSkullComponent>(pilot, out var pilotMark) && !pilotMark.Staff, Is.True,
+                "the pilot of a ship with a standing mark should share an ordinary mark.");
+
+            // Clearing the pilot leaves the ship's standing mark.
+            zones.StaffClear(pilot, out var left);
+            Assert.That(left, Does.Contain(ship));
+            Assert.That(em.GetComponent<WGSkullComponent>(ship).Staff, Is.True, "clearing a pilot took the standing mark off their ship.");
+
+            server.System<MobStateSystem>().ChangeMobState(walker, MobState.Dead);
+            Assert.That(em.HasComponent<WGSkullComponent>(walker), Is.False, "a standing mark outlived the person's death.");
+
+            // A ship sold or scrapped is no longer a ship.
+            em.RemoveComponent<ShuttleDeedComponent>(ship);
+        });
+        await pair.RunSeconds(2f);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.HasComponent<WGSkullComponent>(ship), Is.False, "a standing mark outlived the ship.");
+            Assert.That(em.GetComponent<WGSkullComponent>(kept).Staff, Is.True);
+            zones.StaffClear(kept, out _);
+            Assert.That(em.HasComponent<WGSkullComponent>(kept), Is.False, "staff couldn't clear a standing mark.");
             Reset(cfg);
         });
 

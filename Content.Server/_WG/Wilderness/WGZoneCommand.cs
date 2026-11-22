@@ -8,8 +8,8 @@ using Robust.Shared.Timing;
 namespace Content.Server._WG.Wilderness;
 
 /// <summary>
-/// Shows the zone and Wilderness marks of a person and the ship they're aboard, or of a ship, and sets or clears the
-/// mark on either. With no target, the admin's own body.
+/// Shows the zone and Wilderness marks of a person and the ship they're aboard, or of a ship, and sets an ordinary or
+/// standing mark on either, or clears it. With no target, the admin's own body.
 /// </summary>
 [AdminCommand(WGZoneSystem.StaffFlag)]
 public sealed partial class WGZoneCommand : LocalizedEntityCommands
@@ -51,6 +51,7 @@ public sealed partial class WGZoneCommand : LocalizedEntityCommands
                     ("ship", shipMark)));
                 break;
             case "mark":
+            case "standing":
                 // A ship, vehicle or living body; not a station, item or ghost.
                 if (chosen != ship && !_zones.CanCarry(chosen))
                 {
@@ -58,12 +59,10 @@ public sealed partial class WGZoneCommand : LocalizedEntityCommands
                     return;
                 }
 
-                _zones.StaffMark(chosen);
-                shell.WriteLine(Loc.GetString("cmd-wg_zone-marked", ("carrier", EntityManager.ToPrettyString(chosen))));
+                shell.WriteLine(_zones.StaffMarkText(chosen, action == "standing"));
                 break;
             case "clear":
-                var cleared = _zones.StaffClear(chosen).Select(uid => EntityManager.ToPrettyString(uid).ToString());
-                shell.WriteLine(Loc.GetString("cmd-wg_zone-cleared", ("carrier", string.Join(", ", cleared))));
+                shell.WriteLine(_zones.StaffClearText(chosen));
                 break;
             default:
                 shell.WriteLine(Help);
@@ -109,11 +108,14 @@ public sealed partial class WGZoneCommand : LocalizedEntityCommands
         return false;
     }
 
-    /// <summary>A mark's time left, "held" in a Wilderness, or "-" for none.</summary>
+    /// <summary>A mark's time left, "held" in a Wilderness, "standing", or "-" for none.</summary>
     private string MarkOf(EntityUid carrier)
     {
         if (!EntityManager.TryGetComponent<WGSkullComponent>(carrier, out var skull))
             return "-";
+
+        if (skull.Staff)
+            return Loc.GetString("cmd-wg_zone-standing-state");
 
         return skull.ExpiresAt is { } at ? WGZoneText.Clock(at - _timing.CurTime) : Loc.GetString("cmd-wg_zone-held");
     }
@@ -121,7 +123,7 @@ public sealed partial class WGZoneCommand : LocalizedEntityCommands
     public override CompletionResult GetCompletion(IConsoleShell shell, string[] args)
     {
         if (args.Length == 1)
-            return CompletionResult.FromHintOptions(new[] { "info", "mark", "clear" }, Loc.GetString("cmd-wg_zone-hint"));
+            return CompletionResult.FromHintOptions(new[] { "info", "mark", "standing", "clear" }, Loc.GetString("cmd-wg_zone-hint"));
 
         var options = CompletionHelper.SessionNames(players: _players).Prepend(new CompletionOption("ship"));
         return CompletionResult.FromHintOptions(options, Loc.GetString("cmd-wg_zone-target-hint"));
