@@ -97,9 +97,7 @@ public sealed partial class WGColdStoreSystem
 
         var watch = Stopwatch.StartNew();
         active.Ticks++;
-        active.Load ??= record.Hollow
-            ? _loader.BeginLoadOntoGrid(data, record.Key, record.StandIn)
-            : _loader.BeginLoadGrid(data, record.Key, new DeserializationOptions { InitializeMaps = true });
+        active.Load ??= BeginLoad(record, data);
         var budget = urgent ? TimeSpan.MaxValue : TimeSpan.FromMilliseconds(_restoreBudgetMs);
         if (!_loader.StepLoad(active.Load, budget))
         {
@@ -116,14 +114,7 @@ public sealed partial class WGColdStoreSystem
         }
 
         var ok = FinishRestore(record, grid.Owner, active.Priority, load.Elapsed.TotalMilliseconds, watch, active.Ticks, active.WorstMs);
-        if (record.Hollow)
-            return;
-
-        if (Exists(load.Map))
-            Del(load.Map);
-
-        if (!ok && Exists(grid.Owner))
-            Del(grid.Owner);
+        EndLoad(record, load, ok);
     }
 
     /// <summary>Throws away the restore in progress, if it is this record's or any; its stand-in and bytes stay.</summary>

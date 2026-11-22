@@ -136,9 +136,21 @@ State a save does not write is carried or redone. Each pipe carries its share of
 `WGKeptPipeGasComponent` and gives it back once its net exists. The re-init relinks ship guns to their hardpoints (so
 they rejoin gunnery when power returns), tells locker contents which locker they are in and refreshes gun modifiers.
 
-Known losses on a round trip: wire layouts and cut wires (redone fresh by the re-init), links between research,
-reactor, turbine and monitoring machines, sounds playing, and radiation suit hoods, which a load deletes for a reason
-not yet known. Power, breakers, doors, lockers, stacks, damage, solutions, tile air, canisters, decals, device
+A board's cut wires, seed and serial number ride through in a `WGKeptWiresComponent` (the layout is the round's
+and comes back by itself; what a cut did was saved with the device). The re-init also registers research clients
+with their grid's servers and gives reactors and turbines back the inlet and outlet pipes they had, so they do not
+make a second pair. Loads leave prototype migrations out: the file is this round's, and a migration that drops a
+prototype from old maps deleted every radiation suit's hood.
+
+Known losses on a round trip: what a wire's action remembered beyond the cut itself, power and atmos monitoring
+console lists until they refresh, and sounds playing.
+
+## Catch-up
+
+`WGCatchUpSystem` applies the time a grid spent in stasis or stored when it comes back (`wg.coldstore.catch_up`,
+on; absences under a minute are skipped): rot advances, plants grow up to an hour's cycles, and batteries that
+recharge themselves fill. A ship is only frozen with its power off, so nothing that needs power is caught up. Other
+systems can add their own with `WGGridCatchUpEvent`. Power, breakers, doors, lockers, stacks, damage, solutions, tile air, canisters, decals, device
 links, access and names come back.
 
 Gauges: `wg_coldstore_grids`, `wg_coldstore_entities`, `wg_coldstore_bytes`, `wg_coldstore_worst_restore_ms`, and
@@ -164,11 +176,16 @@ grid (`MapLoaderSystem.BeginLoadOntoGrid`, a Lupine patch), where it stands, hid
 - A kept hull counts as in stasis for as long as it is empty, so atmos does not vent its tiles through walls that
   are not there, and grid cleanup leaves it to its record.
 - A ship whose station has an open job slot is refused, since a joining player could be put aboard.
-- Anyone aboard, a body, a pet, a mech or anything else that will not save keeps the ship in stasis, not stored.
+- A body with a mind aboard (a player, asleep or dead) keeps the ship from being stored at all.
+- Anything else that will not save, such as a pet, a mindless body, a mech or an AI holo, stays alive on the kept
+  hull, paused, together with whatever child of the grid holds it (the crate, locker or bed, with all its contents).
+  Everything else is stored round it. What a kept thing points at among the stored (a device link, say) is not
+  repointed when the ship comes back.
 - What a ship points at off the hull (the station record a door reader checks, a card) is written as that entity
   itself (`SerializationOptions.KeepExternalReferences`) and comes back if it still exists.
 
-Not done yet: applying the time spent stored when it wakes, and waking it when its owner logs in.
+An owner taking a body brings their stored ships back, by the deed card that body carries or by being one of the
+ship's owning players, wherever the ship is.
 
 ## Limits
 
@@ -187,7 +204,9 @@ Not done yet: applying the time spent stored when it wakes, and waking it when i
 
 - [`Content.Server/_WG/ColdStorage/CleanupPressure.cs`](CleanupPressure.cs)
 - [`Content.Server/_WG/ColdStorage/GridCleanupSystem.WGColdStore.cs`](GridCleanupSystem.WGColdStore.cs)
+- [`Content.Server/_WG/ColdStorage/RottingSystem.WGCatchUp.cs`](RottingSystem.WGCatchUp.cs)
 - [`Content.Server/_WG/ColdStorage/SalvageSystem.WGStasis.cs`](SalvageSystem.WGStasis.cs)
+- [`Content.Server/_WG/ColdStorage/WGCatchUpSystem.cs`](WGCatchUpSystem.cs)
 - [`Content.Server/_WG/ColdStorage/WGColdStore.cs`](WGColdStore.cs)
 - [`Content.Server/_WG/ColdStorage/WGColdStoreCommand.cs`](WGColdStoreCommand.cs)
 - [`Content.Server/_WG/ColdStorage/WGColdStoreCVars.cs`](WGColdStoreCVars.cs)
@@ -204,6 +223,7 @@ Not done yet: applying the time spent stored when it wakes, and waking it when i
 - [`Content.Server/_WG/ColdStorage/WGGridStasisSystem.Policy.cs`](WGGridStasisSystem.Policy.cs)
 - [`Content.Server/_WG/ColdStorage/WGGridStasisSystem.Wakes.cs`](WGGridStasisSystem.Wakes.cs)
 - [`Content.Server/_WG/ColdStorage/WGKeptPipeGasComponent.cs`](WGKeptPipeGasComponent.cs)
+- [`Content.Server/_WG/ColdStorage/WGKeptWiresComponent.cs`](WGKeptWiresComponent.cs)
 - [`Content.Server/_WG/ColdStorage/WGPressureCVars.cs`](WGPressureCVars.cs)
 - [`Content.Server/_WG/ColdStorage/WGStasisCommand.cs`](WGStasisCommand.cs)
 - [`Content.Server/_WG/ColdStorage/WGStasisCVars.cs`](WGStasisCVars.cs)

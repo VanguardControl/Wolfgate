@@ -6,7 +6,12 @@ using Content.Server.Pinpointer;
 using Content.Server.Power.Components;
 using Content.Server.Power.EntitySystems;
 using Content.Server.Wires;
+using System.Numerics;
+using Content.Server.Research.Systems;
 using Content.Shared._Crescent.Hardpoints;
+using Content.Shared._FarHorizons.Power.Generation.FissionGenerator;
+using Content.Shared.Research.Components;
+using Robust.Shared.Map;
 using Content.Shared._Crescent.ShipShields;
 using Content.Shared._Mono.Economy.Components;
 using Content.Shared._WG.ShipPa;
@@ -41,6 +46,8 @@ public sealed partial class UsedShipReinitSystem : EntitySystem
     [Dependency] private WiresSystem _wires = default!;
     [Dependency] private SharedHardpointSystem _hardpoints = default!;
     [Dependency] private SharedGunSystem _guns = default!;
+    [Dependency] private ResearchSystem _research = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     /// <summary>
     /// Walks a freshly loaded grid and redoes the map-init work its entities never got. Every step is
@@ -57,6 +64,8 @@ public sealed partial class UsedShipReinitSystem : EntitySystem
 
         var pending = new Queue<EntityUid>();
         pending.Enqueue(grid);
+        var researchClients = new List<EntityUid>();
+        var researchServers = new List<EntityUid>();
 
         while (pending.TryDequeue(out var parent))
         {
@@ -71,6 +80,21 @@ public sealed partial class UsedShipReinitSystem : EntitySystem
 
                 pending.Enqueue(child);
                 ReinitEntity(child);
+
+                if (HasComp<ResearchServerComponent>(child))
+                    researchServers.Add(child);
+
+                if (TryComp<ResearchClientComponent>(child, out var client) && client.Server == null)
+                    researchClients.Add(child);
+            }
+        }
+
+        // A research client finds its grid's servers at map init, which a load never raises.
+        foreach (var client in researchClients)
+        {
+            foreach (var server in researchServers)
+            {
+                _research.RegisterClient(client, server);
             }
         }
 
@@ -125,6 +149,42 @@ public sealed partial class UsedShipReinitSystem : EntitySystem
 
         if (HasComp<GunComponent>(uid))
             _guns.RefreshModifiers(uid);
+
+        // A reactor or turbine makes its inlet and outlet pipes when it has none, and its links to them are not
+        // saved: without these it would make a second pair beside the saved ones on every load.
+        if (TryComp<TurbineComponent>(uid, out var turbine))
+        {
+            turbine.InletEnt ??= FindMachinePipe(uid, turbine.PipePrototype, turbine.InletPos);
+            turbine.OutletEnt ??= FindMachinePipe(uid, turbine.PipePrototype, turbine.OutletPos);
+        }
+
+        if (TryComp<NuclearReactorComponent>(uid, out var reactor))
+        {
+            reactor.InletEnt ??= FindMachinePipe(uid, reactor.PipePrototype, reactor.InletPos);
+            reactor.OutletEnt ??= FindMachinePipe(uid, reactor.PipePrototype, reactor.OutletPos);
+        }
+    }
+
+    /// <summary>The pipe of a prototype that sits at an offset from a machine, wherever it is parented; null if none.</summary>
+    private EntityUid? FindMachinePipe(EntityUid machine, EntProtoId prototype, Vector2 offset)
+    {
+        var want = _transform.ToMapCoordinates(new EntityCoordinates(machine, offset)).Position;
+        var xform = Transform(machine);
+        var owners = xform.GridUid is { } grid && grid != machine ? new[] { machine, grid } : new[] { machine };
+        foreach (var owner in owners)
+        {
+            var children = Transform(owner).ChildEnumerator;
+            while (children.MoveNext(out var child))
+            {
+                if (MetaData(child).EntityPrototype?.ID != prototype.Id)
+                    continue;
+
+                if ((_transform.GetWorldPosition(child) - want).LengthSquared() < 0.25f)
+                    return child;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

@@ -245,14 +245,21 @@ public sealed partial class WGColdStoreSystem : EntitySystem
             out record.CleanupRate, out record.CleanupDistance, out record.CleanupDistanceFixed);
         record.CleanupSeen = record.StoredAt;
 
+        record.AwaySince = _stasis.Grids.TryGetValue(grid, out var asleep) && asleep.StasisSince is { } since
+            ? since
+            : record.StoredAt;
+
         // The park map is paused, which resets every paused flag on the way; nothing is left for stasis to undo.
         _stasis.Forget(grid);
         KeepUnsaved(grid);
+        if (record.Hollow)
+            record.Kept = FindKept(grid);
+
         _job = new StoreJob
         {
             Grid = grid,
             Record = record,
-            Copy = _hullRetire.CopyParked(grid),
+            Copy = _hullRetire.CopyParked(grid, record.Kept.Count > 0 ? record.Kept : null),
         };
     }
 
@@ -339,7 +346,7 @@ public sealed partial class WGColdStoreSystem : EntitySystem
             // The grid stays; from here atmos and grid cleanup must leave it alone, as its walls are about to go.
             MarkStored(job.Grid, record);
             _stasis.SetHollow(job.Grid, true);
-            _hullRetire.RetireContents(job.Grid);
+            _hullRetire.RetireContents(job.Grid, record.Kept.Count > 0 ? record.Kept : null);
             job.Deleting = true;
             return;
         }
@@ -389,6 +396,9 @@ public sealed partial class WGColdStoreSystem : EntitySystem
         _transform.SetLocalRotation(job.Grid, record.Rotation);
         Still(job.Grid);
 
+        // Leaving the paused parking map woke what stayed aboard; it sleeps until the ship is whole again.
+        PauseKept(record, true);
+
         record.StandIn = job.Grid;
         _stored[job.Grid] = record;
         StoredEntities += record.Entities;
@@ -399,6 +409,31 @@ public sealed partial class WGColdStoreSystem : EntitySystem
         Stores++;
         StoresCounter.Inc();
         FinishStore(job);
+    }
+
+    /// <summary>Pauses or wakes everything that stayed alive on a kept hull.</summary>
+    private void PauseKept(WGStoredGrid record, bool paused)
+    {
+        foreach (var top in record.Kept)
+        {
+            if (TerminatingOrDeleted(top))
+                continue;
+
+            _walk.Clear();
+            _walk.Add(top);
+            for (var i = 0; i < _walk.Count; i++)
+            {
+                var uid = _walk[i];
+                _meta.SetEntityPaused(uid, paused);
+                var children = Transform(uid).ChildEnumerator;
+                while (children.MoveNext(out var child))
+                {
+                    _walk.Add(child);
+                }
+            }
+        }
+
+        _walk.Clear();
     }
 
     private void MarkStored(EntityUid uid, WGStoredGrid record)
@@ -573,7 +608,6 @@ public sealed partial class WGColdStoreSystem : EntitySystem
         Backend.Clear();
         StoredEntities = 0;
         _job = null;
-        _stagingMap = null;
         Stores = Restores = Aborts = Failures = Expired = 0;
     }
 

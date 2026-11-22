@@ -17,6 +17,13 @@ public sealed class WGColdStoreCVars
     public static readonly CVarDef<bool> PlayerShips =
         CVarDef.Create("wg.coldstore.player_ships", false, CVar.SERVERONLY);
 
+    /// <summary>
+    /// Whether the time a grid spent in stasis or stored is applied when it comes back: rot, plant growth and
+    /// self-recharging batteries move on by that long. Off, everything resumes exactly as it was left.
+    /// </summary>
+    public static readonly CVarDef<bool> CatchUp =
+        CVarDef.Create("wg.coldstore.catch_up", true, CVar.SERVERONLY);
+
     /// <summary>Seconds a grid must have been in stasis before it is stored; down to a quarter at full entity pressure.</summary>
     public static readonly CVarDef<float> Idle =
         CVarDef.Create("wg.coldstore.idle", 900f, CVar.SERVERONLY);

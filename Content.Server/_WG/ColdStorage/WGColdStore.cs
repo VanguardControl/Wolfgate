@@ -96,6 +96,12 @@ public sealed class WGStoredGrid
     /// builds its contents back onto it. For owned ships, so deeds, station membership and radar keep their grid.
     /// </summary>
     public bool Hollow;
+
+    /// <summary>
+    /// Children of a kept grid that stayed on it, paused, with everything in them: anything holding something that
+    /// will not save, such as a pet, a body or a mech, and the locker or crate it is in.
+    /// </summary>
+    public HashSet<EntityUid> Kept = new();
     public string Name = string.Empty;
     public WGStoredState State;
 
@@ -114,6 +120,9 @@ public sealed class WGStoredGrid
     public int Entities;
     public int Bytes;
     public TimeSpan StoredAt;
+
+    /// <summary>When it went into stasis before it was stored, or when it was stored: the start of its time away.</summary>
+    public TimeSpan AwaySince;
 
     /// <summary>Grid cleanup would have been counting down on it; the clock keeps running while nobody is near.</summary>
     public bool CleanupCandidate;

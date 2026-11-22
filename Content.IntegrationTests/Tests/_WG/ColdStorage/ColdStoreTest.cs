@@ -1,4 +1,6 @@
 #nullable enable
+using Content.Shared.Clothing.Components;
+using Content.Server.Wires;
 using Content.Shared._WG.ShipAccess;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Server.Station.Systems;
@@ -833,6 +835,7 @@ public sealed class ColdStoreTest
         var entMan = server.EntMan;
         var map = await pair.CreateTestMap();
         EntityUid grid = default, pipe = default;
+        var cutWire = 0;
 
         await server.WaitPost(() =>
         {
@@ -844,6 +847,14 @@ public sealed class ColdStoreTest
             entMan.SpawnEntity("WeaponPistolMk58", new EntityCoordinates(grid, new Vector2(3.5f, 1.5f)));
             entMan.SpawnEntity("HardpointDebugLight", new EntityCoordinates(grid, new Vector2(4.5f, 4.5f)));
             entMan.SpawnEntity("WGIonDisruptor", new EntityCoordinates(grid, new Vector2(4.5f, 4.5f)));
+
+            // A suit whose hood an old-map migration would drop, and a door to cut a wire on.
+            entMan.SpawnEntity("ClothingOuterSuitRad", new EntityCoordinates(grid, new Vector2(2.5f, 2.5f)));
+            entMan.SpawnEntity("Airlock", new EntityCoordinates(grid, new Vector2(0.5f, 4.5f)));
+
+            // Something that goes on with nobody there: a gun that recharges itself, run flat.
+            var antique = entMan.SpawnEntity("WeaponAntiqueLaser", new EntityCoordinates(grid, new Vector2(3.5f, 2.5f)));
+            entMan.System<BatterySystem>().SetCharge(antique, 0f);
         });
         await server.WaitRunTicks(10);
 
@@ -856,6 +867,12 @@ public sealed class ColdStoreTest
             var gun = Tree(entMan, grid).Single(u => Proto(entMan, u) == "WGIonDisruptor");
             Assert.That(entMan.GetComponent<HardpointAnchorableOnlyComponent>(gun).anchoredTo, Is.Not.Null,
                 "Precondition: the gun is on its hardpoint.");
+
+            var wires = entMan.GetComponent<WiresComponent>(Tree(entMan, grid).Single(u => Proto(entMan, u) == "Airlock"));
+            Assert.That(wires.WiresList, Has.Count.GreaterThan(1), "Precondition: the door has wires.");
+            wires.WiresList[1].IsCut = true;
+            cutWire = wires.WiresList[1].Id;
+            Assert.That(Tree(entMan, grid).Count(u => Proto(entMan, u) == "ClothingHeadHatHoodRad"), Is.EqualTo(1), "Precondition: the suit has its hood.");
         });
 
         await Enable(pair);
@@ -863,7 +880,13 @@ public sealed class ColdStoreTest
         {
             var standIn = await Store(pair, grid);
             await server.WaitRunTicks(30);
+
+            // As if it had been away ten minutes.
+            var catchUp = server.System<WGCatchUpSystem>();
+            var caughtUp = catchUp.CaughtUp;
+            await server.WaitPost(() => server.System<WGColdStoreSystem>().Stored[standIn].AwaySince -= TimeSpan.FromMinutes(10));
             var restored = await Restore(pair, standIn, "Kept wreck");
+            Assert.That(catchUp.CaughtUp, Is.EqualTo(caughtUp + 1), "The time away was not applied.");
             await server.WaitRunTicks(30);
             await server.WaitAssertion(() => Assert.Multiple(() =>
             {
@@ -881,6 +904,17 @@ public sealed class ColdStoreTest
 
                 var pistol = tree.Single(u => Proto(entMan, u) == "WeaponPistolMk58");
                 Assert.That(entMan.GetComponent<GunComponent>(pistol).FireRateModified, Is.GreaterThan(0f), "The pistol has no fire rate.");
+
+                var door = entMan.GetComponent<WiresComponent>(tree.Single(u => Proto(entMan, u) == "Airlock"));
+                Assert.That(door.WiresList.Where(w => w.IsCut).Select(w => w.Id), Is.EqualTo(new[] { cutWire }), "The cut wire came back mended.");
+                Assert.That(entMan.Count<WGKeptWiresComponent>(), Is.Zero);
+
+                var suit = tree.Single(u => Proto(entMan, u) == "ClothingOuterSuitRad");
+                Assert.That(entMan.HasComponent<ToggleableClothingComponent>(suit), Is.True, "The suit can no longer raise a hood.");
+                Assert.That(tree.Count(u => Proto(entMan, u) == "ClothingHeadHatHoodRad"), Is.EqualTo(1), "The suit's hood was deleted.");
+
+                var antique = tree.Single(u => Proto(entMan, u) == "WeaponAntiqueLaser");
+                Assert.That(entMan.GetComponent<BatteryComponent>(antique).CurrentCharge, Is.GreaterThan(0f), "The gun did not recharge while away.");
 
                 var gun = tree.Single(u => Proto(entMan, u) == "WGIonDisruptor");
                 var hardpoint = tree.Single(u => Proto(entMan, u) == "HardpointDebugLight");
@@ -913,7 +947,7 @@ public sealed class ColdStoreTest
         var xforms = server.System<SharedTransformSystem>();
         var map = await pair.CreateTestMap();
         var session = server.PlayerMan.Sessions.First();
-        EntityUid grid = default, card = default;
+        EntityUid grid = default, card = default, loosePet = default, petCrate = default, cratedPet = default;
         EntityUid? station = null;
         var before = new Dictionary<string, int>();
         Vector2 position = default;
@@ -925,6 +959,15 @@ public sealed class ColdStoreTest
             grid = ship.Grid;
             card = ship.AdaCard;
             station = stations.GetOwningStation(grid);
+
+            // A pet loose aboard and another shut in a crate: neither will save, so both stay on the hull.
+            var deck = new EntityCoordinates(grid, entMan.GetComponent<TransformComponent>(
+                Tree(entMan, grid).First(u => u != grid && entMan.GetComponent<TransformComponent>(u).Anchored)).LocalPosition);
+            loosePet = entMan.SpawnEntity("MobMouse", deck);
+            petCrate = entMan.SpawnEntity("CrateGenericSteel", deck);
+            cratedPet = entMan.SpawnEntity("MobMouse", deck);
+            Assert.That(entMan.System<SharedEntityStorageSystem>().Insert(cratedPet, petCrate), Is.True);
+            Assert.That(Savable(entMan, loosePet), Is.False, "Precondition: a mouse does not save.");
 
             // Clear of the test map's own grid.
             xforms.SetLocalPosition(grid, new Vector2(0f, 12000f));
@@ -977,7 +1020,13 @@ public sealed class ColdStoreTest
                     Assert.That(entMan.Deleted(grid), Is.False, "The ship's grid was deleted.");
                     Assert.That(cold.Stored.TryGetValue(grid, out var record) && record.Hollow, Is.True, "The grid is not its own stand-in.");
                     Assert.That(entMan.HasComponent<WGStoredGridComponent>(grid), Is.True);
-                    Assert.That(Tree(entMan, grid).Count(u => Savable(entMan, u)), Is.EqualTo(1), "Things were left on the stored ship.");
+                    Assert.That(Tree(entMan, grid).Count(u => Savable(entMan, u)),
+                        Is.EqualTo(1 + Tree(entMan, petCrate).Count(u => Savable(entMan, u)) + Tree(entMan, loosePet).Count(u => Savable(entMan, u))),
+                        "More than the hull and what holds the pets was left on the stored ship.");
+                    Assert.That(entMan.Deleted(loosePet) || entMan.Deleted(cratedPet) || entMan.Deleted(petCrate), Is.False, "A pet or its crate was deleted.");
+                    Assert.That(entMan.GetComponent<MetaDataComponent>(loosePet).EntityPaused, Is.True, "A pet is awake on an empty hull.");
+                    Assert.That(entMan.GetComponent<TransformComponent>(loosePet).GridUid, Is.EqualTo(grid));
+                    Assert.That(entMan.GetComponent<TransformComponent>(cratedPet).ParentUid, Is.EqualTo(petCrate));
                     Assert.That(stasis.IsInStasis(grid), Is.True, "Atmos would run on a hull with no walls.");
                     var xform = entMan.GetComponent<TransformComponent>(grid);
                     Assert.That(xform.MapUid, Is.EqualTo(map.MapUid), "The grid did not come back from the parking map.");
@@ -1021,6 +1070,11 @@ public sealed class ColdStoreTest
                         .Select(k => $"{k} {before.GetValueOrDefault(k)}->{after.GetValueOrDefault(k)}").ToList();
                     Assert.That(diff, Is.Empty, "Prototypes came back in other numbers.");
                     Assert.That(tree.Any(u => entMan.GetComponent<MetaDataComponent>(u).EntityPaused), Is.False, "Something came back paused.");
+
+                    Assert.That(entMan.Deleted(loosePet) || entMan.Deleted(cratedPet) || entMan.Deleted(petCrate), Is.False);
+                    Assert.That(entMan.GetComponent<MetaDataComponent>(cratedPet).EntityPaused, Is.False, "A pet stayed asleep.");
+                    Assert.That(entMan.GetComponent<TransformComponent>(cratedPet).ParentUid, Is.EqualTo(petCrate), "The pet left its crate.");
+                    Assert.That(tree.Count(u => Proto(entMan, u) == "MobMouse"), Is.EqualTo(2));
 
                     Assert.That(stations.GetOwningStation(grid), Is.EqualTo(station));
                     Assert.That(entMan.GetComponent<ShuttleDeedComponent>(card).ShuttleUid, Is.EqualTo(grid));

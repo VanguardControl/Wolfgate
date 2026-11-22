@@ -3,8 +3,12 @@ using System.IO;
 using System.Numerics;
 using Content.Server._Mono.Cleanup;
 using Content.Server._WG.Shipyard;
+using Content.Server._WG.ShipAccess;
 using Content.Shared._WG.Explosion;
+using Content.Shared._WG.ShipAccess;
+using Robust.Shared.Player;
 using Robust.Shared.EntitySerialization;
+using Robust.Shared.Serialization.Markdown.Mapping;
 using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -17,6 +21,8 @@ public sealed partial class WGColdStoreSystem
     [Dependency] private MapLoaderSystem _loader = default!;
     [Dependency] private UsedShipReinitSystem _reinit = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private WGCatchUpSystem _catchUp = default!;
+    [Dependency] private WGShipAccessServerSystem _shipAccess = default!;
 
     private static readonly TimeSpan ViewersEvery = TimeSpan.FromSeconds(0.25);
     private static readonly TimeSpan GridsEvery = TimeSpan.FromSeconds(1);
@@ -33,7 +39,6 @@ public sealed partial class WGColdStoreSystem
     private readonly Dictionary<EntityUid, float> _restoreQueue = new();
 
     private List<Entity<MapGridComponent>> _overlaps = new();
-    private EntityUid? _stagingMap;
     private TimeSpan _nextViewers;
     private TimeSpan _nextGrids;
     private double _sampleWorstRestore;
@@ -44,6 +49,7 @@ public sealed partial class WGColdStoreSystem
     private void InitializeRestore()
     {
         SubscribeLocalEvent<ExplosionShockwaveEvent>(OnShockwave);
+        SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
     }
 
     /// <summary>Queues the stand-ins a viewer, an arrival or another grid has come near.</summary>
@@ -123,6 +129,28 @@ public sealed partial class WGColdStoreSystem
         {
             _nextGrids = _timing.CurTime + GridsEvery;
             SampleGauges();
+        }
+    }
+
+    /// <summary>
+    /// An owner taking a body brings their stored ships back, wherever they are: by the deed card the body carries,
+    /// or by being one of the ship's owning players. Not urgent, so the load is spread over ticks.
+    /// </summary>
+    private void OnPlayerAttached(PlayerAttachedEvent args)
+    {
+        if (_stored.Count == 0)
+            return;
+
+        foreach (var (standIn, record) in _stored)
+        {
+            if (!record.Hollow || GivenUp(record))
+                continue;
+
+            if (_shipAccess.IsOwner(args.Entity, standIn)
+                || TryComp<WGShipAccessComponent>(standIn, out var access) && access.OwnerUsers.Contains(args.Player.UserId))
+            {
+                Queue(standIn, _restoreRange);
+            }
         }
     }
 
@@ -222,38 +250,6 @@ public sealed partial class WGColdStoreSystem
         }
 
         var watch = Stopwatch.StartNew();
-        if (record.Hollow)
-            return TryRestoreHollow(record, bytes, priority, watch);
-
-        var staging = Staging();
-        Entity<MapGridComponent>? loaded;
-        double loadMs;
-        try
-        {
-            var text = Decompress(bytes);
-            var loadStart = watch.Elapsed.TotalMilliseconds;
-            if (!_loader.TryLoadGrid(Comp<MapComponent>(staging).MapId, new StringReader(text), record.Key, out loaded))
-            {
-                DropStaging();
-                Fail(record, "the load returned nothing", priority);
-                return false;
-            }
-
-            loadMs = watch.Elapsed.TotalMilliseconds - loadStart;
-        }
-        catch (Exception e)
-        {
-            DropStaging();
-            Fail(record, $"{e.GetType().Name}: {e.Message}", priority);
-            return false;
-        }
-
-        return FinishRestore(record, loaded.Value.Owner, priority, loadMs, watch, 1, 0);
-    }
-
-    /// <summary>Builds a kept grid's contents back onto it in one call.</summary>
-    private bool TryRestoreHollow(WGStoredGrid record, byte[] bytes, float priority, Stopwatch watch)
-    {
         StagedGridLoad load;
         try
         {
@@ -263,7 +259,7 @@ public sealed partial class WGColdStoreSystem
                 return false;
             }
 
-            load = _loader.BeginLoadOntoGrid(data, record.Key, record.StandIn);
+            load = BeginLoad(record, data);
             _loader.StepLoad(load, TimeSpan.MaxValue);
         }
         catch (Exception e)
@@ -272,13 +268,40 @@ public sealed partial class WGColdStoreSystem
             return false;
         }
 
-        if (load.State != StagedLoadState.Done)
+        if (load.State != StagedLoadState.Done || load.Grid is not { } loaded)
         {
             Fail(record, "the load failed", priority);
             return false;
         }
 
-        return FinishRestore(record, record.StandIn, priority, load.Elapsed.TotalMilliseconds, watch, 1, 0);
+        var ok = FinishRestore(record, loaded.Owner, priority, load.Elapsed.TotalMilliseconds, watch, 1, 0);
+        EndLoad(record, load, ok);
+        return ok;
+    }
+
+    /// <summary>
+    /// Starts building a stored grid: a wreck on a paused map of its own, a kept hull's contents onto the hull where
+    /// it stands. Prototype migrations are left out: the file is this round's, and a migration that drops a prototype
+    /// from old maps (a rad suit's hood) would delete the live thing.
+    /// </summary>
+    private StagedGridLoad BeginLoad(WGStoredGrid record, MappingDataNode data)
+    {
+        return record.Hollow
+            ? _loader.BeginLoadOntoGrid(data, record.Key, record.StandIn, migrate: false)
+            : _loader.BeginLoadGrid(data, record.Key, new DeserializationOptions { InitializeMaps = true }, migrate: false);
+    }
+
+    /// <summary>Deletes a wreck's staging map once the wreck has left it, and the wreck too if it was not placed.</summary>
+    private void EndLoad(WGStoredGrid record, StagedGridLoad load, bool placed)
+    {
+        if (record.Hollow)
+            return;
+
+        if (!placed && load.Grid is { } grid && Exists(grid.Owner))
+            Del(grid.Owner);
+
+        if (Exists(load.Map))
+            Del(load.Map);
     }
 
     /// <summary>
@@ -287,10 +310,16 @@ public sealed partial class WGColdStoreSystem
     /// </summary>
     private bool FinishHollow(WGStoredGrid record, EntityUid grid, double loadMs, Stopwatch watch, int ticks, double worstMs)
     {
+        PauseKept(record, false);
         _reinit.ReinitLoadedShip(grid);
+        GiveBackWires(grid);
         RemComp<WGStoredGridComponent>(grid);
         _stasis.SetHollow(grid, false);
+
+        // Stasis has been counting the empty hull's own time asleep; the record has the whole absence.
+        _stasis.Forget(grid);
         _stasis.Wake(grid, RestoreHold);
+        _catchUp.CatchUp(grid, _timing.CurTime - record.AwaySince);
 
         var ev = new WGGridRestoredEvent(grid, grid);
         RaiseLocalEvent(ref ev);
@@ -310,6 +339,7 @@ public sealed partial class WGColdStoreSystem
             return FinishHollow(record, grid, loadMs, watch, ticks, worstMs);
 
         _reinit.ReinitLoadedShip(grid);
+        GiveBackWires(grid);
 
         _transform.SetCoordinates(grid, new EntityCoordinates(record.Map, record.Position));
         _transform.SetLocalRotation(grid, record.Rotation);
@@ -325,6 +355,7 @@ public sealed partial class WGColdStoreSystem
         var cleanup = EnsureComp<GridCleanupGridComponent>(grid);
         cleanup.CleanupAccumulator = record.CleanupAccumulator;
         _stasis.Wake(grid, RestoreHold);
+        _catchUp.CatchUp(grid, _timing.CurTime - record.AwaySince);
 
         var standIn = record.StandIn;
         var ev = new WGGridRestoredEvent(standIn, grid);
@@ -381,25 +412,6 @@ public sealed partial class WGColdStoreSystem
         _restoreQueue.Remove(record.StandIn);
         Backend.Remove(record.Key);
         StoredEntities -= record.Entities;
-    }
-
-    private EntityUid Staging()
-    {
-        if (_stagingMap is { } existing && Exists(existing))
-            return existing;
-
-        _stagingMap = _map.CreateMap(out var mapId);
-        _map.SetPaused(mapId, true);
-        return _stagingMap.Value;
-    }
-
-    /// <summary>Throws away the staging map with whatever a failed load left on it.</summary>
-    private void DropStaging()
-    {
-        if (_stagingMap is { } map && Exists(map))
-            Del(map);
-
-        _stagingMap = null;
     }
 
     /// <summary>Moves a restored hull off any grid it landed on, a hull's width at a time. False if it is still on one.</summary>

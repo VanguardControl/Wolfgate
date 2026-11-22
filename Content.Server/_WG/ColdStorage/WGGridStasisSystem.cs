@@ -20,6 +20,7 @@ public sealed partial class WGGridStasisSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private WGSiteStashSystem _stash = default!;
     [Dependency] private WGEntityPressureSystem _pressure = default!;
+    [Dependency] private WGCatchUpSystem _catchUp = default!;
 
     /// <summary>Entities paused or woken between two looks at the clock.</summary>
     private const int Slice = 32;
@@ -386,6 +387,7 @@ public sealed partial class WGGridStasisSystem : EntitySystem
     private void BeginWaking(WGStasisGrid rec, bool urgent)
     {
         rec.State = WGGridStasisState.Waking;
+        rec.AwaySince = rec.StasisSince;
         rec.StasisSince = null;
         rec.Cursor = 0;
         rec.Urgent = urgent;
@@ -413,7 +415,12 @@ public sealed partial class WGGridStasisSystem : EntitySystem
     private void FinishWaking(WGStasisGrid rec)
     {
         rec.State = WGGridStasisState.Awake;
+        var away = rec.AwaySince ?? rec.StasisSince;
+        rec.AwaySince = null;
         rec.StasisSince = null;
+        if (away is { } since)
+            _catchUp.CatchUp(rec.Grid, _timing.CurTime - since);
+
         rec.Paused.Clear();
         rec.Tops.Clear();
         rec.Cursor = 0;

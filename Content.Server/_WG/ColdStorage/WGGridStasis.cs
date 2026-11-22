@@ -39,6 +39,9 @@ public sealed class WGStasisGrid
     /// <summary>When it began going into stasis; null while awake or waking.</summary>
     public TimeSpan? StasisSince;
 
+    /// <summary>What <see cref="StasisSince"/> was when it began to wake, until the time away is applied.</summary>
+    public TimeSpan? AwaySince;
+
     /// <summary>Metres to the nearest attendee of its dock group at the last look; 0 for someone aboard.</summary>
     public float Distance = float.MaxValue;
 

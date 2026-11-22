@@ -65,6 +65,9 @@ public sealed partial class WGHullRetireSystem : EntitySystem
 
         /// <summary>Only what is on the grid is deleted; the grid itself stays parked for whoever asked.</summary>
         public bool KeepGrid;
+
+        /// <summary>Children of the grid that are neither copied nor deleted, with everything in them.</summary>
+        public HashSet<EntityUid>? Kept;
         public List<EntityUid>? Children;
         public int NextChild;
         public double CopyMs;
@@ -104,9 +107,11 @@ public sealed partial class WGHullRetireSystem : EntitySystem
     /// Parks the hull and deletes everything on it in slices, leaving the grid itself parked and empty. The grid is
     /// in <see cref="Emptied"/> once that is done.
     /// </summary>
-    public void RetireContents(EntityUid grid)
+    public void RetireContents(EntityUid grid, HashSet<EntityUid>? keep = null)
     {
-        GetOrPark(grid).KeepGrid = true;
+        var hull = GetOrPark(grid);
+        hull.KeepGrid = true;
+        hull.Kept = keep;
     }
 
     /// <summary>Grids <see cref="RetireContents"/> has finished with; whoever asked takes theirs out.</summary>
@@ -126,10 +131,12 @@ public sealed partial class WGHullRetireSystem : EntitySystem
     /// Parks the hull and copies it in slices as it stands, without deleting it or stripping anything. It stays parked
     /// and pinned until <see cref="Retire"/> deletes it or <see cref="ReleaseParked"/> lets it go.
     /// </summary>
-    public WGParkedCopy CopyParked(EntityUid grid)
+    /// <param name="leaveOut">Children of the grid left out of the copy with everything in them; they stay alive on it.</param>
+    public WGParkedCopy CopyParked(EntityUid grid, HashSet<EntityUid>? leaveOut = null)
     {
         var hull = GetOrPark(grid);
         hull.Keep = true;
+        hull.Kept = leaveOut;
         hull.Copy ??= new HullCopy();
         hull.Copy.Parked ??= new WGParkedCopy { Text = hull.Copy.Result.Task };
         return hull.Copy.Parked;
@@ -349,7 +356,7 @@ public sealed partial class WGHullRetireSystem : EntitySystem
         var entities = new HashSet<EntityUid>();
         foreach (var root in copy.Roots)
         {
-            Include(serializer, root, entities);
+            Include(serializer, root, entities, hull.Kept);
         }
 
         copy.Entities = new List<EntityUid>(entities);
@@ -357,16 +364,16 @@ public sealed partial class WGHullRetireSystem : EntitySystem
         return serializer;
     }
 
-    private void Include(EntitySerializer serializer, EntityUid uid, HashSet<EntityUid> entities)
+    private void Include(EntitySerializer serializer, EntityUid uid, HashSet<EntityUid> entities, HashSet<EntityUid>? leaveOut)
     {
-        if (!serializer.IsSerializable(uid))
+        if (!serializer.IsSerializable(uid) || leaveOut != null && leaveOut.Contains(uid))
             return;
 
         entities.Add(uid);
         var children = Transform(uid).ChildEnumerator;
         while (children.MoveNext(out var child))
         {
-            Include(serializer, child, entities);
+            Include(serializer, child, entities, leaveOut);
         }
     }
 
@@ -412,7 +419,7 @@ public sealed partial class WGHullRetireSystem : EntitySystem
                 return false;
 
             var child = hull.Children[hull.NextChild++];
-            if (!Deleted(child))
+            if (!Deleted(child) && hull.Kept?.Contains(child) != true)
                 Del(child);
         }
 

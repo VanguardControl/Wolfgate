@@ -112,7 +112,40 @@ public sealed partial class WGColdStoreSystem
         if (ReferenceReason(grid) is { } referenced)
             return referenced;
 
-        return WalkReason(grid);
+        return WalkReason(grid, policy == WGStasisPolicy.PlayerShip);
+    }
+
+    /// <summary>
+    /// The children of a grid whose trees hold something that will not save, sounds and passing effects aside. On an
+    /// owned ship they stay alive on the kept hull, whole, and everything else is stored.
+    /// </summary>
+    private HashSet<EntityUid> FindKept(EntityUid grid)
+    {
+        var kept = new HashSet<EntityUid>();
+        var top = Transform(grid).ChildEnumerator;
+        while (top.MoveNext(out var child))
+        {
+            _walk.Clear();
+            _walk.Add(child);
+            for (var i = 0; i < _walk.Count; i++)
+            {
+                var uid = _walk[i];
+                if (_metaQuery.GetComponent(uid).EntityPrototype is { MapSavable: false } && !Harmless(uid))
+                {
+                    kept.Add(child);
+                    break;
+                }
+
+                var children = Transform(uid).ChildEnumerator;
+                while (children.MoveNext(out var inner))
+                {
+                    _walk.Add(inner);
+                }
+            }
+        }
+
+        _walk.Clear();
+        return kept;
     }
 
     /// <summary>Whether the grid's station has a job slot a joining player could take.</summary>
@@ -284,7 +317,7 @@ public sealed partial class WGColdStoreSystem
     /// Walks everything aboard: nothing with a mind or a player, nothing that won't save but sounds and effects that
     /// are going anyway, and enough entities to be worth a stand-in.
     /// </summary>
-    private string? WalkReason(EntityUid grid)
+    private string? WalkReason(EntityUid grid, bool keepsUnsaved)
     {
         _walk.Clear();
         _walk.Add(grid);
@@ -298,7 +331,8 @@ public sealed partial class WGColdStoreSystem
                 break;
             }
 
-            if (_metaQuery.GetComponent(uid).EntityPrototype is { MapSavable: false } && !Harmless(uid))
+            // A kept hull keeps what will not save alive on it; a wreck that is deleted whole can't.
+            if (!keepsUnsaved && _metaQuery.GetComponent(uid).EntityPrototype is { MapSavable: false } && !Harmless(uid))
             {
                 reason = "wg-coldstore-why-unsaved";
                 break;

@@ -1,6 +1,7 @@
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.NodeContainer.NodeGroups;
 using Content.Server.NodeContainer.Nodes;
+using Content.Server.Wires;
 using Content.Shared.NodeContainer;
 
 namespace Content.Server._WG.ColdStorage;
@@ -26,6 +27,8 @@ public sealed partial class WGColdStoreSystem
             {
                 _keepWalk.Add(child);
             }
+
+            KeepWires(uid);
 
             if (!TryComp<NodeContainerComponent>(uid, out var nodes))
                 continue;
@@ -67,6 +70,65 @@ public sealed partial class WGColdStoreSystem
             }
 
             RemComp<WGKeptPipeGasComponent>(uid);
+            RemComp<WGKeptWiresComponent>(uid);
+        }
+
+        _keepWalk.Clear();
+    }
+
+    /// <summary>Notes a board's cut wires, seed and serial number.</summary>
+    private void KeepWires(EntityUid uid)
+    {
+        if (!TryComp<WiresComponent>(uid, out var wires) || wires.WiresList.Count == 0)
+            return;
+
+        var kept = EnsureComp<WGKeptWiresComponent>(uid);
+        kept.Seed = wires.WireSeed;
+        kept.Serial = wires.SerialNumber;
+        kept.Cut.Clear();
+        foreach (var wire in wires.WiresList)
+        {
+            if (wire.IsCut)
+                kept.Cut.Add(wire.Id);
+        }
+    }
+
+    /// <summary>
+    /// Puts kept wire state back on a restored grid's boards, after the re-init has given them their wires. Only the
+    /// cut itself is restored: what a cut did (a door's power, its bolts) was saved with the device.
+    /// </summary>
+    private void GiveBackWires(EntityUid grid)
+    {
+        _keepWalk.Clear();
+        _keepWalk.Add(grid);
+        for (var i = 0; i < _keepWalk.Count; i++)
+        {
+            var uid = _keepWalk[i];
+            var children = Transform(uid).ChildEnumerator;
+            while (children.MoveNext(out var child))
+            {
+                _keepWalk.Add(child);
+            }
+
+            if (!TryComp<WGKeptWiresComponent>(uid, out var kept))
+                continue;
+
+            if (TryComp<WiresComponent>(uid, out var wires))
+            {
+                if (kept.Seed != 0)
+                    wires.WireSeed = kept.Seed;
+
+                if (kept.Serial != null)
+                    wires.SerialNumber = kept.Serial;
+
+                foreach (var wire in wires.WiresList)
+                {
+                    if (kept.Cut.Contains(wire.Id))
+                        wire.IsCut = true;
+                }
+            }
+
+            RemComp<WGKeptWiresComponent>(uid);
         }
 
         _keepWalk.Clear();
