@@ -48,8 +48,9 @@ public sealed partial class WGPlanetDragSystem : EntitySystem
         var grids = EntityQueryEnumerator<MapGridComponent, PhysicsComponent, TransformComponent>();
         while (grids.MoveNext(out var uid, out _, out var body, out var xform))
         {
-            // Only hulls that move under their own power are turned back or dragged.
-            if (body.BodyType != BodyType.Dynamic)
+            // Only hulls that move under their own power are turned back or dragged. A sleeping hull isn't moving, so it
+            // can't cross the edge or go too fast; most of the grids on a busy server are sleeping rock.
+            if (body.BodyType != BodyType.Dynamic || !body.Awake)
                 continue;
 
             if (xform.ParentUid != xform.MapUid || xform.MapUid is not { } map || map == uid)
