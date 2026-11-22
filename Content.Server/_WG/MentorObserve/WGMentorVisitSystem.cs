@@ -105,12 +105,14 @@ public sealed class WGMentorVisitSystem : EntitySystem
         SubscribeLocalEvent<WGMentorCritterComponent, WGMentorReturnActionEvent>(OnReturnAction);
         SubscribeLocalEvent<WGMentorAwayComponent, DamageChangedEvent>(OnAwayDamaged);
         SubscribeLocalEvent<WGMentorAwayComponent, MobStateChangedEvent>(OnAwayMobState);
+        // Every EntityTerminatingEvent subscription here takes the same order: ahead of the mind system, so a body that
+        // goes while its mentor is away doesn't hand the mind to the observer or critter for good.
         SubscribeLocalEvent<WGMentorAwayComponent, EntityTerminatingEvent>(OnBodyTerminating, before: new[] { typeof(Content.Server.Mind.MindSystem) });
         SubscribeLocalEvent<WGMentorAwayComponent, ExaminedEvent>(OnAwayExamined);
         SubscribeLocalEvent<WGMentorMarkComponent, DamageChangedEvent>(OnMentorDamaged);
         SubscribeLocalEvent<WGMentorWatcherComponent, StoppedFollowingEntityEvent>(OnStoppedFollowing);
-        SubscribeLocalEvent<WGMentorObserverComponent, EntityTerminatingEvent>(OnObserverTerminating);
-        SubscribeLocalEvent<WGMentorCritterComponent, EntityTerminatingEvent>(OnCritterTerminating);
+        SubscribeLocalEvent<WGMentorObserverComponent, EntityTerminatingEvent>(OnObserverTerminating, before: new[] { typeof(Content.Server.Mind.MindSystem) });
+        SubscribeLocalEvent<WGMentorCritterComponent, EntityTerminatingEvent>(OnCritterTerminating, before: new[] { typeof(Content.Server.Mind.MindSystem) });
         SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => Clear());
 
         _help.TicketClosed += OnTicketClosed;
