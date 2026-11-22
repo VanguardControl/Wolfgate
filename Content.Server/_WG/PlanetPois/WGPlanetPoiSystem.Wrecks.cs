@@ -164,7 +164,7 @@ public sealed partial class WGPlanetPoiSystem
     /// landing zone and <paramref name="edgeMargin"/> (the table's when null) of the edge.
     /// </summary>
     private bool TryWreckSpot(Entity<BiomeComponent> ground, MapGridComponent grid, Vector2 centre, float radius, WGPlanetPoiTablePrototype table,
-        float reach, out Vector2 spot, int? edgeMargin = null)
+        float reach, out Vector2 spot, int? edgeMargin = null, bool sweepRing = true)
     {
         spot = default;
         var inner = table.CentreClear + reach + WreckClearance;
@@ -192,6 +192,9 @@ public sealed partial class WGPlanetPoiSystem
             if (Free(spot))
                 return true;
         }
+
+        if (!sweepRing)
+            return false;
 
         // Lakes and roads can leave only a few gaps big enough, which random tries miss: sweep the whole ring.
         var sweep = new List<Vector2>();
@@ -335,7 +338,7 @@ public sealed partial class WGPlanetPoiSystem
         var count = _random.Next(theme.MinFauna, theme.MaxFauna + 1);
         for (var i = 0; i < count; i++)
         {
-            foreach (var id in _entityTables.GetSpawns(fauna))
+            foreach (var id in _entityTables.GetSpawns(fauna, _random))
             {
                 await _preload.Breathe();
                 if (TerminatingOrDeleted(ship))
@@ -346,7 +349,7 @@ public sealed partial class WGPlanetPoiSystem
 
         if (theme.Loot is { } loot && _random.Prob(theme.LootChance))
         {
-            foreach (var id in _entityTables.GetSpawns(loot))
+            foreach (var id in _entityTables.GetSpawns(loot, _random))
                 Spawn(id, new EntityCoordinates(ship.Owner, (Vector2) _random.Pick(open) + new Vector2(0.5f)));
         }
 
@@ -355,7 +358,7 @@ public sealed partial class WGPlanetPoiSystem
         var survivors = _random.Next(theme.MinCrew, theme.MaxCrew + 1);
         for (var i = 0; i < survivors; i++)
         {
-            foreach (var id in _entityTables.GetSpawns(crew))
+            foreach (var id in _entityTables.GetSpawns(crew, _random))
             {
                 await _preload.Breathe();
                 if (TerminatingOrDeleted(ship))

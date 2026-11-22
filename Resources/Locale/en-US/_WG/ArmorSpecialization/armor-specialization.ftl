@@ -1,6 +1,6 @@
-wg-armor-spec-spall-liner-examine = [color=#8fb7d6]Spall Liner:[/color] Bullets that get through are caught by the liner, so they can't lodge in your body or leave shrapnel behind. There's nothing for a medic to dig out afterward.
+wg-armor-spec-spall-liner-examine = [color=#8fb7d6]Spall Liner:[/color] Bullets that get through are usually caught by the liner, so they seldom lodge in your body or leave shrapnel behind, and there's seldom anything for a medic to dig out afterward.
 wg-armor-spec-sealed-examine = [color=#8fb7d6]Sealed Layer:[/color] Covered skin is sealed against acid and extreme cold, so you can't suffer chemical burns or frostbite there.
-wg-armor-spec-sealed-spall-examine = [color=#8fb7d6]Sealed Spall Liner:[/color] Covered skin is sealed against acid and extreme cold, so you can't suffer chemical burns or frostbite there. Bullets that get through are caught by the liner, so they can't lodge in your body or leave shrapnel behind.
+wg-armor-spec-sealed-spall-examine = [color=#8fb7d6]Sealed Spall Liner:[/color] Covered skin is sealed against acid and extreme cold, so you can't suffer chemical burns or frostbite there. Bullets that get through are usually caught by the liner, so they seldom lodge in your body or leave shrapnel behind.
 wg-armor-spec-insulation-examine = [color=#8fb7d6]Insulated:[/color] Electric shocks can't burn you internally, and synthetic wearers can't be short-circuited.
 wg-armor-spec-insulation-crush-examine = [color=#8fb7d6]Insulated and Crush-Rated:[/color] Electric shocks can't burn you internally, and synthetic wearers can't be short-circuited. Crushing blows need twice the usual force to cause a crush injury or internal bleeding.
 wg-armor-spec-tendon-ward-examine = [color=#8fb7d6]Tendon Guards:[/color] Blades can't sever your tendons, so a cut can't cripple your grip or your stride.
@@ -20,7 +20,7 @@ wg-armor-spec-tourniquet-popup = Your suit cinches a tourniquet tight around you
 
 wg-armor-spec-cold-sealed-examine = [color=#8fb7d6]Cold-Sealed:[/color] Covered skin is sealed against extreme cold, so you can't suffer frostbite there.
 wg-armor-spec-impact-dampers-examine = [color=#8fb7d6]Impact Dampers:[/color] Being thrown or slammed into something can't dislocate your joints, and blunt impacts need twice the usual force to concuss you.
-wg-armor-spec-overseer-examine = [color=#8fb7d6]Spall Liner and Shock-Mounted Padding:[/color] Bullets that get through can't lodge in your body or leave shrapnel behind, and blows to the head can't concuss you.
+wg-armor-spec-overseer-examine = [color=#8fb7d6]Spall Liner and Shock-Mounted Padding:[/color] Bullets that get through seldom lodge in your body or leave shrapnel behind, and blows to the head can't concuss you.
 wg-armor-spec-comedic-examine = [color=#8fb7d6]Comedic Padding:[/color] Hits can't concuss you or dislocate your joints, and blunt hits honk.
 wg-armor-spec-plush-lining-examine = [color=#8fb7d6]Plush Lining:[/color] Soft padding dulls pain about as well as a mild painkiller, helping you stay on your feet when wounded. It stacks with painkillers.
 wg-armor-spec-fire-rated-examine = [color=#8fb7d6]Fire-Rated ({$percent}% left):[/color] Absorbs half of incoming heat damage until the lining is spent. It recovers after a few seconds away from the flames.
@@ -55,3 +55,10 @@ wg-armor-spec-thrusters-gravity = Your thrusters only work in zero gravity.
 wg-armor-spec-thrusters-fired = Your suit's thrusters fire!
 wg-armor-spec-living-tissue-examine = [color=#8fb7d6]Living Tissue:[/color] Small bleeding wounds under the suit close up on their own. Arterial bleeds still need a medic.
 wg-armor-spec-vow-examine = [color=#8fb7d6]Vow of Silence:[/color] You make no sound when you're hurt, and your footsteps are muffled.
+
+# Vest specializations
+wg-armor-spec-fast-hands-examine = [color=#8fb7d6]Fast hands:[/color] nothing binds your wrists, so reloads, cuffs, bandages and tool work finish faster.
+wg-armor-spec-low-signature-examine = [color=#8fb7d6]Low signature:[/color] motion trackers don't pick up the wearer.
+wg-armor-spec-unrestricted-examine = [color=#8fb7d6]Unrestricted:[/color] free shoulders, so the guns you hold spread less.
+wg-armor-spec-second-wind-examine = [color=#8fb7d6]Second wind:[/color] once you're badly hurt, a burst of speed to get clear. It comes back once you've healed.
+wg-armor-spec-second-wind-popup = A second wind carries you forward!

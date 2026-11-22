@@ -15,7 +15,7 @@ namespace Content.Server._WG.NpcCrew.Systems;
 
 /// <summary>
 /// Draws a crewman's best weapon from its equipment slots into its active hand and holsters it again. Weapons live
-/// in slots, never in bags, so a draw is one container move.
+/// in slots, never in bags, so a draw is one container move. Spare magazines may also ride in webbing worn in one.
 /// </summary>
 public sealed partial class WGCrewWeaponSystem : EntitySystem
 {
@@ -34,6 +34,7 @@ public sealed partial class WGCrewWeaponSystem : EntitySystem
         {
             _advancing.Clear();
             _threats.Clear();
+            _nearby.Clear();
             _blastHolds.Clear();
             _braces.Clear();
         });

@@ -319,6 +319,9 @@ public sealed partial class WGCrewAlertSystem : EntitySystem
             AlertShip(recipient.Grid, recipient.Group, attacker, gunfire: gunfire);
     }
 
+    /// <summary>Reports a hull taken from a crew's own side as an attacker that has opened fire, whatever its colours.</summary>
+    public void ReportHijack(EntityUid grid, string group, EntityUid hull) => ReportAttack(grid, hull, group, gunfire: true);
+
     /// <summary>Reports an explicit vessel threat to a crew and every ship in its escort formation.</summary>
     public void ReportShipThreat(EntityUid grid, string group, EntityUid attacker) => ReportAttack(grid, attacker, group);
 
@@ -422,6 +425,12 @@ public sealed partial class WGCrewAlertSystem : EntitySystem
     public void EndZoneWarning(EntityUid grid, EntityUid intruder)
     {
         _warningShots.Remove((grid, intruder));
+    }
+
+    /// <summary>Whether a warning-shot order on a vessel is still on record, lapsed or not.</summary>
+    public bool HasZoneWarning(EntityUid grid, EntityUid intruder)
+    {
+        return _warningShots.ContainsKey((grid, intruder));
     }
 
     /// <summary>Whether a ship's guns are only to fire wide of a vessel.</summary>

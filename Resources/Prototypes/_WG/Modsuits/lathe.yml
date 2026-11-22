@@ -237,6 +237,16 @@
 
 - type: latheRecipe
   parent: BaseModsuitModuleRecipe
+  id: ModsuitModuleVoidBoots
+  result: ModsuitModuleVoidBoots
+  materials:
+    Steel: 800
+    Silver: 400
+    Gold: 200
+    Bluespace: 300
+
+- type: latheRecipe
+  parent: BaseModsuitModuleRecipe
   id: ModsuitModuleWelding
   result: ModsuitModuleWelding
   materials:
@@ -669,16 +679,6 @@
 
 - type: latheRecipe
   parent: BaseModsuitModuleRecipe
-  id: ModsuitModuleEmpShieldAdvanced
-  result: ModsuitModuleEmpShieldAdvanced
-  materials:
-    Steel: 800
-    Glass: 300
-    Gold: 200
-    Uranium: 100
-
-- type: latheRecipe
-  parent: BaseModsuitModuleRecipe
   id: ModsuitModuleJointTorsion
   result: ModsuitModuleJointTorsion
   materials:
@@ -790,6 +790,7 @@
   - ModsuitModuleVisorDiagnostic
   - ModsuitModuleReagentScanner
   - ModsuitModuleMagboots
+  - ModsuitModuleVoidBoots
   - ModsuitModuleTRay
   - ModsuitModuleTether
   - ModsuitModuleMister
@@ -801,7 +802,6 @@
   - ModsuitModuleJetpackAdvanced
   - ModsuitModuleMagbootsAdvanced
   - ModsuitModuleJumpJet
-  - ModsuitModuleEmpShieldAdvanced
   - ModsuitModuleHealthAnalyzer
   - ModsuitModuleVisorMedical
   - ModsuitModuleQuickCarry

@@ -181,6 +181,11 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
             return;
         }
 
+        // WOLFGATE(Performance) START: the hull's file is parsed off the main thread first; the purchase runs again once it is
+        if (WGDeferPurchase(shipyardConsoleUid, component, args, player, vessel))
+            return;
+        // WOLFGATE END
+
         if (!TryPurchaseShuttle(station, vessel.ShuttlePath, out var shuttleUidOut))
         {
             PlayDenySound(player, shipyardConsoleUid, component);
@@ -229,7 +234,7 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
 
 			if (_timing.CurTime >= voucher.NextBuyAt)
 			{
-				voucher.NextBuyAt = _timing.CurTime + voucher.Cooldown;
+				// voucher.NextBuyAt = _timing.CurTime + voucher.Cooldown; // WOLFGATE(Shipyard): set below, so a refused redemption starts no cooldown
 			}
 			else
 			{
@@ -252,6 +257,7 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
                 return;
             }
             voucher.RedemptionsLeft--;
+            voucher.NextBuyAt = _timing.CurTime + voucher.Cooldown; // WOLFGATE(Shipyard): the cooldown starts only with a redemption that goes through
             voucherUsed = true;
         }
         else
@@ -723,7 +729,10 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
         int sellValue = 0;
         if (deed?.ShuttleUid != null)
         {
-            sellValue = _wgShipServices.ResaleValue((EntityUid)(deed?.ShuttleUid!), (int)_pricing.AppraiseGrid((EntityUid)(deed?.ShuttleUid!), LacksPreserveOnSaleComp)); // WOLFGATE(ShipCommand): a bargain resells less its discount
+            // WOLFGATE(Performance) START: the console shows an appraisal up to 15 s old; the sale itself appraises afresh
+            // sellValue = _wgShipServices.ResaleValue((EntityUid)(deed?.ShuttleUid!), (int)_pricing.AppraiseGrid((EntityUid)(deed?.ShuttleUid!), LacksPreserveOnSaleComp)); // WOLFGATE(ShipCommand): a bargain resells less its discount
+            sellValue = _wgShipServices.ResaleValue(deed.ShuttleUid.Value, WGShownAppraisal(deed.ShuttleUid.Value)); // WOLFGATE(ShipCommand): a bargain resells less its discount
+            // WOLFGATE END
             sellValue = CalculateShipResaleValue((uid, component), sellValue);
         }
 
@@ -832,7 +841,10 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
             int sellValue = 0;
             if (deed?.ShuttleUid != null)
             {
-                sellValue = _wgShipServices.ResaleValue(deed.ShuttleUid.Value, (int)_pricing.AppraiseGrid(deed.ShuttleUid.Value, LacksPreserveOnSaleComp)); // WOLFGATE(ShipCommand): a bargain resells less its discount
+                // WOLFGATE(Performance) START: the console shows an appraisal up to 15 s old; the sale itself appraises afresh
+                // sellValue = _wgShipServices.ResaleValue(deed.ShuttleUid.Value, (int)_pricing.AppraiseGrid(deed.ShuttleUid.Value, LacksPreserveOnSaleComp)); // WOLFGATE(ShipCommand): a bargain resells less its discount
+                sellValue = _wgShipServices.ResaleValue(deed.ShuttleUid.Value, WGShownAppraisal(deed.ShuttleUid.Value)); // WOLFGATE(ShipCommand): a bargain resells less its discount
+                // WOLFGATE END
                 sellValue = CalculateShipResaleValue((uid, component), sellValue);
             }
 

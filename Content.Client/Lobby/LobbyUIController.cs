@@ -183,6 +183,15 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
     {
         PreviewPanel?.SetLoaded(true);
 
+        // WOLFGATE(InRoundCreator) START: the creator open over a round shows what the server changed
+        // One holding unsaved edits is left alone; its next save brings the server's copy back.
+        if (_stateManager.CurrentState is GameplayState && _inRoundWindow is { IsOpen: true } && _profileEditor is { IsDirty: false })
+        {
+            ReloadCharacterSetup();
+            return;
+        }
+        // WOLFGATE END
+
         if (_stateManager.CurrentState is not LobbyState)
             return;
 
@@ -542,6 +551,7 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
         _characterSetup.DeleteCharacter += args =>
         {
             _preferencesManager.DeleteCharacter(args);
+            EntityManager.System<Content.Client._WG.CustomMarkings.CustomMarkingSystem>().ReleaseSlot(args); // WOLFGATE(CustomMarkings): its own markings go to every character
 
             // Reload everything
             if (EditedSlot == args)

@@ -129,10 +129,28 @@ unmarked:
     reason: Mapped the TSFMC field outfitter in the marine ready room.
   - path: Resources/Maps/_Mono/POI/pdvhelios.yml
     module: RMCClothing
-    reason: Mapped two Vanguard field outfitters in the spawn hall.
+    reason: Mapped two Vanguard field outfitters flush against the spawn hall's west and east walls.
   - path: Resources/Maps/_Mono/POI/pdvhelios_hw.yml
     module: RMCClothing
-    reason: Mapped two Vanguard field outfitters in the spawn hall.
+    reason: Mapped two Vanguard field outfitters flush against the spawn hall's west and east walls.
+  - path: Resources/Maps/_Mono/POI/pdvhelios.yml
+    module: PdvArtificer
+    reason: Mapped two Artificer spawn markers beside the Jarrah's.
+  - path: Resources/Maps/_Mono/POI/pdvhelios_hw.yml
+    module: PdvArtificer
+    reason: Mapped two Artificer spawn markers beside the Jarrah's.
+  - path: Resources/Maps/_Mono/POI/pdvhelios.yml
+    module: SpecialistKits
+    reason: Mapped the Vanguard specialist rack against the east wall of the spawn hall.
+  - path: Resources/Maps/_Mono/POI/pdvhelios_hw.yml
+    module: SpecialistKits
+    reason: Mapped the Vanguard specialist rack against the east wall of the spawn hall.
+  - path: Resources/Maps/_Mono/POI/tsfmchalcyon.yml
+    module: SpecialistKits
+    reason: Mapped the TSFMC specialist rack against the west wall of the marine ready room, where TSF players spawn.
+  - path: Resources/Maps/_Mono/POI/tsfmchalcyon_hw.yml
+    module: SpecialistKits
+    reason: Mapped the TSFMC specialist rack against the west wall of the marine ready room, where TSF players spawn.
   - path: Resources/Maps/Shuttles/dart.yml
     module: Cloning
     reason: Mapped a genetic database and a body scanner console, linked to the scanner and pod.
@@ -2467,6 +2485,12 @@ unmarked:
   - path: Resources/SharedMaps/_Mono/Shuttles/Civilian/caracara.yml
     module: AsteroidMining
     reason: Its Apollo mining laser is swapped for the M40 Prospector, the heavy asteroid mining laser.
+  - path: Resources/SharedMaps/_Mono/Shuttles/Civilian/caracara.yml
+    module: null
+    reason: Its air mixer ran at the 50/50 default; set to 21% oxygen, 79% nitrogen.
+  - path: Resources/SharedMaps/_Mono/Shuttles/VG/wolfsnake.yml
+    module: null
+    reason: The plasma windoor by the shield generator faced the corridor; turned to shut the generator in.
   - path: Resources/SharedMaps/_Mono/Shuttles/MMC/akasono.yml
     module: AsteroidMining
     reason: Its M25 mining pulsar is swapped for the M12 Prospector, the light asteroid mining laser.
@@ -3121,3 +3145,9 @@ unmarked:
   - path: Resources/SharedMaps/_Mono/Shuttles/CSec/lightning.yml
     module: Bench
     reason: Bench refit swapped one TOVEK hardpoint for a SHRIKE ion disruptor.
+  - path: Resources/Maps/_Mono/POI/sevastopol.yml
+    module: null
+    reason: The plasma miner trickles 2 mol/s, down from 400, and refills its chamber to the 6,500 kPa it starts at.
+  - path: Resources/Maps/_Mono/POI/Dungeons/lancelot.yml
+    module: null
+    reason: The plasma miner trickles 2 mol/s, down from 400, and refills its chamber to the 6,500 kPa it starts at.

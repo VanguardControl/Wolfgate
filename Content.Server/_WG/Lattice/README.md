@@ -62,7 +62,7 @@ starting at the shield edge (`beamOffset`). A lost anchor breaks the two beams t
 
 **FTL.** Bands with `ftl: false` (Feedback and the Coda) kill FTL drives (`WGLatticeSystem.Ftl.cs`): a ship there
 can't jump (`ConsoleFTLAttemptEvent`, and the helm's drive status reads `Unmoored` off the ship's networked
-`WGDriftComponent.NoFtl`), and the helm refuses a jump whose destination is in one. Ships have to fly in and out.
+`WGDriftComponent.NoFtl`), and the helm refuses a jump whose destination is in one. Ships have to fly in and out, except an admin vessel whose unrestricted FTL ignores the Lattice (ShipCommand's `WGFtlUnrestricted.IgnoreLattice`, read through `IgnoresLattice`); the Scion rule still holds for it.
 
 **The Coda's hazards.** For crewed ships in `hazardBand` (`WGCodaHazardSystem`): after `hunterGrace` (90 s) a roll
 each minute, climbing over `hunterRamp` (8 min) to `hunterMaxChance`, puts a pack of 2-4 `hunterMobs` aboard on open floor at
@@ -329,6 +329,7 @@ open a breach. A carrier's band and Drift are on its `WGDriftComponent` in VV.
 - [`Content.Shared/_WG/Lattice/WGLatticeStatus.cs`](../../../Content.Shared/_WG/Lattice/WGLatticeStatus.cs)
 - [`Content.Shared/_WG/Lattice/WGLeviathan.cs`](../../../Content.Shared/_WG/Lattice/WGLeviathan.cs)
 - [`Content.Shared/_WG/Lattice/WGSongExcision.cs`](../../../Content.Shared/_WG/Lattice/WGSongExcision.cs)
+- [`Content.Shared/_WG/Lattice/WGWrittenTextEvent.cs`](../../../Content.Shared/_WG/Lattice/WGWrittenTextEvent.cs)
 
 ### Client
 
@@ -432,9 +433,14 @@ open a breach. A carrier's band and Drift are on its `WGDriftComponent` in VV.
   - the hex field's beams and the anchors' wards.
   - the Coda shows only as static on every scanner.
   - contact names garble out past the Lattice's hold.
+- [`Content.Server/CartridgeLoader/Cartridges/NotekeeperCartridgeSystem.cs`](../../CartridgeLoader/Cartridges/NotekeeperCartridgeSystem.cs): the Coda can't be written down either
+- [`Content.Server/Communications/CommunicationsConsoleSystem.cs`](../../Communications/CommunicationsConsoleSystem.cs): the Coda can't be written down either
+- [`Content.Server/MassMedia/Systems/NewsSystem.cs`](../../MassMedia/Systems/NewsSystem.cs): the Coda can't be written down either
 - [`Content.Server/Shuttles/Systems/ShuttleConsoleSystem.FTL.cs`](../../Shuttles/Systems/ShuttleConsoleSystem.FTL.cs)
   - drives don't work past the Lattice's hold
   - no jumping into a band where drives die
+- [`Content.Shared/Labels/EntitySystems/SharedHandLabelerSystem.cs`](../../../Content.Shared/Labels/EntitySystems/SharedHandLabelerSystem.cs): the Coda can't be written down either
+- [`Content.Shared/Paper/PaperSystem.cs`](../../../Content.Shared/Paper/PaperSystem.cs): the Coda can't be written down either
 - [`Resources/Maps/_Mono/POI/pdvhelios.yml`](../../../Resources/Maps/_Mono/POI/pdvhelios.yml): Mapped a station anchor beside an APC so Helios stays anchored space past the Lattice's hold.
 - [`Resources/Maps/_Mono/POI/underground.yml`](../../../Resources/Maps/_Mono/POI/underground.yml): Mapped a station anchor beside an APC so the Syndicate FOB stays anchored space past the Lattice's hold.
 - [`Resources/Prototypes/_Mono/Entities/Structures/Machines/ore_magnet.yml`](../../../Resources/Prototypes/_Mono/Entities/Structures/Machines/ore_magnet.yml): exotic matter mined from asteroids

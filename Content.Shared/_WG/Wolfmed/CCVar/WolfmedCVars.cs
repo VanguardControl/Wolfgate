@@ -200,6 +200,13 @@ public sealed class WolfmedCVars
         CVarDef.Create("wolfmed.arrest_shock_damage", 60f, CVar.SERVERONLY);
 
     /// <summary>
+    /// Seconds a stopped heart leaves the patient on their feet, fading, before the collapse. Zero collapses at once.
+    /// A pulled heart and an electrocution always collapse at once.
+    /// </summary>
+    public static readonly CVarDef<float> ArrestCollapseSeconds =
+        CVarDef.Create("wolfmed.arrest_collapse_seconds", 45f, CVar.SERVERONLY);
+
+    /// <summary>
     /// Seconds of a stopped heart that drain brain oxygenation from full to nothing. 180 since playtest 5 ("cardiac
     /// arrest onsets too fast, people dying is way more work to fix"; was 120): with wolfmed.brain_damage_rate 0.05,
     /// brain death is about 7.5 minutes after an arrest from a full brain, was 4.
@@ -459,6 +466,20 @@ public sealed class WolfmedCVars
     /// </summary>
     public static readonly CVarDef<float> PainFaintSeconds =
         CVarDef.Create("wolfmed.pain_faint_seconds", 20f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Seconds a mechanical body's pain faint lasts: a sensor-overload reboot (OD9 b). Shorter than the organic faint
+    /// because no painkiller reaches a chassis to end it early.
+    /// </summary>
+    public static readonly CVarDef<float> RebootFaintSeconds =
+        CVarDef.Create("wolfmed.reboot_faint_seconds", 10f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Seconds a chassis shut down without a pump or hydraulic fluid takes to burn out a full positronic core, as an
+    /// arrest runs a brain down. A flat cell drains nothing. Zero turns the drain off.
+    /// </summary>
+    public static readonly CVarDef<float> ShutdownCoreSeconds =
+        CVarDef.Create("wolfmed.shutdown_core_seconds", 450f, CVar.SERVERONLY);
 
     /// <summary>
     /// Summed pain over the pain at waking that re-arms the faint. Pain added during a faint does not count,

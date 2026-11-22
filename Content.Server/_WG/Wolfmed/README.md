@@ -24,6 +24,11 @@ passes through), `WoundDamageRoutingSystem` (`Content.Shared/_Onyx/Wounds`), `Sh
 and `WolfmedLifeSystem` (the clock from wounded to dead), `AutodocSystem` (`Content.Server/_WG/Wolfmed/Autodoc`)
 and the analyzer partials in `Content.Server/_WG/Wolfmed/Medical`.
 
+Infection and condition emotes run each body on its own tick of their window (`WGTickSpread`) instead of the whole
+server on one. Infection files its work by body every 5 s (`WolfmedInfectionSystem.Spread.cs`) and advances each body
+by the time since its own last turn; a corpse or a limb off any body takes a turn every `wolfmed.infection_slow_seconds`
+(30; tests use 5). A step of 5 s or more handed to `Update`, as tests do, advances everything at once as before.
+
 Design record, in `Docs/_WG/Wolfmed`: `DECISIONS.md` (every decision by milestone and playtest; append to it),
 the death plan (`WOLFMED_DEATH_PLAN.md`) and `WOLFMED_MANIFEST.md`, the port-time file manifest. The generated list below is the list of record for the
 files the module edits outside `_WG`.
@@ -91,6 +96,7 @@ Skipped ("dirty-disposed").
 - [`Content.Server/_WG/Wolfmed/Life/WolfmedDyingActionsSystem.cs`](Life/WolfmedDyingActionsSystem.cs)
 - [`Content.Server/_WG/Wolfmed/Life/WolfmedExecutionSystem.Confirm.cs`](Life/WolfmedExecutionSystem.Confirm.cs)
 - [`Content.Server/_WG/Wolfmed/Life/WolfmedExecutionSystem.cs`](Life/WolfmedExecutionSystem.cs)
+- [`Content.Server/_WG/Wolfmed/Life/WolfmedHeartAttackSmiteSystem.cs`](Life/WolfmedHeartAttackSmiteSystem.cs)
 - [`Content.Server/_WG/Wolfmed/Life/WolfmedLifeSystem.cs`](Life/WolfmedLifeSystem.cs)
 - [`Content.Server/_WG/Wolfmed/Life/WolfmedOverheatComponent.cs`](Life/WolfmedOverheatComponent.cs)
 - [`Content.Server/_WG/Wolfmed/Life/WolfmedOverheatSystem.cs`](Life/WolfmedOverheatSystem.cs)
@@ -141,6 +147,7 @@ Skipped ("dirty-disposed").
 - [`Content.Server/_WG/Wolfmed/Wounds/WolfmedEviscerationSystem.cs`](Wounds/WolfmedEviscerationSystem.cs)
 - [`Content.Server/_WG/Wolfmed/Wounds/WolfmedFluidLossSystem.cs`](Wounds/WolfmedFluidLossSystem.cs)
 - [`Content.Server/_WG/Wolfmed/Wounds/WolfmedInfectionSystem.cs`](Wounds/WolfmedInfectionSystem.cs)
+- [`Content.Server/_WG/Wolfmed/Wounds/WolfmedInfectionSystem.Spread.cs`](Wounds/WolfmedInfectionSystem.Spread.cs)
 - [`Content.Server/_WG/Wolfmed/Wounds/WolfmedNecrosisSystem.cs`](Wounds/WolfmedNecrosisSystem.cs)
 - [`Content.Server/_WG/Wolfmed/Wounds/WolfmedOrganContusionSystem.cs`](Wounds/WolfmedOrganContusionSystem.cs)
 - [`Content.Server/_WG/Wolfmed/Wounds/WolfmedPartHitSystem.cs`](Wounds/WolfmedPartHitSystem.cs)
@@ -190,6 +197,7 @@ Skipped ("dirty-disposed").
 - [`Content.Shared/_WG/Wolfmed/Compat/WolfmedBedHealMarkerComponent.cs`](../../../Content.Shared/_WG/Wolfmed/Compat/WolfmedBedHealMarkerComponent.cs)
 - [`Content.Shared/_WG/Wolfmed/Compat/WolfmedBodySystem.cs`](../../../Content.Shared/_WG/Wolfmed/Compat/WolfmedBodySystem.cs)
 - [`Content.Shared/_WG/Wolfmed/Compat/WolfmedDamageableSystem.cs`](../../../Content.Shared/_WG/Wolfmed/Compat/WolfmedDamageableSystem.cs)
+- [`Content.Shared/_WG/Wolfmed/Consciousness/PainSystem.Numbness.cs`](../../../Content.Shared/_WG/Wolfmed/Consciousness/PainSystem.Numbness.cs)
 - [`Content.Shared/_WG/Wolfmed/Consciousness/SharedWolfmedConsciousnessSystem.cs`](../../../Content.Shared/_WG/Wolfmed/Consciousness/SharedWolfmedConsciousnessSystem.cs)
 - [`Content.Shared/_WG/Wolfmed/Consciousness/WolfmedBodyPainSystem.cs`](../../../Content.Shared/_WG/Wolfmed/Consciousness/WolfmedBodyPainSystem.cs)
 - [`Content.Shared/_WG/Wolfmed/Consciousness/WolfmedCallForHelp.cs`](../../../Content.Shared/_WG/Wolfmed/Consciousness/WolfmedCallForHelp.cs)
@@ -202,6 +210,7 @@ Skipped ("dirty-disposed").
 - [`Content.Shared/_WG/Wolfmed/Consciousness/WolfmedDownedSystem.cs`](../../../Content.Shared/_WG/Wolfmed/Consciousness/WolfmedDownedSystem.cs)
 - [`Content.Shared/_WG/Wolfmed/Consciousness/WolfmedDyingDepth.cs`](../../../Content.Shared/_WG/Wolfmed/Consciousness/WolfmedDyingDepth.cs)
 - [`Content.Shared/_WG/Wolfmed/Consciousness/WolfmedExplanationCard.cs`](../../../Content.Shared/_WG/Wolfmed/Consciousness/WolfmedExplanationCard.cs)
+- [`Content.Shared/_WG/Wolfmed/Consciousness/WolfmedNumbTraitComponent.cs`](../../../Content.Shared/_WG/Wolfmed/Consciousness/WolfmedNumbTraitComponent.cs)
 - [`Content.Shared/_WG/Wolfmed/Consciousness/WolfmedPainSettleComponent.cs`](../../../Content.Shared/_WG/Wolfmed/Consciousness/WolfmedPainSettleComponent.cs)
 - [`Content.Shared/_WG/Wolfmed/Damage/WolfmedDegradation.cs`](../../../Content.Shared/_WG/Wolfmed/Damage/WolfmedDegradation.cs)
 - [`Content.Shared/_WG/Wolfmed/Damage/WolfmedTreatmentOverlay.cs`](../../../Content.Shared/_WG/Wolfmed/Damage/WolfmedTreatmentOverlay.cs)
@@ -227,6 +236,7 @@ Skipped ("dirty-disposed").
 - [`Content.Shared/_WG/Wolfmed/Hud/WolfmedSyntheticHudLinePrototype.cs`](../../../Content.Shared/_WG/Wolfmed/Hud/WolfmedSyntheticHudLinePrototype.cs)
 - [`Content.Shared/_WG/Wolfmed/Hud/WolfmedSyntheticHudLineSystem.cs`](../../../Content.Shared/_WG/Wolfmed/Hud/WolfmedSyntheticHudLineSystem.cs)
 - [`Content.Shared/_WG/Wolfmed/Life/SharedExecutionSystem.Wolfmed.cs`](../../../Content.Shared/_WG/Wolfmed/Life/SharedExecutionSystem.Wolfmed.cs)
+- [`Content.Shared/_WG/Wolfmed/Life/WolfmedArrestCollapseSystem.cs`](../../../Content.Shared/_WG/Wolfmed/Life/WolfmedArrestCollapseSystem.cs)
 - [`Content.Shared/_WG/Wolfmed/Life/WolfmedCoreHeatComponent.cs`](../../../Content.Shared/_WG/Wolfmed/Life/WolfmedCoreHeatComponent.cs)
 - [`Content.Shared/_WG/Wolfmed/Life/WolfmedCritActionsSystem.cs`](../../../Content.Shared/_WG/Wolfmed/Life/WolfmedCritActionsSystem.cs)
 - [`Content.Shared/_WG/Wolfmed/Life/WolfmedDormant.cs`](../../../Content.Shared/_WG/Wolfmed/Life/WolfmedDormant.cs)
@@ -348,6 +358,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/Range/WolfmedRangeMapGenerator.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/Range/WolfmedRangeMapGenerator.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/Range/WolfmedRangeMapTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/Range/WolfmedRangeMapTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedArrestClockTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedArrestClockTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedArrestCollapseTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedArrestCollapseTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedBreathingClockTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedBreathingClockTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedBurnScenarioTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedBurnScenarioTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedCauseScenarioTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedCauseScenarioTest.cs)
@@ -381,6 +392,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedRevivalTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedRevivalTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedScenario.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedScenario.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedSepsisTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedSepsisTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedShutdownCoreDrainTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedShutdownCoreDrainTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedSpaceExposureTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedSpaceExposureTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedSpeciesTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedSpeciesTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedStumpPainTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/Scenarios/WolfmedStumpPainTest.cs)
@@ -431,6 +443,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedHealingTargetTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedHealingTargetTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedInfectionSpreadTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedInfectionSpreadTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedInfectionTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedInfectionTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedInfectionTickSpreadTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedInfectionTickSpreadTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedIvDripTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedIvDripTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedLocaleCoverageTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedLocaleCoverageTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedLostHandVisualsTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedLostHandVisualsTest.cs)
@@ -443,6 +456,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedNaniteDronesTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedNaniteDronesTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedNecrosisSurgeryTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedNecrosisSurgeryTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedNpcAimTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedNpcAimTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedNumbTraitTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedNumbTraitTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedOrganTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedOrganTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedOverheatTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedOverheatTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedPainTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wolfmed/WolfmedPainTest.cs)
@@ -927,6 +941,9 @@ Skipped ("dirty-disposed").
 - [`Content.Client/UserInterface/Systems/Hands/Controls/HandsContainer.cs`](../../../Content.Client/UserInterface/Systems/Hands/Controls/HandsContainer.cs)
   - a hand reattached after the other keeps its side; right, middle, then left
   - the hand bar's order, as the server sorts hands
+- [`Content.IntegrationTests/PoolManager.Cvars.cs`](../../../Content.IntegrationTests/PoolManager.Cvars.cs)
+  - arrest tests expect the collapse at once; the collapse test turns it on
+  - tests watch a corpse's infection over a few seconds of ticks
 - [`Content.IntegrationTests/Tests/_Onyx/Body/BodyConsequencesTest.cs`](../../../Content.IntegrationTests/Tests/_Onyx/Body/BodyConsequencesTest.cs)
   - §2.7, Onyx's SharedBodySystem.TryDetachPart lives here.
   - Onyx's version asserts Nubody behaviour Wolfgate does not have. Its `Groin` part does not exist
@@ -1045,7 +1062,6 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/EntityTest.cs`](../../../Content.IntegrationTests/Tests/EntityTest.cs)
   - the spawn-all tests need about six gigabytes each; two at once go past the runner's heap limit
   - in slices. All the prototypes at once, each on its own map and grid, held for 450
-  - maps first, so everything on them goes parent-first, as it does when a round
   - the slice size and the delete of the sliced spawn-all test.
 - [`Content.Server/_DV/Execution/ExecutionSystem.cs`](../../_DV/Execution/ExecutionSystem.cs)
   - the kill and the gore tiers on a wound host
@@ -1412,6 +1428,7 @@ Skipped ("dirty-disposed").
   - playtest 5, the floor settles
   - M1a: OD5, pain never moved
   - M1a: OD5, adrenaline no longer takes 30% off every reading; it no longer stands anyone up.
+  - a reading that counts pain through numbness, for the Numb trait's consciousness.
   - closing paren moved below.
   - no suppression means no share to walk the body for.
   - M1a: P13, the share is of the sum of the parts, not of the capped body value, so the
@@ -1422,6 +1439,7 @@ Skipped ("dirty-disposed").
   - an unconscious body does not scream, nor one whose gear silences it.
   - BRAIN: a shock on a body that has already bled out stops the heart.
   - P2-D8: Wolfgate's PainNumbness trait grants the legacy PainNumbnessComponent
+  - a Numb trait body feels no change, but its consciousness still reads the pain.
   - M1a: OD5, adrenaline leaves pain alone; it speeds the crawl instead (WolfmedBodyPainSystem).
 - [`Content.Shared/_Onyx/Wounds/WoundBehaviors.cs`](../../../Content.Shared/_Onyx/Wounds/WoundBehaviors.cs): ported from Onyx for Wolfmed.
 - [`Content.Shared/_Onyx/Wounds/WoundDamageComponents.cs`](../../../Content.Shared/_Onyx/Wounds/WoundDamageComponents.cs)
@@ -1712,6 +1730,7 @@ Skipped ("dirty-disposed").
   - its bloodloss healing is bookkeeping on a wound host; lost blood is the blood level, which it never raises.
   - on a wound host it clots down to an artery's floor, and its overdose bloodloss is toxin load.
   - its overdose brute is toxin load on a wound host, more than the overdose still flushes.
+- [`Resources/Locale/en-US/traits/traits.ftl`](../../../Resources/Locale/en-US/traits/traits.ftl): a numb body still goes down from pain it can't feel.
 - [`Resources/Maps/_NF/POI/medical.yml`](../../../Resources/Maps/_NF/POI/medical.yml): An autodoc pod placed in the medical POI.
 - [`Resources/Prototypes/_DV/Body/Organs/chitinid.yml`](../../../Resources/Prototypes/_DV/Body/Organs/chitinid.yml): Wolfmed liver data, so the organ can be hurt, scanned and treated
 - [`Resources/Prototypes/_DV/Body/Organs/feroxi.yml`](../../../Resources/Prototypes/_DV/Body/Organs/feroxi.yml): M4: OD16 parity, Wolfmed lung data (plan 9.2 group A-prime)
@@ -2158,6 +2177,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/SoundCollections/gasp.yml`](../../../Resources/Prototypes/SoundCollections/gasp.yml): the dying gasp is Bobstation's (owner's pick, playtest 4); organic bodies only
 - [`Resources/Prototypes/SoundCollections/gun_impacts.yml`](../../../Resources/Prototypes/SoundCollections/gun_impacts.yml): playtest 4, the owner's Bob flesh impacts replace the Skyrat ones (WOLFGATE(Weapons))
 - [`Resources/Prototypes/SoundCollections/punching.yml`](../../../Resources/Prototypes/SoundCollections/punching.yml): playtest 4, the owner's Bob punches replace the Skyrat ones (WOLFGATE(Weapons))
+- [`Resources/Prototypes/Traits/disabilities.yml`](../../../Resources/Prototypes/Traits/disabilities.yml): pain the body can't feel still Downs and faints it.
 - [`Resources/Textures/_Onyx/`](../../../Resources/Textures/_Onyx/): Space Onyx wound-system sprites (wound and fracture states, alerts, medical items) ported with Wolfmed.
 
 <!-- WOLFGATE-GENERATED END -->

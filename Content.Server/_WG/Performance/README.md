@@ -26,8 +26,10 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - Roofs network as chunk deltas (`SharedRoofSystem.WGDelta`). Maps go to every player, and a cavern map's full roof
   is tens of kilobytes; each tile change on the surface above resent all of it, which emptied clients' state buffers.
   A delta carries only the chunks changed since the client's last ack.
-- Radar requests share one walk of the blips per tick (`RadarBlipSystem.WGCache`), which sorts them into squares so a
-  request skips the squares out of its reach, and console nav states share one walk of the docks for up to half a
+- Radar requests share one walk of the blips every `wg.radar.rebuild_ticks` ticks (4) (`RadarBlipSystem.WGCache`),
+  which sorts them into squares so a request skips the squares out of its reach. Between walks a request still
+  re-checks each nearby blip and takes its position live, so stale squares can only make a blip late, never wrong.
+  Console nav states share one walk of the docks for up to half a
   second, or until something docks or undocks (`ShuttleConsoleSystem.WGDocks`). The server answers one player's blip
   requests at most `wg.radar.max_request_hz` times a second (10); lower it under load.
 - Radar consoles ask for blips at `wg.radar.request_hz` (15 a second) instead of twice a second, so a turning missile
@@ -69,6 +71,115 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   paths, stop `FlammableSystem` from crashing when igniting queues new fire events, and stop networking a thrown
   item's shooter (it outlived the shooter and sent a deleted entity every state).
 
+### Physics and atmos tick cuts (2026-11 profile)
+
+From a profile of live traces: physics cost about 82 ms/s of main-thread time and atmos about 52. Each change has a
+cvar or gauge so it can be checked on the test server.
+
+- Idle movers park (`MoverController.WGParking`). A mover that is asleep, with no input, player or relay, loses
+  `ActiveInputMoverComponent` and gets `WGParkedMoverComponent`, so MoverController stops visiting about 1,150 of them
+  each step to skip them. Its body waking, a move input, NPC steering, or a player attaching puts it back before the
+  next mover walk. Every 10 ticks, parked movers are rechecked in case code set their input directly. Relay sources
+  never park. `wg.movers.park false` returns them all. `wg_physics_idle_mover_skipped` now counts parked plus skipped.
+- A ship's shield is not moved when its ship has moved under 1 cm and turned under 0.0001 rad since the last move.
+  Moving the shield reinserts every perimeter fixture, which was nearly all of the follower's cost. The gap never grows
+  past that slack.
+- Space wind skips its entity search on a high-pressure tile whose wind can't throw anything:
+  `sqrt(difference) × 2.25` below `MovedByPressureComponent.ThrowForce`. Nothing below that pushes, and no prototype
+  lowers `MoveResist` under it. `wg.atmos.wind_skip_weak false` searches every tile.
+- Atmos keeps its grid atmosphere list (`AtmosphereSystem.WGGridCache`) instead of walking every grid each tick. A grid
+  atmosphere's startup or removal marks it stale, and it is rebuilt every 5 s regardless.
+- `WGAtmosGaugeSystem` reports atmos load every 5 s as `wg_atmos_load{measure, attended}`. The measures are grids,
+  tiles, active tiles, high-pressure tiles, excited groups, hotspots, devices, pipe nets and delta-pressure entities. A
+  grid counts as attended with a non-ghost player aboard or within 64 m. Wind searches and skips go to
+  `wg_atmos_wind_searches_total` and `wg_atmos_wind_skips_total`. The attended split sizes a slower atmos rate for
+  grids nobody is near (approved, not built yet).
+- AI ship steering was already throttled before this profile: a new input every other tick and an obstacle search every
+  third turn. An AI ship therefore reacts up to 2 ticks late to steering and up to 6 ticks late to a new obstacle. This
+  round adds no further delay.
+- Delta-pressure damage runs serially because `atmos.delta_pressure_parallel_batch_size` is 500: 1,000 entities a pass
+  is 2 batches, which ParallelManager runs inline. Whether 125 (parallel) is faster needs a live A/B. It is a cvar, so
+  no code change is needed.
+
+### Hiccup instruments (2026-11 WUFF batch)
+
+In 200 hiccup reports from 20-21 Nov, most tick drops were spent in the engine's EntityNet stage, which handles
+client messages, and 23 were whole-process freezes with no readings at all. These two systems name the cause next time.
+
+- `WGNetDispatchWatchSystem` times every client message by type and exports `wg_net_dispatch_seconds{type}`. A BUI
+  message is named by the message inside it (`BUI ShuttleConsoleFTLRequestMessage`), an input by its key function
+  (`Input Use`). A message whose handlers take `wg.net.slow_message_ms` (25) or more is logged with its sender and
+  target, and `wg.slow_tick_ms` lines name the tick's slowest message. It hooks the engine's
+  `ReceivedSystemMessage`, which fires after each message's two raises, so a message is timed from the end of the one
+  before it (`WGDispatchClock`). The first message of a tick is charged what the EntityNet stage took less the rest.
+  `wg.net.dispatch_watch false` unhooks it.
+- `WGGcWatchSystem` logs any gap between ticks of `wg.gc.stall_warn_seconds` (2) or more with how much of it was GC
+  pause, and GC pauses of `wg.gc.pause_warn_ms` (500) or more in a second. It exports `wg_gc_heap_bytes{part}`
+  (gen0, gen1, gen2, loh, poh, heap, fragmented, committed) every 5 s and `wg_gc_pause_seconds_total`, so heap growth
+  can be told apart from native memory.
+
+### Client messages that did too much (same batch)
+
+- Laser-pointer guns (`WGAimThrottle`) sent their aim every tick for every held pointer, wielded or not, and each one
+  dirtied the one component that carries every pointer's line to every player. The client now sends a wielded pointer's
+  aim when its target changes, it turns 2° or the holder moves 10 cm, at most 10 times a second, and every 0.25 s
+  while it holds still (the server falls back to the holder's facing after 0.5 s). The server takes at most 20 a
+  second per pointer, and a line that moved under 5 cm isn't sent again.
+- The ghost orbit list is built once per `wg.ghost.orbit_share_seconds` (2) for ordinary ghosts and once for admins,
+  and each asker gets it without themselves (`GhostOrbitSystem.SharedTargets`). Each build walks every mob in the
+  world, and every open menu asks every 5 s. Tests run it at 0.
+- A fire-control console's state is rebuilt at most 4 times a second for fire messages, which the cursor sends 10
+  times a second; one held back follows when the interval is up (`FireControlSystem.WGFireUi`). Its refresh message,
+  which walks every weapon in the world, runs once a second per console.
+- Radar hitscan lines go to a radar when any part of the line passes within range (`RadarBlipSystem.WGLineInReach`).
+  The upstream test dropped lines that ended in range and sent every line far from it. Missile arcs go only with
+  missiles whose blips the radar is sent.
+- A shipyard console shows a hull appraisal up to 15 s old (`ShipyardSystem.WGShownAppraisal`) instead of pricing every
+  entity aboard on open and on each ID change; the sale itself still appraises afresh.
+- `WGGridFileReader` reads and parses a grid file on the thread pool and loads the parsed data on the main thread, as
+  planet sites already did. A staged encounter hull now loads this way, waiting a few ticks for the parse instead of
+  doing it in one. Contract wrecks still load in one go; round-setup ships are parsed when their leader picks them (see
+  the RoundSetup README).
+- Buying a ship takes two steps (`wg.shipyard.async_purchase`, on; tests run it off). A shipyard console's purchase
+  starts its hull's parse, says the ship is being prepared and returns; once the parse is done
+  (`ShipyardSystem.WGFinishPurchases`), the same purchase runs again from the top, so the card, access, funds and voucher
+  are checked on the state then, and the hull loads from the parsed data (`WGLoadHull`). A second order at the console
+  meanwhile is refused. The used ship lot does the same (`TraderUsedShipsSystem.WGDeferBuy`), unpacking and parsing a
+  listing's saved YAML on a worker (`UsedShipListing.ParseAsync`). Nothing is charged until the hull has loaded.
+
+### Single-tick spikes (same batch)
+
+- Wolfmed infection ran every infected wound, part and septic body on the server on one tick every 5 s, which reached
+  the top p99 bucket (17 ms or more) in 16 of the 200 reports. It now files the work by body and runs each body on its
+  own tick of the window, corpses and loose limbs every 30 s; see the Wolfmed README. Condition emotes check each body
+  on its own tick of their 8 s interval.
+- Round setup sends a broadcast's viewer snapshots at most 12 a tick instead of all at once (`WGRoundSetupSystem`).
+- Bullet-sized explosions (`WGProcessMicroExplosions`) count against the same per-tick explosion budget as full ones;
+  they ran before its stopwatch started, so a tick could spend both budgets.
+- Pickup magnets reuse one lookup set, and a magnet over a pile of 64 or more things it can take none of looks again in
+  5 s instead of 1 (`MagnetPickupSystem`). One that took something keeps its one-second scan.
+- Hull fragments shed in a break-up are judged at most 4 ms a tick (`WGFragmentCleanupSystem`); the rest wait.
+- The station job list goes to every player at most once a second (`StationJobsSystem`).
+- A ship asked about for the first time is read from one survey per tick (`WGCrewShipStatusSystem.SurveyThisTick`),
+  not from four walks of every weapon, thruster and crewman each, so a fleet arriving costs one survey. Watched ships
+  were already read from the one-second survey.
+- Encounter judging indexes the living crew once (`WGEncounterSystem.IndexCrew`) and reads it for every ship's
+  `HasLivingCrew` and `HasLivingEngineer`, which judging asks several times a ship. The index is used only inside
+  `Judge` and rebuilt after an encounter resolves; everywhere else those still walk the crew as before.
+
+### Memory that grew all round (same batch)
+
+Process memory climbed about 1.4 GB an hour, 23 GB to 51 GB over one 20 h round, with the entity count flat.
+
+- A round keeps at most `wg.admin_logs.cache_max` (250,000) admin logs in memory. Past it the round's cache is dropped
+  and its searches go to the database, which has every log (`AdminLogManager.WGCacheCap`); before, every log of the
+  round stayed in memory, three rounds deep.
+- Built planet navmesh chunks nobody has been near for `wg.pathfinding.evict_idle_seconds` (300) are freed and left to
+  build again on demand; see the Planets README. `wg_pathfinding_planet_chunks` counts what is built.
+- The photo store keeps about 256 images in memory, letting the oldest go once held two minutes and saved, to be read
+  from the database again when asked for (`PhotoStoreSystem.Hold`). It is a soft cap: images younger than that or
+  not yet written stay past it.
+
 <!-- WOLFGATE-GENERATED START -->
 <!-- Generated by python Tools/_WG/Ci/modules.py --write. Don't edit by hand. -->
 
@@ -76,26 +187,41 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 
 ### Server
 
+- [`Content.Server/_WG/Performance/AdminLogManager.WGCacheCap.cs`](AdminLogManager.WGCacheCap.cs)
 - [`Content.Server/_WG/Performance/AtmosAlertsComputerSystem.WGBuckets.cs`](AtmosAlertsComputerSystem.WGBuckets.cs)
 - [`Content.Server/_WG/Performance/AtmosphereSystem.WGBreachLoop.cs`](AtmosphereSystem.WGBreachLoop.cs)
+- [`Content.Server/_WG/Performance/AtmosphereSystem.WGGauges.cs`](AtmosphereSystem.WGGauges.cs)
+- [`Content.Server/_WG/Performance/AtmosphereSystem.WGGridCache.cs`](AtmosphereSystem.WGGridCache.cs)
 - [`Content.Server/_WG/Performance/AtmosphereSystem.WGMonstermosLimit.cs`](AtmosphereSystem.WGMonstermosLimit.cs)
+- [`Content.Server/_WG/Performance/AtmosphereSystem.WGWind.cs`](AtmosphereSystem.WGWind.cs)
 - [`Content.Server/_WG/Performance/CEZLevelsSystem.WGGroundSample.cs`](CEZLevelsSystem.WGGroundSample.cs)
 - [`Content.Server/_WG/Performance/DockingSystem.WGPlacement.cs`](DockingSystem.WGPlacement.cs)
 - [`Content.Server/_WG/Performance/EntityRadiusHeaterSystem.WGSpread.cs`](EntityRadiusHeaterSystem.WGSpread.cs)
+- [`Content.Server/_WG/Performance/FireControlSystem.WGFireUi.cs`](FireControlSystem.WGFireUi.cs)
 - [`Content.Server/_WG/Performance/GCQueuePrototype.WGMinAge.cs`](GCQueuePrototype.WGMinAge.cs)
 - [`Content.Server/_WG/Performance/GCQueueSystem.WGMinAge.cs`](GCQueueSystem.WGMinAge.cs)
 - [`Content.Server/_WG/Performance/IgnitionSourceSystem.WGLit.cs`](IgnitionSourceSystem.WGLit.cs)
 - [`Content.Server/_WG/Performance/LocalityLoaderSystem.WGDespawn.cs`](LocalityLoaderSystem.WGDespawn.cs)
+- [`Content.Server/_WG/Performance/MoverController.WGParking.cs`](MoverController.WGParking.cs)
 - [`Content.Server/_WG/Performance/NavMapSystem.WGPlanetLayers.cs`](NavMapSystem.WGPlanetLayers.cs)
 - [`Content.Server/_WG/Performance/NavMapSystem.WGRemoved.cs`](NavMapSystem.WGRemoved.cs)
 - [`Content.Server/_WG/Performance/RadarBlipSystem.WGCache.cs`](RadarBlipSystem.WGCache.cs)
 - [`Content.Server/_WG/Performance/ShipSteererComponent.WGStagger.cs`](ShipSteererComponent.WGStagger.cs)
+- [`Content.Server/_WG/Performance/ShipyardSystem.WGAppraisal.cs`](ShipyardSystem.WGAppraisal.cs)
+- [`Content.Server/_WG/Performance/ShipyardSystem.WGAsyncPurchase.cs`](ShipyardSystem.WGAsyncPurchase.cs)
 - [`Content.Server/_WG/Performance/ShuttleConsoleSystem.WGDocks.cs`](ShuttleConsoleSystem.WGDocks.cs)
 - [`Content.Server/_WG/Performance/SimpleFloorPlanPopulatorSystem.WGBudget.cs`](SimpleFloorPlanPopulatorSystem.WGBudget.cs)
 - [`Content.Server/_WG/Performance/WGAsteroidCullSystem.cs`](WGAsteroidCullSystem.cs)
+- [`Content.Server/_WG/Performance/WGAtmosGaugeSystem.cs`](WGAtmosGaugeSystem.cs)
+- [`Content.Server/_WG/Performance/WGDispatchClock.cs`](WGDispatchClock.cs)
 - [`Content.Server/_WG/Performance/WGDockIndexSystem.cs`](WGDockIndexSystem.cs)
+- [`Content.Server/_WG/Performance/WGGcClock.cs`](WGGcClock.cs)
+- [`Content.Server/_WG/Performance/WGGcWatchSystem.cs`](WGGcWatchSystem.cs)
 - [`Content.Server/_WG/Performance/WGGridDeleteSystem.cs`](WGGridDeleteSystem.cs)
 - [`Content.Server/_WG/Performance/WGGridDeleteWatchSystem.cs`](WGGridDeleteWatchSystem.cs)
+- [`Content.Server/_WG/Performance/WGGridFileReader.cs`](WGGridFileReader.cs)
+- [`Content.Server/_WG/Performance/WGNetDispatchWatchSystem.cs`](WGNetDispatchWatchSystem.cs)
+- [`Content.Server/_WG/Performance/WGParkedMoverComponent.cs`](WGParkedMoverComponent.cs)
 - [`Content.Server/_WG/Performance/WGRequestCap.cs`](WGRequestCap.cs)
 - [`Content.Server/_WG/Performance/WGSerializerWarmupSystem.cs`](WGSerializerWarmupSystem.cs)
 - [`Content.Server/_WG/Performance/WorldControllerSystem.WGIdleHelms.cs`](WorldControllerSystem.WGIdleHelms.cs)
@@ -109,6 +235,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Shared/_WG/Performance/SharedGravitySystem.WGRefresh.cs`](../../../Content.Shared/_WG/Performance/SharedGravitySystem.WGRefresh.cs)
 - [`Content.Shared/_WG/Performance/SharedMoverController.WGAroundCollider.cs`](../../../Content.Shared/_WG/Performance/SharedMoverController.WGAroundCollider.cs)
 - [`Content.Shared/_WG/Performance/SharedRoofSystem.WGDelta.cs`](../../../Content.Shared/_WG/Performance/SharedRoofSystem.WGDelta.cs)
+- [`Content.Shared/_WG/Performance/WGAimThrottle.cs`](../../../Content.Shared/_WG/Performance/WGAimThrottle.cs)
 - [`Content.Shared/_WG/Performance/WGAsteroidFieldComponent.cs`](../../../Content.Shared/_WG/Performance/WGAsteroidFieldComponent.cs)
 - [`Content.Shared/_WG/Performance/WGBlipRemovalBatchEvent.cs`](../../../Content.Shared/_WG/Performance/WGBlipRemovalBatchEvent.cs)
 - [`Content.Shared/_WG/Performance/WGCollectionExtensions.cs`](../../../Content.Shared/_WG/Performance/WGCollectionExtensions.cs)
@@ -120,6 +247,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 
 ### Client
 
+- [`Content.Client/_WG/Performance/LaserPointerSystem.WGAim.cs`](../../../Content.Client/_WG/Performance/LaserPointerSystem.WGAim.cs)
 - [`Content.Client/_WG/Performance/RadarBlipsSystem.WGRemovalBatch.cs`](../../../Content.Client/_WG/Performance/RadarBlipsSystem.WGRemovalBatch.cs)
 - [`Content.Client/_WG/Performance/ShuttleNavControl.WGAsteroidFields.cs`](../../../Content.Client/_WG/Performance/ShuttleNavControl.WGAsteroidFields.cs)
 - [`Content.Client/_WG/Performance/WGAsteroidFieldSystem.cs`](../../../Content.Client/_WG/Performance/WGAsteroidFieldSystem.cs)
@@ -129,20 +257,26 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 
 - [`Content.IntegrationTests/Tests/_WG/Performance/GridDeleteTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/GridDeleteTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/NavMapPlanetLayerTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/NavMapPlanetLayerTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/Performance/WGAdminLogCacheCapTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGAdminLogCacheCapTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGAngularThrustIdleTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGAngularThrustIdleTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGAroundColliderTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGAroundColliderTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGAsteroidCullTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGAsteroidCullTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/Performance/WGAtmosWorkCutTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGAtmosWorkCutTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGBottomlessRegenTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGBottomlessRegenTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGBreachLoopTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGBreachLoopTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGDeletedRefStateTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGDeletedRefStateTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGFlammableDebrisTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGFlammableDebrisTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGGravityRefreshTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGGravityRefreshTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGGridDeleteWatchTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGGridDeleteWatchTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/Performance/WGGridFileReaderTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGGridFileReaderTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGGroundSampleTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGGroundSampleTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGIgnitionLitTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGIgnitionLitTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/Performance/WGMoverParkingTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGMoverParkingTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGNavMapDeltaTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGNavMapDeltaTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGNavMapTrimTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGNavMapTrimTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/Performance/WGNetDispatchWatchTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGNetDispatchWatchTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGPreferencesRefreshTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGPreferencesRefreshTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/Performance/WGRadarRebuildTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGRadarRebuildTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGRadarRequestTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGRadarRequestTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGRadiusHeaterTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGRadiusHeaterTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGRoofDeltaTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGRoofDeltaTest.cs)
@@ -152,6 +286,10 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 
 ### Unit tests
 
+- [`Content.Tests/_WG/Performance/WGAimThrottleTest.cs`](../../../Content.Tests/_WG/Performance/WGAimThrottleTest.cs)
+- [`Content.Tests/_WG/Performance/WGDispatchClockTest.cs`](../../../Content.Tests/_WG/Performance/WGDispatchClockTest.cs)
+- [`Content.Tests/_WG/Performance/WGGcWatchTest.cs`](../../../Content.Tests/_WG/Performance/WGGcWatchTest.cs)
+- [`Content.Tests/_WG/Performance/WGRadarLineTest.cs`](../../../Content.Tests/_WG/Performance/WGRadarLineTest.cs)
 - [`Content.Tests/_WG/Performance/WGRequestCapTest.cs`](../../../Content.Tests/_WG/Performance/WGRequestCapTest.cs)
 - [`Content.Tests/_WG/Performance/WGTickBucketsTest.cs`](../../../Content.Tests/_WG/Performance/WGTickBucketsTest.cs)
 - [`Content.Tests/_WG/Performance/WGTickSpreadTest.cs`](../../../Content.Tests/_WG/Performance/WGTickSpreadTest.cs)
@@ -174,6 +312,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - the raised list and the lookups that replace the all-entity query
   - walk only raised entities; one that has landed leaves the list
   - removed after the walk, which can't change the set it enumerates
+- [`Content.Client/_Goobstation/Weapons/LaserPointer/LaserPointerSystem.cs`](../../../Content.Client/_Goobstation/Weapons/LaserPointer/LaserPointerSystem.cs): a wielded pointer's aim is sent when it changes, at most 10 times a second
 - [`Content.Client/_Mono/Radar/RadarBlipsSystem.cs`](../../../Content.Client/_Mono/Radar/RadarBlipsSystem.cs)
   - blips arrived at 2 Hz, so a curving missile lurched between straight-line guesses.
   - lookups and colours for the missile lines, which are rebuilt on every draw frame
@@ -189,6 +328,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - this divided by a zero interval and drew the sweep to a NaN point every frame
   - distant rocks from their field lists
 - [`Content.Client/Weapons/Ranged/Systems/GunSystem.cs`](../../../Content.Client/Weapons/Ranged/Systems/GunSystem.cs): wizden#36641, was EntityUid
+- [`Content.IntegrationTests/PoolManager.Cvars.cs`](../../../Content.IntegrationTests/PoolManager.Cvars.cs): purchase tests check the ship the moment they buy it
 - [`Content.IntegrationTests/Tests/Gravity/WeightlessStatusTests.cs`](../../../Content.IntegrationTests/Tests/Gravity/WeightlessStatusTests.cs)
   - weightlessness now refreshes half a second after gravity changes
   - batched weightlessness refresh
@@ -222,10 +362,15 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - throttle for Update
   - drones read once per pass
   - throttled to 2 Hz, drones read once per pass, and only drones on the grid's own map count
+- [`Content.Server/_Mono/FireControl/FireControlSystem.Console.cs`](../../_Mono/FireControl/FireControlSystem.Console.cs)
+  - drop the console's fire-message throttle
+  - a console's refresh walks every weapon in the world; once a second
+  - the cursor sends this 10 times a second; the state is rebuilt at most 4
 - [`Content.Server/_Mono/FireControl/FireControlSystem.cs`](../../_Mono/FireControl/FireControlSystem.cs)
   - only the weapon's own grid can block, so the ray ends where it does
   - no .ToList(), the result is only tested for emptiness
   - was raycastResults.Count == 0
+- [`Content.Server/_Mono/FireControl/FireControlSystem.TargetGuided.cs`](../../_Mono/FireControl/FireControlSystem.TargetGuided.cs): send console states the fire-message throttle held back
 - [`Content.Server/_Mono/Fuel/MaterialFuelSystem.cs`](../../_Mono/Fuel/MaterialFuelSystem.cs): was return, which skipped every later burning fuel entity
 - [`Content.Server/_Mono/NPC/HTN/ShipSteeringSystem.cs`](../../_Mono/NPC/HTN/ShipSteeringSystem.cs)
   - how often steering works out a new input
@@ -249,15 +394,23 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - computed and range-tested above
   - see above
 - [`Content.Server/_Mono/Radar/RadarBlipSystem.cs`](../../_Mono/Radar/RadarBlipSystem.cs)
+  - new blips join the cached squares before the next sort
   - removals go only to sessions that asked recently
   - the server caps how often it answers one player; the client's throttle is not enforced
   - send removals only to recent radar users, none during round cleanup
+  - missile arcs go only with blips this radar is sent
   - radars share one walk of the blips per tick and skip the squares out of reach
+  - source positions are taken once, not twice per hitscan
+  - source positions are taken once, and only lines passing within range are sent
 - [`Content.Server/_Mono/Ships/Systems/ShuttleRestrictionsSystem.cs`](../../_Mono/Ships/Systems/ShuttleRestrictionsSystem.cs): integer division made this 0 or 1, so the 0.5 threshold needed every console powered
 - [`Content.Server/_Mono/Temperature/Systems/EntityRadiusHeaterSystem.cs`](../../_Mono/Temperature/Systems/EntityRadiusHeaterSystem.cs)
   - each heater takes its own tick of the second, not all on one
   - what a fire warms is loose; skipping anchored and stored things skips the trees round a planet's fires
   - each heater takes its own tick
+- [`Content.Server/_NF/Shipyard/Systems/ShipyardSystem.Consoles.cs`](../../_NF/Shipyard/Systems/ShipyardSystem.Consoles.cs)
+  - the hull's file is parsed off the main thread first; the purchase runs again once it is
+  - the console shows an appraisal up to 15 s old; the sale itself appraises afresh
+- [`Content.Server/_NF/Shipyard/Systems/ShipyardSystem.cs`](../../_NF/Shipyard/Systems/ShipyardSystem.cs): a purchase that waited for its hull's parse loads the parsed data
 - [`Content.Server/_NF/StationEvents/Events/BluespaceErrorRule.cs`](../../_NF/StationEvents/Events/BluespaceErrorRule.cs)
   - frontier#4800 extended, appraise at spawn only for the currency injection
   - frontier#4800, skip the end appraisal when nothing uses the value
@@ -265,6 +418,11 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - the failed-organ scan runs four times a second, not every tick
   - an organ that just failed is handled next tick, not at the next timed scan
 - [`Content.Server/_Onyx/Wounds/WoundBleedingSystem.cs`](../../_Onyx/Wounds/WoundBleedingSystem.cs): clotting deadlines are checked four times a second, not every tick
+- [`Content.Server/Administration/Logs/AdminLogManager.Cache.cs`](../../Administration/Logs/AdminLogManager.Cache.cs)
+  - forget dropped rounds that left the cache queue
+  - a round past the cache cap is searched in the database
+  - drop the round's cache past wg.admin_logs.cache_max
+  - a round whose cache was dropped at the cap is read from the database
 - [`Content.Server/Anomaly/AnomalySystem.Generator.cs`](../../Anomaly/AnomalySystem.Generator.cs): wizden#41390, was IsTileAirBlocked
 - [`Content.Server/Atmos/Consoles/AtmosAlertsComputerSystem.cs`](../../Atmos/Consoles/AtmosAlertsComputerSystem.cs)
   - off the tick other one-second systems start on
@@ -278,12 +436,17 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - wizden#41390, cached airtight check
   - wizden#38974, tell the atmos monitor a pipe net is gone
   - wizden#38974, pipe net removal event
+- [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.cs`](../../Atmos/EntitySystems/AtmosphereSystem.cs): an unpaused grid rejoins the cached grid atmosphere list
+- [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.CVars.cs`](../../Atmos/EntitySystems/AtmosphereSystem.CVars.cs): skip wind searches too weak to push
 - [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.DeltaPressure.cs`](../../Atmos/EntitySystems/AtmosphereSystem.DeltaPressure.cs)
   - fixed-size tile buffer for ProcessDeltaPressureEntity
   - skip the shared RNG when the chance is certain (also thread-safe)
   - stack buffer instead of a per-entity array allocation
   - span so callers can use a stack buffer
-- [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.HighPressureDelta.cs`](../../Atmos/EntitySystems/AtmosphereSystem.HighPressureDelta.cs): a crowded tile left the set huge and slowed every clear
+- [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.GridAtmosphere.cs`](../../Atmos/EntitySystems/AtmosphereSystem.GridAtmosphere.cs): rebuild the cached grid atmosphere list
+- [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.HighPressureDelta.cs`](../../Atmos/EntitySystems/AtmosphereSystem.HighPressureDelta.cs)
+  - wind below the throw force moves nothing, so skip the search
+  - a crowded tile left the set huge and slowed every clear
 - [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.Hotspot.cs`](../../Atmos/EntitySystems/AtmosphereSystem.Hotspot.cs): a crowded tile left the set huge and slowed every clear
 - [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.Monstermos.cs`](../../Atmos/EntitySystems/AtmosphereSystem.Monstermos.cs)
   - without space nothing past the equalize limit is ever used, so stop the search there
@@ -291,6 +454,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - a room refilling into a hole vents from the same tile forever; let it leak quietly
   - used range for the cleanup below
   - clear only the range this run used
+- [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.Processing.cs`](../../Atmos/EntitySystems/AtmosphereSystem.Processing.cs): reuse the grid atmosphere list instead of walking every grid each tick
 - [`Content.Server/Atmos/EntitySystems/AutomaticAtmosSystem.cs`](../../Atmos/EntitySystems/AutomaticAtmosSystem.cs): unclaimed wrecks never need an atmosphere
 - [`Content.Server/Atmos/EntitySystems/FlammableSystem.cs`](../../Atmos/EntitySystems/FlammableSystem.cs)
   - double buffer, so fire events queued while igniting cannot break the loop
@@ -301,7 +465,11 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Server/Atmos/EntitySystems/GasTileOverlaySystem.cs`](../../Atmos/EntitySystems/GasTileOverlaySystem.cs): don't send empty chunk lists
 - [`Content.Server/Atmos/EntitySystems/HeatExchangerSystem.cs`](../../Atmos/EntitySystems/HeatExchangerSystem.cs): wizden#41390, was IsTileAirBlocked
 - [`Content.Server/Chunking/ChunkingSystem.cs`](../../Chunking/ChunkingSystem.cs): mining rocks never hold decals or gas, and are only sent to players near them
-- [`Content.Server/Explosion/EntitySystems/ExplosionSystem.Processing.cs`](../../Explosion/EntitySystems/ExplosionSystem.Processing.cs): Debug, was Info; it logged every step of every explosion
+- [`Content.Server/Explosion/EntitySystems/ExplosionSystem.Processing.cs`](../../Explosion/EntitySystems/ExplosionSystem.Processing.cs)
+  - the bullet-sized blasts count against the same per-tick budget
+  - restarted above, before the bullet-sized blasts
+  - a heavy volley of small blasts still leaves full explosions half the budget
+  - Debug, was Info; it logged every step of every explosion
 - [`Content.Server/Explosion/EntitySystems/ExplosionSystem.Visuals.cs`](../../Explosion/EntitySystems/ExplosionSystem.Visuals.cs): sessions on the explosion's map instead of every client
 - [`Content.Server/Explosion/EntitySystems/ProjectileGrenadeSystem.cs`](../../Explosion/EntitySystems/ProjectileGrenadeSystem.cs): wizden#36641, the grenade is deleted so it can't be the gun; was uid, null
 - [`Content.Server/Fluids/EntitySystems/DrainSystem.cs`](../../Fluids/EntitySystems/DrainSystem.cs)
@@ -342,9 +510,11 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - idle-mover skip
   - movers skipped this tick for being asleep with no input
   - reused by HandleShuttleMovement
+  - idle movers leave the update list until woken
+  - woken movers rejoin before the walk
   - reset idle-skip counter
   - a sleeping, input-less, player-less mover has nothing to move
-  - idle movers skipped
+  - parks idle movers and sets the skipped gauge
   - two lists were allocated per shuttle per tick
   - Enum.GetValues allocated every tick per shuttle
 - [`Content.Server/Pinpointer/NavMapSystem.cs`](../../Pinpointer/NavMapSystem.cs)
@@ -392,6 +562,9 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - empty queues for a grid that just got its first spreader; no scan, so spreaders still waiting for MapInit are not queued twice
   - queue spreaders deferred from the previous pass
   - adding a SpreaderGrid mid-query is unsafe, so defer spreaders moving to a grid without one
+- [`Content.Server/Station/Systems/StationJobsSystem.cs`](../../Station/Systems/StationJobsSystem.cs)
+  - seconds until the job list may go out again
+  - the job list goes to every player at most once a second
 - [`Content.Server/Weapons/Ranged/Systems/GunSystem.AutoFire.cs`](../../Weapons/Ranged/Systems/GunSystem.AutoFire.cs)
   - guns mid-burst, filled from OnBurstActivated
   - only visit bursting guns and auto-shoot guns, not every GunComponent
@@ -439,6 +612,9 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - reused by GetWallContacts
   - pooled copy, WallCollides removes from the set while we walk it
 - [`Content.Shared/_Goobstation/Factory/RoboticArmSystem.cs`](../../../Content.Shared/_Goobstation/Factory/RoboticArmSystem.cs): the check was inverted, so the arms never ran
+- [`Content.Shared/_Goobstation/Weapons/SmartGun/SharedLaserPointerSystem.cs`](../../../Content.Shared/_Goobstation/Weapons/SmartGun/SharedLaserPointerSystem.cs)
+  - one pointer's aim is taken at most 20 times a second, however often a client sends it
+  - a line that hasn't moved isn't sent to every client again
 - [`Content.Shared/_Mono/CloakHeat/Systems/CloakHeatSystem.cs`](../../../Content.Shared/_Mono/CloakHeat/Systems/CloakHeatSystem.cs)
   - only dirty when the networked state changes
   - skip the dirty when nothing networked changed
@@ -487,7 +663,11 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - was AutoGenerateComponentState; WGDeletedRefStateSystem sends Grids, whose entries can be deleted first
   - networked by WGDeletedRefStateSystem
 - [`Content.Shared/StationRecords/SharedStationRecordsSystem.cs`](../../../Content.Shared/StationRecords/SharedStationRecordsSystem.cs): a deleted station goes out as invalid, without logging an error on a PVS thread
-- [`Content.Shared/Storage/EntitySystems/MagnetPickupSystem.cs`](../../../Content.Shared/Storage/EntitySystems/MagnetPickupSystem.cs): finding what's due walks every magnet; NextScan keeps the rate
+- [`Content.Shared/Storage/EntitySystems/MagnetPickupSystem.cs`](../../../Content.Shared/Storage/EntitySystems/MagnetPickupSystem.cs)
+  - a magnet over a pile it can take nothing from looked at the whole pile every second
+  - finding what's due walks every magnet; NextScan keeps the rate
+  - one set reused for every magnet, and a big pile it can take none of waits 5 s
+  - a magnet that took something from a big pile keeps its one-second scan
 - [`Content.Shared/Storage/EntitySystems/MaterialStorageMagnetPickupSystem.cs`](../../../Content.Shared/Storage/EntitySystems/MaterialStorageMagnetPickupSystem.cs): finding what's due walks every magnet; NextScan keeps the rate
 - [`Content.Shared/Stunnable/SharedStunSystem.cs`](../../../Content.Shared/Stunnable/SharedStunSystem.cs): only viewers of the body need it
 - [`Content.Shared/Weapons/Melee/SharedMeleeWeaponSystem.cs`](../../../Content.Shared/Weapons/Melee/SharedMeleeWeaponSystem.cs): a target can be deleted before the swing arrives

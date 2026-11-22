@@ -84,6 +84,17 @@ binds:
 - function: WGToggleLandingGuide
   type: State
   key: J
+# WOLFGATE(ShipModules) START: ship module hotkeys while piloting
+- function: WGShipModuleFirst
+  type: State
+  key: Z
+- function: WGShipModuleSecond
+  type: State
+  key: X
+- function: WGShipModuleThird
+  type: State
+  key: C
+# WOLFGATE END
 - function: CameraRotateLeft
   type: State
   key: NumpadNum7
@@ -509,6 +520,12 @@ binds:
 - function: OpenAdminMenu
   type: State
   key: F7
+# WOLFGATE(AdminObserver) START: admin ghost and back to body, SS13's aghost key
+- function: WGToggleAghost
+  type: State
+  key: F5
+  mod1: Shift
+# WOLFGATE END
 - function: OpenDecalSpawnWindow
   type: State
   key: F8
