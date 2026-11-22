@@ -20,6 +20,16 @@ public sealed partial class WGSkullComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public bool Staff;
+
+    /// <summary>
+    /// A mark the character carries for life, from <see cref="WGMarkedTraitComponent"/>: it never runs out and outlasts
+    /// death. Only staff can clear it. <see cref="ExpiresAt"/> stays null.
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public bool Permanent;
+
+    /// <summary>Whether the mark never runs out on its own: a standing or a permanent one.</summary>
+    public bool Lasting => Staff || Permanent;
 }
 
 /// <summary>A ship or person in a Wilderness and not yet marked: when they came in.</summary>

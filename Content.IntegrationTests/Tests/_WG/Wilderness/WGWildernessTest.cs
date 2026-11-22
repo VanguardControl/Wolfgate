@@ -17,6 +17,7 @@ using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Players;
 using Content.Shared.Shuttles.Components;
+using Content.Shared.Traits;
 using Content.Shared.Weapons.Ranged;
 using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Shared.Configuration;
@@ -24,6 +25,7 @@ using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.IntegrationTests.Tests._WG.Wilderness;
@@ -32,6 +34,8 @@ namespace Content.IntegrationTests.Tests._WG.Wilderness;
 [TestFixture]
 public sealed class WGWildernessTest
 {
+    private static readonly ProtoId<TraitPrototype> MarkedForLife = "WGMarkedForLife";
+
     private static EntityUid Grid(IEntityManager em, MapId map, Tile tile, Vector2 at)
     {
         var grid = em.System<SharedMapSystem>().CreateGridEntity(map);
@@ -502,6 +506,53 @@ public sealed class WGWildernessTest
             Assert.That(em.GetComponent<WGSkullComponent>(kept).Staff, Is.True);
             zones.StaffClear(kept, out _);
             Assert.That(em.HasComponent<WGSkullComponent>(kept), Is.False, "staff couldn't clear a standing mark.");
+            Reset(cfg);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task TheMarkedForLifeTraitMarksForGoodUntilStaffClearIt()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = false });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var cfg = server.ResolveDependency<IConfigurationManager>();
+        var protos = server.ResolveDependency<IPrototypeManager>();
+        var map = await pair.CreateTestMap();
+        var zones = server.System<WGZoneSystem>();
+        EntityUid mob = default;
+
+        await server.WaitPost(() =>
+        {
+            cfg.SetCVar(WildernessCVars.SkullMinutes, 0.05f);
+            var trait = protos.Index(MarkedForLife);
+            Assert.That(trait.Cost, Is.Zero, "Marked for Life should cost and give no points.");
+
+            mob = Crewman(em, Ship(em, map, new Vector2(2000f, 0f)));
+            // As the trait system adds its components, after the body has spawned.
+            em.AddComponents(mob, trait.Components, false);
+            Assert.That(em.TryGetComponent<WGSkullComponent>(mob, out var skull) && skull.Permanent, Is.True,
+                "the trait didn't mark the body when it was added.");
+
+            zones.StaffMark(mob, standing: true);
+            zones.Mark(mob);
+        });
+        await pair.RunSeconds(6f);
+
+        await server.WaitAssertion(() =>
+        {
+            var skull = em.GetComponent<WGSkullComponent>(mob);
+            Assert.That(skull.Permanent && skull.ExpiresAt == null && !skull.Staff, Is.True,
+                "a permanent mark ran down, or another mark replaced it.");
+
+            server.System<MobStateSystem>().ChangeMobState(mob, MobState.Dead);
+            Assert.That(em.HasComponent<WGSkullComponent>(mob), Is.True, "a permanent mark ended with death.");
+
+            zones.StaffClear(mob, out _);
+            Assert.That(em.HasComponent<WGSkullComponent>(mob), Is.False, "staff couldn't clear a permanent mark.");
+            Assert.That(em.HasComponent<WGMarkedTraitComponent>(mob), Is.False, "clearing left the trait to mark the body again.");
             Reset(cfg);
         });
 

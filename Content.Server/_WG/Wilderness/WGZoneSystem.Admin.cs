@@ -34,7 +34,7 @@ public sealed partial class WGZoneSystem
         SubscribeLocalEvent<WGSkullComponent, MobStateChangedEvent>(OnMobStateChanged);
     }
 
-    /// <summary>A standing mark ends when its person dies.</summary>
+    /// <summary>A standing mark ends when its person dies; a permanent one outlasts death.</summary>
     private void OnMobStateChanged(Entity<WGSkullComponent> ent, ref MobStateChangedEvent args)
     {
         if (!ent.Comp.Staff || args.NewMobState != MobState.Dead)
@@ -66,7 +66,7 @@ public sealed partial class WGZoneSystem
         if (skull == null)
             AddVerb(args, admin, carrier, "wg-zone-verb-mark" + suffix, () => StaffMarkText(carrier, false));
 
-        if (skull is not { Staff: true })
+        if (skull is not { Lasting: true })
             AddVerb(args, admin, carrier, "wg-zone-verb-standing" + suffix, () => StaffMarkText(carrier, true));
 
         if (skull != null)
@@ -95,6 +95,9 @@ public sealed partial class WGZoneSystem
     /// <summary>Marks a ship or person for staff, an ordinary mark or a standing one, and tells them.</summary>
     public void StaffMark(EntityUid carrier, bool standing = false)
     {
+        if (CompOrNull<WGSkullComponent>(carrier) is { Permanent: true })
+            return;
+
         if (standing)
             MarkStanding(carrier);
         else
@@ -105,7 +108,7 @@ public sealed partial class WGZoneSystem
 
     /// <summary>
     /// Clears the mark on a ship or person for staff, and on whoever shares it: the ship's pilots, or the ship a pilot
-    /// flies, which would pass it straight back otherwise. A partner's standing mark is kept, and named in
+    /// flies, which would pass it straight back otherwise. A partner's standing or permanent mark is kept, and named in
     /// <paramref name="kept"/>. Returns everyone cleared.
     /// </summary>
     public List<EntityUid> StaffClear(EntityUid carrier, out List<EntityUid> kept)
@@ -127,7 +130,7 @@ public sealed partial class WGZoneSystem
             if (partner is not { } other)
                 continue;
 
-            if (CompOrNull<WGSkullComponent>(other) is { Staff: true })
+            if (CompOrNull<WGSkullComponent>(other) is { Lasting: true })
                 kept.Add(other);
             else
                 cleared.Add(other);
@@ -135,6 +138,8 @@ public sealed partial class WGZoneSystem
 
         foreach (var uid in cleared)
         {
+            // Clearing a Marked for Life character takes the trait off this body too.
+            RemComp<WGMarkedTraitComponent>(uid);
             RemComp<WGWildernessDwellComponent>(uid);
             if (RemComp<WGSkullComponent>(uid))
                 TellAboard(uid, "wg-zone-skull-staff-cleared");
@@ -143,9 +148,12 @@ public sealed partial class WGZoneSystem
         return cleared;
     }
 
-    /// <summary>Marks for staff and says so, for the admin's result line.</summary>
+    /// <summary>Marks for staff and says so, for the admin's result line. A permanent mark is left as it is.</summary>
     public string StaffMarkText(EntityUid carrier, bool standing)
     {
+        if (CompOrNull<WGSkullComponent>(carrier) is { Permanent: true })
+            return Loc.GetString("cmd-wg_zone-permanent", ("carrier", ToPrettyString(carrier).ToString()));
+
         StaffMark(carrier, standing);
         return Loc.GetString(standing ? "cmd-wg_zone-standing" : "cmd-wg_zone-marked", ("carrier", ToPrettyString(carrier).ToString()));
     }

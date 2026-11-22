@@ -114,6 +114,9 @@ public sealed partial class WGZoneCommand : LocalizedEntityCommands
         if (!EntityManager.TryGetComponent<WGSkullComponent>(carrier, out var skull))
             return "-";
 
+        if (skull.Permanent)
+            return Loc.GetString("cmd-wg_zone-permanent-state");
+
         if (skull.Staff)
             return Loc.GetString("cmd-wg_zone-standing-state");
 

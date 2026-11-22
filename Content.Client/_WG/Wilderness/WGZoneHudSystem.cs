@@ -136,7 +136,7 @@ public sealed class WGZoneHudSystem : EntitySystem
 
         var marked = skull != null;
         var danger = Danger(zone, inZone, marked);
-        Announce(zone, inZone, marked, skull?.Staff == true, danger);
+        Announce(zone, inZone, marked, MarkedSub(skull), danger);
         UpdateBanner(zone, inZone, skull, dwell, ship, danger, frameTime);
         UpdateBorder(zone, marked);
         UpdateTitle(frameTime);
@@ -179,7 +179,7 @@ public sealed class WGZoneHudSystem : EntitySystem
     }
 
     /// <summary>The title and sound on crossing into or out of a zone, and on being marked, as the settings allow.</summary>
-    private void Announce(WGZonePrototype? zone, WGInZoneComponent? inZone, bool marked, bool standing, bool danger)
+    private void Announce(WGZonePrototype? zone, WGInZoneComponent? inZone, bool marked, string markedSub, bool danger)
     {
         var id = zone?.ID;
         var place = zone != null ? inZone?.Place : null;
@@ -197,7 +197,7 @@ public sealed class WGZoneHudSystem : EntitySystem
             if (Fresh("marked"))
             {
                 if (Allows(WildernessCVars.Titles, true))
-                    ShowTitle(Loc.GetString("wg-zone-title-marked"), Loc.GetString(MarkedSub(standing)), MarkColor);
+                    ShowTitle(Loc.GetString("wg-zone-title-marked"), Loc.GetString(markedSub), MarkColor);
                 if (Allows(WildernessCVars.Sounds, true))
                     Play(MarkedSound);
             }
@@ -236,10 +236,15 @@ public sealed class WGZoneHudSystem : EntitySystem
         _lastDanger = danger;
     }
 
-    /// <summary>The line under a MARKED title: until it runs out, or for a standing mark, until staff clear it.</summary>
-    private static string MarkedSub(bool standing)
+    /// <summary>The line under a MARKED title: until it runs out, until staff clear a standing mark, or for life.</summary>
+    private static string MarkedSub(WGSkullComponent? skull)
     {
-        return standing ? "wg-zone-title-marked-standing-sub" : "wg-zone-title-marked-sub";
+        return skull switch
+        {
+            { Permanent: true } => "wg-zone-title-marked-permanent-sub",
+            { Staff: true } => "wg-zone-title-marked-standing-sub",
+            _ => "wg-zone-title-marked-sub",
+        };
     }
 
     /// <summary>Whether this announcement is past its cooldown, and if so starts it again.</summary>
@@ -305,7 +310,12 @@ public sealed class WGZoneHudSystem : EntitySystem
         string? markDetail = null;
         if (skull != null)
         {
-            if (skull.Staff)
+            if (skull.Permanent)
+            {
+                mark = Loc.GetString("wg-zone-pill-marked-permanent");
+                markDetail = Loc.GetString("wg-zone-banner-marked-permanent");
+            }
+            else if (skull.Staff)
             {
                 mark = Loc.GetString("wg-zone-pill-marked-standing");
                 markDetail = Loc.GetString("wg-zone-banner-marked-standing", ("ship", shipArg));
@@ -349,7 +359,7 @@ public sealed class WGZoneHudSystem : EntitySystem
         else
         {
             banner.Set(MarkColor, _sprite.Frame0(MarkedIcon),
-                Loc.GetString("wg-zone-title-marked"), Loc.GetString(MarkedSub(skull?.Staff == true)), mark, markDetail, true);
+                Loc.GetString("wg-zone-title-marked"), Loc.GetString(MarkedSub(skull)), mark, markDetail, true);
         }
 
         banner.Visible = true;

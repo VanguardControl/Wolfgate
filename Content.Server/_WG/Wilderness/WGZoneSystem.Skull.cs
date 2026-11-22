@@ -35,6 +35,7 @@ public sealed partial class WGZoneSystem
         Subs.CVar(_cfg, WildernessCVars.DwellSeconds, value => _dwell = TimeSpan.FromSeconds(value), true);
         Subs.CVar(_cfg, WildernessCVars.SkullMinutes, value => _skullLength = TimeSpan.FromMinutes(value), true);
         Subs.CVar(_cfg, WildernessCVars.SkullOnFoot, value => _onFoot = value, true);
+        SubscribeLocalEvent<WGMarkedTraitComponent, MapInitEvent>(OnMarkedTraitInit);
         InitializeAttacks();
     }
 
@@ -120,10 +121,10 @@ public sealed partial class WGZoneSystem
         var skulls = EntityQueryEnumerator<WGSkullComponent>();
         while (skulls.MoveNext(out var uid, out var skull))
         {
-            if (skull.Staff)
+            if (skull.Lasting)
             {
-                // A standing mark never runs out; on a grid it ends once the grid is no longer a ship.
-                if (HasComp<MapGridComponent>(uid) && !IsShip(uid))
+                // A standing or permanent mark never runs out; a standing one on a grid ends once it is no longer a ship.
+                if (skull.Staff && HasComp<MapGridComponent>(uid) && !IsShip(uid))
                     _drop.Add(uid);
                 continue;
             }
@@ -209,15 +210,15 @@ public sealed partial class WGZoneSystem
                 Inherit(ship, pilotSkull.ExpiresAt, now);
             else if (shipSkull != null && pilotSkull == null)
                 Inherit(pilot, shipSkull.ExpiresAt, now);
-            else if (pilotSkull is { Staff: true } && shipSkull != null)
+            else if (pilotSkull is { Lasting: true } && shipSkull != null)
                 KeepFull(ship, shipSkull, now);
-            else if (shipSkull is { Staff: true } && pilotSkull != null)
+            else if (shipSkull is { Lasting: true } && pilotSkull != null)
                 KeepFull(pilot, pilotSkull, now);
         }
     }
 
     /// <summary>
-    /// Keeps a running mark full while it is shared with a standing one, so it runs out only after the pilot and ship
+    /// Keeps a running mark full while it is shared with a standing or permanent one, so it runs out only after the pilot and ship
     /// part, not again and again while they don't.
     /// </summary>
     private void KeepFull(EntityUid carrier, WGSkullComponent skull, TimeSpan now)
@@ -289,24 +290,50 @@ public sealed partial class WGZoneSystem
 
     /// <summary>
     /// Marks a ship or person now, as if they had stayed in a Wilderness. For admins and tests. A standing mark becomes
-    /// an ordinary one.
+    /// an ordinary one; a permanent one is left as it is.
     /// </summary>
     public void Mark(EntityUid carrier)
     {
         RemComp<WGWildernessDwellComponent>(carrier);
         var skull = EnsureComp<WGSkullComponent>(carrier);
+        if (skull.Permanent)
+            return;
+
         skull.ExpiresAt = _timing.CurTime + _skullLength;
         skull.Staff = false;
         Dirty(carrier, skull);
     }
 
-    /// <summary>Gives a ship or person a standing mark, which lasts until staff clear it or they die or are destroyed.</summary>
+    /// <summary>
+    /// Gives a ship or person a standing mark, which lasts until staff clear it or they die or are destroyed. A permanent
+    /// mark is left as it is.
+    /// </summary>
     public void MarkStanding(EntityUid carrier)
     {
         RemComp<WGWildernessDwellComponent>(carrier);
         var skull = EnsureComp<WGSkullComponent>(carrier);
+        if (skull.Permanent)
+            return;
+
         skull.ExpiresAt = null;
         skull.Staff = true;
         Dirty(carrier, skull);
+    }
+
+    /// <summary>Gives a person the permanent mark of the Marked for Life trait, which only staff can clear.</summary>
+    public void MarkPermanent(EntityUid carrier)
+    {
+        RemComp<WGWildernessDwellComponent>(carrier);
+        var skull = EnsureComp<WGSkullComponent>(carrier);
+        skull.ExpiresAt = null;
+        skull.Staff = false;
+        skull.Permanent = true;
+        Dirty(carrier, skull);
+    }
+
+    /// <summary>A body with the Marked for Life trait is marked from the moment it spawns.</summary>
+    private void OnMarkedTraitInit(Entity<WGMarkedTraitComponent> ent, ref MapInitEvent args)
+    {
+        MarkPermanent(ent);
     }
 }

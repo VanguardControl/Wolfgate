@@ -54,6 +54,11 @@ claimed wreck). A pilot and ship sharing one take an ordinary mark kept full whi
 usual once they part. Clearing the partner of a standing mark leaves the standing mark alone, so the partner is marked
 again at once. Attacks and the Wilderness never shorten it.
 
+The **Marked for Life** trait (`WGMarkedForLife`, a Quirk that costs and gives no points) adds `WGMarkedTraitComponent`,
+which gives the body a **permanent mark** (`WGSkullComponent.Permanent`) at map init. It never runs out and outlasts
+death; ordinary, standing and attack marks leave it as it is, and it shares with a ship like a standing mark. Only a
+staff clear ends it, and that takes the trait component off the body too, for the rest of its life.
+
 The zone icons are built by `Tools/_WG/Wilderness/make_icons.py` from the radar marker glyphs.
 
 <!-- WOLFGATE-GENERATED START -->
@@ -72,6 +77,7 @@ The zone icons are built by `Tools/_WG/Wilderness/make_icons.py` from the radar 
 ### Shared
 
 - [`Content.Shared/_WG/Wilderness/WGInZoneComponent.cs`](../../../Content.Shared/_WG/Wilderness/WGInZoneComponent.cs)
+- [`Content.Shared/_WG/Wilderness/WGMarkedTraitComponent.cs`](../../../Content.Shared/_WG/Wilderness/WGMarkedTraitComponent.cs)
 - [`Content.Shared/_WG/Wilderness/WGSkullComponent.cs`](../../../Content.Shared/_WG/Wilderness/WGSkullComponent.cs)
 - [`Content.Shared/_WG/Wilderness/WGZonePrototype.cs`](../../../Content.Shared/_WG/Wilderness/WGZonePrototype.cs)
 - [`Content.Shared/_WG/Wilderness/WGZoneRingsComponent.cs`](../../../Content.Shared/_WG/Wilderness/WGZoneRingsComponent.cs)
@@ -96,6 +102,7 @@ The zone icons are built by `Tools/_WG/Wilderness/make_icons.py` from the radar 
 - [`Resources/Prototypes/_WG/Wilderness/alerts.yml`](../../../Resources/Prototypes/_WG/Wilderness/alerts.yml)
 - [`Resources/Prototypes/_WG/Wilderness/entities.yml`](../../../Resources/Prototypes/_WG/Wilderness/entities.yml)
 - [`Resources/Prototypes/_WG/Wilderness/guidebook.yml`](../../../Resources/Prototypes/_WG/Wilderness/guidebook.yml)
+- [`Resources/Prototypes/_WG/Wilderness/traits.yml`](../../../Resources/Prototypes/_WG/Wilderness/traits.yml)
 - [`Resources/Prototypes/_WG/Wilderness/zones.yml`](../../../Resources/Prototypes/_WG/Wilderness/zones.yml)
 
 ### Localization

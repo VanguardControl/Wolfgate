@@ -124,6 +124,7 @@ wg-zone-banner-marked-standing = { $ship ->
     [yes] the ship is destroyed.
    *[no] you die.
 }
+wg-zone-banner-marked-permanent = YOU ARE MARKED FOR LIFE: no protection anywhere, Safe Zone included. It never runs out.
 wg-zone-banner-marking = { $ship ->
     [yes] Your ship is marked
    *[no] You are marked
@@ -133,6 +134,7 @@ wg-zone-banner-hint = Click for the rules.
 wg-zone-pill-marked = MARKED {$time}
 wg-zone-pill-marked-held = MARKED
 wg-zone-pill-marked-standing = MARKED BY STAFF
+wg-zone-pill-marked-permanent = MARKED FOR LIFE
 wg-zone-pill-marking = Marked in {$seconds} s
 wg-zone-banner-title = {$title}  ·  {$place}
 wg-zone-title-entering = ENTERING {$title}
@@ -140,6 +142,7 @@ wg-zone-title-leaving = LEAVING {$title}
 wg-zone-title-marked = MARKED
 wg-zone-title-marked-sub = No protection anywhere until the mark runs out.
 wg-zone-title-marked-standing-sub = A standing mark from staff: no protection anywhere until they clear it.
+wg-zone-title-marked-permanent-sub = Marked for life: no protection anywhere, ever.
 
 ## Radar
 
@@ -156,7 +159,7 @@ wg-alert-zone-wilderness-desc = No policy protection. Who may fight here without
 wg-alert-zone-notsafe-name = Not a Safe Zone
 wg-alert-zone-notsafe-desc = This station is not a Safe Zone. Ordinary rules and escalation apply.
 wg-alert-marked-name = Marked
-wg-alert-marked-desc = You, or your ship, are marked: for staying in a Wilderness, attacking into one from outside, sharing a pilot or ship that is, or by staff. A standing mark from staff never runs out: it lasts until staff clear it, a marked person dies or a marked ship is destroyed. Until the mark runs out you have no protection anywhere, Safe Zone included. Others see the skull on radar and over a marked person. It holds while you are in a Wilderness; once out, the sweep over this icon counts down what is left.
+wg-alert-marked-desc = You, or your ship, are marked: for staying in a Wilderness, attacking into one from outside, sharing a pilot or ship that is, by staff, or for life by the Marked for Life trait. A standing mark from staff never runs out: it lasts until staff clear it, a marked person dies or a marked ship is destroyed. Until the mark runs out you have no protection anywhere, Safe Zone included. Others see the skull on radar and over a marked person. It holds while you are in a Wilderness; once out, the sweep over this icon counts down what is left.
 
 ## Guidebook
 
@@ -171,7 +174,13 @@ wg-wilderness-rule-mark = { $onfoot ->
 } that stays [bold]{$seconds} seconds[/bold] in a Wilderness is [color=#d93c3c][bold]marked[/bold][/color]: a skull on every radar, and over a marked person's head. The mark holds while it stays and runs out [bold]{$minutes} minutes[/bold] after it leaves. Those who may fight in a Wilderness may engage a marked ship or person [bold]anywhere, Safe Zone included[/bold], until then.
 wg-wilderness-rule-pilot = -- A ship and the people aboard carry their own marks. A marked pilot marks the ship they fly, and a marked ship marks whoever takes its helm, with the time the mark has left.
 wg-wilderness-rule-attack = -- Damaging a ship in a Wilderness from outside one marks you, and the ship you fire from, for [bold]{$minutes} minutes[/bold].
-wg-wilderness-rule-standing = -- Staff can give a ship or person a [color=#d93c3c][bold]standing mark[/bold][/color]. It never runs out: it lasts until staff clear it, the person dies or the ship is destroyed. A pilot flying a ship with one, or the ship a pilot with one flies, is marked for as long as they fly together.
+wg-wilderness-rule-permanent = -- A character with the [bold]Marked for Life[/bold] trait carries the mark always: it never runs out and outlasts death. A ship they fly is marked while they fly it.
+wg-wilderness-rule-standing =-- Staff can give a ship or person a [color=#d93c3c][bold]standing mark[/bold][/color]. It never runs out: it lasts until staff clear it, the person dies or the ship is destroyed. A pilot flying a ship with one, or the ship a pilot with one flies, is marked for as long as they fly together.
+
+## Trait
+
+trait-wg-marked-for-life-name = Marked for Life
+trait-wg-marked-for-life-desc = You carry the Wilderness mark always, from the moment you arrive: a skull over your head and on every radar, and no protection anywhere, Safe Zone included. Those who may fight in a Wilderness may engage you without escalation wherever you are. It never runs out and outlasts death, and a ship you fly is marked while you fly it. Only staff can clear it.
 
 ## Options
 
@@ -221,4 +230,6 @@ cmd-wg_zone-marked = Marked {$carrier}.
 cmd-wg_zone-cleared = Cleared the mark on {$carrier}.
 cmd-wg_zone-standing = Gave {$carrier} a standing mark.
 cmd-wg_zone-standing-state = standing (until cleared)
+cmd-wg_zone-permanent-state = for life (Marked for Life trait)
+cmd-wg_zone-permanent = {$carrier} is already marked for life by their trait; clear it first to set another mark.
 cmd-wg_zone-kept = {$kept} keeps its standing mark, so {$carrier} is marked again while they fly together.

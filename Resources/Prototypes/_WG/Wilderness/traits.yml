@@ -1,0 +1,9 @@
+# A character who carries the Wilderness mark for life. Costs and gives no points.
+- type: trait
+  id: WGMarkedForLife
+  name: trait-wg-marked-for-life-name
+  description: trait-wg-marked-for-life-desc
+  category: Quirks
+  cost: 0
+  components:
+  - type: WGMarkedTrait
