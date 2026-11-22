@@ -22,6 +22,9 @@ public sealed partial class WGHereticMarkSystem : EntitySystem
     /// <summary>Players whose mark was settled this round.</summary>
     private readonly HashSet<NetUserId> _resolved = new();
 
+    /// <summary>Who each marked body belonged to when the mark landed.</summary>
+    private readonly Dictionary<EntityUid, NetUserId> _marked = new();
+
     public override void Initialize()
     {
         base.Initialize();
@@ -34,8 +37,9 @@ public sealed partial class WGHereticMarkSystem : EntitySystem
     /// <summary>Counts a player's mark as settled, so their later bodies this round aren't marked.</summary>
     public void Resolve(EntityUid mob)
     {
-        if (TryComp<ActorComponent>(mob, out var actor))
-            _resolved.Add(actor.PlayerSession.UserId);
+        // The player may have left the body since it was marked.
+        if (_warrants.PlayerOf(mob) is { } user || _marked.TryGetValue(mob, out user))
+            _resolved.Add(user);
     }
 
     /// <summary>Whether a player's mark was already settled this round.</summary>
@@ -46,10 +50,7 @@ public sealed partial class WGHereticMarkSystem : EntitySystem
 
     private void OnAttempt(Entity<AddComponentsAfterTimeComponent> ent, ref WGMarkAttemptEvent args)
     {
-        if (!TryComp<ActorComponent>(ent, out var actor))
-            return;
-
-        if (HasComp<WGNewbieComponent>(ent) || _resolved.Contains(actor.PlayerSession.UserId))
+        if (HasComp<WGNewbieComponent>(ent) || _warrants.PlayerOf(ent) is { } user && _resolved.Contains(user))
             args.Cancelled = true;
     }
 
@@ -57,6 +58,9 @@ public sealed partial class WGHereticMarkSystem : EntitySystem
     {
         // The mark replaces the body's contraband values, a member's warrant included.
         _warrants.Refresh(ent);
+        if (_warrants.PlayerOf(ent) is { } user)
+            _marked[ent] = user;
+
         if (!TryComp<ActorComponent>(ent, out var actor))
             return;
 
@@ -73,5 +77,6 @@ public sealed partial class WGHereticMarkSystem : EntitySystem
     private void OnCleanup(RoundRestartCleanupEvent ev)
     {
         _resolved.Clear();
+        _marked.Clear();
     }
 }

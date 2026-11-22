@@ -4,6 +4,7 @@ using Content.Shared._WG.Newbie;
 using Content.Shared._WG.Underground;
 using Content.Shared.Contraband;
 using Content.Shared.GameTicking;
+using Content.Shared.Mind;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
@@ -26,6 +27,7 @@ public sealed partial class WGUndergroundWarrantSystem : EntitySystem
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private StackSystem _stack = default!;
     [Dependency] private WGHereticMarkSystem _marks = default!;
@@ -94,6 +96,18 @@ public sealed partial class WGUndergroundWarrantSystem : EntitySystem
 
         member.Warrant = Math.Min(member.MaxWarrant, member.Warrant + jobs * _cfg.GetCVar(WGUndergroundCVars.WarrantJob));
         Apply(seller, member);
+    }
+
+    /// <summary>The player a body belongs to, found even after they have ghosted or disconnected.</summary>
+    public NetUserId? PlayerOf(EntityUid mob)
+    {
+        if (TryComp<ActorComponent>(mob, out var actor))
+            return actor.PlayerSession.UserId;
+
+        if (TryComp<WGUndergroundMemberComponent>(mob, out var member) && member.User is { } known)
+            return known;
+
+        return _mind.TryGetMind(mob, out _, out var mind) ? mind.UserId ?? mind.OriginalOwnerUserId : null;
     }
 
     /// <summary>Writes a member's warrant back after something replaced their contraband values, such as a heretic mark.</summary>
@@ -224,8 +238,8 @@ public sealed partial class WGUndergroundWarrantSystem : EntitySystem
     {
         var until = _timing.CurTime + TimeSpan.FromMinutes(_cfg.GetCVar(WGUndergroundCVars.ServedMinutes));
         member.LockedUntil = until;
-        if (TryComp<ActorComponent>(mob, out var actor))
-            _served[actor.PlayerSession.UserId] = until;
+        if (PlayerOf(mob) is { } user)
+            _served[user] = until;
     }
 
     /// <summary>Writes the warrant onto the member as the military credits a pallet pays for them.</summary>
@@ -251,6 +265,7 @@ public sealed partial class WGUndergroundWarrantSystem : EntitySystem
         if (!TryComp<WGUndergroundMemberComponent>(ev.Mob, out var member))
             return;
 
+        member.User = ev.Player.UserId;
         if (_served.TryGetValue(ev.Player.UserId, out var until) && until > _timing.CurTime)
             member.LockedUntil = until;
         Apply(ev.Mob, member);

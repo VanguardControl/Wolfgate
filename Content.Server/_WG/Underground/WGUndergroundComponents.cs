@@ -1,4 +1,5 @@
 using Content.Shared._NF.Shipyard.Prototypes;
+using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._WG.Underground;
@@ -22,6 +23,10 @@ public sealed partial class WGUndergroundMemberComponent : Component
     /// <summary>Until when no pallet takes them, after a capture or bail.</summary>
     [ViewVariables]
     public TimeSpan LockedUntil;
+
+    /// <summary>The player who spawned in this body, kept for when they have left it.</summary>
+    [ViewVariables]
+    public NetUserId? User;
 }
 
 /// <summary>A captured member a pallet is holding while the Underground can pay bail.</summary>

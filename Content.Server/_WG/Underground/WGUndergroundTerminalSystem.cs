@@ -39,9 +39,9 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
     [Dependency] private WGUndergroundHeatSystem _heat = default!;
     [Dependency] private WGUndergroundWarrantSystem _warrants = default!;
 
-    private static readonly ProtoId<AccessLevelPrototype> Member = "Underground";
-    private static readonly ProtoId<AccessLevelPrototype> Boss = "Godfather";
-    private static readonly ProtoId<AccessLevelPrototype> Officer = "WGUndergroundFixer";
+    private static readonly ProtoId<AccessLevelPrototype> MemberAccess = "Underground";
+    private static readonly ProtoId<AccessLevelPrototype> BossAccess = "Godfather";
+    private static readonly ProtoId<AccessLevelPrototype> OfficerAccess = "WGUndergroundFixer";
     private static readonly ProtoId<RadioChannelPrototype> OpenChannel = "Common";
 
     /// <summary>How near a ship has to be to the terminal for a vendetta to be declared on it, in metres.</summary>
@@ -74,19 +74,24 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
             return;
 
         var user = args.User;
-        var tags = _access.FindAccessTags(user);
-        if (!tags.Contains(Member))
+        if (!Authorized(ent, user, out var boss, out var officer))
             return;
 
-        var boss = tags.Contains(Boss);
-        var officer = boss || tags.Contains(Officer);
+        // A verb can be picked after the menu was built, so each one checks again before it acts.
+        bool Member() => Authorized(ent, user, out _, out _);
+        bool Officer() => Authorized(ent, user, out _, out var still) && still;
+        bool Boss() => Authorized(ent, user, out var still, out _) && still;
         var priority = 20;
 
         args.Verbs.Add(new AlternativeVerb
         {
             Text = Loc.GetString("wg-underground-verb-status"),
             Priority = priority--,
-            Act = () => _popup.PopupEntity(Status(), ent, user, PopupType.Medium),
+            Act = () =>
+            {
+                if (Member())
+                    _popup.PopupEntity(Status(), ent, user, PopupType.Medium);
+            },
         });
 
         if (!officer)
@@ -96,7 +101,11 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
         {
             Text = Loc.GetString("wg-underground-verb-pass"),
             Priority = priority--,
-            Act = () => IssuePass(ent, user),
+            Act = () =>
+            {
+                if (Officer())
+                    IssuePass(ent, user);
+            },
         });
 
         foreach (var held in _warrants.Held())
@@ -106,7 +115,11 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
             {
                 Text = Loc.GetString("wg-underground-verb-bail", ("name", Name(prisoner)), ("amount", held.Comp.Bail)),
                 Priority = priority--,
-                Act = () => PayBail(ent, user, prisoner),
+                Act = () =>
+                {
+                    if (Officer())
+                        PayBail(ent, user, prisoner);
+                },
             });
         }
 
@@ -117,7 +130,11 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
         {
             Text = Loc.GetString(_heat.Closed ? "wg-underground-verb-open" : "wg-underground-verb-close"),
             Priority = priority--,
-            Act = () => _heat.SetClosed(!_heat.Closed),
+            Act = () =>
+            {
+                if (Boss())
+                    _heat.SetClosed(!_heat.Closed);
+            },
         });
 
         args.Verbs.Add(new AlternativeVerb
@@ -126,6 +143,9 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
             Priority = priority--,
             Act = () =>
             {
+                if (!Boss())
+                    return;
+
                 _base.SetArmed(!_base.Armed);
                 _heat.TellFaction(Loc.GetString(_base.Armed ? "wg-underground-turrets-armed" : "wg-underground-turrets-down"));
             },
@@ -135,7 +155,11 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
         {
             Text = Loc.GetString("wg-underground-verb-payroll", ("amount", _cfg.GetCVar(WGUndergroundCVars.PayrollEach))),
             Priority = priority--,
-            Act = () => PayCrew(ent, user),
+            Act = () =>
+            {
+                if (Boss())
+                    PayCrew(ent, user);
+            },
         });
 
         foreach (var ship in NearbyShips(ent))
@@ -148,9 +172,43 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
             {
                 Text = Loc.GetString("wg-underground-verb-vendetta", ("ship", Name(target))),
                 Priority = priority--,
-                Act = () => DeclareVendetta(user, target),
+                Act = () =>
+                {
+                    if (Boss())
+                        DeclareVendetta(user, target);
+                },
             });
         }
+    }
+
+    /// <summary>
+    /// Whether someone may use the terminal at all, and as what. The console's company lock applies to its verbs as
+    /// it does to its window, so a stolen card is not enough for the TSF or PDV.
+    /// </summary>
+    private bool Authorized(EntityUid terminal, EntityUid user, out bool boss, out bool officer)
+    {
+        boss = false;
+        officer = false;
+        if (TryComp<CompanyAccessReaderComponent>(terminal, out var reader))
+        {
+            if (!TryComp<CompanyComponent>(user, out var company))
+            {
+                if (!reader.Inverted)
+                    return false;
+            }
+            else if (reader.RequiredCompanies.Contains(company.CompanyName) == reader.Inverted)
+            {
+                return false;
+            }
+        }
+
+        var tags = _access.FindAccessTags(user);
+        if (!tags.Contains(MemberAccess))
+            return false;
+
+        boss = tags.Contains(BossAccess);
+        officer = boss || tags.Contains(OfficerAccess);
+        return true;
     }
 
     private string Status()

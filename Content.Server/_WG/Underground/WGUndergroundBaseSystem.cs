@@ -58,6 +58,11 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
             return;
 
         _nextStep = now + Step;
+
+        // A turret with no power or shots refuses to deploy, so keep asking while they should be up.
+        if (Armed || _heat.Level == WGUndergroundHeatSystem.Raid)
+            SetTurrets(true);
+
         var bases = EntityQueryEnumerator<WGUndergroundBaseComponent>();
         while (bases.MoveNext(out var uid, out var home))
         {
