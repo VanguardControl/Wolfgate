@@ -16,6 +16,15 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   (`WorldControllerSystem.WGUnloadGrace`), and a GC queue's `minAge` holds entities that long before deleting them
   (`GCQueueSystem.WGMinAge`; `WGAsteroids` waits 60 s). A ship that comes back within the grace keeps the asteroid
   fields around it instead of unloading and respawning them.
+- Light sounds (`WGLightSoundSystem`): upstream spawns, networks and deletes one entity for every sound, about
+  270 a second on a full live server and more than anything else it makes. Footsteps, gunshots, casings and
+  projectile hits go out as one message to the players in range instead, each client plays the sound itself, and
+  one nobody is in range of is not sent at all. `wg.audio.light_sounds` off plays them the upstream way.
+- Worldgen chunks are freed: upstream keeps one entity in nullspace for every space chunk anyone ever came near
+  and never deletes it, 116,000 of them three and a half hours into a live round and the one count that never
+  falls. A chunk that has been unloaded for `wg.worldgen.chunk_free_seconds` (600, 0 to keep them all) and owns no
+  live debris is deleted. It is made again when someone returns, and lays out its rocks afresh, which an unloaded
+  chunk whose debris was collected does anyway.
 - `WGAsteroidCullSystem` stops sending every worldgen rock grid to every player. A player is sent a rock grid once one
   of their views comes within `wg.asteroids.send_range` (128 m) and keeps it until the rock is deleted, since the
   client can't detach a grid. Each worldgen chunk with rocks gets a field entity (`WGAsteroidFieldComponent`), sent to
@@ -220,10 +229,12 @@ Process memory climbed about 1.4 GB an hour, 23 GB to 51 GB over one 20 h round,
 - [`Content.Server/_WG/Performance/WGGridDeleteSystem.cs`](WGGridDeleteSystem.cs)
 - [`Content.Server/_WG/Performance/WGGridDeleteWatchSystem.cs`](WGGridDeleteWatchSystem.cs)
 - [`Content.Server/_WG/Performance/WGGridFileReader.cs`](WGGridFileReader.cs)
+- [`Content.Server/_WG/Performance/WGLightSoundSystem.cs`](WGLightSoundSystem.cs)
 - [`Content.Server/_WG/Performance/WGNetDispatchWatchSystem.cs`](WGNetDispatchWatchSystem.cs)
 - [`Content.Server/_WG/Performance/WGParkedMoverComponent.cs`](WGParkedMoverComponent.cs)
 - [`Content.Server/_WG/Performance/WGRequestCap.cs`](WGRequestCap.cs)
 - [`Content.Server/_WG/Performance/WGSerializerWarmupSystem.cs`](WGSerializerWarmupSystem.cs)
+- [`Content.Server/_WG/Performance/WorldControllerSystem.WGFreeChunks.cs`](WorldControllerSystem.WGFreeChunks.cs)
 - [`Content.Server/_WG/Performance/WorldControllerSystem.WGIdleHelms.cs`](WorldControllerSystem.WGIdleHelms.cs)
 - [`Content.Server/_WG/Performance/WorldControllerSystem.WGUnloadGrace.cs`](WorldControllerSystem.WGUnloadGrace.cs)
 
@@ -233,13 +244,16 @@ Process memory climbed about 1.4 GB an hour, 23 GB to 51 GB over one 20 h round,
 - [`Content.Shared/_WG/Performance/NavMapComponent.WGDelta.cs`](../../../Content.Shared/_WG/Performance/NavMapComponent.WGDelta.cs)
 - [`Content.Shared/_WG/Performance/RoofComponent.WGDelta.cs`](../../../Content.Shared/_WG/Performance/RoofComponent.WGDelta.cs)
 - [`Content.Shared/_WG/Performance/SharedGravitySystem.WGRefresh.cs`](../../../Content.Shared/_WG/Performance/SharedGravitySystem.WGRefresh.cs)
+- [`Content.Shared/_WG/Performance/SharedGunSystem.WGLightSound.cs`](../../../Content.Shared/_WG/Performance/SharedGunSystem.WGLightSound.cs)
 - [`Content.Shared/_WG/Performance/SharedMoverController.WGAroundCollider.cs`](../../../Content.Shared/_WG/Performance/SharedMoverController.WGAroundCollider.cs)
+- [`Content.Shared/_WG/Performance/SharedMoverController.WGLightSound.cs`](../../../Content.Shared/_WG/Performance/SharedMoverController.WGLightSound.cs)
 - [`Content.Shared/_WG/Performance/SharedRoofSystem.WGDelta.cs`](../../../Content.Shared/_WG/Performance/SharedRoofSystem.WGDelta.cs)
 - [`Content.Shared/_WG/Performance/WGAimThrottle.cs`](../../../Content.Shared/_WG/Performance/WGAimThrottle.cs)
 - [`Content.Shared/_WG/Performance/WGAsteroidFieldComponent.cs`](../../../Content.Shared/_WG/Performance/WGAsteroidFieldComponent.cs)
 - [`Content.Shared/_WG/Performance/WGBlipRemovalBatchEvent.cs`](../../../Content.Shared/_WG/Performance/WGBlipRemovalBatchEvent.cs)
 - [`Content.Shared/_WG/Performance/WGCollectionExtensions.cs`](../../../Content.Shared/_WG/Performance/WGCollectionExtensions.cs)
 - [`Content.Shared/_WG/Performance/WGDeletedRefStateSystem.cs`](../../../Content.Shared/_WG/Performance/WGDeletedRefStateSystem.cs)
+- [`Content.Shared/_WG/Performance/WGLightSound.cs`](../../../Content.Shared/_WG/Performance/WGLightSound.cs)
 - [`Content.Shared/_WG/Performance/WGPerformanceCVars.cs`](../../../Content.Shared/_WG/Performance/WGPerformanceCVars.cs)
 - [`Content.Shared/_WG/Performance/WGRadarCVars.cs`](../../../Content.Shared/_WG/Performance/WGRadarCVars.cs)
 - [`Content.Shared/_WG/Performance/WGTickBuckets.cs`](../../../Content.Shared/_WG/Performance/WGTickBuckets.cs)
@@ -251,6 +265,7 @@ Process memory climbed about 1.4 GB an hour, 23 GB to 51 GB over one 20 h round,
 - [`Content.Client/_WG/Performance/RadarBlipsSystem.WGRemovalBatch.cs`](../../../Content.Client/_WG/Performance/RadarBlipsSystem.WGRemovalBatch.cs)
 - [`Content.Client/_WG/Performance/ShuttleNavControl.WGAsteroidFields.cs`](../../../Content.Client/_WG/Performance/ShuttleNavControl.WGAsteroidFields.cs)
 - [`Content.Client/_WG/Performance/WGAsteroidFieldSystem.cs`](../../../Content.Client/_WG/Performance/WGAsteroidFieldSystem.cs)
+- [`Content.Client/_WG/Performance/WGLightSoundSystem.cs`](../../../Content.Client/_WG/Performance/WGLightSoundSystem.cs)
 - [`Content.Client/_WG/Performance/WGNetBufferSystem.cs`](../../../Content.Client/_WG/Performance/WGNetBufferSystem.cs)
 
 ### Integration tests
@@ -271,6 +286,7 @@ Process memory climbed about 1.4 GB an hour, 23 GB to 51 GB over one 20 h round,
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGGridFileReaderTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGGridFileReaderTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGGroundSampleTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGGroundSampleTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGIgnitionLitTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGIgnitionLitTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/Performance/WGLightSoundTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGLightSoundTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGMoverParkingTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGMoverParkingTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGNavMapDeltaTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGNavMapDeltaTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Performance/WGNavMapTrimTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Performance/WGNavMapTrimTest.cs)
@@ -568,6 +584,7 @@ Process memory climbed about 1.4 GB an hour, 23 GB to 51 GB over one 20 h round,
 - [`Content.Server/Weapons/Ranged/Systems/GunSystem.AutoFire.cs`](../../Weapons/Ranged/Systems/GunSystem.AutoFire.cs)
   - guns mid-burst, filled from OnBurstActivated
   - only visit bursting guns and auto-shoot guns, not every GunComponent
+- [`Content.Server/Weapons/Ranged/Systems/GunSystem.cs`](../../Weapons/Ranged/Systems/GunSystem.cs): hits make no sound entity
 - [`Content.Server/Worldgen/Systems/Debris/DebrisFeaturePlacerSystem.cs`](../../Worldgen/Systems/Debris/DebrisFeaturePlacerSystem.cs): still in its chunk, so the index needs no churn
 - [`Content.Server/Worldgen/Systems/Debris/SimpleFloorPlanPopulatorSystem.cs`](../../Worldgen/Systems/Debris/SimpleFloorPlanPopulatorSystem.cs): spawns are queued and made a few ms per tick instead of in this handler
 - [`Content.Server/Worldgen/Systems/GC/GCQueueSystem.cs`](../../Worldgen/Systems/GC/GCQueueSystem.cs)
@@ -581,10 +598,14 @@ Process memory climbed about 1.4 GB an hour, 23 GB to 51 GB over one 20 h round,
 - [`Content.Server/Worldgen/Systems/WorldControllerSystem.cs`](../../Worldgen/Systems/WorldControllerSystem.cs)
   - chunk unload grace
   - idle helms load nothing
+  - unloaded chunks are deleted after a while
   - drop a deleted chunk's unload grace timer
+  - no longer a candidate for freeing
+  - freed once it has been unloaded long enough
   - grids that have a player or pilot
   - parked, empty helms don't load worldgen
   - wait out the unload grace, so passing ships don't unload and respawn debris
+  - delete chunks unloaded long ago
   - loaded-chunk counter
 - [`Content.Shared/_CE/ZLevels/Core/Components/CEZPhysicsComponent.cs`](../../../Content.Shared/_CE/ZLevels/Core/Components/CEZPhysicsComponent.cs): raises AfterAutoHandleState so the client notes a height from the server
 - [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Activation.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Activation.cs)
@@ -646,6 +667,7 @@ Process memory climbed about 1.4 GB an hour, 23 GB to 51 GB over one 20 h round,
 - [`Content.Shared/Light/EntitySystems/SharedRoofSystem.cs`](../../../Content.Shared/Light/EntitySystems/SharedRoofSystem.cs): delta state sends only changed chunks
 - [`Content.Shared/Movement/Systems/SharedMoverController.cs`](../../../Content.Shared/Movement/Systems/SharedMoverController.cs)
   - reuse a still mob's result for a few ticks
+  - footsteps make no sound entity
   - only static bodies count below, so skip the rest of the lookup and keep the set small
 - [`Content.Shared/Movement/Systems/SharedMoverController.Input.cs`](../../../Content.Shared/Movement/Systems/SharedMoverController.Input.cs): Equals(object) boxed the nullable every call
 - [`Content.Shared/NPC/Systems/NpcFactionSystem.cs`](../../../Content.Shared/NPC/Systems/NpcFactionSystem.cs): allocation-free hostile search for the NPC utility query
@@ -682,6 +704,7 @@ Process memory climbed about 1.4 GB an hour, 23 GB to 51 GB over one 20 h round,
   - wizden#36641, gunUid was not nullable
   - wizden#36641, a projectile may have no shooter
   - server hook so auto-fire only walks bursting guns
+  - casings make no sound entity
 - [`Resources/Prototypes/_CE/Entities/Structures/water.yml`](../../../Resources/Prototypes/_CE/Entities/Structures/water.yml): bottomless pools never need refilling, and each tile cost a check every tick
 - [`Resources/Prototypes/_Mono/Entities/Objects/Specific/Planet/flora.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Specific/Planet/flora.yml): decorative flora has no physics body, so passing mobs build no contacts with it
 - [`Resources/Prototypes/_NF/Entities/Tiles/water.yml`](../../../Resources/Prototypes/_NF/Entities/Tiles/water.yml): bottomless pools never need refilling, and each tile cost a check every tick
