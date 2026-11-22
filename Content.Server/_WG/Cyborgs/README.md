@@ -135,7 +135,6 @@ borg-bound AI, the overwatch view and the chassis company.
   - a feed is seen at the default zoom limit, not an AI's
   - an AI's view returns to its remote eye
   - the client sees the feed end, so an AI's static returns
-- [`Content.Server/_Rat/Overwatch/OverwatchSystem.cs`](../../_Rat/Overwatch/OverwatchSystem.cs): an AI's view returns to its remote eye
 - [`Content.Server/Chat/Systems/ChatSystem.Emote.cs`](../../Chat/Systems/ChatSystem.Emote.cs)
   - resolve shared typed emotes against entity restrictions
   - grants on shared trigger words bypass availability, not entity restrictions
