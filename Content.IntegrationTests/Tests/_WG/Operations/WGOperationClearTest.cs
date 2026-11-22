@@ -4,6 +4,7 @@ using Content.Server._WG.Operations;
 using Content.Shared._WG.Operations;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
+using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Robust.Shared.GameObjects;
@@ -52,7 +53,9 @@ public sealed class WGOperationClearTest
                 if (!entMan.EntityExists(npc))
                     return $"{npc} (deleted)";
 
-                var state = entMan.TryGetComponent<MobStateComponent>(npc, out var mob) ? mob.CurrentState.ToString() : "no mob state";
+                // Read into a local first: MobStateComponent lets other types read its state, not call into it.
+                var current = entMan.TryGetComponent<MobStateComponent>(npc, out var mob) ? mob.CurrentState : MobState.Invalid;
+                var state = current.ToString();
                 var damage = entMan.TryGetComponent<DamageableComponent>(npc, out var hurt)
                     ? string.Join(", ", hurt.Damage.DamageDict.Where(d => d.Value > 0).Select(d => $"{d.Key} {d.Value}"))
                     : "not damageable";
