@@ -181,6 +181,7 @@ client messages, and 23 were whole-process freezes with no readings at all. Thes
 - [`Content.Server/_WG/Performance/WGAtmosGaugeSystem.cs`](WGAtmosGaugeSystem.cs)
 - [`Content.Server/_WG/Performance/WGDispatchClock.cs`](WGDispatchClock.cs)
 - [`Content.Server/_WG/Performance/WGDockIndexSystem.cs`](WGDockIndexSystem.cs)
+- [`Content.Server/_WG/Performance/WGGcClock.cs`](WGGcClock.cs)
 - [`Content.Server/_WG/Performance/WGGcWatchSystem.cs`](WGGcWatchSystem.cs)
 - [`Content.Server/_WG/Performance/WGGridDeleteSystem.cs`](WGGridDeleteSystem.cs)
 - [`Content.Server/_WG/Performance/WGGridDeleteWatchSystem.cs`](WGGridDeleteWatchSystem.cs)

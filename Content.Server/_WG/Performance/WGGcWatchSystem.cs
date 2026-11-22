@@ -51,20 +51,13 @@ public sealed class WGGcWatchSystem : EntitySystem
         "wg_gc_pause_seconds_total",
         "Time garbage collection has paused the server");
 
-    private static readonly TimeSpan SampleEvery = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan GaugeEvery = TimeSpan.FromSeconds(5);
+    private static readonly Func<WGGcReading> ReadFull = Read;
 
     private float _pauseWarnMs;
     private float _stallWarnSeconds;
-    private bool _started;
-    private TimeSpan _lastUpdate;
-    private TimeSpan _nextSample;
     private TimeSpan _nextGauge;
-    private TimeSpan _lastSampleAt;
-    private WGGcReading _last;
-
-    /// <summary>The collector's pause and collections at the last tick, so a stall is measured over the gap alone.</summary>
-    private WGGcReading _tick;
+    private readonly WGGcClock _clock = new();
 
     public override void Initialize()
     {
@@ -77,42 +70,21 @@ public sealed class WGGcWatchSystem : EntitySystem
     {
         base.Update(frameTime);
         var now = _timing.RealTime;
-        if (!_started)
-        {
-            _started = true;
-            _lastUpdate = _lastSampleAt = now;
-            _last = Read();
-            _tick = ReadCounts();
-            return;
-        }
-
-        var gap = now - _lastUpdate;
-        _lastUpdate = now;
-        var tickBefore = _tick;
-        _tick = ReadCounts();
-        var stalled = _stallWarnSeconds > 0f && gap.TotalSeconds >= _stallWarnSeconds;
-        if (!stalled && now < _nextSample)
+        var step = _clock.Tick(now, ReadCounts(), ReadFull, _stallWarnSeconds, _pauseWarnMs);
+        if (!step.Sampled)
             return;
 
-        _nextSample = now + SampleEvery;
-        var reading = Read();
-        var paused = reading.Pause - _last.Pause;
-        if (paused > TimeSpan.Zero)
-            PauseCounter.Inc(paused.TotalSeconds);
+        if (step.Paused > TimeSpan.Zero)
+            PauseCounter.Inc(step.Paused.TotalSeconds);
 
-        if (stalled)
-            Log.Warning(StallReport(gap, tickBefore, reading));
-        else if (_pauseWarnMs > 0f && paused.TotalMilliseconds >= _pauseWarnMs)
-            Log.Warning(PauseReport(now - _lastSampleAt, _last, reading));
+        if (step.Warning != null)
+            Log.Warning(step.Warning);
 
         if (now >= _nextGauge)
         {
             _nextGauge = now + GaugeEvery;
-            SetGauges(reading);
+            SetGauges(step.Reading);
         }
-
-        _last = reading;
-        _lastSampleAt = now;
     }
 
     /// <summary>The collector's pause and collection counts as of now, without heap sizes; cheap enough for every tick.</summary>
