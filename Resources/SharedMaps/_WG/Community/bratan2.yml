@@ -1,6 +1,6 @@
 meta:
   format: 7
-  category: Map
+  category: Grid
   engineVersion: 291.0.4
   forkId: ""
   forkVersion: ""
@@ -9140,7 +9140,7 @@ entities:
         Emergency Generator Terminal
 
 
-        Anchor a generator on this terminal in order to supplement the power grid in case of catastrophic damage to the AME/Solar Panels. 
+        Anchor a generator on this terminal in order to supplement the power grid in case of catastrophic damage to the AME/Solar Panels.
 
 
         (GENERATOR NOT INCLUDED)
