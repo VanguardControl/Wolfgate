@@ -121,12 +121,13 @@ public sealed partial class WGRoundSetupSystem : EntitySystem
             SyncCompanyShips();
             BroadcastIfChanged(pruned | locks | UpdateCrewStatus());
         }
+        if (_broadcastPending && now >= _nextBroadcast)
+        {
+            _broadcastPending = false;
+            _nextBroadcast = now + TimeSpan.FromMilliseconds(250);
+            FlushBroadcast();
+        }
         SendQueuedStates();
-        if (!_broadcastPending || now < _nextBroadcast)
-            return;
-        _broadcastPending = false;
-        _nextBroadcast = now + TimeSpan.FromMilliseconds(250);
-        FlushBroadcast();
     }
 
     /// <summary>Discards round-scoped membership and pending spawn authorization.</summary>

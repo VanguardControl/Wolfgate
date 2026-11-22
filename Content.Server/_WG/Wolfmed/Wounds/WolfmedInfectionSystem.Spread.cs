@@ -60,7 +60,10 @@ public sealed partial class WolfmedInfectionSystem
     {
         FileGroups(1);
         if (!_config.GetCVar(WolfmedCVars.InfectionEnabled))
+        {
+            _lastTurn.Clear();
             return;
+        }
 
         var minutes = seconds / 60f * _config.GetCVar(WolfmedCVars.InfectionRate);
         var profile = Profile;
@@ -91,8 +94,12 @@ public sealed partial class WolfmedInfectionSystem
             _nextFiling = new GameTick(tick.Value + (uint) period);
         }
 
+        // Time with infection off is not owed when it comes back on: every group starts afresh then.
         if (!_config.GetCVar(WolfmedCVars.InfectionEnabled))
+        {
+            _lastTurn.Clear();
             return;
+        }
 
         var due = _slots[(int) (tick.Value % (uint) period)];
         if (due.Count == 0)

@@ -110,6 +110,44 @@ public sealed class WolfmedInfectionTickSpreadTest : WolfmedGameTest
             Assert.That(Progress(wound), Is.GreaterThan(start), "a loose limb's infection stopped after one turn."));
     }
 
+    /// <summary>A minute with infection turned off isn't caught up when it is turned back on.</summary>
+    [Test]
+    public async Task TimeTurnedOffIsNotOwed()
+    {
+        await Pin();
+        var map = await CreateTestMap();
+        EntityUid wound = default;
+        float perMinute = 0, before = 0;
+
+        await Server.WaitAssertion(() =>
+        {
+            wound = Cut(SEntMan.SpawnEntity("MobHuman", map.GridCoords));
+            var start = Progress(wound);
+            SEntMan.System<WolfmedInfectionSystem>().Update(60f);
+            perMinute = Progress(wound) - start;
+            Assert.That(perMinute, Is.GreaterThan(0f), "a minute in one call should move an untreated cut.");
+        });
+
+        // A few turns first, so the body has a last turn on record when infection goes off.
+        await RunSeconds(10);
+        await OverrideCVar(Side.Server, WolfmedCVars.InfectionEnabled, false);
+        await Server.WaitPost(() => before = Progress(wound));
+        await RunSeconds(60);
+        await Server.WaitAssertion(() =>
+            Assert.That(Progress(wound), Is.EqualTo(before), "the cut moved with infection off."));
+
+        await OverrideCVar(Side.Server, WolfmedCVars.InfectionEnabled, true);
+        await RunSeconds(10);
+        await Server.WaitAssertion(() =>
+        {
+            // Ten seconds back on, plus at most a window for its turn; the minute off would be six times that.
+            var moved = Progress(wound) - before;
+            Assert.That(moved, Is.GreaterThan(0f), "infection did not resume once turned back on.");
+            Assert.That(moved, Is.LessThan(perMinute * 0.5f),
+                $"10 s back on moved the cut {moved:0.000}, a whole minute moves it {perMinute:0.000}.");
+        });
+    }
+
     /// <summary>An untreated risk-1 cut on the left hand, made directly so the part it lands on is certain.</summary>
     private EntityUid Cut(EntityUid body)
     {

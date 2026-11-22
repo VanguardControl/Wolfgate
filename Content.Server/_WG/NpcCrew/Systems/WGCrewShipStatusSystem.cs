@@ -24,7 +24,7 @@ public sealed partial class WGCrewShipStatusSystem : EntitySystem
     [Dependency] private SharedMapSystem _maps = default!;
     [Dependency] private Content.Server.Shuttles.Systems.DockingSystem _docking = default!;
 
-    private readonly List<EntityUid> _boarded = new();
+    private readonly HashSet<EntityUid> _boarded = new();
 
     /// <summary>How long a condition must hold without a break before it counts.</summary>
     public static readonly TimeSpan DisabledDelay = TimeSpan.FromSeconds(10);
@@ -340,10 +340,7 @@ public sealed partial class WGCrewShipStatusSystem : EntitySystem
         _watch.UnionWith(_armed);
         _watch.UnionWith(_crewed);
         if (_watch.Count > 0)
-        {
-            Survey();
-            _surveyTick = _timing.CurTick;
-        }
+            SurveyThisTick();
         foreach (var grid in _watch)
         {
             if (TerminatingOrDeleted(grid))
@@ -427,8 +424,12 @@ public sealed partial class WGCrewShipStatusSystem : EntitySystem
         var players = EntityQueryEnumerator<ActorComponent, TransformComponent>();
         while (players.MoveNext(out var uid, out _, out var xform))
         {
-            if (xform.GridUid is { } grid && _mobs.IsAlive(uid) && _crewedNow.Add(grid))
+            // A player's grid lends its crew to the ships docked to it even when an NPC already crews it.
+            if (xform.GridUid is { } grid && _mobs.IsAlive(uid))
+            {
+                _crewedNow.Add(grid);
                 _boarded.Add(grid);
+            }
         }
 
         foreach (var grid in _boarded)

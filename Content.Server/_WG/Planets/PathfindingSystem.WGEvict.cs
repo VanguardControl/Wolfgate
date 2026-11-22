@@ -75,8 +75,8 @@ public sealed partial class PathfindingSystem
             }
 
             Vector2 centre = origin * ChunkSize + half;
-            if (chunk.Portals.Count > 0 || chunk.PortalPolys.Count > 0 || wanted != null && wanted.ContainsKey(origin) ||
-                WgNearEvictInterest(centre, keepSq))
+            var isWanted = wanted != null && wanted.TryGetValue(origin, out var want) && want.Until >= now;
+            if (chunk.Portals.Count > 0 || chunk.PortalPolys.Count > 0 || isWanted || WgNearEvictInterest(centre, keepSq))
             {
                 seen[origin] = now;
                 continue;

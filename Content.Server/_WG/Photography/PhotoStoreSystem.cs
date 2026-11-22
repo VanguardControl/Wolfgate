@@ -32,16 +32,22 @@ public sealed partial class PhotoStoreSystem : EntitySystem
     private readonly Dictionary<string, StoredPhoto> _images = new();
 
     /// <summary>
-    /// Most images kept in memory. Past it the oldest held at least <see cref="MinHeld"/> go, to be read from the
-    /// database again when asked for; every photo taken or viewed in a round stayed in memory until it ended.
+    /// Soft cap on images kept in memory. Past it the oldest held at least <see cref="MinHeld"/> and saved go, to be
+    /// read from the database again when asked for; every photo taken or viewed in a round stayed until it ended.
     /// </summary>
     private const int MaxHeld = 256;
 
-    /// <summary>How long an image is kept at least, so its background database write is done before it can go.</summary>
+    /// <summary>How long an image is kept at least once it is in memory.</summary>
     private static readonly TimeSpan MinHeld = TimeSpan.FromMinutes(2);
 
     /// <summary>The images in memory, oldest first, and when each was put there.</summary>
     private readonly Queue<(string Hash, TimeSpan At)> _held = new();
+
+    /// <summary>When each image in memory was put there, so a queue entry left from an earlier hold is skipped.</summary>
+    private readonly Dictionary<string, TimeSpan> _heldSince = new();
+
+    /// <summary>Images whose database write hasn't succeeded, which memory is the only copy of.</summary>
+    private readonly HashSet<string> _unsaved = new();
 
     /// <summary>Database reads in flight, so many clients asking for one photo read it once.</summary>
     private readonly Dictionary<string, Task<StoredPhoto?>> _loads = new();
@@ -77,6 +83,8 @@ public sealed partial class PhotoStoreSystem : EntitySystem
     {
         _images.Clear();
         _held.Clear();
+        _heldSince.Clear();
+        _unsaved.Clear();
         _downloads.Clear();
         _sent.Clear();
         _absent.Clear();
@@ -94,6 +102,7 @@ public sealed partial class PhotoStoreSystem : EntitySystem
     /// <summary>Stores a new image under its hash, writing it to the database in the background.</summary>
     public void Store(string hash, byte[] png, int width, int height, Guid? author)
     {
+        _unsaved.Add(hash);
         Hold(hash, new StoredPhoto(png, width, height, MakeThumbnail(png)));
         _absent.Remove(hash);
 
@@ -150,24 +159,39 @@ public sealed partial class PhotoStoreSystem : EntitySystem
         }
     }
 
-    /// <summary>Keeps an image in memory, letting the oldest go once more than <see cref="MaxHeld"/> are kept.</summary>
+    /// <summary>Keeps an image in memory, letting the oldest saved one go once more than <see cref="MaxHeld"/> are kept.</summary>
     private void Hold(string hash, StoredPhoto stored)
     {
         var now = _timing.RealTime;
         if (!_images.ContainsKey(hash))
+        {
             _held.Enqueue((hash, now));
+            _heldSince[hash] = now;
+        }
         _images[hash] = stored;
 
         while (_images.Count > MaxHeld && _held.TryPeek(out var oldest) && now - oldest.At >= MinHeld)
         {
             _held.Dequeue();
+            if (!IsCurrent(oldest))
+                continue;
+
+            // Not written yet: memory is its only copy, so it goes to the back of the queue instead.
+            if (_unsaved.Contains(oldest.Hash))
+            {
+                _held.Enqueue((oldest.Hash, now));
+                _heldSince[oldest.Hash] = now;
+                continue;
+            }
+
             _images.Remove(oldest.Hash);
+            _heldSince.Remove(oldest.Hash);
         }
 
-        // Hashes blanked or dropped elsewhere leave stale entries; don't let them pile up past the images themselves.
+        // Hashes blanked or held again leave stale entries; don't let them pile up past the images themselves.
         if (_held.Count > MaxHeld * 4)
         {
-            var kept = _held.Where(entry => _images.ContainsKey(entry.Hash)).ToList();
+            var kept = _held.Where(IsCurrent).ToList();
             _held.Clear();
             foreach (var entry in kept)
             {
@@ -176,11 +200,18 @@ public sealed partial class PhotoStoreSystem : EntitySystem
         }
     }
 
+    /// <summary>Whether a queue entry is the one for its image's current hold.</summary>
+    private bool IsCurrent((string Hash, TimeSpan At) entry)
+    {
+        return _images.ContainsKey(entry.Hash) && _heldSince.TryGetValue(entry.Hash, out var at) && at == entry.At;
+    }
+
     private async void Save(WolfgatePhoto row)
     {
         try
         {
             await _db.AddPhotoAsync(row);
+            _unsaved.Remove(row.Hash);
         }
         catch (Exception e)
         {
@@ -227,6 +258,7 @@ public sealed partial class PhotoStoreSystem : EntitySystem
     public int Blank(string hash)
     {
         _images.Remove(hash);
+        _heldSince.Remove(hash);
         _absent.Add(hash);
         DeleteStored(hash);
 

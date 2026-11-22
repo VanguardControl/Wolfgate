@@ -96,6 +96,10 @@ public sealed partial class ExplosionSystem
             return;
 
         // Stopwatch.Restart(); // WOLFGATE(Performance): restarted above, before the bullet-sized blasts
+        // WOLFGATE(Performance) START: a heavy volley of small blasts still leaves full explosions half the budget
+        if (Stopwatch.Elapsed.TotalMilliseconds > MaxProcessingTime / 2)
+            Stopwatch.Restart();
+        // WOLFGATE END
         var x = Stopwatch.Elapsed.TotalMilliseconds;
 
         var tilesRemaining = TilesPerTick;

@@ -250,6 +250,8 @@ public sealed partial class TraderUsedShipsSystem : EntitySystem
         ent.Comp.AwaitingConfirmation = false;
         ent.Comp.QuotedShip = null;
         _shipyard.ClearHostedConsole(ent.Owner);
+        // A purchase still being prepared was the ended conversation's; it must not go through for the next customer.
+        _wgPendingBuys.Remove(ent);
     }
 
     private void OnBuy(Entity<TraderUsedShipsComponent> ent, ref TraderUsedShipBuyMessage args)

@@ -110,11 +110,9 @@ public sealed partial class WGRoundSetupSystem
             _nextRequest.Remove(user);
             _nextCodeAttempt.Remove(user);
         }
-
-        SendQueuedStates();
     }
 
-    /// <summary>Sends up to <see cref="StatesPerTick"/> of the snapshots a flush queued, oldest first.</summary>
+    /// <summary>Sends up to <see cref="StatesPerTick"/> of the snapshots a flush queued, oldest first; once a tick.</summary>
     private void SendQueuedStates()
     {
         for (var sent = 0; sent < StatesPerTick && _stateQueue.TryDequeue(out var user);)
