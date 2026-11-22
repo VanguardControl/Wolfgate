@@ -27,7 +27,6 @@ public sealed class WGShipyardCVars
 
 public sealed partial class ShipyardSystem
 {
-    [Dependency] private IConfigurationManager _wgCfg = default!;
     [Dependency] private IResourceManager _wgResources = default!;
 
     /// <summary>A purchase waiting for its hull's file to be parsed, to run again as it came in once it is.</summary>
@@ -61,7 +60,7 @@ public sealed partial class ShipyardSystem
     private bool WGDeferPurchase(EntityUid console, ShipyardConsoleComponent component,
         ShipyardConsolePurchaseMessage args, EntityUid player, VesselPrototype vessel)
     {
-        if (!_wgCfg.GetCVar(WGShipyardCVars.AsyncPurchase)
+        if (!_configManager.GetCVar(WGShipyardCVars.AsyncPurchase)
             || _wgParsedHull is { } parsed && parsed.Path == vessel.ShuttlePath)
             return false;
 
