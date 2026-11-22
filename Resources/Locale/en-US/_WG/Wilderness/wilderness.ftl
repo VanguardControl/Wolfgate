@@ -75,6 +75,20 @@ wg-zone-skull-attacked = { $ship ->
     [yes] it
    *[no] you
 } without escalation, anywhere, Safe Zone included, for {$minutes} minutes.
+wg-zone-skull-staff-marked = Staff have MARKED { $ship ->
+    [yes] your ship
+   *[no] you
+}. { $open ->
+    [yes] Anyone
+   *[no] TSF and PDV
+} may engage { $ship ->
+    [yes] it
+   *[no] you
+} without escalation, anywhere, Safe Zone included, until the mark runs out, {$minutes} minutes after you leave the Wilderness.
+wg-zone-skull-staff-cleared = Staff have cleared { $ship ->
+    [yes] your ship's mark. Ordinary rules protect it again.
+   *[no] your mark. Ordinary rules protect you again.
+}
 
 ## Banner and titles
 
@@ -147,16 +161,30 @@ ui-options-wg-wilderness-border-marked = Only while marked
 ui-options-wg-wilderness-chat = Chat line on entering or leaving a zone
 ui-options-wg-wilderness-rings = Zone edges on radars
 
+## Admin verbs
+
+wg-zone-verb-mark = Wilderness mark
+wg-zone-verb-mark-description = Mark {$carrier} now, as if they had stayed in a Wilderness. They are told.
+wg-zone-verb-clear = Clear Wilderness mark
+wg-zone-verb-clear-description = Clear the mark on {$carrier}, and on the ship they fly. They are told.
+wg-zone-verb-mark-ship = Wilderness mark ship
+wg-zone-verb-mark-ship-description = Mark the ship {$carrier} now, as if it had stayed in a Wilderness. Those aboard are told.
+wg-zone-verb-clear-ship = Clear ship's Wilderness mark
+wg-zone-verb-clear-ship-description = Clear the mark on the ship {$carrier}, and on whoever is flying it. Those aboard are told.
+
 ## Admin command
 
-cmd-wg_zone-desc = Shows your zone and the Wilderness marks on you and your ship, or sets or clears either.
-cmd-wg_zone-help = Usage: wg_zone [info|mark|clear] [ship]
+cmd-wg_zone-desc = Shows a person's zone and the Wilderness marks on them and their ship, or sets or clears either.
+cmd-wg_zone-help = Usage: wg_zone [info|mark|clear] [ship] [player or entity id]. With no target, you; with ship, the ship the target is aboard. Clearing a pilot or ship clears the other too.
 cmd-wg_zone-hint = info, mark or clear
-cmd-wg_zone-ship-hint = ship, for the ship you're aboard; nothing, for you
-cmd-wg_zone-no-body = You need a body.
-cmd-wg_zone-no-ship = You aren't aboard a ship.
+cmd-wg_zone-target-hint = a player or entity id, or nothing for you; ship, for the ship they're aboard
+cmd-wg_zone-no-body = You need a body, or name a target.
+cmd-wg_zone-player-no-body = {$player} has no body.
+cmd-wg_zone-no-target = No player or entity {$target}.
+cmd-wg_zone-cannot-carry = {$target} can't carry a mark: only ships, vehicles and living people can.
+cmd-wg_zone-no-ship = They aren't aboard a ship.
 cmd-wg_zone-held = held (in a Wilderness)
 cmd-wg_zone-ship = {$ship}, mark: {$mark}
-cmd-wg_zone-info = Zone: {$zone}. Your mark: {$mark}. Ship: {$ship}.
+cmd-wg_zone-info = {$target}. Zone: {$zone}. Mark: {$mark}. Ship: {$ship}.
 cmd-wg_zone-marked = Marked {$carrier}.
 cmd-wg_zone-cleared = Cleared the mark on {$carrier}.

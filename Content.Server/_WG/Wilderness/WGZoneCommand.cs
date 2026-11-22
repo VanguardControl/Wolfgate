@@ -1,18 +1,20 @@
+using System.Linq;
 using Content.Server.Administration;
 using Content.Shared._WG.Wilderness;
-using Content.Shared.Administration;
+using Robust.Server.Player;
 using Robust.Shared.Console;
 using Robust.Shared.Timing;
 
 namespace Content.Server._WG.Wilderness;
 
 /// <summary>
-/// Shows the zone and Wilderness marks of the admin's own person and the ship they're aboard, and sets or clears the
-/// mark on either.
+/// Shows the zone and Wilderness marks of a person and the ship they're aboard, or of a ship, and sets or clears the
+/// mark on either. With no target, the admin's own body.
 /// </summary>
-[AdminCommand(AdminFlags.Debug)]
+[AdminCommand(WGZoneSystem.StaffFlag)]
 public sealed partial class WGZoneCommand : LocalizedEntityCommands
 {
+    [Dependency] private IPlayerManager _players = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private WGZoneSystem _zones = default!;
 
@@ -20,47 +22,91 @@ public sealed partial class WGZoneCommand : LocalizedEntityCommands
 
     public override void Execute(IConsoleShell shell, string argStr, string[] args)
     {
-        if (shell.Player?.AttachedEntity is not { } mob)
+        var action = args.Length == 0 ? "info" : args[0];
+        var wantShip = args.Skip(1).Contains("ship");
+        var name = args.Skip(1).FirstOrDefault(arg => arg != "ship");
+
+        if (!TryTarget(shell, name, out var target))
+            return;
+
+        var ship = _zones.IsShip(target) ? target : _zones.ShipOf(target);
+        var carrier = ship == target ? target : wantShip ? ship : target;
+        if (carrier is not { } chosen)
         {
-            shell.WriteError(Loc.GetString("cmd-wg_zone-no-body"));
+            shell.WriteError(Loc.GetString("cmd-wg_zone-no-ship"));
             return;
         }
 
-        var ship = _zones.ShipOf(mob);
-        var carrier = mob;
-        if (args.Length > 1 && args[1] == "ship")
-        {
-            if (ship is not { } aboard)
-            {
-                shell.WriteError(Loc.GetString("cmd-wg_zone-no-ship"));
-                return;
-            }
-
-            carrier = aboard;
-        }
-
-        switch (args.Length == 0 ? "info" : args[0])
+        switch (action)
         {
             case "info":
-                var zone = EntityManager.TryGetComponent<WGInZoneComponent>(mob, out var inZone) ? inZone.Zone.Id : "-";
-                var shipMark = ship is { } vessel
+                var zone = EntityManager.TryGetComponent<WGInZoneComponent>(target, out var inZone) ? inZone.Zone.Id : "-";
+                var shipMark = ship is { } vessel && vessel != target
                     ? Loc.GetString("cmd-wg_zone-ship", ("ship", EntityManager.ToPrettyString(vessel)), ("mark", MarkOf(vessel)))
                     : "-";
-                shell.WriteLine(Loc.GetString("cmd-wg_zone-info", ("zone", zone), ("mark", MarkOf(mob)), ("ship", shipMark)));
+                shell.WriteLine(Loc.GetString("cmd-wg_zone-info",
+                    ("target", EntityManager.ToPrettyString(target)),
+                    ("zone", zone),
+                    ("mark", MarkOf(target)),
+                    ("ship", shipMark)));
                 break;
             case "mark":
-                _zones.Mark(carrier);
-                shell.WriteLine(Loc.GetString("cmd-wg_zone-marked", ("carrier", EntityManager.ToPrettyString(carrier))));
+                // A ship, vehicle or living body; not a station, item or ghost.
+                if (chosen != ship && !_zones.CanCarry(chosen))
+                {
+                    shell.WriteError(Loc.GetString("cmd-wg_zone-cannot-carry", ("target", EntityManager.ToPrettyString(chosen))));
+                    return;
+                }
+
+                _zones.StaffMark(chosen);
+                shell.WriteLine(Loc.GetString("cmd-wg_zone-marked", ("carrier", EntityManager.ToPrettyString(chosen))));
                 break;
             case "clear":
-                EntityManager.RemoveComponent<WGSkullComponent>(carrier);
-                EntityManager.RemoveComponent<WGWildernessDwellComponent>(carrier);
-                shell.WriteLine(Loc.GetString("cmd-wg_zone-cleared", ("carrier", EntityManager.ToPrettyString(carrier))));
+                var cleared = _zones.StaffClear(chosen).Select(uid => EntityManager.ToPrettyString(uid).ToString());
+                shell.WriteLine(Loc.GetString("cmd-wg_zone-cleared", ("carrier", string.Join(", ", cleared))));
                 break;
             default:
                 shell.WriteLine(Help);
                 break;
         }
+    }
+
+    /// <summary>The target: a player's body by name, an entity by id, or with neither the admin's own body.</summary>
+    private bool TryTarget(IConsoleShell shell, string? name, out EntityUid target)
+    {
+        target = default;
+        if (name == null)
+        {
+            if (shell.Player?.AttachedEntity is not { } mob)
+            {
+                shell.WriteError(Loc.GetString("cmd-wg_zone-no-body"));
+                return false;
+            }
+
+            target = mob;
+            return true;
+        }
+
+        if (_players.TryGetSessionByUsername(name, out var session))
+        {
+            if (session.AttachedEntity is not { } body)
+            {
+                shell.WriteError(Loc.GetString("cmd-wg_zone-player-no-body", ("player", session.Name)));
+                return false;
+            }
+
+            target = body;
+            return true;
+        }
+
+        if (NetEntity.TryParse(name, out var net) && EntityManager.TryGetEntity(net, out var uid) && EntityManager.EntityExists(uid))
+        {
+            target = uid.Value;
+            return true;
+        }
+
+        shell.WriteError(Loc.GetString("cmd-wg_zone-no-target", ("target", name)));
+        return false;
     }
 
     /// <summary>A mark's time left, "held" in a Wilderness, or "-" for none.</summary>
@@ -74,11 +120,10 @@ public sealed partial class WGZoneCommand : LocalizedEntityCommands
 
     public override CompletionResult GetCompletion(IConsoleShell shell, string[] args)
     {
-        return args.Length switch
-        {
-            1 => CompletionResult.FromHintOptions(new[] { "info", "mark", "clear" }, Loc.GetString("cmd-wg_zone-hint")),
-            2 when args[0] is "mark" or "clear" => CompletionResult.FromHintOptions(new[] { "ship" }, Loc.GetString("cmd-wg_zone-ship-hint")),
-            _ => CompletionResult.Empty,
-        };
+        if (args.Length == 1)
+            return CompletionResult.FromHintOptions(new[] { "info", "mark", "clear" }, Loc.GetString("cmd-wg_zone-hint"));
+
+        var options = CompletionHelper.SessionNames(players: _players).Prepend(new CompletionOption("ship"));
+        return CompletionResult.FromHintOptions(options, Loc.GetString("cmd-wg_zone-target-hint"));
     }
 }

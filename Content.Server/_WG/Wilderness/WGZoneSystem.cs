@@ -72,6 +72,7 @@ public sealed partial class WGZoneSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<WGInZoneComponent, PlayerDetachedEvent>(OnDetached);
         InitializeSkull();
+        InitializeAdmin();
     }
 
     public override void Update(float frameTime)
@@ -346,7 +347,7 @@ public sealed partial class WGZoneSystem : EntitySystem
     /// Whether a grid is a ship that can be marked: someone's own, bought or a claimed wreck. Every grid has a shuttle
     /// component, so stations, asteroids and sites don't count; people on them are marked themselves.
     /// </summary>
-    private bool IsShip(EntityUid grid)
+    public bool IsShip(EntityUid grid)
     {
         if (HasComp<MapComponent>(grid) || !HasComp<MapGridComponent>(grid))
             return false;

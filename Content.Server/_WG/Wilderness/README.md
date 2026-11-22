@@ -41,7 +41,12 @@ where they are. Every radar (helm, mass scanner, gunnery and drone consoles) dra
 name in red with a skull after it and one over its blip (`ShuttleNavControl.Wilderness.cs`): the scope's own ship too,
 which has no tag, and a ship past the range names show. A vessel on another layer of a world, whose grid the client
 doesn't have, is marked through its world's signal list (`WGPlanetSignal.Marked`).
-Admins can check and set the marks on themselves and their ship with `wg_zone info|mark|clear [ship]`.
+
+Staff (the `Admin` flag) mark and clear by hand (`WGZoneSystem.Admin.cs`): right-click a person, or anything aboard a
+ship, for the Admin verbs, or run `wg_zone info|mark|clear [ship] [player or entity id]` (no target is yourself).
+Whoever is marked or cleared is told in chat. Clearing a pilot also clears the ship they fly, and clearing a ship its
+pilots, since either would pass the mark straight back. A staff mark follows the usual rules after that: it holds in a
+Wilderness and runs out `skull_minutes` after leaving.
 
 The zone icons are built by `Tools/_WG/Wilderness/make_icons.py` from the radar marker glyphs.
 
@@ -53,6 +58,7 @@ The zone icons are built by `Tools/_WG/Wilderness/make_icons.py` from the radar 
 ### Server
 
 - [`Content.Server/_WG/Wilderness/WGZoneCommand.cs`](WGZoneCommand.cs)
+- [`Content.Server/_WG/Wilderness/WGZoneSystem.Admin.cs`](WGZoneSystem.Admin.cs)
 - [`Content.Server/_WG/Wilderness/WGZoneSystem.Attacks.cs`](WGZoneSystem.Attacks.cs)
 - [`Content.Server/_WG/Wilderness/WGZoneSystem.cs`](WGZoneSystem.cs)
 - [`Content.Server/_WG/Wilderness/WGZoneSystem.Skull.cs`](WGZoneSystem.Skull.cs)

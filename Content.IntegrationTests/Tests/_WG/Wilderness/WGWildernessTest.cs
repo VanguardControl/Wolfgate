@@ -394,6 +394,57 @@ public sealed class WGWildernessTest
         await pair.CleanReturnAsync();
     }
 
+    [Test]
+    public async Task StaffMarkAndClearAPersonAndAShipAndItsPilot()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = false });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var cfg = server.ResolveDependency<IConfigurationManager>();
+        var map = await pair.CreateTestMap();
+        var zones = server.System<WGZoneSystem>();
+        EntityUid ship = default, pilot = default, walker = default;
+
+        await server.WaitPost(() =>
+        {
+            cfg.SetCVar(WildernessCVars.DwellSeconds, 60f);
+            ship = Ship(em, map, new Vector2(2000f, 0f));
+            pilot = Crewman(em, ship);
+            Helm(em, ship, pilot);
+            walker = em.SpawnEntity("MobHuman", new MapCoordinates(new Vector2(4000f, 0f), map.MapId));
+
+            Assert.That(zones.CanCarry(walker), Is.True);
+            Assert.That(zones.CanCarry(map.Grid.Owner), Is.False, "a station grid counted as a person who can carry a mark.");
+            Assert.That(zones.IsShip(map.Grid.Owner), Is.False, "a station counted as a ship.");
+
+            zones.StaffMark(walker);
+            zones.StaffMark(ship);
+        });
+        await pair.RunSeconds(2f);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.TryGetComponent<WGSkullComponent>(walker, out var skull) && skull.ExpiresAt != null, Is.True,
+                "a staff mark outside a Wilderness should run down.");
+            Assert.That(em.HasComponent<WGSkullComponent>(pilot), Is.True, "the pilot didn't share the ship's staff mark.");
+
+            var cleared = zones.StaffClear(ship);
+            Assert.That(cleared, Does.Contain(pilot), "clearing a ship left its pilot's mark, which would mark it again.");
+            zones.StaffClear(walker);
+        });
+        await pair.RunSeconds(2f);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.HasComponent<WGSkullComponent>(ship), Is.False, "the ship's mark came back after staff cleared it.");
+            Assert.That(em.HasComponent<WGSkullComponent>(pilot), Is.False, "the pilot's mark came back after staff cleared the ship.");
+            Assert.That(em.HasComponent<WGSkullComponent>(walker), Is.False);
+            Reset(cfg);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>A bought ship of one tile.</summary>
     private static EntityUid Ship(IEntityManager em, TestMapData map, Vector2 at)
     {
