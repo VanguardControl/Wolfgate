@@ -11,6 +11,7 @@ using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.FixedPoint;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Timing;
 
 namespace Content.IntegrationTests.Tests._WG.Wolfmed;
 
@@ -22,6 +23,9 @@ namespace Content.IntegrationTests.Tests._WG.Wolfmed;
 [TestOf(typeof(WolfmedInfectionSystem))]
 public sealed class WolfmedInfectionTickSpreadTest : WolfmedGameTest
 {
+    /// <summary>The infection system's window, its private <c>TickSeconds</c>.</summary>
+    private const float Window = 5f;
+
     private async Task Pin()
     {
         await OverrideCVar(Side.Server, WolfmedCVars.InfectionEnabled, true);
@@ -145,6 +149,65 @@ public sealed class WolfmedInfectionTickSpreadTest : WolfmedGameTest
             Assert.That(moved, Is.GreaterThan(0f), "infection did not resume once turned back on.");
             Assert.That(moved, Is.LessThan(perMinute * 0.5f),
                 $"10 s back on moved the cut {moved:0.000}, a whole minute moves it {perMinute:0.000}.");
+        });
+    }
+
+    /// <summary>
+    /// A body first seen while infection is off has no turn to move on, so its first turn back on is paid only the time
+    /// since infection came on, not a window reaching back into the time it was off.
+    /// </summary>
+    [Test]
+    public async Task BodyFirstSeenWhileOffIsNotBackdated()
+    {
+        await Pin();
+        var map = await CreateTestMap();
+        var timing = Server.ResolveDependency<IGameTiming>();
+        EntityUid wound = default;
+        float window = 0, start = 0;
+        TimeSpan onAt = default, movedAt = default;
+
+        // How far one whole window moves a fresh cut.
+        await Server.WaitAssertion(() =>
+        {
+            var reference = Cut(SEntMan.SpawnEntity("MobHuman", map.GridCoords));
+            var before = Progress(reference);
+            SEntMan.System<WolfmedInfectionSystem>().Update(Window);
+            window = Progress(reference) - before;
+            Assert.That(window, Is.GreaterThan(0f), "a window in one call should move a fresh cut.");
+        });
+
+        await OverrideCVar(Side.Server, WolfmedCVars.InfectionEnabled, false);
+        await Server.WaitPost(() =>
+        {
+            wound = Cut(SEntMan.SpawnEntity("MobHuman", map.GridCoords));
+            start = Progress(wound);
+        });
+        // Long enough to be filed while off, so it has no last turn when infection comes back.
+        await RunSeconds(10);
+        await Server.WaitAssertion(() => Assert.That(Progress(wound), Is.EqualTo(start), "the cut moved with infection off."));
+
+        await OverrideCVar(Side.Server, WolfmedCVars.InfectionEnabled, true, false);
+        await Server.WaitPost(() => onAt = timing.CurTime);
+        var moved = false;
+        for (var i = 0; i < 300 && !moved; i++)
+        {
+            await RunTicksSync(1);
+            await Server.WaitPost(() =>
+            {
+                moved = Progress(wound) > start;
+                movedAt = timing.CurTime;
+            });
+        }
+
+        Assert.That(moved, Is.True, "the cut never moved once infection was back on.");
+        await Server.WaitAssertion(() =>
+        {
+            // Its first turn is paid at most the time since infection came on, plus a tick of slack.
+            var on = (float) (movedAt - onAt).TotalSeconds + 0.1f;
+            var allowed = window * MathF.Min(1f, on / Window) * 1.25f;
+            var first = Progress(wound) - start;
+            Assert.That(first, Is.LessThanOrEqualTo(allowed),
+                $"{on:0.00} s after infection came on, the first turn moved the cut {first:0.0000}; a whole window moves it {window:0.0000}.");
         });
     }
 

@@ -49,6 +49,9 @@ public sealed partial class WolfmedInfectionSystem
     /// <summary>When infection was turned off, while it is.</summary>
     private TimeSpan? _offSince;
 
+    /// <summary>When infection last came back on, so a group first seen then isn't backdated into the time it was off.</summary>
+    private TimeSpan _onSince;
+
     private readonly HashSet<EntityUid> _fevered = new();
     private readonly Dictionary<EntityUid, float> _feed = new();
     private readonly HashSet<EntityUid> _pinned = new();
@@ -111,10 +114,15 @@ public sealed partial class WolfmedInfectionSystem
         // A group whose body has gone still has its turn: that is what takes the infection off its wounds.
         foreach (var group in due)
         {
-            // A group seen for the first time counts as last turned a window ago, and keeps that, so a corpse's wait runs
-            // from when it was first filed.
+            // A group seen for the first time counts as last turned a window ago, but no earlier than infection came on,
+            // and keeps that, so a corpse's wait runs from when it was first filed.
             if (!_lastTurn.TryGetValue(group.Key, out var last) || last > now)
-                _lastTurn[group.Key] = last = now - window;
+            {
+                last = now - window;
+                if (last < _onSince)
+                    last = _onSince;
+                _lastTurn[group.Key] = last;
+            }
 
             var elapsed = now - last;
             if (IsSlow(group.Key) && elapsed < slow)
@@ -141,6 +149,7 @@ public sealed partial class WolfmedInfectionSystem
             return true;
 
         _offSince = null;
+        _onSince = now;
         var gap = now - off;
         _staleTurns.Clear();
         _staleTurns.AddRange(_lastTurn.Keys);
