@@ -46,6 +46,9 @@ public sealed partial class WolfmedInfectionSystem
     private readonly Dictionary<EntityUid, TimeSpan> _lastTurn = new();
     private readonly List<EntityUid> _staleTurns = new();
 
+    /// <summary>When infection was turned off, while it is.</summary>
+    private TimeSpan? _offSince;
+
     private readonly HashSet<EntityUid> _fevered = new();
     private readonly Dictionary<EntityUid, float> _feed = new();
     private readonly HashSet<EntityUid> _pinned = new();
@@ -59,16 +62,13 @@ public sealed partial class WolfmedInfectionSystem
     public void AdvanceAll(float seconds)
     {
         FileGroups(1);
-        if (!_config.GetCVar(WolfmedCVars.InfectionEnabled))
-        {
-            _lastTurn.Clear();
+        var now = _timing.CurTime;
+        if (!IsOn(now))
             return;
-        }
 
         var minutes = seconds / 60f * _config.GetCVar(WolfmedCVars.InfectionRate);
         var profile = Profile;
         var sepsis = _config.GetCVar(WolfmedCVars.SepsisEnabled);
-        var now = _timing.CurTime;
         foreach (var group in _slots[0])
         {
             _lastTurn[group.Key] = now;
@@ -94,18 +94,14 @@ public sealed partial class WolfmedInfectionSystem
             _nextFiling = new GameTick(tick.Value + (uint) period);
         }
 
-        // Time with infection off is not owed when it comes back on: every group starts afresh then.
-        if (!_config.GetCVar(WolfmedCVars.InfectionEnabled))
-        {
-            _lastTurn.Clear();
+        var now = _timing.CurTime;
+        if (!IsOn(now))
             return;
-        }
 
         var due = _slots[(int) (tick.Value % (uint) period)];
         if (due.Count == 0)
             return;
 
-        var now = _timing.CurTime;
         var window = TimeSpan.FromSeconds(TickSeconds);
         var slow = TimeSpan.FromSeconds(Math.Max(TickSeconds, _config.GetCVar(WolfmedInfectionSpreadCVars.SlowSeconds)));
         var rate = _config.GetCVar(WolfmedCVars.InfectionRate);
@@ -127,6 +123,33 @@ public sealed partial class WolfmedInfectionSystem
             _lastTurn[group.Key] = now;
             TickGroup(group, profile, (float) elapsed.TotalSeconds / 60f * rate, sepsis);
         }
+    }
+
+    /// <summary>
+    /// Whether infection is on. Once it comes back on, every last turn moves on by the time it was off, so that time
+    /// isn't owed and the time before it still counts.
+    /// </summary>
+    private bool IsOn(TimeSpan now)
+    {
+        if (!_config.GetCVar(WolfmedCVars.InfectionEnabled))
+        {
+            _offSince ??= now;
+            return false;
+        }
+
+        if (_offSince is not { } off)
+            return true;
+
+        _offSince = null;
+        var gap = now - off;
+        _staleTurns.Clear();
+        _staleTurns.AddRange(_lastTurn.Keys);
+        foreach (var key in _staleTurns)
+        {
+            _lastTurn[key] += gap;
+        }
+        _staleTurns.Clear();
+        return true;
     }
 
     /// <summary>A corpse, or a part off any body: nobody is watching its infection from moment to moment.</summary>

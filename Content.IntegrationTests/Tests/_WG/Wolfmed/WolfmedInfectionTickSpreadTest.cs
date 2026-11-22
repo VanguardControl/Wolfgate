@@ -148,6 +148,72 @@ public sealed class WolfmedInfectionTickSpreadTest : WolfmedGameTest
         });
     }
 
+    /// <summary>
+    /// A loose limb's wait keeps the time it had before infection was turned off: back on, it takes its turn when the
+    /// rest of the wait is up, not a whole wait later, and that turn isn't paid the time it was off.
+    /// </summary>
+    [Test]
+    public async Task LooseLimbKeepsItsWaitAcrossTurningOff()
+    {
+        await Pin();
+        await OverrideCVar(Side.Server, WolfmedInfectionSpreadCVars.SlowSeconds, 30f);
+        var map = await CreateTestMap();
+        EntityUid wound = default;
+        float start = 0, turn = 0;
+
+        await Server.WaitAssertion(() =>
+        {
+            wound = Cut(SEntMan.SpawnEntity("MobHuman", map.GridCoords));
+            SEntMan.System<WolfmedInfectionSystem>().Contaminate(wound);
+            var hand = SEntMan.GetComponent<WoundComponent>(wound).HoldingPart;
+            Assert.That(SEntMan.System<WolfmedBodySystem>().TryDetachPart(hand), Is.True, "the hand would not come off.");
+            start = Progress(wound);
+        });
+
+        // Its first turn, then a whole wait to the next, which is how far one turn moves it.
+        Assert.That(await SecondsToTurn(45, start), Is.Not.Null, "a loose limb's infection never took a turn.");
+        await Server.WaitPost(() => start = Progress(wound));
+        Assert.That(await SecondsToTurn(45, start), Is.Not.Null, "a loose limb's infection stopped after one turn.");
+        await Server.WaitPost(() =>
+        {
+            turn = Progress(wound) - start;
+            start = Progress(wound);
+        });
+
+        // Twenty seconds of its wait, then a minute off.
+        await RunSeconds(20);
+        await OverrideCVar(Side.Server, WolfmedCVars.InfectionEnabled, false);
+        await RunSeconds(60);
+        await Server.WaitAssertion(() =>
+            Assert.That(Progress(wound), Is.EqualTo(start), "the limb took a turn before its wait was up or while off."));
+
+        // About 10 s of the wait is left, plus up to a window for its slot; starting the wait afresh would take 25 s or more.
+        await OverrideCVar(Side.Server, WolfmedCVars.InfectionEnabled, true);
+        var waited = await SecondsToTurn(30, start);
+        Assert.That(waited, Is.Not.Null, "the limb never took a turn once infection was back on.");
+        Assert.That(waited, Is.LessThanOrEqualTo(18), $"the limb took {waited} s to turn once back on; its wait started over.");
+        await Server.WaitAssertion(() =>
+        {
+            var moved = Progress(wound) - start;
+            Assert.That(moved, Is.LessThan(turn * 1.6f),
+                $"the turn back on moved the cut {moved:0.000}, a whole wait moves it {turn:0.000}; it was paid the minute off.");
+        });
+
+        async Task<int?> SecondsToTurn(int limit, float from)
+        {
+            for (var i = 1; i <= limit; i++)
+            {
+                await RunSeconds(1);
+                var moved = false;
+                await Server.WaitPost(() => moved = Progress(wound) > from);
+                if (moved)
+                    return i;
+            }
+
+            return null;
+        }
+    }
+
     /// <summary>An untreated risk-1 cut on the left hand, made directly so the part it lands on is certain.</summary>
     private EntityUid Cut(EntityUid body)
     {
