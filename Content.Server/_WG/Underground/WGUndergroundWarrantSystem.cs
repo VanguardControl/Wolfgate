@@ -266,15 +266,21 @@ public sealed partial class WGUndergroundWarrantSystem : EntitySystem
         Apply(ent, ent.Comp);
     }
 
-    private void OnSpawned(PlayerSpawnCompleteEvent ev)
+    /// <summary>Ties a member's body to the player who spawned in it, and carries over a lock they are still serving.</summary>
+    public void Claim(EntityUid mob, NetUserId user)
     {
-        if (!TryComp<WGUndergroundMemberComponent>(ev.Mob, out var member))
+        if (!TryComp<WGUndergroundMemberComponent>(mob, out var member))
             return;
 
-        member.User = ev.Player.UserId;
-        if (_served.TryGetValue(ev.Player.UserId, out var until) && until > _timing.CurTime)
+        member.User = user;
+        if (_served.TryGetValue(user, out var until) && until > _timing.CurTime)
             member.LockedUntil = until;
-        Apply(ev.Mob, member);
+        Apply(mob, member);
+    }
+
+    private void OnSpawned(PlayerSpawnCompleteEvent ev)
+    {
+        Claim(ev.Mob, ev.Player.UserId);
     }
 
     private void OnCleanup(RoundRestartCleanupEvent ev)

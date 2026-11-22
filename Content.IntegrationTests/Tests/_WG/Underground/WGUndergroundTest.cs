@@ -16,7 +16,9 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Preferences.Loadouts;
 using Content.Shared.Roles;
 using Content.Shared.Turrets;
+using Content.Shared.Verbs;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Localization;
 using Robust.Shared.Map;
 using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
@@ -157,6 +159,15 @@ public sealed class WGUndergroundTest
             Assert.That(entMan.Deleted(bailed), Is.False, "The pallet took a member whose bail was paid.");
             Assert.That(heat.Captures, Is.EqualTo(captures + 1));
             Assert.That(warrants.Served(gone), Is.True, "A capture after the player left the body didn't lock their next one.");
+
+            // Their next body carries the lock: no warrant on it, and the pallet neither holds nor takes it.
+            var next = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            entMan.AddComponent<WGUndergroundMemberComponent>(next);
+            warrants.Claim(next, gone);
+            Assert.That(entMan.GetComponent<ContrabandComponent>(next).TurnInValues.ContainsKey(WGUndergroundWarrantSystem.Credits), Is.False);
+            Assert.That(warrants.CanTurnIn(next, WGUndergroundWarrantSystem.Credits.Id), Is.False, "The pallet would take a player still serving their hour.");
+            Assert.That(entMan.HasComponent<WGUndergroundHeldComponent>(next), Is.False);
+            entMan.DeleteEntity(next);
         });
 
         await pair.CleanReturnAsync();
@@ -195,6 +206,16 @@ public sealed class WGUndergroundTest
             Assert.That(marks.Resolved(gone), Is.False);
             mobState.ChangeMobState(body, MobState.Dead);
             Assert.That(marks.Resolved(gone), Is.True, "A heretic who died after their player left wasn't settled.");
+
+            // The same when only the record made as the mark landed says whose body it was.
+            var left = new NetUserId(Guid.NewGuid());
+            var husk = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            entMan.AddComponent<WGUndergroundMemberComponent>(husk).User = left;
+            entMan.AddComponent<HereticComponent>(husk);
+            entMan.RemoveComponent<WGUndergroundMemberComponent>(husk);
+            mobState.ChangeMobState(husk, MobState.Dead);
+            Assert.That(marks.Resolved(left), Is.True, "A heretic whose player could no longer be found wasn't settled.");
+            entMan.DeleteEntity(husk);
 
             var next = entMan.SpawnEntity("MobHuman", map.GridCoords);
             entMan.AddComponent<WGUndergroundMemberComponent>(next).User = gone;
@@ -247,6 +268,22 @@ public sealed class WGUndergroundTest
             Assert.That(terminal.Authorized(console, user, out _, out _), Is.False);
             company.CompanyName = WGUndergroundHeatSystem.Company;
             Assert.That(terminal.Authorized(console, user, out _, out _), Is.True);
+
+            // A verb built while they were allowed does nothing once they aren't.
+            var heat = server.System<WGUndergroundHeatSystem>();
+            heat.SetClosed(false);
+            var label = server.ResolveDependency<ILocalizationManager>().GetString("wg-underground-verb-close");
+            var close = entMan.System<SharedVerbSystem>()
+                .GetLocalVerbs(console, user, typeof(AlternativeVerb), force: true)
+                .FirstOrDefault(verb => verb.Text == label);
+            Assert.That(close, Is.Not.Null, "The Godfather's card didn't get the market verb.");
+            company.CompanyName = "TSF";
+            close!.Act?.Invoke();
+            Assert.That(heat.Closed, Is.False, "A verb built before the company change still ran.");
+            company.CompanyName = WGUndergroundHeatSystem.Company;
+            close.Act?.Invoke();
+            Assert.That(heat.Closed, Is.True);
+            heat.SetClosed(false);
 
             entMan.DeleteEntity(user);
             entMan.DeleteEntity(console);
