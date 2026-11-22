@@ -66,8 +66,13 @@ public sealed class WGWorldgenChurnTest
                 xforms.SetWorldPosition(loader, new Vector2(100000f, 0f));
             });
 
-            // Out of its grace and unloaded, but not yet old enough to go.
-            await pair.RunSeconds(2.5f);
+            // Out of its grace and unloaded, but not yet old enough to go. When it unloads depends on where the
+            // controller's sweep stands, so it is waited for.
+            for (var i = 0; i < 80 && entMan.HasComponent<LoadedChunkComponent>(first); i++)
+            {
+                await pair.RunTicksSync(3);
+            }
+
             await server.WaitAssertion(() =>
             {
                 Assert.That(entMan.Deleted(first), Is.False, "The chunk was freed as soon as it unloaded.");

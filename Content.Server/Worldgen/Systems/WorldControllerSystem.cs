@@ -176,7 +176,7 @@ public sealed partial class WorldControllerSystem : EntitySystem
 
             // WOLFGATE(Performance): wait out the unload grace, so passing ships don't unload and respawn debris
             // if (!_chunksToLoad[chunk.Map].ContainsKey(coords))
-            if (WGShouldUnload(uid, _chunksToLoad[chunk.Map].ContainsKey(coords)))
+            if (WGShouldUnload(uid, WGChunkWanted(uid, chunk)))
             {
                 RemCompDeferred<LoadedChunkComponent>(uid);
                 chunksUnloaded++;

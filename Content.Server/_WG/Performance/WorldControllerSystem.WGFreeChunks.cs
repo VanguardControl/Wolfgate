@@ -87,6 +87,19 @@ public sealed partial class WorldControllerSystem
         }
     }
 
+    /// <summary>
+    /// Whether a loader wants a loaded chunk this sweep. A chunk whose map is gone is wanted by nobody and is deleted:
+    /// upstream indexed the sweep by the chunk's map and threw on every later sweep once a world map had been deleted.
+    /// </summary>
+    private bool WGChunkWanted(EntityUid uid, WorldChunkComponent chunk)
+    {
+        if (_chunksToLoad.TryGetValue(chunk.Map, out var wanted))
+            return wanted.ContainsKey(chunk.Coordinates);
+
+        QueueDel(uid);
+        return false;
+    }
+
     /// <summary>Whether debris the chunk placed is still out there and reports back to it.</summary>
     private bool WGOwnsLiveDebris(EntityUid uid)
     {
