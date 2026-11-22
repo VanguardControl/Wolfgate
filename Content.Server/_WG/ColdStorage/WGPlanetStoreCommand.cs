@@ -37,8 +37,13 @@ public sealed partial class WGPlanetStoreCommand : LocalizedEntityCommands
 
         if (args[0] == "load")
         {
-            _store.Load(network);
-            shell.WriteLine(Loc.GetString("cmd-wg_planetstore-loading", ("world", args[1])));
+            var said = _store.Load(network) switch
+            {
+                WGPlanetLoadOutcome.Loading => "cmd-wg_planetstore-loading",
+                WGPlanetLoadOutcome.SaveCancelled => "cmd-wg_planetstore-save-cancelled",
+                _ => "cmd-wg_planetstore-already-loaded",
+            };
+            shell.WriteLine(Loc.GetString(said, ("world", args[1])));
             return;
         }
 

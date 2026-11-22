@@ -6,6 +6,7 @@ using Content.Server.Power.EntitySystems;
 using Content.Shared.Atmos.Rotting;
 using Content.Shared.Power.Components;
 using Robust.Shared.Configuration;
+using Robust.Shared.Timing;
 
 namespace Content.Server._WG.ColdStorage;
 
@@ -20,6 +21,7 @@ public readonly record struct WGGridCatchUpEvent(EntityUid Grid, TimeSpan Elapse
 public sealed class WGCatchUpSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IGameTiming _timing = default!;
     [Dependency] private RottingSystem _rotting = default!;
     [Dependency] private PlantHolderSystem _plants = default!;
     [Dependency] private BatterySystem _battery = default!;
@@ -60,6 +62,13 @@ public sealed class WGCatchUpSystem : EntitySystem
 
         var ev = new WGGridCatchUpEvent(grid, elapsed);
         RaiseLocalEvent(grid, ref ev, true);
+    }
+
+    /// <summary>Applies an absence to one entity that was paused for it. Does nothing for one under a minute.</summary>
+    public void CatchUpOne(EntityUid uid, TimeSpan elapsed)
+    {
+        if (_enabled && elapsed >= Shortest && !TerminatingOrDeleted(uid))
+            CatchUpEntity(uid, elapsed);
     }
 
     /// <summary>
@@ -113,8 +122,17 @@ public sealed class WGCatchUpSystem : EntitySystem
             && TryComp<BatteryComponent>(uid, out var battery)
             && battery.CurrentCharge < battery.MaxCharge)
         {
-            var charge = battery.CurrentCharge + recharger.AutoRechargeRate * (float) elapsed.TotalSeconds;
-            _battery.SetCharge(uid, MathF.Min(battery.MaxCharge, charge), battery);
+            // Only the part of the absence after its recharge cooldown ran out counts.
+            var now = _timing.CurTime;
+            var from = now - elapsed;
+            if (recharger.NextAutoRecharge > TimeSpan.Zero && recharger.NextAutoRecharge > from)
+                from = recharger.NextAutoRecharge;
+
+            if (from < now)
+            {
+                var charge = battery.CurrentCharge + recharger.AutoRechargeRate * (float) (now - from).TotalSeconds;
+                _battery.SetCharge(uid, MathF.Min(battery.MaxCharge, charge), battery);
+            }
         }
     }
 }

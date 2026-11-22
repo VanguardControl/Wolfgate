@@ -60,6 +60,9 @@ public sealed class WGStasisGrid
     /// <summary>What this grid paused, in the order it went: mobs last.</summary>
     public readonly List<EntityUid> Paused = new();
 
+    /// <summary>When each entity that turned up after the grid was paused was paused itself.</summary>
+    public readonly Dictionary<EntityUid, TimeSpan> Late = new();
+
     /// <summary>The grid's own children to pause, things first and mobs after.</summary>
     public readonly List<EntityUid> Tops = new();
 

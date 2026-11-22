@@ -323,10 +323,7 @@ public sealed partial class WGGridStasisSystem : EntitySystem
 
             var distance = _distances.GetValueOrDefault(grid, float.MaxValue);
             rec.Distance = distance;
-            var busy = rec.Policy == WGStasisPolicy.Never
-                       || rec.Policy == WGStasisPolicy.PlayerShip && !_playerShips
-                       || rec.Policy == WGStasisPolicy.Station && !_stations
-                       || rec.Policy == WGStasisPolicy.NpcShip && !_npcShips
+            var busy = !Allowed(rec.Policy)
                        || hold > now
                        || _pins.ContainsKey(grid)
                        || _ftlQuery.HasComp(grid);
@@ -340,7 +337,12 @@ public sealed partial class WGGridStasisSystem : EntitySystem
                     }
                     else if (rec.IdleSince is { } since && (now - since).TotalSeconds >= EffectiveIdle)
                     {
-                        if (rec.Policy == WGStasisPolicy.PlayerShip && IsWorking(grid))
+                        // The policy is from the last registry refresh; a grid that has landed on a planet since
+                        // must not go.
+                        rec.Policy = PolicyOf(grid, xform);
+                        if (!Allowed(rec.Policy))
+                            rec.IdleSince = null;
+                        else if (rec.Policy == WGStasisPolicy.PlayerShip && IsWorking(grid))
                             rec.IdleSince = now;
                         else
                             BeginPausing(rec);
@@ -367,6 +369,19 @@ public sealed partial class WGGridStasisSystem : EntitySystem
         }
     }
 
+    /// <summary>Whether grids of a policy may go into stasis as the switches stand.</summary>
+    private bool Allowed(WGStasisPolicy policy)
+    {
+        return policy switch
+        {
+            WGStasisPolicy.Never => false,
+            WGStasisPolicy.PlayerShip => _playerShips,
+            WGStasisPolicy.Station => _stations,
+            WGStasisPolicy.NpcShip => _npcShips,
+            _ => true,
+        };
+    }
+
     /// <summary>Forgets a deleted grid: its record, pins and holds.</summary>
     private void Drop(EntityUid grid)
     {
@@ -384,6 +399,7 @@ public sealed partial class WGGridStasisSystem : EntitySystem
         rec.Map = _xformQuery.TryComp(rec.Grid, out var xform) ? xform.MapUid : null;
         rec.Tops.Clear();
         rec.Paused.Clear();
+        rec.Late.Clear();
         rec.Cursor = 0;
         rec.Gathered = false;
         _inFlight.Add(rec);
@@ -411,11 +427,12 @@ public sealed partial class WGGridStasisSystem : EntitySystem
             return;
         }
 
-        if (rec.State != WGGridStasisState.Waking)
-            RaiseChanged(rec.Grid, false);
-
+        // Told once it is awake, so a listener asking back gets the same answer; one already waking has been told.
+        var announce = rec.State != WGGridStasisState.Waking;
         WakeFrom(rec, 0);
         FinishWaking(rec);
+        if (announce)
+            RaiseChanged(rec.Grid, false);
     }
 
     private void FinishWaking(WGStasisGrid rec)
@@ -425,8 +442,23 @@ public sealed partial class WGGridStasisSystem : EntitySystem
         rec.AwaySince = null;
         rec.StasisSince = null;
         if (away is { } since)
-            _catchUp.CatchUp(rec.Grid, _timing.CurTime - since, rec.Paused);
+        {
+            // What turned up later slept only from when it was paused.
+            var now = _timing.CurTime;
+            if (rec.Late.Count > 0)
+            {
+                foreach (var (uid, at) in rec.Late)
+                {
+                    _catchUp.CatchUpOne(uid, now - at);
+                }
 
+                rec.Paused.RemoveAll(rec.Late.ContainsKey);
+            }
+
+            _catchUp.CatchUp(rec.Grid, now - since, rec.Paused);
+        }
+
+        rec.Late.Clear();
         rec.Paused.Clear();
         rec.Tops.Clear();
         rec.Cursor = 0;
@@ -602,9 +634,15 @@ public sealed partial class WGGridStasisSystem : EntitySystem
                 _mobs.Add(child);
         }
 
+        var before = rec.Paused.Count;
         foreach (var child in _mobs)
         {
             PauseTree(rec, child);
+        }
+
+        for (var i = before; i < rec.Paused.Count; i++)
+        {
+            rec.Late[rec.Paused[i]] = _timing.CurTime;
         }
 
         _mobs.Clear();

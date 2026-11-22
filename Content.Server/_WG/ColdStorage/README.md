@@ -218,7 +218,9 @@ the moment the hop starts, two minutes), no body with a mind, no spawn point of 
 city world stays loaded), no contract with a wreck or cargo there, and no veto on `WGPlanetStoreCheckEvent`. As soon
 as that stops being true the world is built back from its file with the staged loader, 4 ms a tick, or
 `wg.planetstore.urgent_ms` (15) once a player is on a layer below orbit. A world being saved when someone turns up
-is simply left as it is; one being deleted finishes at once and loads. The time away is applied to what came back,
+is simply left as it is; one being deleted finishes at the urgent pace and then loads. What is to be written is put to sleep
+first, so it is deleted as it was written; as a backstop only what the file holds is deleted: what has still got
+into a stored thing is set down beside it, and what was written and has left its tree is deleted on its own. The time away is applied to what came back,
 and `WGPlanetRestoredEvent` says what each stored entity became, for anything that stayed and pointed at one.
 
 The whole world is one file so that links between its parts survive; the price is that it comes back whole, not
@@ -306,8 +308,10 @@ world should pass `PlanetStoreTest` before the switch is turned on for it.
 - [`Content.Server/_NF/Shipyard/Systems/ShipyardSystem.Consoles.cs`](../../_NF/Shipyard/Systems/ShipyardSystem.Consoles.cs)
   - the console query below skips paused consoles
   - the sale prechecks look at the hull's items, which are paused in stasis
+  - and at its contents, which may be in the cold store
 - [`Content.Server/_NF/Shipyard/Systems/ShipyardSystem.cs`](../../_NF/Shipyard/Systems/ShipyardSystem.cs)
   - the organics check, appraisal and clean-up need the hull awake
+  - a hull whose contents are still in the cold store is not sold empty
   - a deed on a paused holder still counts
 - [`Content.Server/Salvage/SalvageSystem.Magnet.cs`](../../Salvage/SalvageSystem.Magnet.cs)
   - split pieces are salvage too

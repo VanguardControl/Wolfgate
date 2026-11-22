@@ -993,7 +993,8 @@ public sealed partial class WGEncounterSystem : EntitySystem
         _livingGroups.Clear();
         _livingAboard.Clear();
         _livingEngineers.Clear();
-        var crew = EntityQueryEnumerator<WGCrewComponent, TransformComponent>();
+        // Paused crew count: a ship in stasis still has its crew.
+        var crew = AllEntityQuery<WGCrewComponent, TransformComponent>();
         while (crew.MoveNext(out var uid, out var member, out var xform))
         {
             if (!_mobs.IsAlive(uid))
@@ -1210,7 +1211,7 @@ public sealed partial class WGEncounterSystem : EntitySystem
         if (_crewIndexed)
             return anywhere ? _livingGroups.Contains(ship.Group) : _livingAboard.Contains((ship.Group, ship.Grid));
 
-        var crew = EntityQueryEnumerator<WGCrewComponent, TransformComponent>();
+        var crew = AllEntityQuery<WGCrewComponent, TransformComponent>();
         while (crew.MoveNext(out var uid, out var member, out var xform))
         {
             if (member.Group == ship.Group && (anywhere || xform.GridUid == ship.Grid) && _mobs.IsAlive(uid))

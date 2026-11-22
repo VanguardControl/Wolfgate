@@ -9,6 +9,7 @@ using Content.Shared._WG.CCVar;
 using Content.Shared._WG.Planets;
 using Content.Shared.Mobs.Components;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
 
@@ -74,7 +75,9 @@ public sealed class PlanetStoreTest
         layers.Add(net.OrbitMap);
 
         Dictionary<string, int> before = new();
-        List<EntityUid> mobs = new(), hulls = new();
+        List<EntityUid> mobs = new(), hulls = new(), awake = new();
+        EntityUid newcomer = default;
+        var asleep = 0;
         var total = 0;
         await server.WaitPost(() =>
         {
@@ -95,10 +98,18 @@ public sealed class PlanetStoreTest
 
             Assert.That(mobs, Is.Not.Empty, "Precondition: the world has mobs.");
             Assert.That(hulls, Is.Not.Empty, "Precondition: the world has hulls standing on it.");
+            awake.AddRange(mobs.Where(m => !entMan.GetComponent<MetaDataComponent>(m).EntityPaused));
+            asleep = Asleep(entMan, layers);
             Assert.That(store.Occupied(network, net, out var who), Is.False, $"Precondition: the world is empty, but {who}.");
             Assert.That(store.TryUnload(network, out var why), Is.True, why);
+
+            // Something turns up inside a stored thing once the save has started: the file will not hold it.
+            var stored = store.Planets[network];
+            var into = stored.Tops.First(t => entMan.GetComponent<TransformComponent>(t).Anchored);
+            newcomer = entMan.SpawnEntity("Crowbar", new EntityCoordinates(into, Vector2.Zero));
         });
 
+        var tools = entMan.Count<Content.Shared.Tools.Components.ToolComponent>();
         try
         {
             for (var tick = 0; tick < 20000 && store.Planets[network].State != WGPlanetStoreState.Unloaded; tick++)
@@ -117,6 +128,7 @@ public sealed class PlanetStoreTest
                 Assert.That(hulls.All(entMan.EntityExists), Is.True, "A hull standing on the world was deleted.");
                 Assert.That(mobs.All(entMan.EntityExists), Is.True, "A mob was deleted.");
                 Assert.That(mobs.All(m => entMan.GetComponent<MetaDataComponent>(m).EntityPaused), Is.True, "A mob is awake on an empty world.");
+                Assert.That(entMan.EntityExists(newcomer), Is.True, "What entered a stored thing after the save began was deleted with it.");
                 TestContext.Out.WriteLine($"Unloaded: {total} -> {left} entities; stored {planet.StoredEntities}, kept {planet.KeptEntities}; save {planet.SaveMs:0} ms, delete {planet.DeleteMs:0} ms, {planet.Bytes} bytes.");
             }));
 
@@ -132,6 +144,11 @@ public sealed class PlanetStoreTest
             {
                 Assert.That(planet.State, Is.EqualTo(WGPlanetStoreState.Loaded), planet.LastError);
                 Assert.That(store.StoredEntities, Is.Zero);
+                Assert.That(awake.All(m => !entMan.GetComponent<MetaDataComponent>(m).EntityPaused), Is.True, "A mob that was awake before is still asleep.");
+                Assert.That(entMan.EntityExists(newcomer), Is.True, "The newcomer did not outlast the load.");
+                Assert.That(Asleep(entMan, layers), Is.LessThanOrEqualTo(asleep), "Something that was awake came back asleep.");
+                Assert.That(entMan.Count<Content.Shared.Tools.Components.ToolComponent>(), Is.EqualTo(tools), "Something came back twice or not at all.");
+                entMan.DeleteEntity(newcomer);
                 var after = Census(entMan, layers, out var back);
                 var diff = before.Keys.Union(after.Keys)
                     .Where(k => before.GetValueOrDefault(k) != after.GetValueOrDefault(k))
@@ -150,6 +167,19 @@ public sealed class PlanetStoreTest
         }
 
         await pair.CleanReturnAsync();
+    }
+
+    private static int Asleep(IEntityManager entMan, HashSet<EntityUid> layers)
+    {
+        var count = 0;
+        var all = entMan.AllEntityQueryEnumerator<TransformComponent, MetaDataComponent>();
+        while (all.MoveNext(out _, out var xform, out var meta))
+        {
+            if (meta.EntityPaused && xform.MapUid is { } map && layers.Contains(map))
+                count++;
+        }
+
+        return count;
     }
 
     /// <summary>

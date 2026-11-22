@@ -583,6 +583,7 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
         }
 
         _wgStasis.Wake(shuttleUid); // WOLFGATE(ColdStorage): the sale prechecks look at the hull's items, which are paused in stasis
+        _wgColdStore.EnsureWhole(shuttleUid); // WOLFGATE(ColdStorage): and at its contents, which may be in the cold store
         var shuttleName = ToPrettyString(shuttleUid); // Grab the name before it gets 1984'd
 
         // Check for shipyard blacklisting components

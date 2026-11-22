@@ -46,6 +46,7 @@ public sealed partial class WGPlanetStoreSystem : EntitySystem
     [Dependency] private WGColdStoreSystem _coldStore = default!;
     [Dependency] private WGGridStasisSystem _stasis = default!;
     [Dependency] private WGSiteStashSystem _stash = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private WGCatchUpSystem _catchUp = default!;
     [Dependency] private WGContractSystem _contracts = default!;
     [Dependency] private StationSystem _station = default!;
@@ -60,6 +61,7 @@ public sealed partial class WGPlanetStoreSystem : EntitySystem
     private readonly Dictionary<EntityUid, WGStoredPlanet> _planets = new();
     private readonly Dictionary<EntityUid, TimeSpan> _arriving = new();
     private readonly List<EntityUid> _walk = new();
+    private readonly List<EntityUid> _newcomers = new();
     private readonly System.Diagnostics.Stopwatch _timer = new();
     private ErrorCounter _serializerErrors = default!;
 
@@ -99,8 +101,9 @@ public sealed partial class WGPlanetStoreSystem : EntitySystem
 
         Subs.CVar(_cfg, WGPlanetStoreCVars.Enabled, value => _enabled = value, true);
         Subs.CVar(_cfg, WGPlanetStoreCVars.Idle, value => _idle = value, true);
-        Subs.CVar(_cfg, WGPlanetStoreCVars.BudgetMs, value => _budgetMs = value, true);
-        Subs.CVar(_cfg, WGPlanetStoreCVars.UrgentMs, value => _urgentMs = value, true);
+        // A budget of nothing would never write an entity and hold the one save slot for good.
+        Subs.CVar(_cfg, WGPlanetStoreCVars.BudgetMs, value => _budgetMs = Math.Max(value, MinBudgetMs), true);
+        Subs.CVar(_cfg, WGPlanetStoreCVars.UrgentMs, value => _urgentMs = Math.Max(value, MinBudgetMs), true);
 
         _serializerErrors = new ErrorCounter(this);
         _logs.GetSawmill("entity_serializer").AddHandler(_serializerErrors);
@@ -139,11 +142,20 @@ public sealed partial class WGPlanetStoreSystem : EntitySystem
         if (planet.Load != null)
             _loader.AbortLoad(planet.Load);
 
+        if (planet.State is WGPlanetStoreState.Unloaded or WGPlanetStoreState.Loading)
+            StoredEntities -= planet.StoredEntities;
+
+        // Its layers are maps of their own and may outlive it, as may a hull on them: none stays marked away or
+        // hollow, and nothing this put to sleep stays asleep.
+        if (planet.State == WGPlanetStoreState.Saving)
+            CancelSave(planet);
+        else
+            Wake(planet);
+
         if (_saving == planet)
             _saving = null;
 
-        if (planet.State is WGPlanetStoreState.Unloaded or WGPlanetStoreState.Loading)
-            StoredEntities -= planet.StoredEntities;
+        _arriving.Remove(ent.Owner);
     }
 
     /// <summary>A hull hopping to a world is someone on their way: the world counts as occupied from now.</summary>
@@ -161,6 +173,9 @@ public sealed partial class WGPlanetStoreSystem : EntitySystem
             _nextLook = TimeSpan.Zero;
         }
     }
+
+    /// <summary>The least a slice may be given, in milliseconds.</summary>
+    private const float MinBudgetMs = 0.1f;
 
     public override void Update(float frameTime)
     {
@@ -377,29 +392,37 @@ public sealed partial class WGPlanetStoreSystem : EntitySystem
         return true;
     }
 
-    /// <summary>Brings an unloaded world back, or stops one that is being unloaded and puts back what was taken.</summary>
-    public void Load(EntityUid network)
+    /// <summary>
+    /// Brings an unloaded world back, or stops one that is being unloaded and puts back what was taken. Says what
+    /// that came to.
+    /// </summary>
+    public WGPlanetLoadOutcome Load(EntityUid network)
     {
         if (!_planets.TryGetValue(network, out var planet))
-            return;
+            return WGPlanetLoadOutcome.Nothing;
 
         switch (planet.State)
         {
             case WGPlanetStoreState.Saving:
                 // Nothing has been deleted yet: forget the save.
                 CancelSave(planet);
-                break;
+                return WGPlanetLoadOutcome.SaveCancelled;
 
             case WGPlanetStoreState.Deleting:
-                // The file is whole, so the rest goes at once and it all comes back from the file.
-                StepDeleting(planet, true);
-                BeginLoad(planet);
-                break;
+                // The file is whole. The rest still goes a slice a tick, at the pace of a load someone waits on,
+                // and the load starts when it has.
+                planet.LoadWanted = true;
+                return WGPlanetLoadOutcome.Loading;
 
             case WGPlanetStoreState.Unloaded:
                 BeginLoad(planet);
-                break;
+                return WGPlanetLoadOutcome.Loading;
+
+            case WGPlanetStoreState.Loading:
+                return WGPlanetLoadOutcome.Loading;
         }
+
+        return WGPlanetLoadOutcome.Nothing;
     }
 
     /// <summary>An unsaved entity a stored tree may lose: a sound, or an effect about to despawn that isn't a mob.</summary>
@@ -477,8 +500,30 @@ public record struct WGPlanetStoreCheckEvent(EntityUid Network)
 public readonly record struct WGPlanetRestoredEvent(EntityUid Network, IReadOnlyDictionary<EntityUid, EntityUid> Became);
 
 /// <summary>What the planet store knows about one world.</summary>
+/// <summary>What asking for a world to be loaded came to.</summary>
+public enum WGPlanetLoadOutcome : byte
+{
+    /// <summary>It is loaded already, or is no world this system knows.</summary>
+    Nothing,
+
+    /// <summary>It was being saved with nothing deleted yet; the save was dropped.</summary>
+    SaveCancelled,
+
+    /// <summary>It is coming back from its file.</summary>
+    Loading,
+}
+
 public sealed class WGStoredPlanet
 {
+    /// <summary>Someone wants the world back while the last of it is still being deleted; it loads once that is done.</summary>
+    public bool LoadWanted;
+
+    /// <summary>How many of <see cref="Entities"/> have been put to sleep ahead of the save.</summary>
+    public int Frozen;
+
+    /// <summary>The stored entities this put to sleep ahead of the save, to wake when they come back.</summary>
+    public readonly List<EntityUid> Froze = new();
+
     public EntityUid Network;
     public string Name = string.Empty;
     public WGPlanetStoreState State;

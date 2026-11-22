@@ -230,6 +230,18 @@ public sealed partial class WGColdStoreSystem
         return TryRestore(record, 0f);
     }
 
+    /// <summary>
+    /// Brings back this tick whatever of a grid that stayed is in the store, for something that must see the whole
+    /// hull now, such as a sale. False if it is being emptied or could not be brought back.
+    /// </summary>
+    public bool EnsureWhole(EntityUid grid)
+    {
+        if (_job is { } job && job.Grid == grid)
+            return false;
+
+        return !_stored.TryGetValue(grid, out var record) || !record.Hollow || RestoreNow(grid);
+    }
+
     /// <summary>Whether a stored grid's bytes are still held.</summary>
     public bool HasBytes(EntityUid standIn)
     {

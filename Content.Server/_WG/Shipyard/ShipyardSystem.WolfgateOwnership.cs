@@ -16,6 +16,7 @@ namespace Content.Server._NF.Shipyard.Systems;
 public sealed partial class ShipyardSystem
 {
     [Dependency] private WGGridStasisSystem _wgStasis = default!;
+    [Dependency] private WGColdStoreSystem _wgColdStore = default!;
 
     /// <summary>The ID cards and vouchers that hold a ship's deed, copies included.</summary>
     public List<EntityUid> DeedHolders(EntityUid shuttleUid)

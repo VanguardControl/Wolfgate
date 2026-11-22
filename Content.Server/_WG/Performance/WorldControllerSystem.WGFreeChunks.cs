@@ -48,7 +48,7 @@ public sealed partial class WorldControllerSystem
     }
 
     /// <summary>
-    /// Deletes chunks that have been unloaded for long enough. Upstream keeps one entity in nullspace for every
+    /// Deletes chunks that have been unloaded for long enough; run once the sweep knows what loaders want. Upstream keeps one entity in nullspace for every
     /// chunk anyone ever came near, 25,000 an hour on a busy round; a chunk made again later is the same chunk but
     /// for where its rocks fall, which an unloaded chunk respawns anyway.
     /// </summary>
@@ -62,13 +62,17 @@ public sealed partial class WorldControllerSystem
         _wgFree.Clear();
         foreach (var (uid, since) in _wgIdleChunks)
         {
-            if (TerminatingOrDeleted(uid) || HasComp<LoadedChunkComponent>(uid))
+            if (TerminatingOrDeleted(uid) || WGIsLoaded(uid))
             {
                 _wgFree.Add(uid);
                 continue;
             }
 
             if ((now - since).TotalSeconds < _wgChunkFreeSeconds || WGOwnsLiveDebris(uid))
+                continue;
+
+            // A loader is back for it this sweep: it is about to be loaded, not freed.
+            if (TryComp<WorldChunkComponent>(uid, out var chunk) && WGChunkWanted(uid, chunk))
                 continue;
 
             _wgFree.Add(uid);
@@ -79,7 +83,7 @@ public sealed partial class WorldControllerSystem
         foreach (var uid in _wgFree)
         {
             _wgIdleChunks.Remove(uid);
-            if (TerminatingOrDeleted(uid) || HasComp<LoadedChunkComponent>(uid))
+            if (TerminatingOrDeleted(uid) || WGIsLoaded(uid))
                 continue;
 
             QueueDel(uid);
@@ -98,6 +102,15 @@ public sealed partial class WorldControllerSystem
 
         QueueDel(uid);
         return false;
+    }
+
+    /// <summary>
+    /// Whether a chunk is loaded. One the sweep has just unloaded still has its component until the tick ends, shut
+    /// down; that one is not.
+    /// </summary>
+    private bool WGIsLoaded(EntityUid uid)
+    {
+        return TryComp<LoadedChunkComponent>(uid, out var loaded) && loaded.LifeStage <= ComponentLifeStage.Running;
     }
 
     /// <summary>Whether debris the chunk placed is still out there and reports back to it.</summary>

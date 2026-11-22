@@ -591,10 +591,10 @@ Process memory climbed about 1.4 GB an hour, 23 GB to 51 GB over one 20 h round,
   - drop a deleted chunk's unload grace timer
   - no longer a candidate for freeing
   - freed once it has been unloaded long enough
-  - delete chunks unloaded long ago
   - grids that have a player or pilot
   - parked, empty helms don't load worldgen
   - wait out the unload grace, so passing ships don't unload and respawn debris
+  - delete chunks unloaded long ago
   - loaded-chunk counter
 - [`Content.Shared/_CE/ZLevels/Core/Components/CEZPhysicsComponent.cs`](../../../Content.Shared/_CE/ZLevels/Core/Components/CEZPhysicsComponent.cs): raises AfterAutoHandleState so the client notes a height from the server
 - [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Activation.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Activation.cs)

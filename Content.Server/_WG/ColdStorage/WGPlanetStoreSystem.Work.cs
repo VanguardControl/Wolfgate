@@ -24,10 +24,13 @@ public sealed partial class WGPlanetStoreSystem
         planet.Entities.Clear();
         planet.Hollow.Clear();
         planet.Next = 0;
+        planet.Frozen = 0;
+        planet.Froze.Clear();
         planet.Errors = 0;
         planet.KeptEntities = 0;
         planet.Zip = null;
         planet.File = null;
+        planet.LoadWanted = false;
 
         var kept = new List<EntityUid>();
         var stored = new HashSet<EntityUid>();
@@ -157,7 +160,13 @@ public sealed partial class WGPlanetStoreSystem
     {
         if (planet.State == WGPlanetStoreState.Deleting)
         {
-            StepDeleting(planet, false);
+            StepDeleting(planet);
+            if (planet.State == WGPlanetStoreState.Unloaded && planet.LoadWanted)
+            {
+                planet.LoadWanted = false;
+                BeginLoad(planet);
+            }
+
             return;
         }
 
@@ -189,7 +198,22 @@ public sealed partial class WGPlanetStoreSystem
             return;
         }
 
+        // What is to be written sleeps first, so it is deleted as it was written: nothing fills, spawns in or leaves
+        // a stored thing in between. What the site stash already put to sleep is its own.
         _timer.Restart();
+        while (planet.Frozen < planet.Entities.Count)
+        {
+            if (_timer.Elapsed.TotalMilliseconds >= _budgetMs)
+            {
+                planet.SaveMs += _timer.Elapsed.TotalMilliseconds;
+                return;
+            }
+
+            var uid = planet.Entities[planet.Frozen++];
+            if (_stash.PauseEntity(uid))
+                planet.Froze.Add(uid);
+        }
+
         _slicing = planet;
         try
         {
@@ -236,6 +260,12 @@ public sealed partial class WGPlanetStoreSystem
         }
 
         Wake(planet);
+        foreach (var uid in planet.Froze)
+        {
+            _stash.WakeEntity(uid);
+        }
+
+        planet.Froze.Clear();
         planet.Serializer = null;
         planet.Zip = null;
         planet.Entities.Clear();
@@ -272,20 +302,35 @@ public sealed partial class WGPlanetStoreSystem
         planet.Slept.Clear();
     }
 
-    private void StepDeleting(WGStoredPlanet planet, bool all)
+    /// <summary>
+    /// Deletes what the file holds, a slice a tick. The world went on between being written and now, so only what
+    /// was written goes: anything that has got into a stored tree since is set down outside it first, and anything
+    /// written that has got out of its tree is deleted on its own, so nothing is lost and nothing comes back twice.
+    /// </summary>
+    private void StepDeleting(WGStoredPlanet planet)
     {
         _timer.Restart();
+        var budget = planet.LoadWanted ? _urgentMs : _budgetMs;
         while (planet.Next < planet.Tops.Count)
         {
-            if (!all && _timer.Elapsed.TotalMilliseconds >= _budgetMs)
+            if (_timer.Elapsed.TotalMilliseconds >= budget)
             {
                 planet.DeleteMs += _timer.Elapsed.TotalMilliseconds;
                 return;
             }
 
             var top = planet.Tops[planet.Next++];
-            if (!Deleted(top))
-                Del(top);
+            if (Deleted(top))
+                continue;
+
+            SetDownNewcomers(planet, top);
+            Del(top);
+        }
+
+        foreach (var uid in planet.Entities)
+        {
+            if (!TerminatingOrDeleted(uid))
+                Del(uid);
         }
 
         planet.DeleteMs += _timer.Elapsed.TotalMilliseconds;
@@ -299,6 +344,39 @@ public sealed partial class WGPlanetStoreSystem
             _saving = null;
 
         Log.Info($"Unloaded {planet.Name}: {planet.StoredEntities} entities stored, {planet.KeptEntities} kept asleep, save {planet.SaveMs:0} ms, delete {planet.DeleteMs:0} ms, {planet.Bytes} bytes.");
+    }
+
+    /// <summary>Moves out of a tree about to be deleted whatever is in it that the file does not hold.</summary>
+    private void SetDownNewcomers(WGStoredPlanet planet, EntityUid top)
+    {
+        if (planet.Ids is not { } written)
+            return;
+
+        _walk.Clear();
+        _newcomers.Clear();
+        _walk.Add(top);
+        for (var i = 0; i < _walk.Count; i++)
+        {
+            var children = Transform(_walk[i]).ChildEnumerator;
+            while (children.MoveNext(out var child))
+            {
+                if (written.ContainsKey(child))
+                    _walk.Add(child);
+                else if (!Harmless(child) && !TerminatingOrDeleted(child))
+                    _newcomers.Add(child);
+            }
+        }
+
+        _walk.Clear();
+        foreach (var uid in _newcomers)
+        {
+            _transform.AttachToGridOrMap(uid);
+        }
+
+        if (_newcomers.Count > 0)
+            Log.Info($"Unloading {planet.Name}: {_newcomers.Count} entities that entered {ToPrettyString(top)} after it was written were set down beside it.");
+
+        _newcomers.Clear();
     }
 
     private void BeginLoad(WGStoredPlanet planet)
@@ -395,7 +473,6 @@ public sealed partial class WGPlanetStoreSystem
         planet.EmptySince = null;
         planet.State = WGPlanetStoreState.Loaded;
         Wake(planet);
-        _catchUp.CatchUp(planet.Network, away, loaded);
 
         var became = new Dictionary<EntityUid, EntityUid>();
         if (planet.Ids != null && load.UidMap != null)
@@ -406,6 +483,16 @@ public sealed partial class WGPlanetStoreSystem
                     became[old] = now;
             }
         }
+
+        // The file has what this put to sleep ahead of the save as asleep; it wakes, and nothing else does.
+        foreach (var old in planet.Froze)
+        {
+            if (became.TryGetValue(old, out var now))
+                _stash.WakeEntity(now);
+        }
+
+        planet.Froze.Clear();
+        _catchUp.CatchUp(planet.Network, away, loaded);
 
         planet.Ids = null;
         var ev = new WGPlanetRestoredEvent(planet.Network, became);

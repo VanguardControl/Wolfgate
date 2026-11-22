@@ -105,8 +105,6 @@ public sealed partial class WorldControllerSystem : EntitySystem
             return;
         _updateAccumulator -= _updateInterval; // Mono - Delay between updates
 
-        WGFreeIdleChunks(); // WOLFGATE(Performance): delete chunks unloaded long ago
-
         //there was a to-do here about every frame alloc but it turns out it's a nothing burger here.
         _chunksToLoad.Clear();
 
@@ -186,6 +184,7 @@ public sealed partial class WorldControllerSystem : EntitySystem
         if (chunksUnloaded > 0)
             _sawmill.Debug($"Queued {chunksUnloaded} chunks for unload.");
 
+        WGFreeIdleChunks(); // WOLFGATE(Performance): delete chunks unloaded long ago
         WGLogChunkCount(); // WOLFGATE(Performance): loaded-chunk counter
 
         if (_chunksToLoad.All(x => x.Value.Count == 0))

@@ -212,7 +212,14 @@ public sealed partial class UsedShipReinitSystem : EntitySystem
     {
         var want = _transform.ToMapCoordinates(new EntityCoordinates(machine, offset)).Position;
         var xform = Transform(machine);
-        var owners = xform.GridUid is { } grid && grid != machine ? new[] { machine, grid } : new[] { machine };
+        var owners = new List<EntityUid> { machine };
+        if (xform.GridUid is { } grid && grid != machine)
+            owners.Add(grid);
+
+        // On bare planet ground the machine and its pipes hang off the map.
+        if (xform.ParentUid.IsValid() && !owners.Contains(xform.ParentUid))
+            owners.Add(xform.ParentUid);
+
         foreach (var owner in owners)
         {
             var children = Transform(owner).ChildEnumerator;
