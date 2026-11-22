@@ -50,7 +50,7 @@ A crate sold at its destination pays the courier 30,000 and sends ten telecrysta
 <GuideEntityEmbed Entity="WGCargoChuteUnderground"/>
 </Box>
 
-The fence vendor sells [color=crimson]smuggling crates[/color]. Only one station in the sector buys them at a time: this is known as the [bold]drop[/bold]. Your Market app on your PDA names the Drop under its Underground tab and tells you when it moves. There is a delay before other parties hears where it has moved to ten minutes after.
+The fence vendor sells [color=crimson]smuggling crates[/color]. Only one station in the sector buys them at a time: this is known as the [bold]drop[/bold]. Your Market app on your PDA names the Drop under its Underground tab and tells you when it moves. There is a ten minute delay before other parties hear where it has moved to.
 
 The fence chute buys freight that still has its manifest seal, such as cargo taken off NPC haulers, at full price and off the books.
 
