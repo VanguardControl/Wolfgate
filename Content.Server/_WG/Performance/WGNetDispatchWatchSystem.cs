@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Reflection;
 using Content.Server._WG.Dormancy;
 using Prometheus;
@@ -135,7 +134,7 @@ public sealed class WGNetDispatchWatchSystem : EntitySystem
             _kinds[type] = kind = Classify(type);
 
         if (kind == Kind.Wrapper)
-            _clock.Finished(Stopwatch.GetTimestamp(), message, _record);
+            _clock.Finished(System.Diagnostics.Stopwatch.GetTimestamp(), message, _record);
         else
             _clock.Raised(Label(message, kind), message);
     }

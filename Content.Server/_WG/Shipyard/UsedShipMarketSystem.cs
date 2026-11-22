@@ -121,7 +121,7 @@ public sealed class UsedShipListing
                 new StreamReader(new GZipStream(new MemoryStream(packed), CompressionMode.Decompress), Encoding.UTF8));
         }
 
-        var text = _data ?? (Writing is { IsCompletedSuccessfully: true } writing ? writing.Result : null);
+        var text = _data ?? (Writing is { IsCompletedSuccessfully: true } writing ? writing.GetAwaiter().GetResult() : null);
         return text == null
             ? Task.FromResult<MappingDataNode?>(null)
             : WGGridFileReader.ParseAsync(() => new StringReader(text));

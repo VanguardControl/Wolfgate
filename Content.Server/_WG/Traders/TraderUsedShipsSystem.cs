@@ -453,7 +453,8 @@ public sealed partial class TraderUsedShipsSystem : EntitySystem
             if (!_wgPendingBuys.Remove(uid, out var pending) || !TryComp<TraderUsedShipsComponent>(uid, out var used))
                 continue;
 
-            if (!pending.Parsing.IsCompletedSuccessfully || pending.Parsing.Result is not { } data)
+            // Completed by now, so reading it doesn't wait.
+            if (!pending.Parsing.IsCompletedSuccessfully || pending.Parsing.GetAwaiter().GetResult() is not { } data)
             {
                 Log.Error($"Could not read used ship listing {pending.ListingId} at {ToPrettyString(uid)}: {pending.Parsing.Exception?.InnerException}");
                 if (TryComp<TraderComponent>(uid, out var trader))

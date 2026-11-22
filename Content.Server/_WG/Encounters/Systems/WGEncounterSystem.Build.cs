@@ -204,7 +204,8 @@ public sealed partial class WGEncounterSystem
         if (!build.Parsing.IsCompleted)
             return true;
 
-        if (!build.Parsing.IsCompletedSuccessfully || build.Parsing.Result is not { } data
+        // Completed by now, so reading it doesn't wait.
+        if (!build.Parsing.IsCompletedSuccessfully || build.Parsing.GetAwaiter().GetResult() is not { } data
             || !WGGridFileReader.TryLoad(_mapLoader, data, vessel.ShuttlePath, StagingMap(), out var grid))
         {
             if (build.Parsing.Exception is { } failed)

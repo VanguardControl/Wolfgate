@@ -104,7 +104,8 @@ public sealed partial class ShipyardSystem
                 || TerminatingOrDeleted(player))
                 continue;
 
-            if (!pending.Parsing.IsCompletedSuccessfully || pending.Parsing.Result is not { } data)
+            // Completed by now, so reading it doesn't wait.
+            if (!pending.Parsing.IsCompletedSuccessfully || pending.Parsing.GetAwaiter().GetResult() is not { } data)
             {
                 Log.Error($"Could not read {pending.Path} for a purchase at {ToPrettyString(console)}: {pending.Parsing.Exception?.InnerException}");
                 ConsolePopup(player, Loc.GetString("wg-shipyard-preparing-failed"));
