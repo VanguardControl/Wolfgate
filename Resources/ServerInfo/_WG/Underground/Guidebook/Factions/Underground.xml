@@ -1,0 +1,56 @@
+<Document>
+# The Underground
+
+<Box>
+<GuideEntityEmbed Entity="WeaponSubMachineGunTypewriter"/>
+<GuideEntityEmbed Entity="ClothingOuterHardsuitSyndie"/>
+</Box>
+The [color=#d93c3c]Underground[/color] is the sector's black market: a neutral faction working out of a hidden station deep in the [color=orange]Outer Cloud[/color]. It sells to anyone and answers to no one.
+
+It is led by the [color=purple]Godfather[/color], who has up to five [color=crimson]Fugitives[/color] working for them. They move goods the Trans-Solarian Federation has banned, for profit and to wear down its hold on the sector.
+
+## Where you stand
+
+- The [color=cyan]TSFMC[/color] pays a bounty for you [bold]alive[/bold]. They have to make a demand first, and they can't raid the station without admin permission.
+- The [color=tan]PDV[/color] buys from you and hires you. The Sultanate may still mark you a heretic.
+- Civilians are your customers. Invite them to dock and they are under the market truce.
+- The Reavers leave your ships, your crews and your station alone.
+
+[bold]Read [textlink="Conflict Rule 7" link="WGRuleConflictSevenUnderground"]. It covers captures, bail, the station, the market truce and what you can be hired for.[/bold]
+
+## Smuggling
+
+<Box>
+<GuideEntityEmbed Entity="Telecrystal"/>
+<GuideEntityEmbed Entity="CrateTradeContrabandSecureUnderground"/>
+<GuideEntityEmbed Entity="Telecrystal"/>
+</Box>
+
+The Underground runs on [color=red]telecrystals[/color], which ship in illegal items from the greater Perseus Arm. The UndergroundVend in the armory holds them and sells those items.
+
+[color=crimson]Underground supply crates[/color] full of deactivated telecrystals are ordered from the station's cargo request console for 20,000 each. Ordering one alerts the [color=cyan]TSFMC[/color], who will be looking for the courier. Deactivated telecrystals also give off a thermal signature, so don't carry too many.
+
+A crate sold at its destination pays the courier 30,000 and sends ten telecrystals to the UndergroundVend. The TSFMC is told about the sale as well, so get out quick.
+
+## The fence and the drop
+
+<Box>
+<GuideEntityEmbed Entity="WGVendingMachineFence"/>
+<GuideEntityEmbed Entity="WGCargoChuteUnderground"/>
+</Box>
+
+The fence vendor sells [color=crimson]smuggling crates[/color]. Only one station in the sector buys them at a time: the [bold]drop[/bold]. Your Market app names the drop under its Underground tab and tells you when it moves. Security hears where it is ten minutes later.
+
+The fence chute buys freight that still has its manifest seal, such as cargo taken off NPC haulers, at full price and off the books.
+
+## The price on your head
+
+- A [color=crimson]Fugitive[/color] is worth [bold]150[/bold] [color=yellow]FMC[/color] to the TSFMC.
+- The [color=purple]Godfather[/color] is worth [bold]400[/bold] [color=yellow]FMC[/color].
+
+Both are paid for a live prisoner, and your captors have to offer the Underground bail first.
+
+The [color=tan]Sultanate[/color] also looks into everyone on the station. About half of you will be marked a [color=red][bold]heretic[/bold][/color] some time in your first hour, and the [color=tan]PDV[/color] is paid to hand you over. They have to challenge you first.
+
+[italic][color=gray](This is why the Godfather and Fugitives can't take the Heretic trait: the job already rolls for it.)[/color][/italic]
+</Document>

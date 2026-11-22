@@ -22,6 +22,7 @@
 <!-- WOLFGATE: rule colours readable on light and dark backgrounds -->[color=#b8860b][bold]Actions that will lead to [color=#d93c3c]removal[/color] of your safezone protection:[/bold][/color]
 -- Crimes on the safezone (Trespass, Vandalism of the station)
 <!-- WOLFGATE: rule colours readable on light and dark backgrounds -->-- Being in safezone radius while having an active [color=#d93c3c]command[/color] bounty on yourself.
+<!-- WOLFGATE(Underground): job bounties and heretic marks are not command bounties -->-- (The TSF bounty on Underground jobs and a PDV heretic mark are [bold]not[/bold] command bounties. Those players stay protected until they cause trouble.)
 -- Being in safezone radius as ghost-role antagonist (Cortical borer, Asakim, Chimera, ADM/ADC).
 -- Failure to comply with station head requirements (Overseer for Colossus Central, as an example).
 
@@ -32,6 +33,7 @@
 <!-- WOLFGATE: rule colours readable on light and dark backgrounds -->- [color=#b8860b][bold]If you wish to launch an attack on a safezone which may lead to deaths or damage to those not involved, you must send several warnings to evacuate the safezone for a minimum of 5 minutes[/color][/bold]
 
 <!-- WOLFGATE: rule colours readable on light and dark backgrounds -->- [color=#2e9e4f][bold]Contraband is allowed in Safe Zones.[/bold][/color] It is only actionable if used or if you are causing trouble. Wearing or carrying immediate gear is tolerated; stashing or distributing is not. Destroying turrets that detect contraband is allowed, but causes your safezone protection removal.
+<!-- WOLFGATE(Underground): the Underground can trade from its own ship -->-- The Underground may sell from its own docked ship. Stashing or dealing on the station itself is still not tolerated.
 
 - Entering a Safe Zone does not end ongoing fights or consequences, you [bold]may continue fights[/bold] if it moves into a safezone, while attempting to [bold]minimize[/bold] damage to the safezone.
 

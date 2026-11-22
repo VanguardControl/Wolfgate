@@ -30,6 +30,7 @@
     - MonolithRuleConflictFourPortStriking
     - WGRuleConflictFiveDeclaringWar # WOLFGATE(ColdWar)
     - WGRuleConflictSixNewPlayers # WOLFGATE(Newbie)
+    - WGRuleConflictSevenUnderground # WOLFGATE(Underground)
 
 #MARK: Core Rules
 

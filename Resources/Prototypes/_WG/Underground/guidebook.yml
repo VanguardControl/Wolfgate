@@ -1,0 +1,5 @@
+- type: guideEntry
+  id: WGRuleConflictSevenUnderground
+  name: guide-entry-wg-rule-conflict-seven-underground
+  text: "/ServerInfo/_WG/Underground/Guidebook/Rules/Conflict/Seven_Underground.xml"
+  ruleEntry: true

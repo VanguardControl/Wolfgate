@@ -131,5 +131,5 @@
 - type: guideEntry
   id: Underground
   name: Underground Black Market
-  text: "/ServerInfo/_Mono/Guidebook/Factions/underground.xml"
+  text: "/ServerInfo/_WG/Underground/Guidebook/Factions/Underground.xml" # WOLFGATE(Underground): the faction page is rewritten; was /ServerInfo/_Mono/Guidebook/Factions/underground.xml
   priority: 13

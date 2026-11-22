@@ -439,7 +439,6 @@ Standalone edits outside `_WG` that serve no module: files with an untagged `WOL
 - [`Resources/Locale/en-US/_Everdream/accessories/hair.ftl`](../../Resources/Locale/en-US/_Everdream/accessories/hair.ftl): Everdream hair port
 - [`Resources/Locale/en-US/_Goobstation/guidebook/guides.ftl`](../../Resources/Locale/en-US/_Goobstation/guidebook/guides.ftl): restore the licence header removed by Kill Spdx
 - [`Resources/Locale/en-US/_Mono/guidebook/guides.ftl`](../../Resources/Locale/en-US/_Mono/guidebook/guides.ftl): was Monolith Rules
-- [`Resources/Locale/en-US/_Mono/job/job-description.ftl`](../../Resources/Locale/en-US/_Mono/job/job-description.ftl): fugitives are wanted for arrest, not kill on sight
 - [`Resources/Locale/en-US/_Mono/poi/stations.ftl`](../../Resources/Locale/en-US/_Mono/poi/stations.ftl)
   - keeps [bold]; upstream's [color=bold] tag is unbalanced
   - the map has one UndergroundVend, not four; its roles are wanted, not kill on sight
