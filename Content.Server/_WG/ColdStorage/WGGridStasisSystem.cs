@@ -419,7 +419,7 @@ public sealed partial class WGGridStasisSystem : EntitySystem
         rec.AwaySince = null;
         rec.StasisSince = null;
         if (away is { } since)
-            _catchUp.CatchUp(rec.Grid, _timing.CurTime - since);
+            _catchUp.CatchUp(rec.Grid, _timing.CurTime - since, rec.Paused);
 
         rec.Paused.Clear();
         rec.Tops.Clear();

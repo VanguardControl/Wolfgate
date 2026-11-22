@@ -31,8 +31,8 @@ everything else in the round.
 1. **Census** (`EntityCensus`, built): what the entities are and what is spawning.
 2. **Pressure governor** (built): tightens cleanup and spawn budgets as the count climbs.
 3. **Stasis** (built): the planet site stash (`Dormancy`) extended to grids in space.
-4. **Store and restore** (built for wrecks, in memory): the stand-in and waking on approach. Catch-up on wake is
-   planned.
+4. **Store and restore** (built, in memory): the stand-in, waking on approach, owned ships behind their own switch
+   and catch-up on wake (see Catch-up).
 5. **Engine (Lupine, server-only)** (built, not yet run live): grid loading spread over ticks, so a restore with
    time to spare (the usual case) no longer stalls a tick, and unchanged grids no longer re-added for every player every tick (`net.pvs_force_delta`, off by
    default).
@@ -149,7 +149,9 @@ console lists until they refresh, and sounds playing.
 
 `WGCatchUpSystem` applies the time a grid spent in stasis or stored when it comes back (`wg.coldstore.catch_up`,
 on; absences under a minute are skipped): rot advances, plants grow up to an hour's cycles, and batteries that
-recharge themselves fill. A ship is only frozen with its power off, so nothing that needs power is caught up. Other
+recharge themselves fill. An owned ship is only frozen with its power off, so nothing that needs power is caught up; a wreck freezes as it
+stands, power on or off, and what its power was doing simply resumes. On a grid waking from stasis only what was
+paused is caught up: what stayed awake aboard lived through the time already. Other
 systems can add their own with `WGGridCatchUpEvent`. Power, breakers, doors, lockers, stacks, damage, solutions, tile air, canisters, decals, device
 links, access and names come back.
 

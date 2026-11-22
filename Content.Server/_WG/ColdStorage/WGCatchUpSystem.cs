@@ -42,7 +42,29 @@ public sealed class WGCatchUpSystem : EntitySystem
         Subs.CVar(_cfg, WGColdStoreCVars.CatchUp, value => _enabled = value, true);
     }
 
-    /// <summary>Applies an absence to everything on a grid. Does nothing for one under a minute.</summary>
+    /// <summary>
+    /// Applies an absence to the entities of a grid that were paused for it, and no others: what stayed awake on a
+    /// sleeping grid, such as a body with a mind, lived through that time already.
+    /// </summary>
+    public void CatchUp(EntityUid grid, TimeSpan elapsed, List<EntityUid> paused)
+    {
+        if (!_enabled || elapsed < Shortest || TerminatingOrDeleted(grid))
+            return;
+
+        CaughtUp++;
+        foreach (var uid in paused)
+        {
+            if (!TerminatingOrDeleted(uid))
+                CatchUpEntity(uid, elapsed);
+        }
+
+        var ev = new WGGridCatchUpEvent(grid, elapsed);
+        RaiseLocalEvent(grid, ref ev, true);
+    }
+
+    /// <summary>
+    /// Applies an absence to everything on a grid, for one that was stored whole. Does nothing for one under a minute.
+    /// </summary>
     public void CatchUp(EntityUid grid, TimeSpan elapsed)
     {
         if (!_enabled || elapsed < Shortest || TerminatingOrDeleted(grid))

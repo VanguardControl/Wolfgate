@@ -885,7 +885,17 @@ public sealed class ColdStoreTest
             var catchUp = server.System<WGCatchUpSystem>();
             var caughtUp = catchUp.CaughtUp;
             await server.WaitPost(() => server.System<WGColdStoreSystem>().Stored[standIn].AwaySince -= TimeSpan.FromMinutes(10));
-            var restored = await Restore(pair, standIn, "Kept wreck");
+            var restored = EntityUid.Invalid;
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(server.System<WGColdStoreSystem>().RestoreNow(standIn), Is.True, "The restore failed.");
+                restored = FindGrid(entMan, "Kept wreck")!.Value;
+
+                // Checked on the tick it comes back, before the gun's own recharging has had any time.
+                var gun = Tree(entMan, restored).Single(u => Proto(entMan, u) == "WeaponAntiqueLaser");
+                var battery = entMan.GetComponent<BatteryComponent>(gun);
+                Assert.That(battery.CurrentCharge, Is.EqualTo(battery.MaxCharge).Within(0.01f), "Ten minutes away did not recharge the gun.");
+            });
             Assert.That(catchUp.CaughtUp, Is.EqualTo(caughtUp + 1), "The time away was not applied.");
             await server.WaitRunTicks(30);
             await server.WaitAssertion(() => Assert.Multiple(() =>
