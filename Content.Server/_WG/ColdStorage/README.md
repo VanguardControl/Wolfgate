@@ -11,7 +11,7 @@ keeps only what someone can see or use loaded, in three tiers:
 |---|---|---|---|
 | Live | Someone is aboard or near. Simulated as now. | Full | - |
 | Stasis | Nobody near for a few minutes. Paused where it stands; keeps every entity and all state. | Memory only | One tick |
-| Stored | In stasis long enough. Saved and deleted, leaving one stand-in entity. Kept in server memory for the round (a database row is planned). | Its compressed bytes | A few milliseconds a tick, before anyone can see it; at once if they are already near |
+| Stored | In stasis long enough. Saved and deleted, leaving one stand-in entity; an owned ship keeps its own grid as the stand-in and only what is on it goes. Kept in server memory for the round (a database row is planned). | Its compressed bytes | A few milliseconds a tick, before anyone can see it; at once if they are already near |
 
 A stored grid's stand-in keeps its place in the world: its radar blip, name, owner, position, drift and outline. A
 player approaching or plotting a jump to it brings the grid back before it is in view. Planned: an owner logging in
@@ -33,8 +33,8 @@ everything else in the round.
 3. **Stasis** (built): the planet site stash (`Dormancy`) extended to grids in space.
 4. **Store and restore** (built for wrecks, in memory): the stand-in and waking on approach. Catch-up on wake is
    planned.
-5. **Engine (Lupine, server-only)** (built, not yet run live): grid loading spread over ticks so a restore never
-   stalls a tick, and unchanged grids no longer re-added for every player every tick (`net.pvs_force_delta`, off by
+5. **Engine (Lupine, server-only)** (built, not yet run live): grid loading spread over ticks, so a restore with
+   time to spare (the usual case) no longer stalls a tick, and unchanged grids no longer re-added for every player every tick (`net.pvs_force_delta`, off by
    default).
 6. **Persistence** (planned): stored grids in the database, restored after a restart.
 
@@ -99,7 +99,7 @@ Cleanup price ceilings and `max_active` caps never change, and stasis wake range
 
 ## Stored tier (wrecks)
 
-`WGColdStoreSystem` stores ownerless wrecks only. A grid in stasis for `wg.coldstore.idle` (900 s, down to 25% at full
+`WGColdStoreSystem` stores ownerless wrecks, and owned ships if asked to (see Owned ships below). A grid in stasis for `wg.coldstore.idle` (900 s, down to 25% at full
 pressure) is saved with the raw engine serializer, deleted, and replaced by one stand-in entity; it is rebuilt where it
 was, at the same position and rotation and at rest, when anything comes near. It is off by default
 (`wg.coldstore.enabled`) and needs stasis on; turning either off restores every stored grid, one a tick.
@@ -147,7 +147,7 @@ counters for stores, restores, aborts, failed loads and expiries; `wg_entcensus`
 worker thread, then the engine builds the grid that many milliseconds a tick (`MapLoaderSystem.BeginLoadGrid`, a
 Lupine patch). Once what woke the grid is within 150 m the rest is done at once; 0 loads in one call as before.
 `wg.coldstore.max_restore_ms` (50) only marks restores whose slowest tick was over it in the log.
-`wg_coldstore` (Debug) lists stored grids, `wg_coldstore store <grid>` stores one now (skipping only the idle time;
+`wg_coldstore` (Debug) lists stored grids, `wg_coldstore store <grid>` stores one now (whether or not it is in stasis; every other rule still holds;
 refused while storing or stasis is off) or says why not, `wg_coldstore restore <stand-in>` brings one back now, and
 `wg_coldstore restore all` queues every one to come back a tick at a time.
 
@@ -159,7 +159,7 @@ kept and only what is on it is saved and deleted. The empty hull is put back whe
 point at the real grid, and nothing outside has to be repointed. A restore builds the contents back onto the same
 grid (`MapLoaderSystem.BeginLoadOntoGrid`, a Lupine patch), where it stands, hidden until it is whole.
 
-- It needs `wg.stasis.player_ships` as well: only a ship in stasis is stored, and a ship with power running never
+- It needs `wg.stasis.player_ships` as well: on its own the system only stores a ship in stasis, and a ship with power running never
   enters stasis.
 - A kept hull counts as in stasis for as long as it is empty, so atmos does not vent its tiles through walls that
   are not there, and grid cleanup leaves it to its record.

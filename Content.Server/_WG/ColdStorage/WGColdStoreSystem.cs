@@ -201,7 +201,7 @@ public sealed partial class WGColdStoreSystem : EntitySystem
     }
 
     /// <summary>
-    /// Stores a grid now if it may be stored. <paramref name="force"/> skips only the time it must have spent in
+    /// Stores a grid now if it may be stored. <paramref name="force"/>, for admins and tests, skips having been in
     /// stasis. Gives the Fluent id of why not otherwise.
     /// </summary>
     public bool TryStore(EntityUid grid, bool force, out string? reason)
@@ -336,7 +336,8 @@ public sealed partial class WGColdStoreSystem : EntitySystem
         Backend.Put(record.Key, bytes, new WGColdStoreMeta(record.Name, record.Entities, record.StoredAt));
         if (record.Hollow)
         {
-            // The grid stays; from here atmos must leave it alone, as its walls are about to go.
+            // The grid stays; from here atmos and grid cleanup must leave it alone, as its walls are about to go.
+            MarkStored(job.Grid, record);
             _stasis.SetHollow(job.Grid, true);
             _hullRetire.RetireContents(job.Grid);
             job.Deleting = true;
@@ -384,12 +385,6 @@ public sealed partial class WGColdStoreSystem : EntitySystem
             return;
         }
 
-        var stored = EnsureComp<WGStoredGridComponent>(job.Grid);
-        stored.Key = record.Key;
-        stored.Bounds = record.WorldBounds;
-        stored.Entities = record.Entities;
-        stored.GridName = record.Name;
-
         _transform.SetCoordinates(job.Grid, new EntityCoordinates(record.Map, record.Position));
         _transform.SetLocalRotation(job.Grid, record.Rotation);
         Still(job.Grid);
@@ -404,6 +399,15 @@ public sealed partial class WGColdStoreSystem : EntitySystem
         Stores++;
         StoresCounter.Inc();
         FinishStore(job);
+    }
+
+    private void MarkStored(EntityUid uid, WGStoredGrid record)
+    {
+        var stored = EnsureComp<WGStoredGridComponent>(uid);
+        stored.Key = record.Key;
+        stored.Bounds = record.WorldBounds;
+        stored.Entities = record.Entities;
+        stored.GridName = record.Name;
     }
 
     private void FinishStore(StoreJob job)

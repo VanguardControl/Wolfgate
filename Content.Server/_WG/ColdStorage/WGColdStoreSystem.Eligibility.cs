@@ -53,7 +53,8 @@ public sealed partial class WGColdStoreSystem
 
     /// <summary>
     /// The Fluent id of why a grid may not be stored now, or null if it may. Cheap tests first, the walk over its
-    /// entities last. <paramref name="force"/> skips only the time it must have spent in stasis.
+    /// entities last. <paramref name="force"/> skips having been in stasis for the idle time; storing parks and pauses
+    /// the grid anyway.
     /// </summary>
     public string? Ineligible(EntityUid grid, bool force)
     {
