@@ -1,0 +1,122 @@
+# The Underground's own board: members only, no standing lost with anyone.
+# Open-space encounters keep wg.encounters.hidden_clearance (6 km) from a hidden station, so targets start past it.
+
+- type: wgContractor
+  id: WGContractorUnderground
+  name: wg-contractor-underground
+  description: wg-contractor-underground-desc
+  employer: wg-contractor-underground-employer
+  color: "#991111"
+  stations: [ Underground ]
+  board: UG
+  companies: [ WGUnderground ]
+  offers: 6
+  order: 17
+
+- type: wgContract
+  id: WGContractUGHaulerLift
+  contractor: WGContractorUnderground
+  category: Bounty
+  tier: 2
+  title: wg-contract-ug-hauler-lift
+  briefing: wg-contract-ug-hauler-lift-brief
+  reward: 22500, 28000
+  deposit: 1000
+  minutes: 55
+  weight: 1.5
+  crewBonus: 0.25
+  objective: !type:WGContractBounty
+    encounters: [ WGContractTargetRepossession ]
+    minDistance: 6500
+    maxDistance: 9000
+
+- type: wgContract
+  id: WGContractUGUndercut
+  contractor: WGContractorUnderground
+  category: Bounty
+  tier: 2
+  title: wg-contract-ug-undercut
+  briefing: wg-contract-ug-undercut-brief
+  reward: 27500, 35000
+  deposit: 1000
+  minutes: 55
+  weight: 1.0
+  crewBonus: 0.25
+  objective: !type:WGContractBounty
+    encounters: [ WGContractTargetSmuggler ]
+    minDistance: 6500
+    maxDistance: 9000
+
+- type: wgContract
+  id: WGContractUGHunter
+  contractor: WGContractorUnderground
+  category: Bounty
+  tier: 3
+  title: wg-contract-ug-hunter
+  briefing: wg-contract-ug-hunter-brief
+  reward: 45000, 55000
+  deposit: 2500
+  minutes: 60
+  weight: 0.8
+  crewBonus: 0.25
+  objective: !type:WGContractBounty
+    encounters: [ WGContractTargetMercHunter ]
+    minDistance: 6500
+    maxDistance: 9000
+
+- type: wgContract
+  id: WGContractUGContraband
+  contractor: WGContractorUnderground
+  category: Hauling
+  tier: 2
+  title: wg-contract-ug-contraband
+  briefing: wg-contract-ug-contraband-brief
+  reward: 14000, 18000
+  deposit: 2000
+  minutes: 75
+  weight: 2.0
+  objective: !type:WGContractCourier
+    package: WGContractFreightContraband
+    count: 2, 4
+    from: Other
+    to: Contractor
+    destinations: [ WGContractorCamelot ]
+    perPackage: 2000
+    perKilometre: 1500
+
+- type: wgContract
+  id: WGContractUGTakings
+  contractor: WGContractorUnderground
+  category: Delivery
+  tier: 1
+  title: wg-contract-ug-takings
+  briefing: wg-contract-ug-takings-brief
+  reward: 7000, 9000
+  minutes: 75
+  weight: 1.5
+  objective: !type:WGContractCourier
+    package: WGContractStrongbox
+    from: Other
+    to: Contractor
+    destinations: [ WGContractorCaelPort ]
+    perKilometre: 1250
+
+- type: wgContract
+  id: WGContractUGStock
+  contractor: WGContractorUnderground
+  category: Supply
+  tier: 2
+  title: wg-contract-ug-stock
+  briefing: wg-contract-ug-stock-brief
+  reward: 26250, 35000
+  minutes: 60
+  weight: 2.0
+  objective: !type:WGContractSupply
+    premium: 1.25
+    goods:
+    - ammo: true
+      name: wg-contract-goods-ammo
+      count: 6, 10
+      value: 400
+    - stack: Plasteel
+      count: 10, 20

@@ -1,0 +1,9 @@
+job-name-wg-underground-fixer = Fixer
+job-description-wg-underground-fixer = You are the Godfather's lieutenant. Run the Godfather's deals, hand out market passes and take paid work from the Underground's board. The TSF pays a bounty for you alive.
+job-supervisors-wg-underground-godfather = the Godfather
+highlights-fixer = Fixer, Lieutenant
+id-card-access-level-wg-underground-fixer = Fixer
+ent-WGUndergroundFixerIDCard = fixer ID card
+    .desc = An identification card of one of the Godfather's lieutenants.
+ent-WGUndergroundFixerPDA = fixer PDA
+    .desc = A plain personal computer that looks like any spacer's.

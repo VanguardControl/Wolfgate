@@ -1,0 +1,48 @@
+# Points at the hidden station (the SyndicateFOB on its grid) and is gone half an hour after it is handed out.
+- type: entity
+  parent: PinpointerSyndicatePOI
+  id: WGUndergroundMarketPass
+  suffix: Underground
+  components:
+  - type: TimedDespawn
+    lifetime: 1800
+  - type: StaticPrice
+    price: 5000
+
+# The Underground station's point defence. Nothing syncs the ammo provider with the fire mode at spawn, so both are
+# set: mode 1 of the base's list is the anti-material round.
+- type: entity
+  parent: BallisticTurretHeavyAIBase
+  id: WGBallisticTurretHeavyAIUnderground
+  suffix: Underground
+  components:
+  - type: AccessReader
+    access: [["Underground"]]
+  - type: TurretTargetSettings
+    exemptAccessLevels:
+    - Godfather
+    - Underground
+    - WGUndergroundFixer
+  - type: ProjectileBatteryAmmoProvider
+    proto: Bullet762x51mmAntiMaterial
+  - type: BatteryWeaponFireModes
+    currentFireMode: 1
+  - type: WGUndergroundTurret
+
+- type: entity
+  parent: WGContractBoard
+  id: WGContractBoardUG
+  components:
+  - type: Sprite
+    sprite: Structures/Machines/computers.rsi
+    layers:
+    - state: computer
+    - state: generic_keyboard
+    - state: syndishuttle
+      shader: unshaded
+    - state: syndie_key
+      shader: unshaded
+  - type: WGContractBoard
+    board: UG
+  - type: PointLight
+    color: "#991111"

@@ -5,7 +5,7 @@ meta:
   forkId: wolfgate-mapping
   forkVersion: 20261023-201310-d5515d3-tm231-b5e79818
   time: 10/25/2026 17:14:38
-  entityCount: 4696
+  entityCount: 4708
 maps: []
 grids:
 - 1
@@ -29657,6 +29657,48 @@ entities:
     - type: Transform
       parent: 1
       pos: -7.5705595,-5.6265144
+- proto: WGBallisticTurretHeavyAIUnderground
+  entities:
+  - uid: 4830
+    components:
+    - type: Transform
+      parent: 1
+      pos: -10.5,-7.5
+  - uid: 4831
+    components:
+    - type: Transform
+      parent: 1
+      pos: -6.5,-8.5
+  - uid: 4832
+    components:
+    - type: Transform
+      parent: 1
+      pos: -1.5,-8.5
+  - uid: 4833
+    components:
+    - type: Transform
+      parent: 1
+      pos: 2.5,-7.5
+  - uid: 4834
+    components:
+    - type: Transform
+      parent: 1
+      pos: -2.5,-1.5
+  - uid: 4835
+    components:
+    - type: Transform
+      parent: 1
+      pos: -6.5,1.5
+  - uid: 4836
+    components:
+    - type: Transform
+      parent: 1
+      pos: -0.5,1.5
+  - uid: 4837
+    components:
+    - type: Transform
+      parent: 1
+      pos: -12.5,32.5
 - proto: WGCargoChuteUnderground
   entities:
   - uid: 4827
@@ -29664,6 +29706,21 @@ entities:
     - type: Transform
       parent: 1
       pos: 12.5,11.5
+- proto: WGContractBoardUG
+  entities:
+  - uid: 4840
+    components:
+    - type: Transform
+      parent: 1
+      rot: 3.141592653589793 rad
+      pos: 5.5,6.5
+- proto: WGContractCargoPad
+  entities:
+  - uid: 4841
+    components:
+    - type: Transform
+      parent: 1
+      pos: 6.5,6.5
 - proto: WGLatticeStationAnchor
   entities:
   - uid: 4829
@@ -29671,6 +29728,18 @@ entities:
     - type: Transform
       parent: 1
       pos: 8.5,11.5
+- proto: WGSpawnPointUndergroundFixer
+  entities:
+  - uid: 4838
+    components:
+    - type: Transform
+      parent: 1
+      pos: -5.5,-3.5
+  - uid: 4839
+    components:
+    - type: Transform
+      parent: 1
+      pos: -5.5,-4.5
 - proto: WGVendingMachineFence
   entities:
   - uid: 4828

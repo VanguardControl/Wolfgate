@@ -156,7 +156,6 @@ Standalone edits outside `_WG` that serve no module: files with an untagged `WOL
 - [`Content.Server/_Mono/Traits/Physical/WillToLiveSystem.cs`](../../Content.Server/_Mono/Traits/Physical/WillToLiveSystem.cs): restore the licence header removed by Kill Spdx
 - [`Content.Server/_Mono/Trigger/LightningOnTriggerComponent.cs`](../../Content.Server/_Mono/Trigger/LightningOnTriggerComponent.cs): restore the licence header removed by Kill Spdx
 - [`Content.Server/_NF/Bank/BankSystem.cs`](../../Content.Server/_NF/Bank/BankSystem.cs): restore the licence header removed by Kill Spdx
-- [`Content.Server/_NF/Contraband/Systems/ContrabandTurnInSystem.cs`](../../Content.Server/_NF/Contraband/Systems/ContrabandTurnInSystem.cs): an executed heretic's body is what the Sultanate pays for
 - [`Content.Server/_NF/Medical/EntitySystems/MedicalRecipeDataSystem.cs`](../../Content.Server/_NF/Medical/EntitySystems/MedicalRecipeDataSystem.cs)
   - the assembler's recipe pack
   - the assembler's recipes

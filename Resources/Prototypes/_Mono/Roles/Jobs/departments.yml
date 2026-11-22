@@ -54,4 +54,5 @@
   weight: 100
   roles: 
   - Godfather
+  - WGUndergroundFixer # WOLFGATE(Underground): the Godfather's lieutenant
   - Fugitive

@@ -1,0 +1,263 @@
+using Content.Server._Mono.PDV.Components;
+using Content.Server.Stack;
+using Content.Shared._WG.Newbie;
+using Content.Shared._WG.Underground;
+using Content.Shared.Contraband;
+using Content.Shared.GameTicking;
+using Content.Shared.Mobs.Components;
+using Content.Shared.Mobs.Systems;
+using Content.Shared.Popups;
+using Content.Shared.Store;
+using Robust.Shared.Configuration;
+using Robust.Shared.Network;
+using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
+
+namespace Content.Server._WG.Underground;
+
+/// <summary>
+/// Personal warrants on Underground members: what the TSF pays for each of them alive, how it grows with their own
+/// jobs, the bail the Underground can pay while a pallet holds them and the hour they can't be handed in again.
+/// Also decides which prisoners and bodies a contraband pallet takes.
+/// </summary>
+public sealed partial class WGUndergroundWarrantSystem : EntitySystem
+{
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private StackSystem _stack = default!;
+    [Dependency] private WGHereticMarkSystem _marks = default!;
+    [Dependency] private WGUndergroundHeatSystem _heat = default!;
+
+    /// <summary>The currency the TSF pays warrants in.</summary>
+    public static readonly ProtoId<CurrencyPrototype> Credits = "FederationMilitaryCredit";
+
+    /// <summary>The currency the PDV pays for heretics in.</summary>
+    public static readonly ProtoId<CurrencyPrototype> Doubloons = "Doubloon";
+
+    private const string Cash = "SpaceCash";
+    private static readonly TimeSpan Step = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan HeldGrace = TimeSpan.FromMinutes(10);
+
+    /// <summary>Players who were handed in or bailed, and until when their next body can't be.</summary>
+    private readonly Dictionary<NetUserId, TimeSpan> _served = new();
+
+    private TimeSpan _nextStep;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<WGUndergroundMemberComponent, ComponentStartup>(OnStartup);
+        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnSpawned);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnCleanup);
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        var now = _timing.CurTime;
+        if (now < _nextStep)
+            return;
+
+        _nextStep = now + Step;
+        var members = EntityQueryEnumerator<WGUndergroundMemberComponent>();
+        while (members.MoveNext(out var uid, out var member))
+        {
+            if (member.LockedUntil > now)
+                continue;
+
+            // The lock has run out, or something replaced the body's contraband values and dropped the warrant.
+            var expired = member.LockedUntil != TimeSpan.Zero;
+            if (!expired && (member.Warrant <= 0 || CompOrNull<ContrabandComponent>(uid)?.TurnInValues.ContainsKey(Credits) == true))
+                continue;
+
+            member.LockedUntil = TimeSpan.Zero;
+            Apply(uid, member);
+        }
+
+        // A prisoner who got away starts a fresh bail clock the next time a pallet sees them.
+        var held = EntityQueryEnumerator<WGUndergroundHeldComponent>();
+        while (held.MoveNext(out var uid, out var hold))
+        {
+            if (now > hold.Until + HeldGrace)
+                RemCompDeferred<WGUndergroundHeldComponent>(uid);
+        }
+    }
+
+    /// <summary>Raises a member's warrant for jobs they sold themself.</summary>
+    public void Worked(EntityUid seller, int jobs = 1)
+    {
+        if (!TryComp<WGUndergroundMemberComponent>(seller, out var member))
+            return;
+
+        member.Warrant = Math.Min(member.MaxWarrant, member.Warrant + jobs * _cfg.GetCVar(WGUndergroundCVars.WarrantJob));
+        Apply(seller, member);
+    }
+
+    /// <summary>Writes a member's warrant back after something replaced their contraband values, such as a heretic mark.</summary>
+    public void Refresh(EntityUid uid)
+    {
+        if (TryComp<WGUndergroundMemberComponent>(uid, out var member))
+            Apply(uid, member);
+    }
+
+    /// <summary>Whether a pallet paying in this currency takes this mob right now.</summary>
+    public bool CanTurnIn(EntityUid mob, string rewardType)
+    {
+        // Only the Sultanate pays for a body, and only a marked heretic's.
+        if (_mobState.IsDead(mob))
+            return rewardType == Doubloons.Id && HasComp<HereticComponent>(mob);
+
+        // Selling a tagged new player is round removal.
+        if (HasComp<WGNewbieComponent>(mob))
+            return false;
+
+        if (rewardType != Credits.Id || !TryComp<WGUndergroundMemberComponent>(mob, out var member))
+            return true;
+
+        return BailRun(mob, member);
+    }
+
+    /// <summary>What a mob pays at a pallet: a heretic handed in alive is worth half.</summary>
+    public int TurnInValue(EntityUid ent, string rewardType, int value)
+    {
+        if (rewardType != Doubloons.Id || !HasComp<HereticComponent>(ent) || !HasComp<MobStateComponent>(ent))
+            return value;
+
+        return _mobState.IsDead(ent) ? value : value / 2;
+    }
+
+    /// <summary>
+    /// Records what a pallet sale took. A heretic keeps their body and loses the mark, so they are taken out of the
+    /// set the pallet deletes; a member handed in to the TSF is deleted with the rest and can't be handed in again
+    /// for a while.
+    /// </summary>
+    public void TurnedIn(HashSet<EntityUid> sold, string rewardType)
+    {
+        foreach (var ent in new List<EntityUid>(sold))
+        {
+            if (!HasComp<MobStateComponent>(ent))
+                continue;
+
+            if (rewardType == Doubloons.Id && HasComp<HereticComponent>(ent))
+            {
+                _marks.Resolve(ent);
+                RemComp<HereticComponent>(ent);
+                if (TryComp<ContrabandComponent>(ent, out var contraband) && contraband.TurnInValues.Remove(Doubloons))
+                    Dirty(ent, contraband);
+                sold.Remove(ent);
+                continue;
+            }
+
+            if (rewardType != Credits.Id || !TryComp<WGUndergroundMemberComponent>(ent, out var member))
+                continue;
+
+            Serve(ent, member);
+            _heat.Captures++;
+            _heat.Add(-_cfg.GetCVar(WGUndergroundCVars.HeatCapture));
+            _heat.TellFaction(Loc.GetString("wg-underground-captured", ("name", Name(ent))));
+        }
+    }
+
+    /// <summary>The members pallets are holding for bail.</summary>
+    public List<Entity<WGUndergroundHeldComponent>> Held()
+    {
+        var list = new List<Entity<WGUndergroundHeldComponent>>();
+        var held = EntityQueryEnumerator<WGUndergroundHeldComponent>();
+        while (held.MoveNext(out var uid, out var hold))
+        {
+            list.Add((uid, hold));
+        }
+
+        return list;
+    }
+
+    /// <summary>Pays a held member's bail from the treasury. The cash lands beside them, and no pallet takes them for a while.</summary>
+    public bool PayBail(EntityUid prisoner)
+    {
+        if (!TryComp<WGUndergroundHeldComponent>(prisoner, out var held) || !TryComp<WGUndergroundMemberComponent>(prisoner, out var member))
+            return false;
+
+        if (!_heat.Spend(held.Bail))
+            return false;
+
+        if (held.Bail > 0)
+            _stack.SpawnMultiple(Cash, held.Bail, Transform(prisoner).Coordinates);
+        _heat.BailPaid += held.Bail;
+        _popup.PopupEntity(Loc.GetString("wg-underground-bail-paid-popup", ("amount", held.Bail)), prisoner, PopupType.Large);
+        _heat.TellFaction(Loc.GetString("wg-underground-bail-paid", ("name", Name(prisoner)), ("amount", held.Bail)));
+        RemComp<WGUndergroundHeldComponent>(prisoner);
+        Serve(prisoner, member);
+        member.Warrant = member.BaseWarrant;
+        Apply(prisoner, member);
+        return true;
+    }
+
+    /// <summary>Starts the bail clock the first time a pallet sees a member, and holds them until it runs out.</summary>
+    private bool BailRun(EntityUid mob, WGUndergroundMemberComponent member)
+    {
+        var now = _timing.CurTime;
+        if (member.LockedUntil > now || member.Warrant <= 0)
+            return false;
+
+        if (TryComp<WGUndergroundHeldComponent>(mob, out var held))
+            return now >= held.Until;
+
+        var minutes = _cfg.GetCVar(WGUndergroundCVars.BailMinutes);
+        if (minutes <= 0)
+            return true;
+
+        held = AddComp<WGUndergroundHeldComponent>(mob);
+        held.Until = now + TimeSpan.FromMinutes(minutes);
+        held.Bail = member.Warrant * _cfg.GetCVar(WGUndergroundCVars.BailRate);
+        var place = Transform(mob).GridUid is { } grid ? Name(grid) : Loc.GetString("wg-underground-bail-somewhere");
+        _heat.TellFaction(Loc.GetString("wg-underground-bail-told",
+            ("name", Name(mob)), ("place", place), ("amount", held.Bail), ("minutes", (int) minutes)));
+        _popup.PopupEntity(Loc.GetString("wg-underground-bail-popup", ("minutes", (int) minutes)), mob, PopupType.Large);
+        return false;
+    }
+
+    /// <summary>Locks a member, and the player's next body, out of pallets for the served time.</summary>
+    private void Serve(EntityUid mob, WGUndergroundMemberComponent member)
+    {
+        var until = _timing.CurTime + TimeSpan.FromMinutes(_cfg.GetCVar(WGUndergroundCVars.ServedMinutes));
+        member.LockedUntil = until;
+        if (TryComp<ActorComponent>(mob, out var actor))
+            _served[actor.PlayerSession.UserId] = until;
+    }
+
+    /// <summary>Writes the warrant onto the member as the military credits a pallet pays for them.</summary>
+    private void Apply(EntityUid uid, WGUndergroundMemberComponent member)
+    {
+        var contraband = EnsureComp<ContrabandComponent>(uid);
+        contraband.HideValues = true;
+        if (member.LockedUntil > _timing.CurTime || member.Warrant <= 0)
+            contraband.TurnInValues.Remove(Credits);
+        else
+            contraband.TurnInValues[Credits] = member.Warrant;
+        Dirty(uid, contraband);
+    }
+
+    private void OnStartup(Entity<WGUndergroundMemberComponent> ent, ref ComponentStartup args)
+    {
+        ent.Comp.Warrant = ent.Comp.BaseWarrant;
+        Apply(ent, ent.Comp);
+    }
+
+    private void OnSpawned(PlayerSpawnCompleteEvent ev)
+    {
+        if (!TryComp<WGUndergroundMemberComponent>(ev.Mob, out var member))
+            return;
+
+        if (_served.TryGetValue(ev.Player.UserId, out var until) && until > _timing.CurTime)
+            member.LockedUntil = until;
+        Apply(ev.Mob, member);
+    }
+
+    private void OnCleanup(RoundRestartCleanupEvent ev)
+    {
+        _served.Clear();
+    }
+}
