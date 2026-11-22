@@ -58,6 +58,10 @@ Guns above 5 shots/s play the networked gunshot sound at most once per 0.2 s. Th
 predicted on their own client; this only cuts the audio entities other players receive (`GunSystem.WGGunshotAudio.cs`,
 `GunshotAudioThrottleTest`).
 
+No entity prototype may carry two ammo providers: both answer the same shot, which then draws two rounds and fails the
+gun system's debug assertion. `SingleAmmoProviderTest` checks every prototype. The disposable ballistic turret
+(`WeaponTurretSyndicateDisposable`) inherited a battery-fed provider on top of its 50 rounds of 9mm and keeps the 9mm.
+
 A weapon that is its own gun fired with the secondary key, such as a ranged mob played by a ghost role, leaves that key
 to the gun: the client melee system no longer disarms or heavy-attacks on it, since the swing's cooldown cancelled the
 shot (`MeleeWeaponSystem.SecondaryKey.cs`, `SecondaryKeyGunTest`).
@@ -101,6 +105,7 @@ shot (`MeleeWeaponSystem.SecondaryKey.cs`, `SecondaryKeyGunTest`).
 - [`Content.IntegrationTests/Tests/_WG/Weapons/ProjectileSweepTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Weapons/ProjectileSweepTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Weapons/SecondaryKeyGunTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Weapons/SecondaryKeyGunTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Weapons/ShieldSidearmTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Weapons/ShieldSidearmTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/Weapons/SingleAmmoProviderTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Weapons/SingleAmmoProviderTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Weapons/WGGunPredictionTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Weapons/WGGunPredictionTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Weapons/WGHullImpactTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Weapons/WGHullImpactTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Weapons/WGHullTunnelTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Weapons/WGHullTunnelTest.cs)
@@ -305,6 +310,11 @@ shot (`MeleeWeaponSystem.SecondaryKey.cs`, `SecondaryKeyGunTest`).
 - [`Resources/Prototypes/Entities/Mobs/base.yml`](../../../Resources/Prototypes/Entities/Mobs/base.yml): material bullet impacts
 - [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Battery/battery_guns.yml`](../../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Battery/battery_guns.yml): own pulse rifle shot
 - [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Projectiles/projectiles.yml`](../../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Projectiles/projectiles.yml): untagged targets sound like metal
+- [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Turrets/turrets_ballistic.yml`](../../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Turrets/turrets_ballistic.yml)
+  - parented to BaseWeaponTurret so its 50 rounds of 9mm are its one ammo provider.
+  - description copied from BaseWeaponBallisticTurret
+  - ammo container copied from BaseWeaponBallisticTurret.
+  - gun tuning copied from BaseWeaponBallisticTurret (the angles are Mono's).
 - [`Resources/Prototypes/Entities/Structures/barricades.yml`](../../../Resources/Prototypes/Entities/Structures/barricades.yml): material bullet impacts
 - [`Resources/Prototypes/Entities/Structures/Doors/MaterialDoors/material_doors.yml`](../../../Resources/Prototypes/Entities/Structures/Doors/MaterialDoors/material_doors.yml): material bullet impacts
 - [`Resources/Prototypes/Entities/Structures/Doors/Windoors/base_structurewindoors.yml`](../../../Resources/Prototypes/Entities/Structures/Doors/Windoors/base_structurewindoors.yml): material bullet impacts
