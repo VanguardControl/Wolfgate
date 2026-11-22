@@ -3,6 +3,7 @@ using System.Linq;
 using Content.Server._Mono.PDV.Components;
 using Content.Server._WG.Underground;
 using Content.Server.Access.Components;
+using Content.Server.Power.EntitySystems;
 using Content.Shared._Mono.Company;
 using Content.Shared._NF.Contraband.Events;
 using Content.Shared._WG.Newbie;
@@ -304,13 +305,22 @@ public sealed class WGUndergroundTest
 
         var first = EntityUid.Invalid;
         var late = EntityUid.Invalid;
+        var drained = EntityUid.Invalid;
 
         await server.WaitAssertion(() =>
         {
+            var battery = entMan.System<BatterySystem>();
             first = entMan.SpawnEntity("WGBallisticTurretHeavyAIUnderground", map.GridCoords);
             Assert.That(entMan.GetComponent<DeployableTurretComponent>(first).Enabled, Is.False, "The turrets should start retracted.");
+
+            // One with no power and no shots refuses to deploy when the order goes out.
+            drained = entMan.SpawnEntity("WGBallisticTurretHeavyAIUnderground", map.GridCoords);
+            battery.SetCharge(drained, 0f);
+
             station.SetArmed(true);
             Assert.That(entMan.GetComponent<DeployableTurretComponent>(first).Enabled, Is.True);
+            Assert.That(entMan.GetComponent<DeployableTurretComponent>(drained).Enabled, Is.False, "A turret with no power or shots deployed.");
+            battery.SetCharge(drained, 5000f);
 
             // One that wasn't up when the order went out, like a turret that had no power.
             late = entMan.SpawnEntity("WGBallisticTurretHeavyAIUnderground", map.GridCoords);
@@ -321,11 +331,13 @@ public sealed class WGUndergroundTest
         await server.WaitAssertion(() =>
         {
             Assert.That(entMan.GetComponent<DeployableTurretComponent>(late).Enabled, Is.True, "An armed station didn't bring a late turret up.");
+            Assert.That(entMan.GetComponent<DeployableTurretComponent>(drained).Enabled, Is.True, "A turret that got its charge back stayed down.");
             station.SetArmed(false);
             Assert.That(entMan.GetComponent<DeployableTurretComponent>(first).Enabled, Is.False);
             Assert.That(entMan.GetComponent<DeployableTurretComponent>(late).Enabled, Is.False);
             entMan.DeleteEntity(first);
             entMan.DeleteEntity(late);
+            entMan.DeleteEntity(drained);
         });
 
         await pair.CleanReturnAsync();
