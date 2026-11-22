@@ -63,6 +63,9 @@ public sealed class WGGcWatchSystem : EntitySystem
     private TimeSpan _lastSampleAt;
     private WGGcReading _last;
 
+    /// <summary>The collector's pause and collections at the last tick, so a stall is measured over the gap alone.</summary>
+    private WGGcReading _tick;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -79,11 +82,14 @@ public sealed class WGGcWatchSystem : EntitySystem
             _started = true;
             _lastUpdate = _lastSampleAt = now;
             _last = Read();
+            _tick = ReadCounts();
             return;
         }
 
         var gap = now - _lastUpdate;
         _lastUpdate = now;
+        var tickBefore = _tick;
+        _tick = ReadCounts();
         var stalled = _stallWarnSeconds > 0f && gap.TotalSeconds >= _stallWarnSeconds;
         if (!stalled && now < _nextSample)
             return;
@@ -95,7 +101,7 @@ public sealed class WGGcWatchSystem : EntitySystem
             PauseCounter.Inc(paused.TotalSeconds);
 
         if (stalled)
-            Log.Warning(StallReport(gap, _last, reading));
+            Log.Warning(StallReport(gap, tickBefore, reading));
         else if (_pauseWarnMs > 0f && paused.TotalMilliseconds >= _pauseWarnMs)
             Log.Warning(PauseReport(now - _lastSampleAt, _last, reading));
 
@@ -107,6 +113,13 @@ public sealed class WGGcWatchSystem : EntitySystem
 
         _last = reading;
         _lastSampleAt = now;
+    }
+
+    /// <summary>The collector's pause and collection counts as of now, without heap sizes; cheap enough for every tick.</summary>
+    public static WGGcReading ReadCounts()
+    {
+        return new WGGcReading(GC.GetTotalPauseDuration(), GC.CollectionCount(0), GC.CollectionCount(1),
+            GC.CollectionCount(2), 0, 0, 0, 0, 0, 0, 0, 0);
     }
 
     /// <summary>The collector's totals and heap sizes as of now.</summary>

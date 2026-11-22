@@ -150,8 +150,13 @@ public sealed partial class ShipStatusSystem : EntitySystem
         foreach (var console in _lastSent.Keys.Where(console => !_listeners.ContainsKey(console)).ToArray())
             _lastSent.Remove(console);
 
-        foreach (var console in _requestSwept.Keys.Where(console => !_listeners.ContainsKey(console)).ToArray())
-            _requestSwept.Remove(console);
+        // Kept until the interval is up, so closing and reopening the view at once doesn't buy a second sweep.
+        var now = _timing.CurTime;
+        foreach (var (console, swept) in _requestSwept.Where(pair => !_listeners.ContainsKey(pair.Key)).ToArray())
+        {
+            if (now - swept >= RequestSweepInterval || now < swept)
+                _requestSwept.Remove(console);
+        }
 
         if (_listeners.Count == 0)
             return;
