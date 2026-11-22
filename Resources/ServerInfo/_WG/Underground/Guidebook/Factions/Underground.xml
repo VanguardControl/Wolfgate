@@ -14,17 +14,17 @@ It is led by the [color=purple]Godfather[/color], who has two [color=#d9730d]Fix
 - The [color=cyan]TSFMC[/color] pays a bounty for you [bold]alive[/bold]. They have to make a demand first, and they can only raid the station while your Heat is RAID. You can still invite them to dock and sell to them.
 - The [color=tan]PDV[/color] buys from you and hires you.
 - Civilians are your customers. Invite them to dock and they are under the market truce.
-- The Reavers leave your ships, your crews and your station alone. That is an arrangement, not an alliance, and what you know about them is yours to sell.
+- The Reavers leave your ships, your crews, and your station alone. That is an arrangement, not an alliance, and what you know about them is yours to sell.
 
-[bold]Read [textlink="Conflict Rule 7" link="WGRuleConflictSevenUnderground"]. It covers captures, bail, the station, the market truce and what you can be hired for.[/bold]
+[bold]Read [textlink="Conflict Rule 7" link="WGRuleConflictSevenUnderground"]. It covers captures, bail, the station, the market truce, and what you can be hired for.[/bold]
 
 ## Heat
 
-Your PDA shows the Underground's Heat under the war level. Every job the UBM sells pushes it up, and it cools once you have lain low for five minutes.
+Your PDA shows the Underground's Heat under the war level. Every job the UBM sells pushes the Heat up, and the Heat cools once you have lain low for five minutes.
 
 - [color=#2e9e4f][bold]QUIET[/bold][/color]: nobody is looking for you.
 - [bold]WATCHED[/bold]: the TSF knows goods are moving.
-- [color=#b8860b][bold]WANTED[/bold][/color]: the TSF gets a bearing to the station every ten minutes. A direction, not a position.
+- [color=#b8860b][bold]WANTED[/bold][/color]: the TSF gets a bearing to the station every ten minutes. The bearing gives a direction but no distance.
 - [color=#d93c3c][bold]RAID[/bold][/color]: the station's position goes out to the whole sector, and it can be struck for 20 minutes. Its turrets arm themselves. Afterwards the Heat drops to WATCHED and can't reach RAID again for 45 minutes.
 
 The Godfather can close the market to cool off twice as fast. While it is closed, no market passes go out.
@@ -67,7 +67,7 @@ Alt-click the station's cargo request console to run the faction's business.
 
 - Anyone in the Underground can read the Heat and the treasury.
 - [color=#d9730d]Fixers[/color] and the [color=purple]Godfather[/color] issue [bold]market passes[/bold] and pay [bold]bail[/bold] from the treasury.
-- The [color=purple]Godfather[/color] opens and closes the market, arms the turrets, pays the crew and declares a Vendetta on a ship near the station.
+- The [color=purple]Godfather[/color] opens and closes the market, arms the turrets, pays the crew, and declares a Vendetta on a ship near the station.
 
 A market pass points its holder at the station for 30 minutes. Hand one to a customer you want to dock. The Underground's contact on Caelestinus Central sells them too.
 
@@ -83,5 +83,5 @@ A second Underground ship is parked a few kilometres from the station, hidden th
 
 A warrant grows by 25 FMC for every job its owner sells. All are paid for a live prisoner, and the pallet holds you for five minutes so the Underground can pay your bail. After a capture or bail, no pallet takes you for an hour.
 
-The [color=tan]Sultanate[/color] no longer marks the Underground's people by default. Take the Heretic trait if you want the [color=tan]PDV[/color] hunting you as well. As always, they have to challenge you first.
+The [color=tan]Sultanate[/color] does not mark the Underground's people by default. Take the Heretic trait if you want the [color=tan]PDV[/color] hunting you as well. As always, they have to challenge you first.
 </Document>
