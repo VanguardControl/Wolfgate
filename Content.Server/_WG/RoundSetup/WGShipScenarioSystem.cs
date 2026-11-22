@@ -162,7 +162,7 @@ public sealed partial class WGShipScenarioSystem : EntitySystem
         }
         var vessel = _prototypes.Index<VesselPrototype>(vesselId!);
         reason = "wg-round-setup-ship-load-failed";
-        if (!_loader.TryLoadGrid(mapId, vessel.ShuttlePath, out var loaded, offset: _random.NextVector2(1500f, 6000f)))
+        if (!LoadHull(mapId, vessel.ShuttlePath, _random.NextVector2(1500f, 6000f), out var loaded))
             return false;
         var hull = loaded.Value.Owner;
         EntityManager.AddComponents(hull, vessel.AddComponents);

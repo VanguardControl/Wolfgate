@@ -531,6 +531,7 @@ public sealed partial class WGRoundSetupSystem : EntitySystem
                 }
                 lobby.Vessel = msg.Vessel;
                 ResetContributions(lobby);
+                _ships.PrepareHull(msg.Vessel);
                 return true;
             case WGRoundSetupAction.ApplyRoster:
                 return ApplyRoster(lobby, msg.Roster);
