@@ -1,3 +1,4 @@
+using Content.Server.Explosion.Components;
 using System.Numerics;
 using Content.Server.Atmos.Components;
 using Content.Server.Power.Components;
@@ -289,11 +290,25 @@ public sealed partial class WGSiteStashSystem : EntitySystem
             region.Paused.Add(uid);
     }
 
+    /// <summary>The latest a paused time field may be: far enough that a round's worth of pauses can be added to it.</summary>
+    private static readonly TimeSpan Farthest = TimeSpan.FromDays(36500);
+
     /// <summary>Puts one entity's body to sleep and pauses it; false if it is going or paused already, by its map or anyone else.</summary>
     public bool PauseEntity(EntityUid uid)
     {
         if (!_metaQuery.TryComp(uid, out var meta) || meta.EntityLifeStage >= EntityLifeStage.Terminating || meta.EntityPaused)
             return false;
+
+        // A proximity trigger's times can sit at the end of time (the offset serializer caps them there), and the
+        // pause is added to them on waking: that addition overflowed and threw out of the wake.
+        if (TryComp<TriggerOnProximityComponent>(uid, out var proximity))
+        {
+            if (proximity.NextTrigger > Farthest)
+                proximity.NextTrigger = Farthest;
+
+            if (proximity.NextVisualUpdate > Farthest)
+                proximity.NextVisualUpdate = Farthest;
+        }
 
         // Physics ignores pausing, so an awake body would keep its contacts in the solver forever.
         if (_physicsQuery.TryComp(uid, out var body) && body.Awake && !body.IgnorePaused)

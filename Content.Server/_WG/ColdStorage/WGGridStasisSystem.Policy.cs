@@ -45,11 +45,14 @@ public sealed partial class WGGridStasisSystem
             || HasComp<FTLMapComponent>(map)
             || HasComp<VehicleInteriorLinkComponent>(map)
             || HasComp<VehicleInteriorComponent>(grid)
-            || HasComp<WGEncounterGridComponent>(grid)
-            || HasComp<WGCrewShipProfileComponent>(grid)
-            || HasComp<WGAsteroidGridComponent>(grid)
-            || IsStation(grid))
+            || HasComp<WGAsteroidGridComponent>(grid))
             return WGStasisPolicy.Never;
+
+        if (HasComp<WGEncounterGridComponent>(grid) || HasComp<WGCrewShipProfileComponent>(grid))
+            return WGStasisPolicy.NpcShip;
+
+        if (IsStation(grid))
+            return WGStasisPolicy.Station;
 
         return HasComp<ShuttleDeedComponent>(grid) ? WGStasisPolicy.PlayerShip : WGStasisPolicy.Ownerless;
     }

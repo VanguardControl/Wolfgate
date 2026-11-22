@@ -101,6 +101,10 @@ public sealed partial class WGCavernMouthSystem
             if (comp.Opened.Count == 0 && comp.Closed.Count == 0 && comp.FloorOpened.Count == 0 && comp.Refit.Count == 0)
                 continue;
 
+            // An unloaded world's stairs and landings are in its file, not lost: the queue waits until it is back.
+            if (_planetStore.Away(uid))
+                continue;
+
             Entity<WGCavernGroundComponent> ground = (uid, comp);
             if (!TryGetContext(ground, out var context))
             {

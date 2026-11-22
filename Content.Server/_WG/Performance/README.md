@@ -16,6 +16,11 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   (`WorldControllerSystem.WGUnloadGrace`), and a GC queue's `minAge` holds entities that long before deleting them
   (`GCQueueSystem.WGMinAge`; `WGAsteroids` waits 60 s). A ship that comes back within the grace keeps the asteroid
   fields around it instead of unloading and respawning them.
+- Worldgen chunks are freed: upstream keeps one entity in nullspace for every space chunk anyone ever came near
+  and never deletes it, 80,000 of them three hours into a live round and a third of its entity growth. A chunk
+  that has been unloaded for `wg.worldgen.chunk_free_seconds` (600, 0 to keep them all) and owns no live debris is
+  deleted. It is made again when someone returns, and lays out its rocks afresh, which an unloaded chunk whose
+  debris was collected does anyway.
 - `WGAsteroidCullSystem` stops sending every worldgen rock grid to every player. A player is sent a rock grid once one
   of their views comes within `wg.asteroids.send_range` (128 m) and keeps it until the rock is deleted, since the
   client can't detach a grid. Each worldgen chunk with rocks gets a field entity (`WGAsteroidFieldComponent`), sent to
@@ -136,6 +141,7 @@ cvar or gauge so it can be checked on the test server.
 - [`Content.Server/_WG/Performance/WGParkedMoverComponent.cs`](WGParkedMoverComponent.cs)
 - [`Content.Server/_WG/Performance/WGRequestCap.cs`](WGRequestCap.cs)
 - [`Content.Server/_WG/Performance/WGSerializerWarmupSystem.cs`](WGSerializerWarmupSystem.cs)
+- [`Content.Server/_WG/Performance/WorldControllerSystem.WGFreeChunks.cs`](WorldControllerSystem.WGFreeChunks.cs)
 - [`Content.Server/_WG/Performance/WorldControllerSystem.WGIdleHelms.cs`](WorldControllerSystem.WGIdleHelms.cs)
 - [`Content.Server/_WG/Performance/WorldControllerSystem.WGUnloadGrace.cs`](WorldControllerSystem.WGUnloadGrace.cs)
 
@@ -459,7 +465,11 @@ cvar or gauge so it can be checked on the test server.
 - [`Content.Server/Worldgen/Systems/WorldControllerSystem.cs`](../../Worldgen/Systems/WorldControllerSystem.cs)
   - chunk unload grace
   - idle helms load nothing
+  - unloaded chunks are deleted after a while
   - drop a deleted chunk's unload grace timer
+  - no longer a candidate for freeing
+  - freed once it has been unloaded long enough
+  - delete chunks unloaded long ago
   - grids that have a player or pilot
   - parked, empty helms don't load worldgen
   - wait out the unload grace, so passing ships don't unload and respawn debris

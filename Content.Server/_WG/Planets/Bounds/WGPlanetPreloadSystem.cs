@@ -6,6 +6,7 @@ using Content.Server.GameTicking;
 using Content.Server.Parallax;
 using Content.Shared._WG.CCVar;
 using Content.Shared._WG.Planets;
+using Content.Shared.Maps;
 using Content.Shared.Parallax.Biomes;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
@@ -25,6 +26,7 @@ public sealed partial class WGPlanetPreloadSystem : EntitySystem
     [Dependency] private GameTicker _ticker = default!;
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private WGPlanetBoundsSystem _bounds = default!;
+    [Dependency] private ITileDefinitionManager _tiles = default!;
 
     /// <summary>Worlds waiting for or in the middle of their preload, first come first served.</summary>
     private readonly List<Preload> _queue = new();
@@ -55,7 +57,7 @@ public sealed partial class WGPlanetPreloadSystem : EntitySystem
 
         // Starts next tick, once every handler of the build has had its turn with the fresh ground; the bounds are
         // read then, since the handler that marks them may run after this one.
-        _queue.Add(new Preload(args.Ground, args.Surface.BoundaryWall));
+        _queue.Add(new Preload(args.Ground, args.Surface.BoundaryWall, args.Surface.BoundaryTile));
     }
 
     public override void Update(float frameTime)
@@ -210,7 +212,7 @@ public sealed partial class WGPlanetPreloadSystem : EntitySystem
 
         EnsureComp<WGPlanetPreloadedComponent>(ground);
         var took = Stopwatch.GetElapsedTime(preload.Started).TotalSeconds;
-        Log.Info($"Preloaded {preload.Chunks!.Count} chunks of {ToPrettyString(ground)} in {took:F1} s, with {walls} boundary walls; {stashed} chunks stashed.");
+        Log.Info($"Preloaded {preload.Chunks!.Count} chunks of {ToPrettyString(ground)} in {took:F1} s, with {walls} rim tiles; {stashed} chunks stashed.");
     }
 
     /// <summary>
@@ -237,14 +239,17 @@ public sealed partial class WGPlanetPreloadSystem : EntitySystem
     }
 
     /// <summary>
-    /// Walls every tile inside the circle with a neighbour outside it: whatever the biome grew there goes, a tile not
-    /// loaded yet is laid from the recipe, and the tile is pinned so nothing grows back or is ever unloaded.
+    /// Lays the rim: every tile within <see cref="WGPlanetBoundsSystem.RimWidth"/> of the circle's edge becomes the
+    /// rim tile, or with a wall instead every tile with a neighbour outside the circle gets one. Whatever the biome
+    /// grew there goes, and the tile is pinned so nothing grows back or is ever unloaded.
     /// </summary>
     private async Task<int> LayRingAsync(Entity<BiomeComponent, MapGridComponent> ground, WGPlanetBoundsComponent bounds, Preload preload)
     {
-        if (preload.Wall is not { } wall)
+        Tile? rim = preload.Tile is { } id && _tiles.TryGetDefinition(id, out var def) ? new Tile(def.TileId) : null;
+        if (rim == null && preload.Wall == null)
             return 0;
 
+        var inner = bounds.Radius - WGPlanetBoundsSystem.RimWidth;
         var ring = new List<Vector2i>();
         var radius = (int) MathF.Ceiling(bounds.Radius) + 1;
         var centre = new Vector2i((int) MathF.Floor(bounds.Centre.X), (int) MathF.Floor(bounds.Centre.Y));
@@ -256,6 +261,14 @@ public sealed partial class WGPlanetPreloadSystem : EntitySystem
 
             if (!bounds.ContainsTile(tile))
                 continue;
+
+            if (rim != null)
+            {
+                if (Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), bounds.Centre) > inner)
+                    ring.Add(tile);
+
+                continue;
+            }
 
             if (bounds.ContainsTile(tile + Vector2i.Right) && bounds.ContainsTile(tile + Vector2i.Left)
                 && bounds.ContainsTile(tile + Vector2i.Up) && bounds.ContainsTile(tile + Vector2i.Down))
@@ -279,8 +292,12 @@ public sealed partial class WGPlanetPreloadSystem : EntitySystem
             if (TerminatingOrDeleted(ground))
                 return laid;
 
+            if (rim != null)
+            {
+                _map.SetTile(ground, ground.Comp2, tile, rim.Value);
+            }
             // A ring tile the biome left empty, such as under water, is filled so the wall has something to stand on.
-            if (!_map.TryGetTileRef(ground, ground.Comp2, tile, out var existing) || existing.Tile.IsEmpty)
+            else if (!_map.TryGetTileRef(ground, ground.Comp2, tile, out var existing) || existing.Tile.IsEmpty)
             {
                 if (!_biome.TryGetBiomeTile(tile, ground.Comp1.Layers, ground.Comp1.Seed, (ground.Owner, ground.Comp2), out var natural))
                     continue;
@@ -301,7 +318,9 @@ public sealed partial class WGPlanetPreloadSystem : EntitySystem
                 QueueDel(uid);
             }
 
-            Spawn(wall, _map.GridTileToLocal(ground, ground.Comp2, tile));
+            if (rim == null)
+                Spawn(preload.Wall!.Value.Id, _map.GridTileToLocal(ground, ground.Comp2, tile));
+
             laid++;
         }
 
@@ -313,6 +332,7 @@ public sealed partial class WGPlanetPreloadSystem : EntitySystem
     {
         public readonly EntityUid Ground;
         public readonly EntProtoId? Wall;
+        public readonly ProtoId<ContentTileDefinition>? Tile;
         public List<Task>? Holds;
         public readonly HashSet<Task> Faulted = new();
         public List<Vector2i>? Chunks;
@@ -334,10 +354,11 @@ public sealed partial class WGPlanetPreloadSystem : EntitySystem
         /// <summary>The furthest progress shown so far, so the bar never steps back.</summary>
         public float Shown;
 
-        public Preload(EntityUid ground, EntProtoId? wall)
+        public Preload(EntityUid ground, EntProtoId? wall, ProtoId<ContentTileDefinition>? tile)
         {
             Ground = ground;
             Wall = wall;
+            Tile = tile;
         }
     }
 }

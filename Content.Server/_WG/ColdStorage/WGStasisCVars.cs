@@ -30,6 +30,20 @@ public sealed class WGStasisCVars
     public static readonly CVarDef<bool> PlayerShips =
         CVarDef.Create("wg.stasis.player_ships", false, CVar.SERVERONLY);
 
+    /// <summary>
+    /// Whether stations and points of interest may enter stasis while nobody is near or aboard. One with a player,
+    /// a body with a mind or a docked attended ship stays awake as any grid does.
+    /// </summary>
+    public static readonly CVarDef<bool> Stations =
+        CVarDef.Create("wg.stasis.stations", false, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Whether encounter and crewed NPC ships may enter stasis while no player is near. Their crews stop where
+    /// they are and the hull drifts on; encounter timers keep running.
+    /// </summary>
+    public static readonly CVarDef<bool> NpcShips =
+        CVarDef.Create("wg.stasis.npc_ships", false, CVar.SERVERONLY);
+
     /// <summary>Seconds between sweeps of a grid in stasis for newcomers to pause.</summary>
     public static readonly CVarDef<float> Sweep =
         CVarDef.Create("wg.stasis.sweep", 60f, CVar.SERVERONLY);

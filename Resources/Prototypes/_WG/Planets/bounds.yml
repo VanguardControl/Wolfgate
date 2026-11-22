@@ -1,5 +1,20 @@
-# The wall on the outermost ring of a bounded world's ground, laid once the ground is preloaded. Nothing mines,
-# damages or prys it; the chain boundary under it stops whatever gets past the gaps.
+# The rim of a bounded world: the last tiles inside its circle, laid once the ground is preloaded. The chain boundary
+# stands at the rim's inner edge, so nobody walks on it.
+
+- type: tile
+  id: WGPlanetRimRock
+  name: tiles-wg-planet-rim
+  sprite: /Textures/_WG/Planets/Tiles/rim_rock.png
+  baseTurf: ""
+  isSubfloor: true
+  indestructible: true
+  deconstructTools: []
+  weather: true
+  footstepSounds:
+    collection: FootstepAsteroid
+  heatCapacity: 10000
+
+# The older rim, one wall a tile, for a surface that sets boundaryWall and clears boundaryTile.
 
 - type: entity
   parent: WallConcreteIndestructible

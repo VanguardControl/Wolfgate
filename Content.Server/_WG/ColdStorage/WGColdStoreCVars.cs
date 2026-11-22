@@ -24,6 +24,13 @@ public sealed class WGColdStoreCVars
     public static readonly CVarDef<bool> CatchUp =
         CVarDef.Create("wg.coldstore.catch_up", true, CVar.SERVERONLY);
 
+    /// <summary>
+    /// Whether stations and points of interest in stasis may be stored, as owned ships are: the grid stays and what
+    /// is on it is saved. Needs <c>wg.stasis.stations</c>. One with a job open or a ship docked is left alone.
+    /// </summary>
+    public static readonly CVarDef<bool> Stations =
+        CVarDef.Create("wg.coldstore.stations", false, CVar.SERVERONLY);
+
     /// <summary>Seconds a grid must have been in stasis before it is stored; down to a quarter at full entity pressure.</summary>
     public static readonly CVarDef<float> Idle =
         CVarDef.Create("wg.coldstore.idle", 900f, CVar.SERVERONLY);

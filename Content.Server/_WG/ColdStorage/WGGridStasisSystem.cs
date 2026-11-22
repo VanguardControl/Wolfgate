@@ -66,6 +66,8 @@ public sealed partial class WGGridStasisSystem : EntitySystem
 
     private bool _enabled;
     private bool _playerShips;
+    private bool _stations;
+    private bool _npcShips;
     private float _idle;
     private float _range;
     private float _wakeRange;
@@ -114,6 +116,8 @@ public sealed partial class WGGridStasisSystem : EntitySystem
 
         Subs.CVar(_cfg, WGStasisCVars.Enabled, OnEnabled, true);
         Subs.CVar(_cfg, WGStasisCVars.PlayerShips, value => _playerShips = value, true);
+        Subs.CVar(_cfg, WGStasisCVars.Stations, value => _stations = value, true);
+        Subs.CVar(_cfg, WGStasisCVars.NpcShips, value => _npcShips = value, true);
         Subs.CVar(_cfg, WGStasisCVars.Idle, value => _idle = value, true);
         Subs.CVar(_cfg, WGStasisCVars.Range, value => _range = value, true);
         Subs.CVar(_cfg, WGStasisCVars.WakeRange, value => _wakeRange = value, true);
@@ -321,6 +325,8 @@ public sealed partial class WGGridStasisSystem : EntitySystem
             rec.Distance = distance;
             var busy = rec.Policy == WGStasisPolicy.Never
                        || rec.Policy == WGStasisPolicy.PlayerShip && !_playerShips
+                       || rec.Policy == WGStasisPolicy.Station && !_stations
+                       || rec.Policy == WGStasisPolicy.NpcShip && !_npcShips
                        || hold > now
                        || _pins.ContainsKey(grid)
                        || _ftlQuery.HasComp(grid);

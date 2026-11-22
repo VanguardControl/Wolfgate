@@ -101,3 +101,5 @@ cmd-planetcontrol-season-none = none
 cmd-planetcontrol-row-unbuilt = { $planet }: not built, sanctioned={ $sanctioned }
 cmd-planetcontrol-weather-clear = clear
 cmd-planetcontrol-applied = { $planet }: { $changes }
+
+tiles-wg-planet-rim = sheer rock

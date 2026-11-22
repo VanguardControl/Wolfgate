@@ -69,14 +69,14 @@ public sealed partial class WGColdStoreSystem
             return "wg-coldstore-why-busy";
 
         var policy = _stasis.PolicyOf(grid, xform);
-        if (policy != WGStasisPolicy.Ownerless && !(policy == WGStasisPolicy.PlayerShip && _playerShips))
+        if (!MayStore(policy))
             return "wg-coldstore-why-policy";
 
         if (HasComp<WGStoredGridComponent>(grid))
             return "wg-coldstore-why-busy";
 
         // A new player may be given a job on the ship and would arrive on bare floor.
-        if (policy == WGStasisPolicy.PlayerShip && HasOpenJobs(grid))
+        if (policy != WGStasisPolicy.Ownerless && HasOpenJobs(grid))
             return "wg-coldstore-why-jobs";
 
         if (!force)
@@ -112,7 +112,7 @@ public sealed partial class WGColdStoreSystem
         if (ReferenceReason(grid) is { } referenced)
             return referenced;
 
-        return WalkReason(grid, policy == WGStasisPolicy.PlayerShip);
+        return WalkReason(grid, policy != WGStasisPolicy.Ownerless);
     }
 
     /// <summary>

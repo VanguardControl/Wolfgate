@@ -103,6 +103,48 @@ public sealed partial class UsedShipReinitSystem : EntitySystem
         _navMap.EnsureGridNavMap(grid);
     }
 
+    /// <summary>
+    /// The same re-init for loose entities that were loaded back onto a grid or map that stayed, such as a planet's
+    /// ground: each entity's own setup, and research clients paired with the servers that came back on their grid.
+    /// </summary>
+    public void ReinitLoadedEntities(List<EntityUid> loaded)
+    {
+        List<EntityUid>? clients = null;
+        List<EntityUid>? servers = null;
+        foreach (var uid in loaded)
+        {
+            if (TerminatingOrDeleted(uid))
+                continue;
+
+            // A shield bubble's link to its emitter is not saved; the emitter raises a new one.
+            if (HasComp<ShipShieldComponent>(uid))
+            {
+                QueueDel(uid);
+                continue;
+            }
+
+            ReinitEntity(uid);
+            if (HasComp<ResearchServerComponent>(uid))
+                (servers ??= new List<EntityUid>()).Add(uid);
+
+            if (TryComp<ResearchClientComponent>(uid, out var client) && client.Server == null)
+                (clients ??= new List<EntityUid>()).Add(uid);
+        }
+
+        if (clients == null || servers == null)
+            return;
+
+        foreach (var client in clients)
+        {
+            var grid = Transform(client).GridUid;
+            foreach (var server in servers)
+            {
+                if (Transform(server).GridUid == grid)
+                    _research.RegisterClient(client, server);
+            }
+        }
+    }
+
     private void ReinitEntity(EntityUid uid)
     {
         if (TryComp<DeviceNetworkComponent>(uid, out var device))

@@ -7,7 +7,7 @@ public readonly record struct WGGridStasisChangedEvent(bool InStasis);
 /// <summary>Which grids may enter stasis, by who owns them.</summary>
 public enum WGStasisPolicy : byte
 {
-    /// <summary>Never: a station, planet, FTL, vehicle cabin, encounter ship or rock.</summary>
+    /// <summary>Never: a planet, FTL, vehicle cabin or rock.</summary>
     Never,
 
     /// <summary>No deed: a wreck, derelict or debris hull. Everything but walls and cables is paused.</summary>
@@ -15,6 +15,15 @@ public enum WGStasisPolicy : byte
 
     /// <summary>A deeded ship: only with <see cref="WGStasisCVars.PlayerShips"/>, and only while its power is off.</summary>
     PlayerShip,
+
+    /// <summary>
+    /// A station or point of interest: only with <see cref="WGStasisCVars.Stations"/>. Most of them stand empty for
+    /// most of a round.
+    /// </summary>
+    Station,
+
+    /// <summary>An encounter or crewed NPC ship: only with <see cref="WGStasisCVars.NpcShips"/>, and never stored.</summary>
+    NpcShip,
 }
 
 /// <summary>Where a grid is between awake and in stasis.</summary>

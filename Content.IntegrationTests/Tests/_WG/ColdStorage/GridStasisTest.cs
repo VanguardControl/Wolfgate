@@ -172,7 +172,7 @@ public sealed class GridStasisTest
                     Assert.That(stasis.IsInStasis(minded.Grid), Is.False, "A grid with a mind aboard went into stasis.");
                     Assert.That(Paused(entMan, body), Is.False, "A body with a mind was paused.");
                     Assert.That(stasis.IsInStasis(partner.Grid), Is.False, "A grid docked to an attended one went into stasis.");
-                    Assert.That(stasis.Grids[station.Grid].Policy, Is.EqualTo(WGStasisPolicy.Never));
+                    Assert.That(stasis.Grids[station.Grid].Policy, Is.EqualTo(WGStasisPolicy.Station));
                     Assert.That(stasis.IsInStasis(station.Grid), Is.False, "A station went into stasis.");
                     Assert.That(stasis.IsInStasis(berthed.Grid), Is.True, "A ship docked to an attended station was kept awake by it.");
                     Assert.That(stasis.Grids[ship.Grid].Policy, Is.EqualTo(WGStasisPolicy.PlayerShip));
@@ -194,13 +194,23 @@ public sealed class GridStasisTest
                     Assert.That(stasis.IsInStasis(minded.Grid), Is.True, "The grid stayed awake after its mind left.");
                     Assert.That(stasis.IsInStasis(partner.Grid), Is.True, "Its docked partner stayed awake.");
                     Assert.That(stasis.IsInStasis(ship.Grid), Is.True, "A player ship with no power stayed awake with player ships on.");
+                    Assert.That(stasis.IsInStasis(station.Grid), Is.False, "A station went into stasis with stations off.");
                 });
             });
+
+            // A station sleeps once stations may, and only once the mind aboard is gone.
+            await server.WaitPost(() => server.CfgMan.SetCVar(WGStasisCVars.Stations, true));
+            await Look(pair);
+            await server.WaitAssertion(() => Assert.That(stasis.IsInStasis(station.Grid), Is.False, "A station with a mind aboard went into stasis."));
+            await server.WaitPost(() => entMan.DeleteEntity(stationBody));
+            await Look(pair);
+            await server.WaitAssertion(() => Assert.That(stasis.IsInStasis(station.Grid), Is.True, "An empty station stayed awake with stations on."));
         }
         finally
         {
             await server.WaitPost(() =>
             {
+                server.CfgMan.SetCVar(WGStasisCVars.Stations, false);
                 server.CfgMan.SetCVar(WGStasisCVars.PlayerShips, false);
                 server.CfgMan.SetCVar(WGStasisCVars.Enabled, false);
             });

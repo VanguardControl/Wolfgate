@@ -54,8 +54,11 @@ second: each viewer looks up the grids round it in its map's grid tree, and each
 
 Policy by owner (`WGStasisPolicy`): ownerless grids (wrecks, derelicts, debris) may enter; deeded ships only with
 `wg.stasis.player_ships` (off) and only while no supplier is putting out power and no APC has its breaker on and charge
-left. Stations, planets and grids on them, grids in FTL or on a paused map, vehicle cabins, encounter ships and
-asteroids never do.
+left. Stations and points of interest only with `wg.stasis.stations` (off), and encounter and crewed NPC ships only
+with `wg.stasis.npc_ships` (off); on a live round those two are 245,000 and 60,000 entities, most of them at places
+nobody is. A station sleeps like any grid: a player, a body with a mind or a docked attended ship keeps it awake.
+An NPC ship's crew stops where it is and the hull drifts on. Planets and grids on them, grids in FTL or on a paused
+map, vehicle cabins and asteroids never do.
 
 `Wake(grid, hold)` wakes a grid this tick and keeps it awake for `hold` (60 s); `Pin`/`Unpin` hold it awake for as long
 as any pin is held; `WGGridStasisChangedEvent` is raised on the grid when it starts going into stasis and when it
@@ -173,6 +176,9 @@ kept and only what is on it is saved and deleted. The empty hull is put back whe
 point at the real grid, and nothing outside has to be repointed. A restore builds the contents back onto the same
 grid (`MapLoaderSystem.BeginLoadOntoGrid`, a Lupine patch), where it stands, hidden until it is whole.
 
+- A station or point of interest in stasis is stored the same way with `wg.coldstore.stations` (off): its grid
+  stays, with its station membership, and one with a job open or a ship docked is left alone. NPC ships are never
+  stored.
 - It needs `wg.stasis.player_ships` as well: on its own the system only stores a ship in stasis, and a ship with power running never
   enters stasis.
 - A kept hull counts as in stasis for as long as it is empty, so atmos does not vent its tiles through walls that
@@ -188,6 +194,43 @@ grid (`MapLoaderSystem.BeginLoadOntoGrid`, a Lupine patch), where it stands, hid
 
 An owner taking a body brings their stored ships back, by the deed card that body carries or by being one of the
 ship's owning players, wherever the ship is.
+
+## Planets
+
+`WGPlanetStoreSystem` unloads a world nobody is on (`wg.planetstore.enabled`, off). The six round-start worlds hold
+about 129,000 entities, nine in ten of an empty sector, and most of it is walls, cables, flora and furniture nobody
+is near.
+
+A world that has had nobody on it for `wg.planetstore.idle` (600 s) is saved into one file and what the file holds
+is deleted, `wg.planetstore.budget_ms` (4) a tick. What stays:
+
+- the layers themselves, their terrain and air, and the orbit layer with everything on it;
+- every hull standing on the world, emptied like an owned ship's, so whatever points at the grid still does;
+- anything that will not save, with the child of the layer or hull that holds it: mobs and what they carry, a
+  player's body, mechs. They sleep until the world is back;
+- cavern mouth shades, which their ground keeps in a registry and would cut again.
+
+Atmos is stopped on the layers and hulls for as long as their walls are away. `Away(map)` tells other systems a
+world's furniture is in its file, not lost; the cavern mouth queue waits on it.
+
+"Nobody on it" means no player's body, ghost or camera on any layer or in orbit, no hull hopping in (counted from
+the moment the hop starts, two minutes), no body with a mind, no spawn point of a station with a job open (so the
+city world stays loaded), no contract with a wreck or cargo there, and no veto on `WGPlanetStoreCheckEvent`. As soon
+as that stops being true the world is built back from its file with the staged loader, 4 ms a tick, or
+`wg.planetstore.urgent_ms` (15) once a player is on a layer below orbit. A world being saved when someone turns up
+is simply left as it is; one being deleted finishes at once and loads. The time away is applied to what came back,
+and `WGPlanetRestoredEvent` says what each stored entity became, for anything that stayed and pointed at one.
+
+The whole world is one file so that links between its parts survive; the price is that it comes back whole, not
+nearest first, and that an occupied world never unloads any part. On Aerumna, 10,270 entities drop to 2,887 and
+come back in about 1.3 s of work.
+
+Not covered: systems that keep their own list of a world's entities outside components and replace what goes
+missing (the cavern queue was one, found by the round-trip test) or that go on pointing at a deleted entity. Each
+world should pass `PlanetStoreTest` before the switch is turned on for it.
+
+`wg_planetstore` (Debug) lists worlds with their state and who is keeping each loaded, and `wg_planetstore unload
+<surface>` or `load <surface>` does it by hand.
 
 ## Limits
 
@@ -226,6 +269,10 @@ ship's owning players, wherever the ship is.
 - [`Content.Server/_WG/ColdStorage/WGGridStasisSystem.Wakes.cs`](WGGridStasisSystem.Wakes.cs)
 - [`Content.Server/_WG/ColdStorage/WGKeptPipeGasComponent.cs`](WGKeptPipeGasComponent.cs)
 - [`Content.Server/_WG/ColdStorage/WGKeptWiresComponent.cs`](WGKeptWiresComponent.cs)
+- [`Content.Server/_WG/ColdStorage/WGPlanetStoreCommand.cs`](WGPlanetStoreCommand.cs)
+- [`Content.Server/_WG/ColdStorage/WGPlanetStoreCVars.cs`](WGPlanetStoreCVars.cs)
+- [`Content.Server/_WG/ColdStorage/WGPlanetStoreSystem.cs`](WGPlanetStoreSystem.cs)
+- [`Content.Server/_WG/ColdStorage/WGPlanetStoreSystem.Work.cs`](WGPlanetStoreSystem.Work.cs)
 - [`Content.Server/_WG/ColdStorage/WGPressureCVars.cs`](WGPressureCVars.cs)
 - [`Content.Server/_WG/ColdStorage/WGStasisCommand.cs`](WGStasisCommand.cs)
 - [`Content.Server/_WG/ColdStorage/WGStasisCVars.cs`](WGStasisCVars.cs)
@@ -238,6 +285,7 @@ ship's owning players, wherever the ship is.
 - [`Content.IntegrationTests/Tests/_WG/ColdStorage/GridRoundTripAudit.cs`](../../../Content.IntegrationTests/Tests/_WG/ColdStorage/GridRoundTripAudit.cs)
 - [`Content.IntegrationTests/Tests/_WG/ColdStorage/GridStasisHooksTest.cs`](../../../Content.IntegrationTests/Tests/_WG/ColdStorage/GridStasisHooksTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/ColdStorage/GridStasisTest.cs`](../../../Content.IntegrationTests/Tests/_WG/ColdStorage/GridStasisTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/ColdStorage/PlanetStoreTest.cs`](../../../Content.IntegrationTests/Tests/_WG/ColdStorage/PlanetStoreTest.cs)
 
 ### Localization
 

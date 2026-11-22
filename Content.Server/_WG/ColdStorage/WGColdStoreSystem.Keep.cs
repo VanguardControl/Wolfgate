@@ -28,28 +28,47 @@ public sealed partial class WGColdStoreSystem
                 _keepWalk.Add(child);
             }
 
-            KeepWires(uid);
-
-            if (!TryComp<NodeContainerComponent>(uid, out var nodes))
-                continue;
-
-            WGKeptPipeGasComponent? kept = null;
-            foreach (var (name, node) in nodes.Nodes)
-            {
-                if (node is not PipeNode pipe || pipe.NodeGroup is not IPipeNet net
-                    || net.Air.TotalMoles <= 0f || net.Air.Volume <= 0f)
-                    continue;
-
-                var share = net.Air.Clone();
-                share.Multiply(Math.Clamp(pipe.Volume / net.Air.Volume, 0f, 1f));
-                share.Volume = pipe.Volume;
-                kept ??= EnsureComp<WGKeptPipeGasComponent>(uid);
-                kept.Saving = true;
-                kept.Nodes[name] = share;
-            }
+            KeepEntity(uid);
         }
 
         _keepWalk.Clear();
+    }
+
+    /// <summary>
+    /// Notes on one entity what a save does not write: a board's wires, and a pipe's share of its net's gas. For
+    /// anything about to be saved and deleted; <see cref="DropKeptOn"/> takes the notes off if it is not.
+    /// </summary>
+    public void KeepEntity(EntityUid uid)
+    {
+        KeepWires(uid);
+
+        if (!TryComp<NodeContainerComponent>(uid, out var nodes))
+            return;
+
+        WGKeptPipeGasComponent? kept = null;
+        foreach (var (name, node) in nodes.Nodes)
+        {
+            if (node is not PipeNode pipe || pipe.NodeGroup is not IPipeNet net
+                || net.Air.TotalMoles <= 0f || net.Air.Volume <= 0f)
+                continue;
+
+            var share = net.Air.Clone();
+            share.Multiply(Math.Clamp(pipe.Volume / net.Air.Volume, 0f, 1f));
+            share.Volume = pipe.Volume;
+            kept ??= EnsureComp<WGKeptPipeGasComponent>(uid);
+            kept.Saving = true;
+            kept.Nodes[name] = share;
+        }
+    }
+
+    /// <summary>Takes the notes of <see cref="KeepEntity"/> off an entity that was not stored after all.</summary>
+    public void DropKeptOn(EntityUid uid)
+    {
+        if (TerminatingOrDeleted(uid))
+            return;
+
+        RemComp<WGKeptPipeGasComponent>(uid);
+        RemComp<WGKeptWiresComponent>(uid);
     }
 
     /// <summary>Takes the notes off a grid that was not stored after all; its pipes still hold the gas.</summary>
@@ -110,28 +129,34 @@ public sealed partial class WGColdStoreSystem
                 _keepWalk.Add(child);
             }
 
-            if (!TryComp<WGKeptWiresComponent>(uid, out var kept))
-                continue;
-
-            if (TryComp<WiresComponent>(uid, out var wires))
-            {
-                if (kept.Seed != 0)
-                    wires.WireSeed = kept.Seed;
-
-                if (kept.Serial != null)
-                    wires.SerialNumber = kept.Serial;
-
-                foreach (var wire in wires.WiresList)
-                {
-                    if (kept.Cut.Contains(wire.Id))
-                        wire.IsCut = true;
-                }
-            }
-
-            RemComp<WGKeptWiresComponent>(uid);
+            GiveBackWiresTo(uid);
         }
 
         _keepWalk.Clear();
+    }
+
+    /// <summary>Puts kept wire state back on one restored board, after the re-init has given it its wires.</summary>
+    public void GiveBackWiresTo(EntityUid uid)
+    {
+        if (!TryComp<WGKeptWiresComponent>(uid, out var kept))
+            return;
+
+        if (TryComp<WiresComponent>(uid, out var wires))
+        {
+            if (kept.Seed != 0)
+                wires.WireSeed = kept.Seed;
+
+            if (kept.Serial != null)
+                wires.SerialNumber = kept.Serial;
+
+            foreach (var wire in wires.WiresList)
+            {
+                if (kept.Cut.Contains(wire.Id))
+                    wire.IsCut = true;
+            }
+        }
+
+        RemComp<WGKeptWiresComponent>(uid);
     }
 
     /// <summary>

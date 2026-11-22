@@ -68,13 +68,21 @@ public sealed class PlanetBoundsTest
                     Assert.That(biomes.WgIsChunkLoaded(biome, Outside), Is.False, "Ground outside the circle was loaded.");
                     Assert.That(maps.GetTileRef(ground, grid, Outside).Tile.IsEmpty, Is.True, "There is a tile outside the circle.");
 
-                    var wall = Anchored(entMan, maps, ground, grid, Edge).FirstOrDefault(uid =>
-                        entMan.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID == "WGPlanetBoundaryWall");
-                    Assert.That(wall, Is.Not.EqualTo(EntityUid.Invalid), "The edge tile has no boundary wall.");
+                    var rim = server.ResolveDependency<Robust.Shared.Map.ITileDefinitionManager>()["WGPlanetRimRock"].TileId;
+                    Assert.That(maps.GetTileRef(ground, grid, Edge).Tile.TypeId, Is.EqualTo(rim), "The edge tile is not rim rock.");
+                    Assert.That(Anchored(entMan, maps, ground, grid, Edge), Is.Empty, "Something stands on the rim.");
+                    Assert.That(maps.GetTileRef(ground, grid, Inside).Tile.TypeId, Is.Not.EqualTo(rim), "Rim rock lies inside the circle.");
 
-                    var walls = Anchored(entMan, maps, ground, grid, Inside).Count(uid =>
-                        entMan.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID == "WGPlanetBoundaryWall");
-                    Assert.That(walls, Is.Zero, "A boundary wall stands inside the circle.");
+                    // The rim is tiles alone: a wall a tile was 18,000 entities a world.
+                    var walls = 0;
+                    var metas = entMan.AllEntityQueryEnumerator<MetaDataComponent>();
+                    while (metas.MoveNext(out _, out var meta))
+                    {
+                        if (meta.EntityPrototype?.ID == "WGPlanetBoundaryWall")
+                            walls++;
+                    }
+
+                    Assert.That(walls, Is.Zero, "The rim was laid in wall entities.");
                 });
             });
 

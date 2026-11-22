@@ -75,6 +75,19 @@ public sealed partial class WGColdStoreSystem : EntitySystem
     private float _restoreRange;
     private float _maxRestoreMs;
     private bool _playerShips;
+    private bool _storeStations;
+
+    /// <summary>Whether grids of a stasis policy are stored at all: wrecks always, the rest by their own switch.</summary>
+    private bool MayStore(WGStasisPolicy policy)
+    {
+        return policy switch
+        {
+            WGStasisPolicy.Ownerless => true,
+            WGStasisPolicy.PlayerShip => _playerShips,
+            WGStasisPolicy.Station => _storeStations,
+            _ => false,
+        };
+    }
 
     /// <summary>Counts since the round began, for admins and tests.</summary>
     public int Stores, Restores, Aborts, Failures, Expired;
@@ -130,6 +143,7 @@ public sealed partial class WGColdStoreSystem : EntitySystem
         Subs.CVar(_cfg, WGColdStoreCVars.MaxRestoreMs, value => _maxRestoreMs = value, true);
         Subs.CVar(_cfg, WGColdStoreCVars.RestoreBudgetMs, value => _restoreBudgetMs = value, true);
         Subs.CVar(_cfg, WGColdStoreCVars.PlayerShips, value => _playerShips = value, true);
+        Subs.CVar(_cfg, WGColdStoreCVars.Stations, value => _storeStations = value, true);
 
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<WGStoredGridComponent, EntityTerminatingEvent>(OnStandInTerminating);
@@ -180,7 +194,7 @@ public sealed partial class WGColdStoreSystem : EntitySystem
         var idle = TimeSpan.FromSeconds(EffectiveIdle);
         foreach (var (grid, rec) in _stasis.Grids)
         {
-            if (rec.Policy != WGStasisPolicy.Ownerless
+            if (!MayStore(rec.Policy)
                 || rec.State != WGGridStasisState.Paused
                 || rec.StasisSince is not { } since
                 || now - since < idle
@@ -238,7 +252,7 @@ public sealed partial class WGColdStoreSystem : EntitySystem
             IffColor = iff?.Color,
             Entities = CountTree(grid),
             StoredAt = _timing.CurTime,
-            Hollow = _stasis.PolicyOf(grid, xform) == WGStasisPolicy.PlayerShip,
+            Hollow = _stasis.PolicyOf(grid, xform) is WGStasisPolicy.PlayerShip or WGStasisPolicy.Station,
         };
 
         record.CleanupCandidate = _gridCleanup.WGColdStoreCandidate(grid, out record.CleanupAccumulator,
