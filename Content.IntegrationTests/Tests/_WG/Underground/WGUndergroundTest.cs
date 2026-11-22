@@ -343,7 +343,7 @@ public sealed class WGUndergroundTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Only the Sultanate's pallet takes a body, and only a heretic's; it clears the mark and leaves the body.</summary>
+    /// <summary>Only the Sultanate's pallet takes a body, and only a heretic's, for half the live price; it clears the mark and leaves the body.</summary>
     [Test]
     public async Task OnlyTheSultanateTakesABody()
     {
@@ -381,7 +381,14 @@ public sealed class WGUndergroundTest
             heretic = entMan.SpawnEntity("MobHuman", map.GridCoords);
             entMan.EnsureComponent<ContrabandComponent>(heretic).TurnInValues[WGUndergroundWarrantSystem.Doubloons] = 250;
             entMan.AddComponent<HereticComponent>(heretic);
+
+            // Alive pays in full and a body half, so the hunt isn't worth more as a kill.
+            var warrants = entMan.System<WGUndergroundWarrantSystem>();
+            var doubloons = WGUndergroundWarrantSystem.Doubloons.Id;
+            Assert.That(warrants.TurnInValue(heretic, doubloons, 250), Is.EqualTo(250), "A live heretic didn't pay in full.");
             mobState.ChangeMobState(heretic, MobState.Dead);
+            Assert.That(warrants.TurnInValue(heretic, doubloons, 250), Is.EqualTo(125), "A heretic's body didn't pay half.");
+            Assert.That(warrants.TurnInValue(heretic, WGUndergroundWarrantSystem.Credits.Id, 250), Is.EqualTo(250), "Only the Sultanate's price depends on the mark.");
             entMan.EventBus.RaiseLocalEvent(pdv, new ContrabandPalletSellMessage { Actor = pdv });
         });
         await pair.RunTicksSync(5);

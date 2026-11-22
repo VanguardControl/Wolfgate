@@ -161,7 +161,7 @@ public sealed partial class ContrabandTurnInSystem : SharedContrabandTurnInSyste
 
                     var value = comp.TurnInValues[console.RewardType];
                     value = EntityManager.System<Content.Server._WG.WolfChem.Narcotics.WGNarcoticGoodsSystem>().TurnIn(ent, value, ref street, toSell); // WOLFGATE(WolfChem): narcotics hand in for what they hold together
-                    value = WgTurnInValue(ent, value); // WOLFGATE(Underground): a heretic handed in alive pays half
+                    value = WgTurnInValue(ent, value); // WOLFGATE(Underground): a heretic's body pays half
                     // Mono Begin - Accounting for stacks of contraband
                     if (TryComp<StackComponent>(ent, out var stackcomp))
                         value *= stackcomp.Count;

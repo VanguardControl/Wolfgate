@@ -140,13 +140,13 @@ public sealed partial class WGUndergroundWarrantSystem : EntitySystem
         return BailRun(mob, member);
     }
 
-    /// <summary>What a mob pays at a pallet: a heretic handed in alive is worth half.</summary>
+    /// <summary>What a mob pays at a pallet: a heretic's body is worth half of what they pay alive.</summary>
     public int TurnInValue(EntityUid ent, string rewardType, int value)
     {
         if (rewardType != Doubloons.Id || !HasComp<HereticComponent>(ent) || !HasComp<MobStateComponent>(ent))
             return value;
 
-        return _mobState.IsDead(ent) ? value : value / 2;
+        return _mobState.IsDead(ent) ? value / 2 : value;
     }
 
     /// <summary>

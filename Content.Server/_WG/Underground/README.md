@@ -20,8 +20,8 @@ can't be handed in again for an hour, on that body or the player's next. A tagge
 pallet.
 
 **Heretic marks** (`WGHereticMarkSystem`): the marked player is told; a tagged new player is never marked; a player
-handed in or killed as a heretic isn't marked again that round. The PDV's pallet pays in full for a dead heretic and
-half for a live one, clears the mark and leaves the body. No other pallet takes a body. The Underground's jobs no
+handed in or killed as a heretic isn't marked again that round. The PDV's pallet pays in full for a live heretic and
+half for a dead one, clears the mark and leaves the body. No other pallet takes a body. The Underground's jobs no
 longer roll for a mark; the Heretic trait is open to them.
 
 **The station** (`WGUndergroundBaseSystem`): its turrets (`WGUndergroundTurretComponent`) stay retracted until a
@@ -92,7 +92,7 @@ pay is the Godfather's payroll verb.
 - [`Content.Server/_NF/Contraband/Systems/ContrabandTurnInSystem.cs`](../../_NF/Contraband/Systems/ContrabandTurnInSystem.cs)
   - record the prisoners sold and keep the bodies the pallet doesn't take away
   - the pallet's currency decides which prisoners it takes
-  - a heretic handed in alive pays half
+  - a heretic's body pays half
   - which prisoners and bodies a pallet takes is the Underground module's call
 - [`Content.Server/PDA/PdaSystem.cs`](../../PDA/PdaSystem.cs)
   - refresh PDAs when the Underground's Heat changes
