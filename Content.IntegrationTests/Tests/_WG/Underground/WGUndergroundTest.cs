@@ -3,15 +3,22 @@ using System.Linq;
 using Content.Server._Mono.PDV.Components;
 using Content.Server._WG.Underground;
 using Content.Server.Access.Components;
+using Content.Shared._Mono.Company;
 using Content.Shared._NF.Contraband.Events;
+using Content.Shared._WG.Newbie;
 using Content.Shared._WG.RoundSetup;
+using Content.Shared.Access;
+using Content.Shared.Access.Systems;
 using Content.Shared.Contraband;
+using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Preferences.Loadouts;
 using Content.Shared.Roles;
+using Content.Shared.Turrets;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
+using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
@@ -110,6 +117,7 @@ public sealed class WGUndergroundTest
         var console = EntityUid.Invalid;
         var treasury = 0;
         var captures = heat.Captures;
+        var gone = new NetUserId(Guid.NewGuid());
 
         await server.WaitPost(() =>
         {
@@ -117,8 +125,9 @@ public sealed class WGUndergroundTest
             console = entMan.SpawnEntity("ComputerContrabandPalletConsole", map.GridCoords);
             bailed = entMan.SpawnEntity("MobHuman", map.GridCoords);
             entMan.AddComponent<WGUndergroundMemberComponent>(bailed);
+            // The second one's player has left the body: only the member record says whose it was.
             taken = entMan.SpawnEntity("MobHuman", map.GridCoords);
-            entMan.AddComponent<WGUndergroundMemberComponent>(taken);
+            entMan.AddComponent<WGUndergroundMemberComponent>(taken).User = gone;
             treasury = heat.Treasury;
             entMan.EventBus.RaiseLocalEvent(console, new ContrabandPalletSellMessage { Actor = console });
         });
@@ -147,6 +156,139 @@ public sealed class WGUndergroundTest
             Assert.That(entMan.Deleted(taken), Is.True, "The pallet didn't take a member whose bail went unpaid.");
             Assert.That(entMan.Deleted(bailed), Is.False, "The pallet took a member whose bail was paid.");
             Assert.That(heat.Captures, Is.EqualTo(captures + 1));
+            Assert.That(warrants.Served(gone), Is.True, "A capture after the player left the body didn't lock their next one.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A mark settles for the player even after they left the body, and isn't given to them again or to a tagged new player.</summary>
+    [Test]
+    public async Task HereticMarkFollowsThePlayer()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var marks = server.System<WGHereticMarkSystem>();
+        var gone = new NetUserId(Guid.NewGuid());
+
+        await server.WaitAssertion(() =>
+        {
+            var mobState = entMan.System<MobStateSystem>();
+
+            bool Refused(EntityUid target)
+            {
+                entMan.AddComponent(target, new AddComponentsAfterTimeComponent
+                {
+                    SelectionTime = TimeSpan.FromDays(1),
+                    AddComponentsOnSelection = new ComponentRegistry(),
+                });
+                var attempt = new WGMarkAttemptEvent();
+                entMan.EventBus.RaiseLocalEvent(target, ref attempt);
+                return attempt.Cancelled;
+            }
+
+            var body = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            entMan.AddComponent<WGUndergroundMemberComponent>(body).User = gone;
+            entMan.AddComponent<HereticComponent>(body);
+            Assert.That(marks.Resolved(gone), Is.False);
+            mobState.ChangeMobState(body, MobState.Dead);
+            Assert.That(marks.Resolved(gone), Is.True, "A heretic who died after their player left wasn't settled.");
+
+            var next = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            entMan.AddComponent<WGUndergroundMemberComponent>(next).User = gone;
+            Assert.That(Refused(next), Is.True, "A settled player was marked again.");
+
+            var newbie = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            entMan.AddComponent<WGNewbieComponent>(newbie);
+            Assert.That(Refused(newbie), Is.True, "A tagged new player was marked.");
+
+            var other = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            Assert.That(Refused(other), Is.False, "An ordinary mark was refused.");
+
+            foreach (var uid in new[] { body, next, newbie, other })
+            {
+                entMan.DeleteEntity(uid);
+            }
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>The cargo console's verbs keep its company lock: an Underground card isn't enough for the TSF.</summary>
+    [Test]
+    public async Task ConsoleVerbsKeepTheCompanyLock()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var terminal = server.System<WGUndergroundTerminalSystem>();
+
+        await server.WaitAssertion(() =>
+        {
+            var console = entMan.SpawnEntity("ComputerTabletopCargoOrdersUnderground", map.GridCoords);
+            var user = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            Assert.That(terminal.Authorized(console, user, out _, out _), Is.False, "The terminal opened to someone with no card.");
+
+            var card = entMan.SpawnEntity("FugitiveIDCard", map.GridCoords);
+            entMan.System<SharedAccessSystem>().TrySetTags(card, new ProtoId<AccessLevelPrototype>[] { "Underground", "Godfather" });
+            Assert.That(entMan.System<SharedHandsSystem>().TryPickupAnyHand(user, card, checkActionBlocker: false));
+
+            // No company at all is not one of the locked-out companies.
+            Assert.That(terminal.Authorized(console, user, out var boss, out var officer), Is.True);
+            Assert.That(boss && officer, Is.True);
+
+            var company = entMan.EnsureComponent<CompanyComponent>(user);
+            company.CompanyName = "TSF";
+            Assert.That(terminal.Authorized(console, user, out _, out _), Is.False, "A TSF player used the terminal with a stolen card.");
+            company.CompanyName = "PDV";
+            Assert.That(terminal.Authorized(console, user, out _, out _), Is.False);
+            company.CompanyName = WGUndergroundHeatSystem.Company;
+            Assert.That(terminal.Authorized(console, user, out _, out _), Is.True);
+
+            entMan.DeleteEntity(user);
+            entMan.DeleteEntity(console);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Arming deploys the turrets, a turret that wasn't up is brought up on the next pass, and standing down retracts them.</summary>
+    [Test]
+    public async Task ArmedTurretsAreKeptDeployed()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var station = server.System<WGUndergroundBaseSystem>();
+
+        var first = EntityUid.Invalid;
+        var late = EntityUid.Invalid;
+
+        await server.WaitAssertion(() =>
+        {
+            first = entMan.SpawnEntity("WGBallisticTurretHeavyAIUnderground", map.GridCoords);
+            Assert.That(entMan.GetComponent<DeployableTurretComponent>(first).Enabled, Is.False, "The turrets should start retracted.");
+            station.SetArmed(true);
+            Assert.That(entMan.GetComponent<DeployableTurretComponent>(first).Enabled, Is.True);
+
+            // One that wasn't up when the order went out, like a turret that had no power.
+            late = entMan.SpawnEntity("WGBallisticTurretHeavyAIUnderground", map.GridCoords);
+            Assert.That(entMan.GetComponent<DeployableTurretComponent>(late).Enabled, Is.False);
+        });
+        await pair.RunSeconds(12);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(entMan.GetComponent<DeployableTurretComponent>(late).Enabled, Is.True, "An armed station didn't bring a late turret up.");
+            station.SetArmed(false);
+            Assert.That(entMan.GetComponent<DeployableTurretComponent>(first).Enabled, Is.False);
+            Assert.That(entMan.GetComponent<DeployableTurretComponent>(late).Enabled, Is.False);
+            entMan.DeleteEntity(first);
+            entMan.DeleteEntity(late);
         });
 
         await pair.CleanReturnAsync();

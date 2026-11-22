@@ -185,18 +185,20 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
     /// Whether someone may use the terminal at all, and as what. The console's company lock applies to its verbs as
     /// it does to its window, so a stolen card is not enough for the TSF or PDV.
     /// </summary>
-    private bool Authorized(EntityUid terminal, EntityUid user, out bool boss, out bool officer)
+    public bool Authorized(EntityUid terminal, EntityUid user, out bool boss, out bool officer)
     {
         boss = false;
         officer = false;
         if (TryComp<CompanyAccessReaderComponent>(terminal, out var reader))
         {
+            // Read into a local: the component only lets its own system call into its list.
+            var required = reader.RequiredCompanies;
             if (!TryComp<CompanyComponent>(user, out var company))
             {
                 if (!reader.Inverted)
                     return false;
             }
-            else if (reader.RequiredCompanies.Contains(company.CompanyName) == reader.Inverted)
+            else if (required.Contains(company.CompanyName) == reader.Inverted)
             {
                 return false;
             }

@@ -98,6 +98,12 @@ public sealed partial class WGUndergroundWarrantSystem : EntitySystem
         Apply(seller, member);
     }
 
+    /// <summary>Whether a player was handed in or bailed recently enough that no pallet takes their next body.</summary>
+    public bool Served(NetUserId user)
+    {
+        return _served.TryGetValue(user, out var until) && until > _timing.CurTime;
+    }
+
     /// <summary>The player a body belongs to, found even after they have ghosted or disconnected.</summary>
     public NetUserId? PlayerOf(EntityUid mob)
     {
