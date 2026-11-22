@@ -489,6 +489,7 @@ left dirty, and built again when someone comes near or a path is asked for acros
 - [`Content.IntegrationTests/Tests/_WG/Planets/PlanetDroneBeltTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Planets/PlanetDroneBeltTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Planets/PlanetEcologyLifecycleTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Planets/PlanetEcologyLifecycleTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Planets/PlanetEcologyTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Planets/PlanetEcologyTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/Planets/PlanetEntityBreakdown.cs`](../../../Content.IntegrationTests/Tests/_WG/Planets/PlanetEntityBreakdown.cs)
 - [`Content.IntegrationTests/Tests/_WG/Planets/PlanetEntityCensusTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Planets/PlanetEntityCensusTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Planets/PlanetExplosionGroundTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Planets/PlanetExplosionGroundTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Planets/PlanetFirstMinuteTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Planets/PlanetFirstMinuteTest.cs)
