@@ -121,6 +121,7 @@ public sealed partial class WGRoundSetupSystem : EntitySystem
             SyncCompanyShips();
             BroadcastIfChanged(pruned | locks | UpdateCrewStatus());
         }
+        SendQueuedStates();
         if (!_broadcastPending || now < _nextBroadcast)
             return;
         _broadcastPending = false;

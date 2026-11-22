@@ -1,0 +1,124 @@
+#nullable enable
+using System.Linq;
+using Content.IntegrationTests.Fixtures;
+using Content.IntegrationTests.Fixtures.Attributes;
+using Content.Server._WG.Wolfmed.Wounds;
+using Content.Shared._Onyx.Wounds;
+using Content.Shared._WG.Wolfmed.CCVar;
+using Content.Shared._WG.Wolfmed.Compat;
+using Content.Shared._WG.Wolfmed.Wounds;
+using Content.Shared.Body.Part;
+using Content.Shared.Body.Systems;
+using Content.Shared.FixedPoint;
+using Robust.Shared.GameObjects;
+
+namespace Content.IntegrationTests.Tests._WG.Wolfmed;
+
+/// <summary>
+/// Infection run tick by tick, each body on its own tick of the 5 s window, comes out as the whole-server batch did, and a
+/// corpse waits <see cref="WolfmedInfectionSpreadCVars.SlowSeconds"/> between turns.
+/// </summary>
+[TestFixture]
+[TestOf(typeof(WolfmedInfectionSystem))]
+public sealed class WolfmedInfectionTickSpreadTest : WolfmedGameTest
+{
+    private async Task Pin()
+    {
+        await OverrideCVar(Side.Server, WolfmedCVars.InfectionEnabled, true);
+        await OverrideCVar(Side.Server, WolfmedCVars.InfectionRate, 1f);
+    }
+
+    /// <summary>A minute of ticks moves an untreated cut as far as a minute handed over at once did, on every body.</summary>
+    [Test]
+    public async Task TicksMatchTheBatch()
+    {
+        await Pin();
+        var map = await CreateTestMap();
+        EntityUid first = default, second = default;
+        float batched = 0, firstBefore = 0, secondBefore = 0;
+
+        await Server.WaitAssertion(() =>
+        {
+            first = Cut(SEntMan.SpawnEntity("MobHuman", map.GridCoords));
+            second = Cut(SEntMan.SpawnEntity("MobHuman", map.GridCoords));
+            var start = Progress(first);
+            SEntMan.System<WolfmedInfectionSystem>().Update(60f);
+            batched = Progress(first) - start;
+            Assert.That(batched, Is.GreaterThan(0f), "a minute in one call should move an untreated cut.");
+            Assert.That(Progress(second), Is.EqualTo(Progress(first)).Within(1e-4f), "both cuts were handed the same minute.");
+            firstBefore = Progress(first);
+            secondBefore = Progress(second);
+        });
+
+        await RunSeconds(60);
+
+        await Server.WaitAssertion(() =>
+        {
+            // Each body's turn lands somewhere in the window, so a minute of ticks is 55 to 65 s of infection.
+            var firstTicked = Progress(first) - firstBefore;
+            var secondTicked = Progress(second) - secondBefore;
+            Assert.That(firstTicked, Is.EqualTo(batched).Within(batched * 0.15f),
+                $"a minute of ticks moved the cut {firstTicked:0.000}, a minute at once {batched:0.000}.");
+            Assert.That(secondTicked, Is.EqualTo(batched).Within(batched * 0.15f),
+                $"the second body's cut moved {secondTicked:0.000} in a minute of ticks.");
+        });
+    }
+
+    /// <summary>
+    /// A limb off any body keeps its infection, but its turn comes once every
+    /// <see cref="WolfmedInfectionSpreadCVars.SlowSeconds"/>, as a corpse's does.
+    /// </summary>
+    [Test]
+    public async Task LooseLimbWaitsForItsTurn()
+    {
+        await Pin();
+        await OverrideCVar(Side.Server, WolfmedInfectionSpreadCVars.SlowSeconds, 30f);
+        var map = await CreateTestMap();
+        EntityUid wound = default;
+        float start = 0;
+
+        await Server.WaitAssertion(() =>
+        {
+            var body = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
+            wound = Cut(body);
+            var hand = SEntMan.GetComponent<WoundComponent>(wound).HoldingPart;
+            Assert.That(SEntMan.System<WolfmedBodySystem>().TryDetachPart(hand), Is.True, "the hand would not come off.");
+            Assert.That(SEntMan.GetComponent<BodyPartComponent>(hand).Body, Is.Null, "the hand is still on the body.");
+            start = Progress(wound);
+        });
+
+        // The limb's first turn comes within 30 s of its filing; take it as the start of the wait.
+        var moved = false;
+        for (var i = 0; i < 45 && !moved; i++)
+        {
+            await RunSeconds(1);
+            await Server.WaitPost(() => moved = Progress(wound) > start);
+        }
+
+        Assert.That(moved, Is.True, "a loose limb's infection never took a turn.");
+        await Server.WaitPost(() => start = Progress(wound));
+
+        await RunSeconds(20);
+        await Server.WaitAssertion(() =>
+            Assert.That(Progress(wound), Is.EqualTo(start), "a loose limb took a turn sooner than 30 s after its last."));
+
+        // 30 s, plus up to one window for its slot to come round.
+        await RunSeconds(20);
+        await Server.WaitAssertion(() =>
+            Assert.That(Progress(wound), Is.GreaterThan(start), "a loose limb's infection stopped after one turn."));
+    }
+
+    /// <summary>An untreated risk-1 cut on the left hand, made directly so the part it lands on is certain.</summary>
+    private EntityUid Cut(EntityUid body)
+    {
+        var hand = SEntMan.System<SharedBodySystem>().GetBodyChildren(body)
+            .Single(part => part.Component.PartType == BodyPartType.Hand && part.Component.Symmetry == BodyPartSymmetry.Left)
+            .Id;
+        var wound = SEntMan.System<WoundSystem>().CreateOrMergeWound(hand, "SlashWound", FixedPoint2.New(30));
+        Assert.That(wound, Is.Not.Null, "the hand took no cut.");
+        Assert.That(SEntMan.HasComponent<WolfmedInfectionComponent>(wound!.Value), Is.True, "the cut is not infectable.");
+        return wound.Value;
+    }
+
+    private float Progress(EntityUid wound) => SEntMan.GetComponent<WolfmedInfectionComponent>(wound).Progress;
+}
