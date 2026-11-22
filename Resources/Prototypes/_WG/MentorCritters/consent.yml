@@ -1,5 +1,7 @@
-# Name and description come from Fluent (consent-WGMentorCritterRide). On by default (D8).
+# Fluent's consent-WGMentorCritterRide overrides the name and description; these are the same words. On by default (D8).
 - type: consentToggle
   id: WGMentorCritterRide
+  name: Mentor critters may ride on me
+  description: Lets a Mentor critter climb into your pockets or onto your head while it's helping you.
   sortKey: 1-mentor-critter-0
   defaultOn: true
