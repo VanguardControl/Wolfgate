@@ -52,6 +52,7 @@ public static partial class PoolManager
         ("wolfmed.arrest_collapse_seconds", "0"), // WOLFGATE(Wolfmed): arrest tests expect the collapse at once; the collapse test turns it on
         ("wg.companies.create_fee", "0"), // WOLFGATE(Companies): tests check balances without the creation fee
         ("wg.ghost.orbit_share_seconds", "0"), // WOLFGATE(Ghost): tests read the orbit list right after changing the world
+        ("wg.shipyard.async_purchase", "false"), // WOLFGATE(Performance): purchase tests check the ship the moment they buy it
         (CCVars.StorageLimit.Name, "1")// Frontier: test failures with multiple storage
     };
 }

@@ -181,6 +181,11 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
             return;
         }
 
+        // WOLFGATE(Performance) START: the hull's file is parsed off the main thread first; the purchase runs again once it is
+        if (WGDeferPurchase(shipyardConsoleUid, component, args, player, vessel))
+            return;
+        // WOLFGATE END
+
         if (!TryPurchaseShuttle(station, vessel.ShuttlePath, out var shuttleUidOut))
         {
             PlayDenySound(player, shipyardConsoleUid, component);
