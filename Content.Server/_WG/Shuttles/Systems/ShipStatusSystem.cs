@@ -73,12 +73,6 @@ public sealed partial class ShipStatusSystem : EntitySystem
     /// <summary>How long an unchanged sweep is held back before it is sent anyway.</summary>
     private static readonly TimeSpan ResendInterval = TimeSpan.FromSeconds(5);
 
-    /// <summary>Least time between two sweeps a console's requests run; a request sooner waits for the regular sweep.</summary>
-    private static readonly TimeSpan RequestSweepInterval = TimeSpan.FromSeconds(0.5);
-
-    /// <summary>When each console's request last ran a sweep of its own.</summary>
-    private readonly Dictionary<EntityUid, TimeSpan> _requestSwept = new();
-
     public override void Initialize()
     {
         base.Initialize();
@@ -106,17 +100,8 @@ public sealed partial class ShipStatusSystem : EntitySystem
 
         _listeners.GetOrNew(ent)[args.Actor] = (args.Overlays, args.HullOnly);
 
-        // The client only sends this on a change, so answering keeps switching to the tab or flipping an overlay from
-        // leaving a second of blank screen. A burst of changes, or a client that doesn't hold back, gets one sweep in
-        // RequestSweepInterval; the rest are answered by the regular sweep, sent even if the hull reads the same.
-        var now = _timing.CurTime;
-        if (_requestSwept.TryGetValue(ent, out var swept) && now - swept < RequestSweepInterval && now >= swept)
-        {
-            _lastSent.Remove(ent);
-            return;
-        }
-
-        _requestSwept[ent] = now;
+        // The client only sends this on a change, so answering every time keeps switching to the tab
+        // or flipping an overlay from leaving a second of blank screen.
         SweepAndSend(ent);
     }
 
@@ -149,14 +134,6 @@ public sealed partial class ShipStatusSystem : EntitySystem
 
         foreach (var console in _lastSent.Keys.Where(console => !_listeners.ContainsKey(console)).ToArray())
             _lastSent.Remove(console);
-
-        // Kept until the interval is up, so closing and reopening the view at once doesn't buy a second sweep.
-        var now = _timing.CurTime;
-        foreach (var (console, swept) in _requestSwept.Where(pair => !_listeners.ContainsKey(pair.Key)).ToArray())
-        {
-            if (now - swept >= RequestSweepInterval || now < swept)
-                _requestSwept.Remove(console);
-        }
 
         if (_listeners.Count == 0)
             return;

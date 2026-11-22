@@ -81,6 +81,8 @@ public sealed class WolfmedInfectionTickSpreadTest : WolfmedGameTest
         {
             var body = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
             wound = Cut(body);
+            // Off the body a cut is open to no air, so only something dirty in it is a reason to go bad.
+            SEntMan.System<WolfmedInfectionSystem>().Contaminate(wound);
             var hand = SEntMan.GetComponent<WoundComponent>(wound).HoldingPart;
             Assert.That(SEntMan.System<WolfmedBodySystem>().TryDetachPart(hand), Is.True, "the hand would not come off.");
             Assert.That(SEntMan.GetComponent<BodyPartComponent>(hand).Body, Is.Null, "the hand is still on the body.");

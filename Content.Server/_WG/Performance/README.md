@@ -134,12 +134,12 @@ client messages, and 23 were whole-process freezes with no readings at all. Thes
 - Radar hitscan lines go to a radar when any part of the line passes within range (`RadarBlipSystem.WGLineInReach`).
   The upstream test dropped lines that ended in range and sent every line far from it. Missile arcs go only with
   missiles whose blips the radar is sent.
-- A ship status request sweeps the hull at once at most every 0.5 s per console; sooner ones are answered by the
-  regular one-second sweep. A shipyard console shows a hull appraisal up to 15 s old (`ShipyardSystem.WGShownAppraisal`)
-  instead of pricing every entity aboard on open and on each ID change; the sale itself still appraises afresh.
+- A shipyard console shows a hull appraisal up to 15 s old (`ShipyardSystem.WGShownAppraisal`) instead of pricing every
+  entity aboard on open and on each ID change; the sale itself still appraises afresh.
 - `WGGridFileReader` reads and parses a grid file on the thread pool and loads the parsed data on the main thread, as
   planet sites already did. A staged encounter hull now loads this way, waiting a few ticks for the parse instead of
-  doing it in one. Contract wrecks and round-setup ships still load in one go.
+  doing it in one. Contract wrecks still load in one go; round-setup ships are parsed when their leader picks them (see
+  the RoundSetup README).
 - Buying a ship takes two steps (`wg.shipyard.async_purchase`, on; tests run it off). A shipyard console's purchase
   starts its hull's parse, says the ship is being prepared and returns; once the parse is done
   (`ShipyardSystem.WGFinishPurchases`), the same purchase runs again from the top, so the card, access, funds and voucher
@@ -159,8 +159,7 @@ client messages, and 23 were whole-process freezes with no readings at all. Thes
 - Pickup magnets reuse one lookup set, and a magnet over a pile of 64 or more things it can take none of looks again in
   5 s instead of 1 (`MagnetPickupSystem`). One that took something keeps its one-second scan.
 - Hull fragments shed in a break-up are judged at most 4 ms a tick (`WGFragmentCleanupSystem`); the rest wait.
-- Planet drag skips sleeping grids, most of which are rock; the station job list goes to every player at most once a
-  second (`StationJobsSystem`).
+- The station job list goes to every player at most once a second (`StationJobsSystem`).
 - A ship asked about for the first time is read from one survey per tick (`WGCrewShipStatusSystem.SurveyThisTick`),
   not from four walks of every weapon, thruster and crewman each, so a fleet arriving costs one survey. Watched ships
   were already read from the one-second survey.

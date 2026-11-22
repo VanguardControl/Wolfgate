@@ -1,5 +1,6 @@
 #nullable enable
 using Content.Server._NF.Shipyard.Systems;
+using Content.Shared._NF.Bank.Components;
 using Content.Shared._Mono.Economy;
 using Content.Shared._Mono.Economy.Components;
 using Content.Shared._NF.Shipyard.Components;
@@ -51,6 +52,9 @@ public sealed class ShipyardAsyncPurchaseTest
         {
             var vessel = protoMan.Index<VesselPrototype>(VesselProto);
             price = vessel.Price;
+
+            // A purchase needs a bank account behind the buyer, even one the cash covers.
+            entMan.EnsureComponent<BankAccountComponent>(customer);
 
             var cash = entMan.SpawnEntity(Cash, map.GridCoords);
             var receiver = entMan.GetComponent<CreditReceiverComponent>(console);
