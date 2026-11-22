@@ -724,7 +724,10 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
         int sellValue = 0;
         if (deed?.ShuttleUid != null)
         {
-            sellValue = _wgShipServices.ResaleValue((EntityUid)(deed?.ShuttleUid!), (int)_pricing.AppraiseGrid((EntityUid)(deed?.ShuttleUid!), LacksPreserveOnSaleComp)); // WOLFGATE(ShipCommand): a bargain resells less its discount
+            // WOLFGATE(Performance) START: the console shows an appraisal up to 15 s old; the sale itself appraises afresh
+            // sellValue = _wgShipServices.ResaleValue((EntityUid)(deed?.ShuttleUid!), (int)_pricing.AppraiseGrid((EntityUid)(deed?.ShuttleUid!), LacksPreserveOnSaleComp)); // WOLFGATE(ShipCommand): a bargain resells less its discount
+            sellValue = _wgShipServices.ResaleValue(deed.ShuttleUid.Value, WGShownAppraisal(deed.ShuttleUid.Value)); // WOLFGATE(ShipCommand): a bargain resells less its discount
+            // WOLFGATE END
             sellValue = CalculateShipResaleValue((uid, component), sellValue);
         }
 
@@ -833,7 +836,10 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
             int sellValue = 0;
             if (deed?.ShuttleUid != null)
             {
-                sellValue = _wgShipServices.ResaleValue(deed.ShuttleUid.Value, (int)_pricing.AppraiseGrid(deed.ShuttleUid.Value, LacksPreserveOnSaleComp)); // WOLFGATE(ShipCommand): a bargain resells less its discount
+                // WOLFGATE(Performance) START: the console shows an appraisal up to 15 s old; the sale itself appraises afresh
+                // sellValue = _wgShipServices.ResaleValue(deed.ShuttleUid.Value, (int)_pricing.AppraiseGrid(deed.ShuttleUid.Value, LacksPreserveOnSaleComp)); // WOLFGATE(ShipCommand): a bargain resells less its discount
+                sellValue = _wgShipServices.ResaleValue(deed.ShuttleUid.Value, WGShownAppraisal(deed.ShuttleUid.Value)); // WOLFGATE(ShipCommand): a bargain resells less its discount
+                // WOLFGATE END
                 sellValue = CalculateShipResaleValue((uid, component), sellValue);
             }
 
