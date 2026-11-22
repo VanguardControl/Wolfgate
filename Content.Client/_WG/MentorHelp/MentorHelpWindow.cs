@@ -4,6 +4,7 @@ using Content.Client.UserInterface.Controls;
 using Content.Client.UserInterface.Systems.Guidebook;
 using Content.Client._WG.Mentors;
 using Content.Shared._WG.MentorHelp;
+using Content.Shared._WG.MentorObserve;
 using Content.Shared._WG.Mentors;
 using Content.Shared.Guidebook;
 using Robust.Client.UserInterface;
@@ -30,13 +31,20 @@ public sealed class MentorHelpWindowState
     public bool CanEditCanned;
     public bool Sound;
     public MentorTier Tier;
+
+    /// <summary>Watching and critters: the prompt waiting for this player, and where their visits stand.</summary>
+    public WGMentorVisitPromptEvent? VisitPrompt;
+    public WGMentorVisitStateEvent Visits = new();
+
+    /// <summary>The critters this mentor may join as, by prototype id and name; empty when they may not.</summary>
+    public List<(string Id, string Name)> Critters = new();
 }
 
 /// <summary>
 /// The Mentor Help window: the player's own question (ask, reply, end, rate, reopen) and, for responders, the queue
 /// of open questions with the actions on the selected one.
 /// </summary>
-public sealed class MentorHelpWindow : DefaultWindow
+public sealed partial class MentorHelpWindow : DefaultWindow
 {
     public event Action<string, string?, bool>? OpenPressed;
     public event Action<int?, string>? PostPressed;
@@ -261,6 +269,7 @@ public sealed class MentorHelpWindow : DefaultWindow
         _report.OnPressed += _ => PlayerActionPressed?.Invoke(MentorHelpPlayerAction.Report, false, null);
         _ownBox.AddChild(_report);
 
+        _ownBox.AddChild(BuildVisitBox());
         page.AddChild(_ownBox);
         return page;
     }
@@ -410,6 +419,7 @@ public sealed class MentorHelpWindow : DefaultWindow
         var reopenMinutes = own.ReopenUntil is { } until ? (int) Math.Ceiling((until - DateTime.UtcNow).TotalMinutes) : 0;
         _reopenBox.Visible = !open && reopenMinutes > 0;
         _reopenHint.Text = Loc.GetString("wg-mhelp-reopen-hint", ("minutes", Math.Max(reopenMinutes, 1)));
+        UpdateVisitBox(open);
     }
 
     private void UpdateQueue()
@@ -521,6 +531,8 @@ public sealed class MentorHelpWindow : DefaultWindow
             escalate.OnPressed += _ => Act(ticket, MentorHelpAction.Escalate);
             _ticketActions.AddChild(escalate);
         }
+
+        FillVisitActions(ticket);
     }
 
     private void FillLines(BoxContainer box, List<MentorHelpLine> lines)

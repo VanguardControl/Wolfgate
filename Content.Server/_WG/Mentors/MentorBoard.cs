@@ -13,6 +13,8 @@ public sealed class MentorBoardStats
     public int Rated;
     public int Assists;
     public int Escalations;
+    public int Watches;
+    public int CritterVisits;
     public readonly List<double> FirstAnswerSeconds = new();
 
     public double? MedianFirstAnswer
@@ -80,6 +82,16 @@ public static class MentorBoard
             {
                 if (responder != holder)
                     Get(responder).Assists++;
+            }
+
+            foreach (var watcher in ticket.Watches)
+            {
+                Get(watcher).Watches++;
+            }
+
+            foreach (var visitor in ticket.CritterVisits)
+            {
+                Get(visitor).CritterVisits++;
             }
         }
 

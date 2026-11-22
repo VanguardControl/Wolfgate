@@ -4,6 +4,11 @@ using Content.Client.UserInterface.Systems.Bwoink;
 using Content.Client.UserInterface.Systems.MenuBar.Widgets;
 using Content.Shared._WG.MentorHelp;
 using Content.Shared._WG.Mentors;
+using Content.Shared._WG.MentorCritters;
+using Content.Shared._WG.MentorObserve;
+using Content.Client._WG.MentorObserve;
+using System.Linq;
+using Robust.Shared.Prototypes;
 using JetBrains.Annotations;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
@@ -23,9 +28,11 @@ namespace Content.Client._WG.MentorHelp;
 [UsedImplicitly]
 public sealed class MentorHelpUIController : UIController,
     IOnSystemChanged<WGClientMentorHelpSystem>,
-    IOnSystemChanged<WGClientMentorSystem>
+    IOnSystemChanged<WGClientMentorSystem>,
+    IOnSystemChanged<WGClientMentorObserveSystem>
 {
     [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
 
     private static readonly SoundSpecifier AlertSound = new SoundPathSpecifier("/Audio/Effects/Cargo/ping.ogg");
 
@@ -33,6 +40,7 @@ public sealed class MentorHelpUIController : UIController,
 
     private WGClientMentorHelpSystem? _help;
     private WGClientMentorSystem? _mentors;
+    private WGClientMentorObserveSystem? _observe;
     private MentorHelpWindow? _window;
     private string? _lastNotice;
 
@@ -74,6 +82,44 @@ public sealed class MentorHelpUIController : UIController,
         system.StatusChanged -= Refresh;
         system.CountChanged -= Refresh;
         _mentors = null;
+    }
+
+    public void OnSystemLoaded(WGClientMentorObserveSystem system)
+    {
+        _observe = system;
+        system.Changed += OnVisitsChanged;
+    }
+
+    public void OnSystemUnloaded(WGClientMentorObserveSystem system)
+    {
+        system.Changed -= OnVisitsChanged;
+        _observe = null;
+    }
+
+    /// <summary>A prompt opens the window, so the asker sees it; anything else just refreshes it.</summary>
+    private void OnVisitsChanged()
+    {
+        if (_observe?.Prompt != null && _window == null)
+            Open();
+
+        Refresh();
+    }
+
+    /// <summary>The critters this player may join as: Mentors and Seniors on duty, and staff, while critters are on.</summary>
+    private List<(string Id, string Name)> Critters()
+    {
+        var list = new List<(string Id, string Name)>();
+        var allowed = _cfg.GetCVar(MentorObserveCVars.Critters)
+                      && ((_help?.Staff ?? false) || _mentors is { IsMentor: true, Tier: not MentorTier.Trainee });
+        if (!allowed)
+            return list;
+
+        foreach (var critter in _prototypes.EnumeratePrototypes<WGMentorCritterPrototype>().OrderBy(c => c.Priority))
+        {
+            list.Add((critter.ID, Loc.GetString("wg-mentor-critter-name", ("animal", Loc.GetString(critter.Animal)))));
+        }
+
+        return list;
     }
 
     /// <summary>Hooks up the menu bar button.</summary>
@@ -122,6 +168,10 @@ public sealed class MentorHelpUIController : UIController,
             _window.TypingChanged += (ticket, typing) => _help?.SetTyping(ticket, typing);
             _window.CannedSaved += answer => _help?.SaveCanned(answer);
             _window.CannedDeleted += id => _help?.DeleteCanned(id);
+            _window.VisitRequested += (ticket, kind, critter) => _observe?.Request(ticket, kind, critter);
+            _window.VisitAnswered += allow => _observe?.Answer(allow);
+            _window.VisitsEnded += takeOutOnly => _observe?.EndVisits(takeOutOnly);
+            _window.ReturnPressed += () => _observe?.Return();
             if (_lastNotice != null)
                 _window.ShowNotice(_lastNotice);
         }
@@ -165,6 +215,9 @@ public sealed class MentorHelpUIController : UIController,
             CanEditCanned = _help.CanEditCanned,
             Sound = _cfg.GetCVar(MentorHelpCVars.Sound),
             Tier = _mentors?.Tier ?? MentorTier.Trainee,
+            VisitPrompt = _observe?.Prompt,
+            Visits = _observe?.State ?? new WGMentorVisitStateEvent(),
+            Critters = Critters(),
         });
     }
 

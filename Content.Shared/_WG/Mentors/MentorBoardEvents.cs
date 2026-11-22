@@ -27,6 +27,12 @@ public sealed class MentorBoardRow
 
     public int Assists;
 
+    /// <summary>Times they watched an asker.</summary>
+    public int Watches;
+
+    /// <summary>Times they joined an asker as a critter.</summary>
+    public int CritterVisits;
+
     /// <summary>Tickets they sent on to staff. Staff only.</summary>
     public int Escalations;
 }

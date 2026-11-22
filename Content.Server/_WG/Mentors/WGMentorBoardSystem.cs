@@ -64,6 +64,8 @@ public sealed class WGMentorBoardSystem : EntitySystem
                 Rated = stats.Rated,
                 MedianFirstAnswer = stats.MedianFirstAnswer is { } median ? (float) median : null,
                 Assists = stats.Assists,
+                Watches = stats.Watches,
+                CritterVisits = stats.CritterVisits,
                 Escalations = stats.Escalations,
             }));
         }
@@ -100,6 +102,8 @@ public sealed class WGMentorBoardSystem : EntitySystem
                 Rated = row.Rated,
                 MedianFirstAnswer = row.MedianFirstAnswer,
                 Assists = row.Assists,
+                Watches = row.Watches,
+                CritterVisits = row.CritterVisits,
                 Escalations = staff ? row.Escalations : 0,
             };
 

@@ -1,3 +1,5 @@
+using Content.Shared._WG.MentorCritters;
+using Content.Shared._WG.MentorObserve;
 using Content.Shared._WG.Mentors;
 using Content.Shared.Ghost;
 using Robust.Server.Player;
@@ -70,7 +72,10 @@ public sealed class WGMentorMarkTagSystem : EntitySystem
 
     private void SetMark(EntityUid body, ICommonSession session)
     {
-        if (!_mentors.IsOnDuty(session.UserId) || HasComp<GhostComponent>(body) || _mentors.GetTier(session.UserId) is not { } tier)
+        // Not on ghosts, the watching eye or critters, which are marked by their look (feature plan 4.7).
+        if (!_mentors.IsOnDuty(session.UserId) || HasComp<GhostComponent>(body)
+            || HasComp<WGMentorObserverComponent>(body) || HasComp<WGMentorCritterComponent>(body)
+            || _mentors.GetTier(session.UserId) is not { } tier)
         {
             RemComp<WGMentorMarkComponent>(body);
             return;

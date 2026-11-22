@@ -85,13 +85,15 @@ public sealed class MentorBoardControl : BoxContainer
         _fallbacks.Text = Loc.GetString("wg-mentor-board-fallbacks", ("count", ev.Fallbacks));
 
         _grid.RemoveAllChildren();
-        _grid.Columns = ev.Staff ? 7 : 6;
+        _grid.Columns = ev.Staff ? 9 : 8;
         Header("wg-mentor-board-col-mentor");
         Header("wg-mentor-board-col-resolved");
         Header("wg-mentor-board-col-helpful");
         Header("wg-mentor-board-col-rating");
         Header("wg-mentor-board-col-first-answer");
         Header("wg-mentor-board-col-assists");
+        Header("wg-mentor-board-col-watches");
+        Header("wg-mentor-board-col-critters");
         if (ev.Staff)
             Header("wg-mentor-board-col-escalations");
 
@@ -111,6 +113,8 @@ public sealed class MentorBoardControl : BoxContainer
                 : Loc.GetString("wg-mentor-board-few-ratings"));
             Cell(row.MedianFirstAnswer is { } seconds ? Duration(seconds) : "-");
             Cell(row.Assists.ToString());
+            Cell(row.Watches.ToString());
+            Cell(row.CritterVisits.ToString());
             if (ev.Staff)
                 Cell(row.Escalations.ToString());
         }

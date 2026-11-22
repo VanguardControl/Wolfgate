@@ -1,0 +1,228 @@
+# Mentor critters (D16): a Mentor in the round beside the asker as a small animal. Names and descriptions are set when
+# one spawns (wg-mentor-critter-name, wg-mentor-critter-desc). The base can't be hurt (no Damageable), eaten, butchered,
+# pulled or picked up, isn't a ghost role, and speaks plainly (no language, no accent).
+- type: entity
+  abstract: true
+  parent: BaseMob
+  id: WGMentorCritterBase
+  categories: [ HideSpawnMenu ]
+  save: false
+  components:
+  - type: WGMentorCritter
+  - type: Sprite
+    drawdepth: SmallMobs
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.2
+        density: 50
+        mask:
+        - SmallMobMask
+        layer:
+        - SmallMobLayer
+  - type: MovementSpeedModifier
+    baseWalkSpeed: 3
+    baseSprintSpeed: 5
+  - type: Hands
+  - type: ComplexInteraction
+  - type: Pacified
+    disallowAllCombat: true
+  - type: Speech
+    speechVerb: SmallMob
+  - type: Grammar
+    attributes:
+      gender: epicene
+  - type: Tag
+    tags:
+    - CannotSuicide
+
+- type: entity
+  parent: WGMentorCritterBase
+  id: WGMentorCritterMouse
+  components:
+  - type: Sprite
+    sprite: Mobs/Animals/mouse.rsi
+    layers:
+    - state: mouse-0
+  - type: Item
+    size: Tiny
+    heldPrefix: 0
+  - type: Clothing
+    quickEquip: false
+    sprite: Mobs/Animals/mouse.rsi
+    equippedPrefix: 0
+    slots:
+    - HEAD
+
+- type: entity
+  parent: WGMentorCritterBase
+  id: WGMentorCritterHamster
+  components:
+  - type: Sprite
+    sprite: Mobs/Animals/hamster.rsi
+    layers:
+    - state: hamster-0
+  - type: Item
+    size: Tiny
+
+- type: entity
+  parent: WGMentorCritterBase
+  id: WGMentorCritterMothroach
+  components:
+  - type: Sprite
+    sprite: Mobs/Animals/mothroach/mothroach.rsi
+    layers:
+    - state: mothroach
+  - type: Item
+    size: Normal
+  - type: Clothing
+    quickEquip: false
+    sprite: Mobs/Animals/mothroach/mothroach.rsi
+    equippedPrefix: 0
+    slots:
+    - HEAD
+
+- type: entity
+  parent: WGMentorCritterBase
+  id: WGMentorCritterFrog
+  components:
+  - type: Sprite
+    sprite: Mobs/Animals/frog.rsi
+    layers:
+    - state: frog
+
+- type: entity
+  parent: WGMentorCritterBase
+  id: WGMentorCritterLizard
+  components:
+  - type: Sprite
+    sprite: Mobs/Animals/lizard.rsi
+    layers:
+    - state: lizard
+
+- type: entity
+  parent: WGMentorCritterBase
+  id: WGMentorCritterButterfly
+  components:
+  - type: Sprite
+    sprite: Mobs/Animals/butterfly.rsi
+    layers:
+    - state: butterfly
+  - type: Item
+    size: Tiny
+
+- type: entity
+  parent: WGMentorCritterBase
+  id: WGMentorCritterSnail
+  components:
+  - type: Sprite
+    sprite: Mobs/Animals/snail.rsi
+    layers:
+    - state: snail
+  - type: Item
+    size: Tiny
+
+# The picker's catalogue, in the order Moon listed them.
+- type: wgMentorCritter
+  id: WGMentorCritterMouse
+  entity: WGMentorCritterMouse
+  animal: wg-mentor-critter-animal-mouse
+  priority: 0
+
+- type: wgMentorCritter
+  id: WGMentorCritterHamster
+  entity: WGMentorCritterHamster
+  animal: wg-mentor-critter-animal-hamster
+  priority: 1
+
+- type: wgMentorCritter
+  id: WGMentorCritterMothroach
+  entity: WGMentorCritterMothroach
+  animal: wg-mentor-critter-animal-mothroach
+  priority: 2
+
+- type: wgMentorCritter
+  id: WGMentorCritterFrog
+  entity: WGMentorCritterFrog
+  animal: wg-mentor-critter-animal-frog
+  priority: 3
+
+- type: wgMentorCritter
+  id: WGMentorCritterLizard
+  entity: WGMentorCritterLizard
+  animal: wg-mentor-critter-animal-lizard
+  priority: 4
+
+- type: wgMentorCritter
+  id: WGMentorCritterButterfly
+  entity: WGMentorCritterButterfly
+  animal: wg-mentor-critter-animal-butterfly
+  priority: 5
+
+- type: wgMentorCritter
+  id: WGMentorCritterSnail
+  entity: WGMentorCritterSnail
+  animal: wg-mentor-critter-animal-snail
+  priority: 6
+
+# Names and descriptions come from Fluent (ent-<id>).
+- type: entity
+  id: WGActionMentorCritterPocket
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: InstantAction
+    icon: { sprite: Mobs/Animals/mouse.rsi, state: mouse-0 }
+    event: !type:WGMentorCritterPocketActionEvent
+
+- type: entity
+  id: WGActionMentorCritterHead
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: InstantAction
+    icon: { sprite: _WG/Mentors/mentor_mark.rsi, state: mentor }
+    event: !type:WGMentorCritterHeadActionEvent
+
+- type: entity
+  id: WGActionMentorCritterDown
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: InstantAction
+    icon: Interface/Actions/disarm.png
+    checkCanInteract: false
+    event: !type:WGMentorCritterDownActionEvent
+
+- type: entity
+  id: WGActionMentorCritterAloud
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: InstantAction
+    icon: Interface/Actions/scream.png
+    checkCanInteract: false
+    event: !type:WGMentorCritterAloudActionEvent
+
+- type: entity
+  id: WGActionMentorCritterPing
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: WorldTargetAction
+    checkCanAccess: false
+    checkCanInteract: false
+    range: 12
+    useDelay: 2
+    icon: { sprite: Interface/Misc/pointing.rsi, state: pointing }
+    event: !type:WGMentorCritterPingActionEvent
+
+# What the asker sees where a critter points; spawned on their client alone.
+- type: entity
+  id: WGMentorPingMarker
+  categories: [ HideSpawnMenu ]
+  save: false
+  components:
+  - type: Sprite
+    sprite: Interface/Misc/pointing.rsi
+    state: pointing
+    drawdepth: Overlays
+    noRot: true
+    color: "#FFB000"

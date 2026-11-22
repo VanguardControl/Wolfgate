@@ -55,7 +55,8 @@ Leaderboard (`MentorBoard`, `WGMentorBoardSystem`): this week, this month and al
 mentor window and the staff tab. The mentor holding the claim at close gets the resolve and every other mentor who
 posted an assist; a ticket the asker ended after an answer counts as resolved. Ranked by helpful resolves, then
 resolves, then the faster median first answer; the rating share shows from five ratings. Watches and critter visits
-come with the observe and critter modules. Reports per mentor aren't counted: a report isn't stored on the ticket.
+are counted from the ticket's `watch` and `critter` rows. Reports per mentor aren't counted: a report isn't stored on
+the ticket.
 
 Panel: `Content.Server/Symphony/SymphonyMentorsSystem.cs` (see the Symphony README).
 

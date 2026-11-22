@@ -115,6 +115,9 @@ public sealed class WGMentorHelpSystem : EntitySystem
         _mentors.StatusChanged -= OnMentorStatusChanged;
     }
 
+    /// <summary>Raised after a ticket closes, for whatever followed it (a mentor watching, a critter).</summary>
+    public event Action<MentorTicket>? TicketClosed;
+
     /// <summary>Every ticket held this round, open and recently closed.</summary>
     public IReadOnlyDictionary<int, MentorTicket> Tickets => _tickets;
 
@@ -571,6 +574,7 @@ public sealed class WGMentorHelpSystem : EntitySystem
             $"Mentor ticket #{ticket.Id} of {ticket.PlayerName} closed ({ReasonToDb(reason)}){(by != null ? $" by {by}" : "")}");
         _discord.Closed(ticket);
         Publish(ticket);
+        TicketClosed?.Invoke(ticket);
     }
 
     /// <summary>Nobody claimed it in time: the question goes to staff as a Gameplay ahelp.</summary>
@@ -843,6 +847,23 @@ public sealed class WGMentorHelpSystem : EntitySystem
     }
 
     /// <summary>Queues a write that needs the ticket's row id, after the writes before it.</summary>
+    /// <summary>
+    /// Stores a row for something a mentor did in a ticket other than writing in it (a watch, a critter visit), for the
+    /// leaderboard and the transcript. Its role is the kind ("watch", "critter"); the asker and responders don't see it.
+    /// </summary>
+    public void RecordVisit(MentorTicket ticket, NetUserId mentor, string role, string text)
+    {
+        var sentAt = DateTime.UtcNow;
+        Write(ticket, id => _db.AddMentorTicketMessageAsync(new WolfgateMentorTicketMessage
+        {
+            TicketId = id,
+            SenderUserId = mentor.UserId,
+            SenderRole = role,
+            Text = text,
+            SentAt = sentAt,
+        }));
+    }
+
     private void Write(MentorTicket ticket, Func<int, Task> write)
     {
         ticket.Writes = Chain(ticket, ticket.Writes, write);

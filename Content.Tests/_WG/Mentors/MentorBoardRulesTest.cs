@@ -22,7 +22,8 @@ public sealed class MentorBoardRulesTest
         params Guid[] responders)
     {
         return new MentorBoardTicket(claimer, reason, Opened, Opened.AddSeconds(answerSeconds), rating,
-            responders.Length > 0 ? responders.ToList() : claimer is { } c ? new List<Guid> { c } : new List<Guid>());
+            responders.Length > 0 ? responders.ToList() : claimer is { } c ? new List<Guid> { c } : new List<Guid>(),
+            new List<Guid>(), new List<Guid>());
     }
 
     [Test]
@@ -45,7 +46,7 @@ public sealed class MentorBoardRulesTest
     public void WhichClosesCount()
     {
         var answeredEnd = Ticket(A, "player");
-        var unansweredEnd = new MentorBoardTicket(A, "player", Opened, null, null, new List<Guid>());
+        var unansweredEnd = new MentorBoardTicket(A, "player", Opened, null, null, new List<Guid>(), new List<Guid>(), new List<Guid>());
         var stats = MentorBoard.Compute(new[]
         {
             answeredEnd, unansweredEnd, Ticket(A, "idle"), Ticket(A, "round_end"), Ticket(A, "fallback"), Ticket(A, "escalated"),
@@ -71,6 +72,20 @@ public sealed class MentorBoardRulesTest
         });
 
         Assert.That(stats.Select(s => s.Mentor), Is.EqualTo(new[] { B, C, A }));
+    }
+
+    [Test]
+    public void WatchesAndCritterVisitsCount()
+    {
+        var ticket = new MentorBoardTicket(A, "resolved", Opened, Opened.AddSeconds(5), null, new List<Guid> { A },
+            new List<Guid> { A, B }, new List<Guid> { B });
+        var stats = MentorBoard.Compute(new[] { ticket });
+        Assert.Multiple(() =>
+        {
+            Assert.That(stats.Single(s => s.Mentor == A).Watches, Is.EqualTo(1));
+            Assert.That(stats.Single(s => s.Mentor == B).Watches, Is.EqualTo(1));
+            Assert.That(stats.Single(s => s.Mentor == B).CritterVisits, Is.EqualTo(1));
+        });
     }
 
     [Test]

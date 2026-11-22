@@ -111,6 +111,8 @@ wg-mentor-board-col-helpful = Helpful
 wg-mentor-board-col-rating = Rated helpful
 wg-mentor-board-col-first-answer = First answer
 wg-mentor-board-col-assists = Assists
+wg-mentor-board-col-watches = Watches
+wg-mentor-board-col-critters = Critter visits
 guide-entry-wg-mentor-staff = Managing Mentors
 
 

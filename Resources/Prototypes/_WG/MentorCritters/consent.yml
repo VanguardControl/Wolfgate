@@ -1,0 +1,5 @@
+# Name and description come from Fluent (consent-WGMentorCritterRide). On by default (D8).
+- type: consentToggle
+  id: WGMentorCritterRide
+  sortKey: 1-mentor-critter-0
+  defaultOn: true

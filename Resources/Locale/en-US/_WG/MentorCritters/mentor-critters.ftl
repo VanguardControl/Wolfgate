@@ -1,0 +1,46 @@
+wg-mentor-critter = Join as a critter
+wg-mentor-critter-pick = Pick a critter
+wg-mentor-critter-prompt = A Mentor would like to join you as a { $animal }. Allow?
+wg-mentor-critter-name = Mentor { $animal }
+wg-mentor-critter-desc = A Mentor in the shape of a { $animal }. It's here to help.
+wg-mentor-critter-pocket = Climb into pocket
+wg-mentor-critter-pocket-desc = Climb into an empty pocket of the player you're helping.
+wg-mentor-critter-head = Climb onto head
+wg-mentor-critter-head-desc = Sit on the head of the player you're helping.
+wg-mentor-critter-down = Get down
+wg-mentor-critter-take-out = Take out the Mentor critter
+wg-mentor-critter-no-consent = They don't allow critters to ride on them.
+wg-mentor-critter-not-asker = You can only ride on the player you're helping.
+wg-mentor-critter-not-yours = That isn't yours to take.
+wg-mentor-critter-slot-full = There's no room there.
+wg-mentor-critter-console = Mentor critters can't use that.
+wg-mentor-critter-aloud = Speak aloud
+wg-mentor-critter-aloud-on = Everyone nearby can hear you now.
+wg-mentor-critter-aloud-off = Only the player you're helping can hear you now.
+wg-mentor-critter-ping = Point it out
+wg-mentor-critter-ping-desc = Highlight something for the player you're helping. Only they see it.
+wg-mentor-critter-back = The Mentor critter scurries back to you.
+wg-mentor-critter-gone = The Mentor critter wanders off.
+wg-consent-mentor-critter-ride = Mentor critters may ride on me
+wg-consent-mentor-critter-ride-desc = Lets a Mentor critter climb into your pockets or onto your head while it's helping you.
+
+consent-WGMentorCritterRide = { wg-consent-mentor-critter-ride }
+    .desc = { wg-consent-mentor-critter-ride-desc }
+ent-WGActionMentorCritterPocket = { wg-mentor-critter-pocket }
+    .desc = { wg-mentor-critter-pocket-desc }
+ent-WGActionMentorCritterHead = { wg-mentor-critter-head }
+    .desc = { wg-mentor-critter-head-desc }
+ent-WGActionMentorCritterDown = { wg-mentor-critter-down }
+ent-WGActionMentorCritterAloud = { wg-mentor-critter-aloud }
+ent-WGActionMentorCritterPing = { wg-mentor-critter-ping }
+    .desc = { wg-mentor-critter-ping-desc }
+
+# DRAFT: not on the strings page yet; Moon to confirm or rewrite before the PR.
+wg-mentor-critter-animal-mouse = mouse
+wg-mentor-critter-animal-hamster = hamster
+wg-mentor-critter-animal-mothroach = mothroach
+wg-mentor-critter-animal-frog = frog
+wg-mentor-critter-animal-lizard = lizard
+wg-mentor-critter-animal-butterfly = butterfly
+wg-mentor-critter-animal-snail = snail
+ent-WGMentorPingMarker = Mentor pointer

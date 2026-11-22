@@ -1,0 +1,31 @@
+# The eye a living Mentor steps out into to watch an asker: it follows the asker and sees what they see. Not a ghost,
+# so ghost-only systems (warp, ghost interactions, ghost roles) leave it alone; it can't move, so it can't follow
+# anyone else.
+- type: entity
+  id: WGMentorObserver
+  categories: [ HideSpawnMenu ]
+  save: false
+  components:
+  - type: WGMentorObserver
+  - type: Eye
+    drawFov: true
+  - type: ContentEye
+  - type: Input
+    context: "human"
+  - type: Physics
+    ignorePaused: true
+    bodyType: Kinematic
+  - type: Examiner
+  - type: Actions
+  - type: Alerts
+
+# Name and description come from Fluent (ent-WGActionMentorReturn).
+- type: entity
+  id: WGActionMentorReturn
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: InstantAction
+    icon: Interface/Actions/eyeopen.png
+    checkCanInteract: false
+    autoPopulate: true
+    event: !type:WGMentorReturnActionEvent

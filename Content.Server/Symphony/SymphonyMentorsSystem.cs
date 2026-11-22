@@ -250,6 +250,8 @@ public sealed class SymphonyMentorsSystem : EntitySystem
                 Rated = r.Row.Rated,
                 MedianFirstAnswerSeconds = r.Row.MedianFirstAnswer,
                 Assists = r.Row.Assists,
+                Watches = r.Row.Watches,
+                CritterVisits = r.Row.CritterVisits,
                 Escalations = r.Row.Escalations,
             }).ToList(),
         });
@@ -345,6 +347,8 @@ public sealed class SymphonyMentorsSystem : EntitySystem
         [JsonPropertyName("rated")] public int Rated { get; set; }
         [JsonPropertyName("median_first_answer_seconds")] public float? MedianFirstAnswerSeconds { get; set; }
         [JsonPropertyName("assists")] public int Assists { get; set; }
+        [JsonPropertyName("watches")] public int Watches { get; set; }
+        [JsonPropertyName("critter_visits")] public int CritterVisits { get; set; }
         [JsonPropertyName("escalations")] public int Escalations { get; set; }
     }
 }

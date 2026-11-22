@@ -12,7 +12,9 @@ public sealed record MentorBoardTicket(
     DateTime OpenedAt,
     DateTime? FirstAnswerAt,
     int? Rating,
-    List<Guid> Responders);
+    List<Guid> Responders,
+    List<Guid> Watches,
+    List<Guid> CritterVisits);
 
 // The mentor roster and applications.
 public abstract partial class ServerDbBase
@@ -134,6 +136,10 @@ public abstract partial class ServerDbBase
                     .Where(m => m.SenderRole == "mentor" || m.SenderRole == "staff")
                     .Select(m => m.SenderUserId)
                     .ToList(),
+                Visits = t.Messages
+                    .Where(m => m.SenderRole == "watch" || m.SenderRole == "critter")
+                    .Select(m => new { m.SenderUserId, m.SenderRole })
+                    .ToList(),
             })
             .ToListAsync(cancel);
 
@@ -143,7 +149,9 @@ public abstract partial class ServerDbBase
                 NormalizeDatabaseTime(t.OpenedAt),
                 NormalizeDatabaseTime(t.FirstAnswerAt),
                 t.Rating,
-                t.Responders.OfType<Guid>().Distinct().ToList()))
+                t.Responders.OfType<Guid>().Distinct().ToList(),
+                t.Visits.Where(v => v.SenderRole == "watch" && v.SenderUserId != null).Select(v => v.SenderUserId!.Value).ToList(),
+                t.Visits.Where(v => v.SenderRole == "critter" && v.SenderUserId != null).Select(v => v.SenderUserId!.Value).ToList()))
             .ToList();
     }
 
