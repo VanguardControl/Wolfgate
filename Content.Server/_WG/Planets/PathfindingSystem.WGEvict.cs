@@ -149,6 +149,45 @@ public sealed partial class PathfindingSystem
         return false;
     }
 
+    /// <summary>Whether a grid has a built navmesh chunk at an origin.</summary>
+    public bool WgHasChunk(EntityUid grid, Vector2i origin) =>
+        TryComp<GridPathfindingComponent>(grid, out var comp) && comp.Chunks.ContainsKey(origin);
+
+    /// <summary>Whether a grid's chunk at an origin is waiting to be built.</summary>
+    public bool WgIsDirty(EntityUid grid, Vector2i origin) =>
+        TryComp<GridPathfindingComponent>(grid, out var comp) && comp.DirtyChunks.Contains(origin);
+
+    /// <summary>Whether any polygon of one built chunk links to a polygon of another.</summary>
+    public bool WgLinked(EntityUid grid, Vector2i from, Vector2i to)
+    {
+        if (!TryComp<GridPathfindingComponent>(grid, out var comp) || !comp.Chunks.TryGetValue(from, out var chunk))
+            return false;
+
+        foreach (var polys in chunk.Polygons)
+        {
+            foreach (var poly in polys)
+            {
+                if (!poly.HasNeighbors)
+                    continue;
+
+                foreach (var neighbor in poly.Neighbors)
+                {
+                    if (neighbor.ChunkOrigin == to)
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>Frees a grid's built chunk at an origin; see <see cref="WgEvictChunk(GridPathfindingComponent, Vector2i)"/>.</summary>
+    public void WgEvictChunk(EntityUid grid, Vector2i origin)
+    {
+        if (TryComp<GridPathfindingComponent>(grid, out var comp))
+            WgEvictChunk(comp, origin);
+    }
+
     /// <summary>
     /// Frees a built chunk as a rebuild clears it: every polygon is taken out of its neighbours, including those in the
     /// chunks around, and marked invalid for any path still holding it. The chunk is left dirty, so it is built again

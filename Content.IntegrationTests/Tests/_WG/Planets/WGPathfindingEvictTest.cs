@@ -1,4 +1,3 @@
-using System.Linq;
 using Content.Server.NPC.Pathfinding;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
@@ -19,7 +18,6 @@ public sealed class WGPathfindingEvictTest
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
-        var entMan = server.EntMan;
         var maps = server.System<SharedMapSystem>();
         var pathfinding = server.System<PathfindingSystem>();
         var map = await pair.CreateTestMap();
@@ -40,33 +38,24 @@ public sealed class WGPathfindingEvictTest
 
         await server.WaitAssertion(() =>
         {
-            var comp = entMan.GetComponent<GridPathfindingComponent>(grid);
-            Assert.That(comp.Chunks.ContainsKey(here) && comp.Chunks.ContainsKey(east), Is.True, "the floor wasn't meshed.");
-            Assert.That(Linked(comp, east, here), Is.True, "neighbouring chunks should link across their edge.");
+            Assert.That(pathfinding.WgHasChunk(grid, here) && pathfinding.WgHasChunk(grid, east), Is.True, "the floor wasn't meshed.");
+            Assert.That(pathfinding.WgLinked(grid, east, here), Is.True, "neighbouring chunks should link across their edge.");
 
-            pathfinding.WgEvictChunk(comp, here);
+            pathfinding.WgEvictChunk(grid, here);
 
-            Assert.That(comp.Chunks.ContainsKey(here), Is.False);
-            Assert.That(comp.DirtyChunks.Contains(here), Is.True, "a freed chunk is left to build again.");
-            Assert.That(Linked(comp, east, here), Is.False, "a neighbour still points into the freed chunk.");
+            Assert.That(pathfinding.WgHasChunk(grid, here), Is.False);
+            Assert.That(pathfinding.WgIsDirty(grid, here), Is.True, "a freed chunk is left to build again.");
+            Assert.That(pathfinding.WgLinked(grid, east, here), Is.False, "a neighbour still points into the freed chunk.");
         });
 
         await pair.RunTicksSync(90);
 
         await server.WaitAssertion(() =>
         {
-            var comp = entMan.GetComponent<GridPathfindingComponent>(grid);
-            Assert.That(comp.Chunks.ContainsKey(here), Is.True, "the freed chunk wasn't built again.");
-            Assert.That(Linked(comp, east, here), Is.True, "the rebuilt chunk should be linked to its neighbour again.");
+            Assert.That(pathfinding.WgHasChunk(grid, here), Is.True, "the freed chunk wasn't built again.");
+            Assert.That(pathfinding.WgLinked(grid, east, here), Is.True, "the rebuilt chunk should be linked to its neighbour again.");
         });
 
         await pair.CleanReturnAsync();
-    }
-
-    private static bool Linked(GridPathfindingComponent comp, Vector2i from, Vector2i to)
-    {
-        return comp.Chunks.TryGetValue(from, out var chunk) && chunk.Polygons
-            .SelectMany(polys => polys)
-            .Any(poly => poly.HasNeighbors && poly.Neighbors.Any(neighbor => neighbor.ChunkOrigin == to));
     }
 }
