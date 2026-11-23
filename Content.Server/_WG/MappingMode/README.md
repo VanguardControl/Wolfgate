@@ -621,6 +621,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.IntegrationTests/Tests/_WG/MappingMode/WGMappingPlaceSpamTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MappingMode/WGMappingPlaceSpamTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/MappingMode/WGMappingProtectionTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MappingMode/WGMappingProtectionTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/MappingMode/WGMappingReferenceTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MappingMode/WGMappingReferenceTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/MappingMode/WGMappingScopeTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MappingMode/WGMappingScopeTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/MappingMode/WGMappingScreenTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MappingMode/WGMappingScreenTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/MappingMode/WGMappingSessionTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MappingMode/WGMappingSessionTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/MappingMode/WGMappingShipTest.cs`](../../../Content.IntegrationTests/Tests/_WG/MappingMode/WGMappingShipTest.cs)
