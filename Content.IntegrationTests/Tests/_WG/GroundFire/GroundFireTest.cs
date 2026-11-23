@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Content.IntegrationTests.Pair;
 using Content.Server._ES.TileFires;
+using Content.Server._WG.GroundFire;
 using Content.Server.Atmos.EntitySystems;
 using Content.Shared._ES.TileFires;
 using Content.Shared.Atmos;
@@ -108,6 +109,90 @@ public sealed class GroundFireTest
             Assert.That(reach, Is.LessThanOrEqualTo(ReachCap), "The ground fire spread too far.");
             Assert.That(left, Is.Zero, "The ground fire never ended.");
             Assert.That(burning, Is.Zero, "Something kept burning after the ground fire ended.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A fire lit beside a spreading ground fire joins its line; one lit further off starts its own.</summary>
+    [Test]
+    public async Task AFireLitBesideAnotherAddsNoSpread()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var maps = server.System<SharedMapSystem>();
+        var fires = server.System<ESTileFireSystem>();
+        var groundFires = server.System<WGGroundFireSystem>();
+        var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
+
+        await EnableFeature(pair);
+        var ground = (await BuildStandalone(pair))[0];
+
+        await server.WaitPost(() =>
+        {
+            var grid = entMan.GetComponent<MapGridComponent>(ground);
+            var grass = new Tile(tileDefs[Grass].TileId);
+            maps.SetTiles(ground, grid, Area(new Vector2i(-2, -2), new Vector2i(12, 2)).Select(i => (i, grass)).ToList());
+        });
+
+        await server.WaitRunTicks(pair.SecondsToTicks(2f));
+
+        await server.WaitAssertion(() =>
+        {
+            foreach (var x in new[] { 0, 2, 10 })
+                Assert.That(fires.TryDoTileFire(new EntityCoordinates(ground, x + 0.5f, 0.5f)), Is.True);
+
+            Entity<ESTileFireComponent> At(int x)
+            {
+                var query = entMan.EntityQueryEnumerator<ESTileFireComponent, TransformComponent>();
+                while (query.MoveNext(out var uid, out var fire, out var xform))
+                {
+                    if (xform.GridUid == ground && (int) MathF.Floor(xform.LocalPosition.X) == x)
+                        return (uid, fire);
+                }
+
+                throw new AssertionException($"No fire at x={x}.");
+            }
+
+            Assert.That(groundFires.CanSpread(At(0)), Is.True, "The first fire starts a line.");
+            Assert.That(groundFires.CanSpread(At(2)), Is.False, "A fire two tiles off joins that line.");
+            Assert.That(entMan.GetComponent<WGGroundFireComponent>(At(2)).Budget, Is.Zero);
+            Assert.That(groundFires.CanSpread(At(10)), Is.True, "A fire ten tiles off starts a line of its own.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Planet ground refuses new fires once it has its fill burning, however they are lit.</summary>
+    [Test]
+    public async Task APlanetGroundHoldsOnlySoManyFires()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var maps = server.System<SharedMapSystem>();
+        var fires = server.System<ESTileFireSystem>();
+        var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
+
+        await EnableFeature(pair);
+        var ground = (await BuildStandalone(pair))[0];
+
+        await server.WaitPost(() =>
+        {
+            var grid = entMan.GetComponent<MapGridComponent>(ground);
+            var grass = new Tile(tileDefs[Grass].TileId);
+            maps.SetTiles(ground, grid, Area(new Vector2i(-10, -10), new Vector2i(10, 10)).Select(i => (i, grass)).ToList());
+        });
+
+        await server.WaitRunTicks(pair.SecondsToTicks(2f));
+
+        await server.WaitAssertion(() =>
+        {
+            var lit = Area(new Vector2i(-10, -10), new Vector2i(10, 10))
+                .Count(i => fires.TryDoTileFire(new EntityCoordinates(ground, i.X + 0.5f, i.Y + 0.5f)));
+            Assert.That(lit, Is.EqualTo(WGGroundFireSystem.MaxFiresPerGround),
+                "Every fire past the planet's limit must be refused, even when lit in one tick.");
         });
 
         await pair.CleanReturnAsync();
