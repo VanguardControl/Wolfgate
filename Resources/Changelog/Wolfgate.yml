@@ -8761,3 +8761,79 @@ Entries:
   id: 100558
   time: '2026-11-22T14:25:44.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/795
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: >-
+        APCs can no longer be built on top of one another on the same side of a
+        wall.
+  id: 100559
+  time: '2026-11-22T19:34:33.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/802
+- author: Doomtail
+  changes:
+    - type: Add
+      message: Added new cyborg noises to the radical emote wheel.
+  id: 100560
+  time: '2026-11-22T22:52:28.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/780
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: Vox Tail Stripes and Single Tail Stripe markings show on the tail again.
+    - type: Fix
+      message: >-
+        Nanite Repair Drones and Platelet Factories heal again when you have
+        only one kind of damage, and still work in crit.
+    - type: Fix
+      message: The pool table flatpack unpacks into a table and two cues.
+    - type: Fix
+      message: ARACHNE hacking darts are visible again.
+    - type: Fix
+      message: >-
+        An AI viewing an overwatch camera feed can no longer zoom out further
+        than other players.
+    - type: Fix
+      message: >-
+        An AI's camera static comes back after it stops viewing an overwatch
+        feed.
+  id: 100561
+  time: '2026-11-22T22:54:02.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/797
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: >-
+        Repair nanites no longer flood everyone nearby with "About 130 more
+        passes of cable" while a reattached chassis limb settles. Only the
+        person holding the cable sees the pass count.
+  id: 100562
+  time: '2026-11-22T22:54:27.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/794
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: A new chassis skin for PDV medical cyborgs.
+  id: 100563
+  time: '2026-11-22T22:55:27.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/799
+- author: ImogenOC
+  changes:
+    - type: Fix
+      message: >-
+        the catcher keeps its bolas. The launcher is commented out in a
+        `WOLFGATE(Weapons)` block.
+    - type: Tweak
+      message: Rogue catcher units throw bolas and no longer launch viscerators.
+  id: 100564
+  time: '2026-11-23T00:04:11.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/805
+- author: ImogenOC
+  changes:
+    - type: Tweak
+      message: >-
+        The disposable ballistic turret fires one 9mm round per shot instead of
+        two rounds, and blows itself up once its 50 rounds are spent.
+  id: 100565
+  time: '2026-11-23T00:38:13.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/806
