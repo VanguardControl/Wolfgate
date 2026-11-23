@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using Content.Server._WG.MappingMode;
 using Content.Server._WG.MappingMode.Issues;
+using Content.Server.Atmos.Components;
 using Content.Server.Singularity.Components;
 using Content.Shared._WG.MappingMode.Issues;
 using Robust.Server.GameObjects;
@@ -209,9 +210,12 @@ public sealed class WGMappingIssuesTest
             entMan.SpawnEntity("WallSolid", new EntityCoordinates(grid, 0.5f, 0.5f));
             var reinforced = entMan.SpawnEntity("WallReinforced", new EntityCoordinates(grid, 0.5f, 0.5f));
 
-            // A straight pipe (north-south) and a bend (south-west) share the south opening on layer one.
+            // A straight pipe (north-south) and a bend (south-west) share the south opening on layer one. The overlap
+            // guard unanchors the bend as it spawns; a map file can still hold both, so drop the guard and re-anchor.
             entMan.SpawnEntity("GasPipeStraight", new EntityCoordinates(grid, 1.5f, 0.5f));
             var bend = entMan.SpawnEntity("GasPipeBend", new EntityCoordinates(grid, 1.5f, 0.5f));
+            entMan.RemoveComponent<PipeRestrictOverlapComponent>(bend);
+            Assert.That(xformSys.AnchorEntity(bend), Is.True);
 
             entMan.SpawnEntity("WindowDirectional", new EntityCoordinates(grid, 2.5f, 0.5f));
             var east = entMan.SpawnEntity("WindowDirectional", new EntityCoordinates(grid, 2.5f, 0.5f));
