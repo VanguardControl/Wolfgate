@@ -30,8 +30,8 @@ longer roll for a mark; the Heretic trait is open to them.
 **The station** (`WGUndergroundBaseSystem`): its turrets (`WGUndergroundTurretComponent`) stay retracted until a
 raid or until the Godfather arms them, and then fire on anyone without Underground access. They have no guest list:
 everyone on the station or docked to it gets 30 seconds' warning before they come up (`wg.underground.turret_warning`),
-and a ship that docks while they are up is told the station is closed (`Docked`). That is how the market truce's
-guests get clear. A safehouse ship is parked
+and a ship that docks while they are up is told the station is closed and to undock (`Docked`). That is how the
+market truce's guests get clear: nothing exempts a guest the turrets can see, a docked ship's crew included. A safehouse ship is parked
 6 to 9 km away as part of the station, with spawn markers on its seats, so a raid can't hold everyone who joins.
 Fugitive slots grow by one for every 15 players in the round, up to five more. Once an hour the Godfather can jump
 the station (`TryHop`): after a minute's warning it goes through FTL to a new place 18 to 25 km out, at least 10 km

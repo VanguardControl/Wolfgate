@@ -212,6 +212,14 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
 
     private void Tell(string message, HashSet<EntityUid>? aboard, bool faction)
     {
+        var filter = Recipients(aboard, faction);
+        if (filter.Count > 0)
+            _chat.DispatchFilteredAnnouncement(filter, message, sender: Loc.GetString("wg-underground-sender"), playSound: false, colorOverride: FactionColor);
+    }
+
+    /// <summary>Who a message reaches: players on the given grids and, when asked for, everyone flying the Underground's company.</summary>
+    public Filter Recipients(HashSet<EntityUid>? aboard, bool faction)
+    {
         var filter = Filter.Empty();
         var players = EntityQueryEnumerator<ActorComponent, TransformComponent>();
         while (players.MoveNext(out var uid, out var actor, out var xform))
@@ -223,8 +231,7 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
             }
         }
 
-        if (filter.Count > 0)
-            _chat.DispatchFilteredAnnouncement(filter, message, sender: Loc.GetString("wg-underground-sender"), playSound: false, colorOverride: FactionColor);
+        return filter;
     }
 
     /// <summary>Speaks on a radio channel as an unnamed source, with no telecoms server needed.</summary>

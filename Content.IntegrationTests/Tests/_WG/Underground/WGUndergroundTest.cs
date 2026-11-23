@@ -507,6 +507,41 @@ public sealed class WGUndergroundTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>A warning for those aboard reaches a player on a docked ship and nobody elsewhere; a faction message reaches members wherever they are.</summary>
+    [Test]
+    public async Task WarningsReachThoseAboard()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var heat = server.System<WGUndergroundHeatSystem>();
+
+        await server.WaitAssertion(() =>
+        {
+            var session = pair.Player!;
+            var maps = entMan.System<SharedMapSystem>();
+            var guest = maps.CreateGridEntity(map.MapId).Owner;
+            var elsewhere = maps.CreateGridEntity(map.MapId).Owner;
+
+            var body = entMan.SpawnEntity("MobHuman", new EntityCoordinates(guest, default));
+            Assert.That(server.PlayerMan.SetAttachedEntity(session, body, true), "The player didn't take the body.");
+
+            var aboard = new HashSet<EntityUid> { guest };
+            Assert.That(heat.Recipients(aboard, false).Recipients, Does.Contain(session), "A player on the docked ship missed the warning.");
+            Assert.That(heat.Recipients(new HashSet<EntityUid> { elsewhere }, false).Recipients, Does.Not.Contain(session), "A player on another ship got the warning.");
+            Assert.That(heat.Recipients(null, true).Recipients, Does.Not.Contain(session), "Someone outside the Underground got a faction message.");
+
+            entMan.EnsureComponent<CompanyComponent>(body).CompanyName = WGUndergroundHeatSystem.Company;
+            Assert.That(heat.Recipients(null, true).Recipients, Does.Contain(session), "A member missed a faction message.");
+
+            server.PlayerMan.SetAttachedEntity(session, null, true);
+            entMan.DeleteEntity(body);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Only the Sultanate's pallet takes a body, and only a heretic's, for half the live price; it clears the mark and leaves the body.</summary>
     [Test]
     public async Task OnlyTheSultanateTakesABody()
