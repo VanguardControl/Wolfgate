@@ -10,6 +10,7 @@ using Content.Server.Shuttles.Systems;
 using Content.Server.Storage.EntitySystems;
 using Content.Shared._Mono.Company;
 using Content.Shared._NF.Contraband.Events;
+using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._WG.Newbie;
 using Content.Shared._WG.RoundSetup;
 using Content.Shared._WG.Underground;
@@ -29,6 +30,7 @@ using Robust.Shared.Containers;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Localization;
 using Robust.Shared.Map;
+using Robust.Shared.Maths;
 using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
@@ -415,7 +417,24 @@ public sealed class WGUndergroundTest
             company.CompanyName = WGUndergroundHeatSystem.Company;
             close.Act?.Invoke();
             Assert.That(heat.Closed, Is.True);
+
+            // The verb closes the market, as its label said; picked again from the same menu it doesn't reopen it.
+            close.Act?.Invoke();
+            Assert.That(heat.Closed, Is.True, "A second close from the same menu reopened the market.");
             heat.SetClosed(false);
+
+            // A vendetta needs its ship in reach when the verb is picked, not only when the menu was built.
+            var maps = entMan.System<SharedMapSystem>();
+            var xforms = entMan.System<SharedTransformSystem>();
+            var ship = maps.CreateGridEntity(map.MapId);
+            maps.SetTile(ship.Owner, ship.Comp, Vector2i.Zero, map.Tile.Tile);
+            entMan.AddComponent<ShuttleDeedComponent>(ship);
+            xforms.SetWorldPosition(ship.Owner, new System.Numerics.Vector2(200f, 0f));
+            Assert.That(terminal.InVendettaReach(console, ship), Is.True, "A ship beside the station can't be named.");
+            xforms.SetWorldPosition(ship.Owner, new System.Numerics.Vector2(5000f, 0f));
+            Assert.That(terminal.InVendettaReach(console, ship), Is.False, "A ship that has left can still be named.");
+            Assert.That(terminal.InVendettaReach(console, map.Grid.Owner), Is.False, "The station can be named against itself.");
+            entMan.DeleteEntity(ship);
 
             entMan.DeleteEntity(user);
             entMan.DeleteEntity(console);

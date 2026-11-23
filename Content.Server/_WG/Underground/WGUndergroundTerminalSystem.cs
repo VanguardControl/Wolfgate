@@ -126,29 +126,33 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
         if (!boss)
             return;
 
+        // Each of these does what its label said when the menu was built, so a second "close" from a menu
+        // opened earlier can't reopen the market, nor a second "arm" stand the turrets down.
+        var close = !_heat.Closed;
         args.Verbs.Add(new AlternativeVerb
         {
-            Text = Loc.GetString(_heat.Closed ? "wg-underground-verb-open" : "wg-underground-verb-close"),
+            Text = Loc.GetString(close ? "wg-underground-verb-close" : "wg-underground-verb-open"),
             Priority = priority--,
             Act = () =>
             {
                 if (Boss())
-                    _heat.SetClosed(!_heat.Closed);
+                    _heat.SetClosed(close);
             },
         });
 
+        var arm = !_base.Armed;
         args.Verbs.Add(new AlternativeVerb
         {
-            Text = Loc.GetString(_base.Armed ? "wg-underground-verb-disarm" : "wg-underground-verb-arm"),
+            Text = Loc.GetString(arm ? "wg-underground-verb-arm" : "wg-underground-verb-disarm"),
             Priority = priority--,
             Act = () =>
             {
-                if (!Boss())
+                if (!Boss() || _base.Armed == arm)
                     return;
 
                 // Arming tells everyone aboard itself, with the warning.
-                _base.SetArmed(!_base.Armed);
-                if (!_base.Armed)
+                _base.SetArmed(arm);
+                if (!arm)
                     _heat.TellFaction(Loc.GetString("wg-underground-turrets-down"));
             },
         });
@@ -193,7 +197,7 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
                 Act = () =>
                 {
                     if (Boss())
-                        DeclareVendetta(user, target);
+                        DeclareVendetta(ent, user, target);
                 },
             });
         }
@@ -312,9 +316,10 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
         _adminLog.Add(LogType.Action, LogImpact.Medium, $"{ToPrettyString(user):player} jumped the Underground's station");
     }
 
-    private void DeclareVendetta(EntityUid user, EntityUid ship)
+    private void DeclareVendetta(EntityUid terminal, EntityUid user, EntityUid ship)
     {
-        if (TerminatingOrDeleted(ship) || UnderVendetta(ship))
+        // The ship may have left since the menu was built.
+        if (UnderVendetta(ship) || !InVendettaReach(terminal, ship))
             return;
 
         var minutes = _cfg.GetCVar(WGUndergroundCVars.VendettaMinutes);
@@ -331,21 +336,33 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
     private List<EntityUid> NearbyShips(EntityUid terminal)
     {
         var ships = new List<EntityUid>();
-        var here = Transform(terminal);
-        var origin = _transform.GetWorldPosition(here);
-        var grids = EntityQueryEnumerator<ShuttleDeedComponent, MapGridComponent, TransformComponent>();
-        while (grids.MoveNext(out var uid, out _, out _, out var xform))
+        var grids = EntityQueryEnumerator<ShuttleDeedComponent, MapGridComponent>();
+        while (grids.MoveNext(out var uid, out _, out _))
         {
-            if (xform.MapID != here.MapID || uid == here.GridUid)
-                continue;
-
-            if (CompOrNull<CompanyComponent>(uid)?.CompanyName.Id == WGUndergroundHeatSystem.Company)
-                continue;
-
-            if ((_transform.GetWorldPosition(xform) - origin).Length() <= VendettaRange)
+            if (InVendettaReach(terminal, uid))
                 ships.Add(uid);
         }
 
         return ships;
+    }
+
+    /// <summary>
+    /// Whether a vendetta can be declared on a ship from a terminal: a player ship of another company, on the
+    /// terminal's map and within range of it, and not the grid the terminal stands on.
+    /// </summary>
+    public bool InVendettaReach(EntityUid terminal, EntityUid ship)
+    {
+        if (TerminatingOrDeleted(ship) || !HasComp<ShuttleDeedComponent>(ship) || !HasComp<MapGridComponent>(ship))
+            return false;
+
+        var here = Transform(terminal);
+        var there = Transform(ship);
+        if (there.MapID != here.MapID || ship == here.GridUid)
+            return false;
+
+        if (CompOrNull<CompanyComponent>(ship)?.CompanyName.Id == WGUndergroundHeatSystem.Company)
+            return false;
+
+        return (_transform.GetWorldPosition(there) - _transform.GetWorldPosition(here)).Length() <= VendettaRange;
     }
 }
