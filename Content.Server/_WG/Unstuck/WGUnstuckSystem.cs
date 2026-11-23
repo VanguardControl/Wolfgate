@@ -64,9 +64,14 @@ public sealed class WGUnstuckSystem : EntitySystem
     /// <summary>How close, as a share of the line, two grid crossings must be to count as passing through a corner.</summary>
     private const float CornerEpsilon = 1e-5f;
 
+    /// <summary>How far past its outermost tiles something anchored to a grid may reach, such as hull armor.</summary>
+    private const float GridOverhang = 1f;
+
     private static readonly TimeSpan Cooldown = TimeSpan.FromSeconds(30);
 
     private readonly Dictionary<NetUserId, TimeSpan> _nextUse = new();
+    private readonly HashSet<EntityUid> _intersecting = new();
+    private List<Entity<MapGridComponent>> _nearGrids = new();
 
     private EntityQuery<MapGridComponent> _gridQuery;
     private EntityQuery<PhysicsComponent> _physicsQuery;
@@ -226,7 +231,7 @@ public sealed class WGUnstuckSystem : EntitySystem
         var size = Vector2.Max(aabb.Size - new Vector2(EmbedDepth * 2), new Vector2(0.01f));
         var core = Box2.CenteredAround(aabb.Center, size);
 
-        foreach (var other in _lookup.GetEntitiesIntersecting(xform.MapID, core, LookupFlags.Static))
+        foreach (var other in StaticIntersecting(xform.MapID, new Box2Rotated(core)))
         {
             if (other == user || !Blocks(other, mask))
                 continue;
@@ -396,13 +401,33 @@ public sealed class WGUnstuckSystem : EntitySystem
         var bounds = new Box2Rotated(Box2.CenteredAround(worldCenter, footprint), worldRot, worldCenter);
         var mapId = Transform(grid).MapID;
 
-        foreach (var other in _lookup.GetEntitiesIntersecting(mapId, bounds, LookupFlags.Static))
+        foreach (var other in StaticIntersecting(mapId, bounds))
         {
             if (Blocks(other, mask))
                 return true;
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// The static entities intersecting a world box. The map-wide lookup only searches grids whose tiles the box
+    /// touches, so this also searches grids near enough for something anchored at their edge to reach into it.
+    /// </summary>
+    private HashSet<EntityUid> StaticIntersecting(MapId mapId, Box2Rotated bounds)
+    {
+        _intersecting.Clear();
+        _lookup.GetEntitiesIntersecting(_map.GetMapOrInvalid(mapId), bounds, _intersecting, LookupFlags.Static);
+
+        _nearGrids.Clear();
+        _map.FindGridsIntersecting(mapId, bounds.CalcBoundingBox().Enlarged(GridOverhang), ref _nearGrids,
+            approx: true, includeMap: false);
+        foreach (var grid in _nearGrids)
+        {
+            _lookup.GetEntitiesIntersecting(grid.Owner, bounds, _intersecting, LookupFlags.Static);
+        }
+
+        return _intersecting;
     }
 
     /// <summary>Whether something anchored on the tile would block the entity.</summary>
