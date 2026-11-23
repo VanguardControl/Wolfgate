@@ -505,6 +505,9 @@ public sealed class WGUndergroundTest
         var pdvConsole = EntityUid.Invalid;
         var crate = EntityUid.Invalid;
         var boxed = EntityUid.Invalid;
+        var outer = EntityUid.Invalid;
+        var inner = EntityUid.Invalid;
+        var nested = EntityUid.Invalid;
 
         await server.WaitPost(() =>
         {
@@ -557,17 +560,34 @@ public sealed class WGUndergroundTest
             boxed = entMan.SpawnEntity("MobHuman", map.GridCoords);
             entMan.EnsureComponent<ContrabandComponent>(boxed).TurnInValues[WGUndergroundWarrantSystem.Doubloons] = 250;
             entMan.AddComponent<HereticComponent>(boxed);
-            Assert.That(entMan.System<EntityStorageSystem>().Insert(boxed, crate), "The heretic didn't go into the crate.");
+            var storage = entMan.System<EntityStorageSystem>();
+            Assert.That(storage.Insert(boxed, crate), "The heretic didn't go into the crate.");
+
+            // And one two crates deep: out of the inner crate must not mean into the outer one.
+            outer = entMan.SpawnEntity("CrateGenericSteel", map.GridCoords);
+            entMan.EnsureComponent<ContrabandComponent>(outer).TurnInValues[WGUndergroundWarrantSystem.Doubloons] = 10;
+            inner = entMan.SpawnEntity("CrateGenericSteel", map.GridCoords);
+            nested = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            entMan.AddComponent<HereticComponent>(nested);
+            Assert.That(storage.Insert(nested, inner), "The heretic didn't go into the inner crate.");
+            Assert.That(storage.Insert(inner, outer), "The inner crate didn't go into the outer one.");
             entMan.EventBus.RaiseLocalEvent(pdvConsole, new ContrabandPalletSellMessage { Actor = pdvConsole });
         });
         await pair.RunTicksSync(5);
 
         await server.WaitAssertion(() =>
         {
+            var grid = map.Grid.Owner;
             Assert.That(entMan.Deleted(crate), Is.True, "The crate didn't sell.");
             Assert.That(entMan.Deleted(boxed), Is.False, "A heretic was deleted inside a sold crate.");
             Assert.That(entMan.HasComponent<HereticComponent>(boxed), Is.True, "A heretic nobody handed in lost the mark.");
-            Assert.That(entMan.GetComponent<TransformComponent>(boxed).ParentUid, Is.Not.EqualTo(crate));
+            Assert.That(entMan.GetComponent<TransformComponent>(boxed).ParentUid, Is.EqualTo(grid), "The heretic wasn't left on the floor.");
+
+            Assert.That(entMan.Deleted(outer), Is.True, "The outer crate didn't sell.");
+            Assert.That(entMan.Deleted(inner), Is.True, "The inner crate outlived the one it was in.");
+            Assert.That(entMan.Deleted(nested), Is.False, "A heretic two crates deep was deleted with them.");
+            Assert.That(entMan.GetComponent<TransformComponent>(nested).ParentUid, Is.EqualTo(grid), "The nested heretic wasn't left on the floor.");
+            entMan.DeleteEntity(nested);
             entMan.DeleteEntity(boxed);
             entMan.DeleteEntity(heretic);
         });

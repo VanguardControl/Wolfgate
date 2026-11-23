@@ -10,7 +10,6 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
 using Content.Shared.Store;
 using Robust.Shared.Configuration;
-using Robust.Shared.Containers;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
@@ -28,7 +27,6 @@ public sealed partial class WGUndergroundWarrantSystem : EntitySystem
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private MobStateSystem _mobState = default!;
-    [Dependency] private SharedContainerSystem _container = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
@@ -212,9 +210,8 @@ public sealed partial class WGUndergroundWarrantSystem : EntitySystem
             if (!HasComp<HereticComponent>(child) && !HasComp<WGUndergroundMemberComponent>(child))
                 continue;
 
-            _container.TryRemoveFromContainer(child, true);
-            if (Transform(child).ParentUid == holder)
-                _transform.AttachToGridOrMap(child);
+            // Straight to the grid: taking them out of one container would only drop them into the one around it.
+            _transform.AttachToGridOrMap(child);
         }
     }
 
