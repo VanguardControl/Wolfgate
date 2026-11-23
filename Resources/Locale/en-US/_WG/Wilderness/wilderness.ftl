@@ -13,6 +13,7 @@ wg-zone-outpost-hot-summary = The war is HOT: this outpost, and ships within 256
 wg-zone-outpost-entered = You are within 256 m of {$place}. {$summary}
 wg-zone-outpost-left = You left the outpost zone of {$place}.
 wg-zone-outpost-ring = OUTPOST
+wg-zone-underground-summary = An Underground outpost: the war level never opens it. It, and ships within 256 m of it, may be struck only during an Underground RAID or with admin permission.
 
 wg-zone-wilderness-title = WILDERNESS: NO PROTECTION
 wg-zone-wilderness-summary = A PvP zone: anyone may attack anyone here without escalation. { $onfoot ->
@@ -136,6 +137,7 @@ wg-alert-zone-safe-name = Safe Zone
 wg-alert-zone-safe-desc = Policy protects you here: no theft, no unprovoked attacks. Cause trouble and you lose that protection.
 wg-alert-zone-outpost-name = Faction outpost
 wg-alert-zone-outpost-desc = Within 256 m of a faction outpost: protected from port strikes while the war is COLD, open to them while it is HOT.
+wg-alert-zone-underground-desc = Within 256 m of the Underground Black Market, a faction outpost the war level never opens: it may be struck only during an Underground RAID or with admin permission.
 wg-alert-zone-wilderness-name = Wilderness
 wg-alert-zone-wilderness-desc = A PvP zone with no policy protection: anyone may attack anyone here without escalation. Staying marks a ship, and on some servers a person on foot; while it is counting, the sweep over this icon shows when.
 wg-alert-zone-notsafe-name = Not a Safe Zone

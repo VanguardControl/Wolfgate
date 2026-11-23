@@ -17,9 +17,9 @@
   # WOLFGATE(ReaverCampaign): the station flies the neutral WGUnderground company, so the Reavers leave it and its cell alone
   - type: Company
     companyName: WGUnderground
-  # WOLFGATE(Wilderness) START: named as not a safe zone
+  # WOLFGATE(Wilderness) START: a faction outpost the war level never opens, its edge kept off radars like its name
   - type: WGZoneSource
-    zone: WGNotSafe
+    zone: WGUndergroundOutpost
   # WOLFGATE END
   - type: IFF
     color: "#991111"

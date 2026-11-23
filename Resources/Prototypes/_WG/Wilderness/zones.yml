@@ -40,6 +40,28 @@
     path: /Audio/Misc/notice1.ogg
   guide: MonolithRuleConflictFourPortStriking
 
+# The Underground Black Market: an outpost the TSF/PDV war level never opens, struck only in an Underground RAID or with
+# admin permission. Its ring stays off radar, as its position is kept secret.
+- type: wgZone
+  id: WGUndergroundOutpost
+  kind: Outpost
+  priority: 20
+  radius: 256
+  color: "#d68c14"
+  title: wg-zone-outpost-title
+  summary: wg-zone-underground-summary
+  entered: wg-zone-outpost-entered
+  left: wg-zone-outpost-left
+  ringLabel: wg-zone-outpost-ring
+  alert: WGZoneUndergroundOutpost
+  icon:
+    sprite: _WG/Wilderness/zones.rsi
+    state: outpost
+  enterSound:
+    path: /Audio/Misc/notice1.ogg
+  guide: MonolithRuleConflictFourPortStriking
+  rings: false
+
 - type: wgZone
   id: WGWilderness
   kind: Wilderness

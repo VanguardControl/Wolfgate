@@ -142,12 +142,15 @@ public sealed class WGZoneHudSystem : EntitySystem
         UpdateTitle(frameTime);
     }
 
-    /// <summary>Where the player can be attacked without escalation: a Wilderness, an outpost at war, or anywhere while marked.</summary>
+    /// <summary>
+    /// Where the player can be attacked without escalation: a Wilderness, an outpost the war opens while it is HOT,
+    /// or anywhere while marked. An outpost with no HOT text, such as the Underground, stays protected at war.
+    /// </summary>
     private static bool Danger(WGZonePrototype? zone, WGInZoneComponent? inZone, bool marked)
     {
         return marked
             || zone?.Kind == WGZoneKind.Wilderness
-            || (zone?.Kind == WGZoneKind.Outpost && inZone?.Hot == true);
+            || (zone?.Kind == WGZoneKind.Outpost && zone.HotSummary != null && inZone?.Hot == true);
     }
 
     /// <summary>Whether an always/danger/off setting lets something show, given whether the player is in danger.</summary>

@@ -20,6 +20,15 @@
   description: wg-alert-zone-outpost-desc
 
 - type: alert
+  id: WGZoneUndergroundOutpost
+  category: WGZone
+  icons:
+  - sprite: /Textures/_WG/Wilderness/zones.rsi
+    state: outpost
+  name: wg-alert-zone-outpost-name
+  description: wg-alert-zone-underground-desc
+
+- type: alert
   id: WGZoneWilderness
   category: WGZone
   icons:

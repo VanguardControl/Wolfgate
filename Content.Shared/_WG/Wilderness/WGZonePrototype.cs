@@ -88,7 +88,10 @@ public enum WGZoneKind : byte
     /// <summary>Fighting needs no escalation; staying marks you.</summary>
     Wilderness,
 
-    /// <summary>A faction outpost, protected from port strikes while the war is COLD.</summary>
+    /// <summary>
+    /// A faction outpost, protected from port strikes. With HOT text it opens while the war is HOT; without, the war
+    /// never opens it.
+    /// </summary>
     Outpost,
 
     /// <summary>Named as not a safe zone; ordinary rules.</summary>
