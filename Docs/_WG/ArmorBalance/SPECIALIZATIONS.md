@@ -17,7 +17,7 @@ Each specialization is one small, reusable component on the suit. Most hook a po
 | **Wound ward** | Refuses named wound rules outright (a "concussion ward" helmet never concusses) | a cancellable event before a rule matches, relayed to worn items, the same way the bleed gate works |
 | **Bone plating** | Fractures, crush injuries and dislocations need more damage to happen | scales a rule's `minDamage` for covered parts |
 | **Limb lock** | Covered limbs resist dismemberment: a higher threshold, or immune below a damage size | dismemberment threshold on the routed part |
-| **Spall liner** | Rounds that would lodge or leave shrapnel make a bruise instead; no embedded objects to dig out | wound ward on the lodged-round and shrapnel rules, adds Blunt |
+| **Spall liner** | Rounds that would lodge or leave shrapnel make a bruise instead, four times in five; rarely anything to dig out | wound ward on the lodged-round and shrapnel rules (20% `leaks`), adds Blunt |
 | **Trauma gel** | An arterial cut becomes an ordinary cut; bleed rate on covered parts is reduced | swaps the rule's wound, or a bleed-rate multiplier |
 | **Auto-tourniquet** | The first arterial bleed on a limb is clamped automatically, once per charge | Wolfmed tourniquet treatment |
 | **Pain dampener** | Pain from wounds is reduced, so the wearer stays up and functional longer | `WoundPainBehavior` multiplier |
@@ -271,3 +271,29 @@ specializations at most": their extras are tools for treating others, not more p
   hardsuits get a spall liner.
 - The mime hardsuit used to inherit from the clown hardsuit. It now inherits from the base hardsuit with the clown's
   protection copied over, so it doesn't get comedic padding, anti-slip treads or the honk.
+
+## Vests and armor without spaceproofing
+
+Vests take more armor than before for having no spaceproofing (light 0.75 / 0.75 / 0.45 / 0.75, medium 0.65 / 0.6 /
+0.35 / 0.65, heavy Heat 0.75), and their specializations do what a sealed suit can't. The ported RMC armors take a
+light, medium or heavy vest line and these, set in `Tools/_WG/RMCClothing/port.py`:
+
+| Armor | Line | Specialization |
+|---|---|---|
+| M3, UM5 | Medium | Modular plates (a trauma plate in Mono's plate holder) |
+| M3-L, UM5CU | Light | Unrestricted + webbing |
+| M3-XL | Light | Unrestricted |
+| M3 Scout, 6B80 | Light | Low signature + terrain runner |
+| M3-EOD | Heavy | Blast liner + fast hands |
+| M3-T | Medium | Blast liner + fast hands |
+| M3-G4, UH7 | Heavy | Blast liner + impact dampers |
+| M35 | Medium | Fire-rated |
+| ML66A | Heavy | Webbing |
+| XM4 | Medium | Motion tracker |
+| B12, M3-CO, M3 officer | Medium | Concussion ward + webbing |
+| M4 | Medium | Webbing |
+| M70 flak, CCC5 heavy, CCC5 plated | Light / Medium | Modular plates + spall liner |
+| UL6 | Light | Fast hands + webbing |
+| CCC5 | Light | Low signature + unrestricted |
+| Militia hauberk, partial, vest | Light | Second wind + webbing |
+| Militia brace | Light | Second wind |

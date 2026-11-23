@@ -30,6 +30,7 @@ them free under Quirks.
 
 ### Server
 
+- [`Content.Server/_WG/Traits/PlateletFactoriesSystem.Groups.cs`](PlateletFactoriesSystem.Groups.cs)
 - [`Content.Server/_WG/Traits/TraitSystem.WG.cs`](TraitSystem.WG.cs)
 
 ### Shared
@@ -86,10 +87,23 @@ them free under Quirks.
   - keep the card-based editor in step with the profile
   - the flat list is hidden behind the card-based editor, so don't build it
   - a saved trait the character's conditions no longer allow is dropped
+- [`Content.Server/_Mono/Traits/Physical/PlateletFactoriesSystem.cs`](../../_Mono/Traits/Physical/PlateletFactoriesSystem.cs): each group's heal goes to the damage present; split over every type it truncated to 0.
 - [`Content.Server/Traits/TraitSystem.cs`](../../Traits/TraitSystem.cs)
   - a condition-gated trait is only applied when its conditions hold for this spawn
   - run the trait's data-driven effects
 - [`Content.Shared/Preferences/HumanoidCharacterProfile.cs`](../../../Content.Shared/Preferences/HumanoidCharacterProfile.cs): drop a trait whose known conditions the character does not meet
 - [`Content.Shared/Traits/TraitPrototype.cs`](../../../Content.Shared/Traits/TraitPrototype.cs): effect-only traits have no components list
+- [`Resources/Prototypes/_Mono/Roles/Jobs/Crocus/infantry_pdv.yml`](../../../Resources/Prototypes/_Mono/Roles/Jobs/Crocus/infantry_pdv.yml): the Bionic Legs trait is removed.
+- [`Resources/Prototypes/_Mono/Roles/Jobs/Crocus/infantry_tsf.yml`](../../../Resources/Prototypes/_Mono/Roles/Jobs/Crocus/infantry_tsf.yml): the Bionic Legs trait is removed.
+- [`Resources/Prototypes/_Mono/Traits/physical.yml`](../../../Resources/Prototypes/_Mono/Traits/physical.yml)
+  - Wolfmed doesn't use the damage threshold for death, so these did nothing for their points.
+  - removed; no-slip legs and a faster sprint for 2 points, cheaper than the same augment.
+  - removed; Wolfmed doesn't read the crit threshold or the old bleeding, so these were free points.
+  - removed; its slow-on-damage is skipped because every species already has one, so it was free points.
+  - Feeble is removed.
+  - Hemophilia is removed; Hemophagia already regenerates and clots.
+  - 0.3 a second, not 3.5; it was an always-on heal and wound mend that outhealed a medic.
+  - 0.3 a second, not 3.5, and a quarter of it while down rather than double.
+- [`Resources/Prototypes/_Onyx/Traits/quirks.yml`](../../../Resources/Prototypes/_Onyx/Traits/quirks.yml): removed; it stacked with the pain inhibitor augment for too much pain resistance.
 
 <!-- WOLFGATE-GENERATED END -->

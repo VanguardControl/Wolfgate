@@ -7,7 +7,8 @@ in a fight and not only on paper. Each is one component on the suit, and each re
 `Docs/_WG/ArmorSpecialization/GUIDE.md`.
 
 - `WGWoundWard`: refuses wounds outright (`blocks`), refuses single wound rules (`blockRules`, such as thrown
-  dislocations for impact dampers) or makes a rule need a multiple of its usual damage (`hardens`). It answers
+  dislocations for impact dampers) or makes a rule need a multiple of its usual damage (`hardens`). A blocked wound
+  listed in `leaks` gets through on that chance instead; lodged rounds and shrapnel default to 20%. It answers
   Wolfmed's `WolfmedWoundRuleAttemptEvent`. The spall liner, sealed layer, insulation, tendon guards, concussion ward,
   bone plating, shock absorbers, trauma gel, cave-in rating, impact dampers, cold seal and comedic padding are all this
   component with different wound lists, and `examine` names which one it is.
@@ -45,6 +46,17 @@ in a fight and not only on paper. Each is one component on the suit, and each re
   - `WGLivingTissue`: closes small bleeds.
   - `WGHonkOnHit`: the clown's honk.
 
+- `WGVestSpecializationSystem` (shared) gives vests and armor without spaceproofing what a sealed suit can't have,
+  each read off the wearer's outer clothing slot:
+  - `WGFastHands`: the wearer's do-afters run 20% faster (`GetDoAfterDelayMultiplierEvent`).
+  - `WGLowSignature`: motion trackers skip the wearer (`ProximityDetectionAttemptEvent`).
+  - `WGUnrestricted`: guns the wearer holds spread 20% less (`GunRefreshModifiersEvent`).
+  - `WGSecondWind`: past 70 damage, before the wearer goes critical, a 30% speed burst for 6 seconds, ready again once
+    healed below half that. A wearer already down or dead doesn't spend it.
+  - Terrain runner is upstream's `SpeedModifierContactCapClothing`, which the snow slowdown in `GroundCover` now
+    respects too; modular plates are Mono's armor plate holder (`ClothingArmorPlate`); webbing is a storage grid.
+  The RMC armors get theirs from `Tools/_WG/RMCClothing/port.py` (`SPECIALTIES`).
+
 `WGArmorSpecializationTest` covers each one through the real Wolfmed paths.
 
 <!-- WOLFGATE-GENERATED START -->
@@ -63,10 +75,14 @@ in a fight and not only on paper. Each is one component on the suit, and each re
 - [`Content.Shared/_WG/ArmorSpecialization/WGArmorSpecializationComponents.cs`](../../../Content.Shared/_WG/ArmorSpecialization/WGArmorSpecializationComponents.cs)
 - [`Content.Shared/_WG/ArmorSpecialization/WGArmorSpecializationSystem.cs`](../../../Content.Shared/_WG/ArmorSpecialization/WGArmorSpecializationSystem.cs)
 - [`Content.Shared/_WG/ArmorSpecialization/WGCivilianSpecializationSystem.cs`](../../../Content.Shared/_WG/ArmorSpecialization/WGCivilianSpecializationSystem.cs)
+- [`Content.Shared/_WG/ArmorSpecialization/WGVestSpecializationComponents.cs`](../../../Content.Shared/_WG/ArmorSpecialization/WGVestSpecializationComponents.cs)
+- [`Content.Shared/_WG/ArmorSpecialization/WGVestSpecializationSystem.cs`](../../../Content.Shared/_WG/ArmorSpecialization/WGVestSpecializationSystem.cs)
 
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WG/ArmorSpecialization/WGArmorSpecializationTest.cs`](../../../Content.IntegrationTests/Tests/_WG/ArmorSpecialization/WGArmorSpecializationTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/ArmorSpecialization/WGSpallLinerSyntheticTest.cs`](../../../Content.IntegrationTests/Tests/_WG/ArmorSpecialization/WGSpallLinerSyntheticTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/ArmorSpecialization/WGVestSpecializationTest.cs`](../../../Content.IntegrationTests/Tests/_WG/ArmorSpecialization/WGVestSpecializationTest.cs)
 
 ### Prototypes
 

@@ -8564,3 +8564,276 @@ Entries:
   id: 100547
   time: '2026-11-21T16:25:26.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/778
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        regular+ NPC crews that are losing a boarding fight now fall back, hold
+        a room together and push as a group. 
+    - type: Tweak
+      message: NPC crews carry spare magazines in webbing and reload from it.
+    - type: Fix
+      message: >-
+        NPC crews no longer hold back grenades because a downed crewmate is near
+        the target.
+  id: 100548
+  time: '2026-11-21T21:18:38.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/787
+- author: Balls2zawall
+  changes:
+    - type: Fix
+      message: Removed the Despot, a Reaver refit ship, from the civilian shipyard.
+  id: 100549
+  time: '2026-11-21T21:28:40.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/784
+- author: Happyowl93
+  changes:
+    - type: Remove
+      message: >-
+        Removed the High Pain Threshold, Will to Live, Will to Die, Redshirt,
+        Bionic Legs, Osteogenesis Imperfecta, Hemophilia and Feeble traits.
+    - type: Tweak
+      message: Pain inhibitors reduce pain by at most 25% (20% for the trait).
+    - type: Tweak
+      message: The Numb trait hides pain but no longer stops you going down from it.
+    - type: Tweak
+      message: The adrenal booster no longer cancels out Lethargy.
+    - type: Tweak
+      message: >-
+        Spall liners stop lodged rounds and shrapnel 80% of the time instead of
+        always.
+    - type: Tweak
+      message: >-
+        Platelet Factories and Nanite Repair Drones heal far slower, and slower
+        still while you're down.
+    - type: Tweak
+      message: IPCs overloaded by pain now reboot for a few seconds.
+    - type: Tweak
+      message: >-
+        An IPC shut down without a pump or fluid now burns out its core and dies
+        after about 7.5 minutes.
+    - type: Tweak
+      message: IPCs stay understandable when lightly damaged or slightly low on fluid.
+  id: 100550
+  time: '2026-11-21T22:31:38.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/788
+- author: DriftingSkies
+  changes:
+    - type: Add
+      message: >-
+        Factions can call in operations from their static uplink: a ladder from
+        Routine to Extreme that pays more for more risk, with spoils crates for
+        the caller. Some land on a planet.
+    - type: Add
+      message: >-
+        Monolith fragments are a rare event both factions are paid to clear
+        together. They never hold a Scion.
+    - type: Add
+      message: >-
+        Specialist kits: each player draws one kit per round from their
+        faction's specialist rack. There are 13 per faction, based on Marine and
+        Navy jobs for the TSF and Ottoman units for the PDV, including cooks,
+        mechanics and a cavalry kit with its own Gygax.
+    - type: Add
+      message: >-
+        Specialist kits come in a single case you take gear out of. It deletes
+        itself once empty, and some kits carry an implant for the round.
+    - type: Add
+      message: 'New PDV job: Artificer.'
+    - type: Add
+      message: >-
+        Both faction uplinks have a Supplies tab with rations, survival gear,
+        tools and field medicine.
+    - type: Tweak
+      message: >-
+        The strongest specialist kits are limited to one or two per faction, so
+        build your squad around them.
+    - type: Tweak
+      message: >-
+        Specialist rack: clicking a kit shows what's in it; press Take to draw
+        it. Each kit shows how many are left.
+    - type: Tweak
+      message: >-
+        Ship vouchers cost only your faction's material up to T2, and the same
+        for both factions at every tier. Capitals are limited by faction
+        population, build time and a lockout after losing one.
+    - type: Tweak
+      message: >-
+        Vests are tougher and each takes one specialty; RMC armor gets
+        specialties too.
+    - type: Tweak
+      message: >-
+        Faction uplinks sell only entry hardsuits; stronger suits are made at
+        the faction lathe.
+    - type: Tweak
+      message: >-
+        The TSF and PDV uplinks now carry the same basics at the same prices.
+        The PDV uplink drops duplicate and lathe-made listings.
+    - type: Remove
+      message: Faction uplinks no longer exchange credits for cash.
+    - type: Remove
+      message: >-
+        The random Solarian vault and Phaethon weapons cache events; call them
+        in as operations instead.
+  id: 100551
+  time: '2026-11-22T07:50:33.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/700
+- author: ImogenOC
+  changes:
+    - type: Tweak
+      message: >-
+        A ship bought at a shipyard console or a used-ship lot now arrives a
+        moment after the order, while the shipyard prepares it, instead of
+        freezing the server while it loads.
+    - type: Tweak
+      message: Laser pointer lines on guns update ten times a second.
+    - type: Fix
+      message: >-
+        Radar now shows hitscan shots that end within range and stops showing
+        ones far outside it.
+  id: 100552
+  time: '2026-11-22T07:52:20.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/791
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: >-
+        Taking the helm or guns of an NPC ship without now counts as stealing
+        it.
+  id: 100553
+  time: '2026-11-22T10:26:58.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/790
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Vehicle delivery pad and pool table flatpacks unpack again.
+  id: 100554
+  time: '2026-11-22T13:17:28.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/796
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: >-
+        The Fukkatsu cardiac reviver now runs its full 60u of blood in before it
+        shocks, so you come back awake instead of unconscious.
+    - type: Tweak
+      message: >-
+        The Fukkatsu cardiac reviver holds your bleeding for three minutes after
+        the shock, up from one.
+    - type: Fix
+      message: >-
+        The Fukkatsu cardiac reviver no longer feeds a starving hemophage. It
+        only replaces blood a hemophage lost to wounds.
+  id: 100555
+  time: '2026-11-22T13:19:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/779
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        When the server is full you now wait in a queue instead of being
+        refused. The screen shows your place, how long you've waited and a rough
+        wait time.
+  id: 100556
+  time: '2026-11-22T13:46:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/789
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Ship modules: drydocks that sell refits can now fit up to three modules
+        into a ship's module slots, fired from the helm's new module strip or
+        with Z, X and C while piloting.
+    - type: Add
+      message: >-
+        Added the MJ-3 "Sidestep" Maneuvering Jets module: a charged sideways
+        kick for ships flying without a shield field. Smaller hulls are kicked
+        harder.
+  id: 100557
+  time: '2026-11-22T13:48:36.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/754
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        The entity census counts player ships on their own and names entities
+        that have no prototype.
+  id: 100558
+  time: '2026-11-22T14:25:44.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/795
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: >-
+        APCs can no longer be built on top of one another on the same side of a
+        wall.
+  id: 100559
+  time: '2026-11-22T19:34:33.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/802
+- author: Doomtail
+  changes:
+    - type: Add
+      message: Added new cyborg noises to the radical emote wheel.
+  id: 100560
+  time: '2026-11-22T22:52:28.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/780
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: Vox Tail Stripes and Single Tail Stripe markings show on the tail again.
+    - type: Fix
+      message: >-
+        Nanite Repair Drones and Platelet Factories heal again when you have
+        only one kind of damage, and still work in crit.
+    - type: Fix
+      message: The pool table flatpack unpacks into a table and two cues.
+    - type: Fix
+      message: ARACHNE hacking darts are visible again.
+    - type: Fix
+      message: >-
+        An AI viewing an overwatch camera feed can no longer zoom out further
+        than other players.
+    - type: Fix
+      message: >-
+        An AI's camera static comes back after it stops viewing an overwatch
+        feed.
+  id: 100561
+  time: '2026-11-22T22:54:02.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/797
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: >-
+        Repair nanites no longer flood everyone nearby with "About 130 more
+        passes of cable" while a reattached chassis limb settles. Only the
+        person holding the cable sees the pass count.
+  id: 100562
+  time: '2026-11-22T22:54:27.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/794
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: A new chassis skin for PDV medical cyborgs.
+  id: 100563
+  time: '2026-11-22T22:55:27.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/799
+- author: ImogenOC
+  changes:
+    - type: Fix
+      message: >-
+        the catcher keeps its bolas. The launcher is commented out in a
+        `WOLFGATE(Weapons)` block.
+    - type: Tweak
+      message: Rogue catcher units throw bolas and no longer launch viscerators.
+  id: 100564
+  time: '2026-11-23T00:04:11.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/805
+- author: ImogenOC
+  changes:
+    - type: Tweak
+      message: >-
+        The disposable ballistic turret fires one 9mm round per shot instead of
+        two rounds, and blows itself up once its 50 rounds are spent.
+  id: 100565
+  time: '2026-11-23T00:38:13.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/806

@@ -216,7 +216,8 @@ public sealed partial class WolfmedWoundRuleSystem : EntitySystem
 
         var attempt = new WolfmedWoundRuleAttemptEvent(part, wound, amount) { Rule = rule, Cause = cause };
         RaiseLocalEvent(body, ref attempt);
-        return attempt.Cancelled || amount < minDamage * attempt.MinDamageMultiplier;
+        return attempt.Cancelled || amount < minDamage * attempt.MinDamageMultiplier ||
+               attempt.StopChance > 0f && Roll(Math.Clamp(attempt.StopChance, 0f, 1f));
     }
 
     private void Apply(WolfmedWoundRulePrototype rule, Entity<WoundableComponent> part, FixedPoint2 severity)
@@ -224,7 +225,8 @@ public sealed partial class WolfmedWoundRuleSystem : EntitySystem
         severity = FixedPoint2.Max(severity, rule.MinSeverity);
         if (_wounds.CreateOrMergeWound(part.AsNullable(), rule.Wound, severity) is not { } wound ||
             rule.Embedded is not { } embedded ||
-            embedded.WardedAs is { } warded && ArmorRefuses(part, warded, severity, FixedPoint2.Zero, rule.ID))
+            embedded.WardedAs is { } warded && ArmorRefuses(part, warded, severity, FixedPoint2.Zero, rule.ID) ||
+            embedded.Chance < 1f && !Roll(Math.Clamp(embedded.Chance, 0f, 1f)))
             return;
 
         var count = embedded.MaxCount > embedded.MinCount
@@ -233,7 +235,7 @@ public sealed partial class WolfmedWoundRuleSystem : EntitySystem
         _embedded.Add(wound, embedded.Item, count, embedded.MaxTotal);
     }
 
-    /// <summary>Test seam: when set, a rule's chance passes exactly when this value is below it.</summary>
+    /// <summary>Test seam: when set, a rule's or an armour's chance passes exactly when this value is below it.</summary>
     public float? ForcedRoll;
 
     private bool Roll(float chance) => ForcedRoll is { } forced ? forced < chance : _random.Prob(chance);
