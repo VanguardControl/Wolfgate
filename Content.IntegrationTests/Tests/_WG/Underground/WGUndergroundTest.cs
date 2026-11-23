@@ -451,9 +451,25 @@ public sealed class WGUndergroundTest
             drained = entMan.SpawnEntity("WGBallisticTurretHeavyAIUnderground", map.GridCoords);
             battery.SetCharge(drained, 0f);
 
+            // A guest who docks while the station is open hears nothing.
+            var maps = entMan.System<SharedMapSystem>();
+            var home = map.Grid.Owner;
+            entMan.AddComponent<WGUndergroundBaseComponent>(home);
+            var guest = maps.CreateGridEntity(map.MapId).Owner;
+            var ours = maps.CreateGridEntity(map.MapId).Owner;
+            entMan.EnsureComponent<CompanyComponent>(ours).CompanyName = WGUndergroundHeatSystem.Company;
+            station.Docked(home, guest);
+            Assert.That(station.ToldClosed(guest), Is.False, "A ship was warned off an open station.");
+
             station.SetArmed(true);
             Assert.That(entMan.GetComponent<DeployableTurretComponent>(first).Enabled, Is.True);
             Assert.That(entMan.GetComponent<DeployableTurretComponent>(drained).Enabled, Is.False, "A turret with no power or shots deployed.");
+
+            // One who docks after the turrets are up missed the warning, so the ship is told on arrival.
+            station.Docked(guest, home);
+            station.Docked(home, ours);
+            Assert.That(station.ToldClosed(guest), Is.True, "A ship that docked with the turrets up wasn't told the station is closed.");
+            Assert.That(station.ToldClosed(ours), Is.False, "One of the Underground's own ships was warned off.");
             battery.SetCharge(drained, 5000f);
 
             // One that wasn't up when the order went out, like a turret that had no power.

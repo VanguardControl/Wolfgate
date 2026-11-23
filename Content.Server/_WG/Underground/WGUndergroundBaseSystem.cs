@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using Content.Server.Shuttles.Components;
+using Content.Server.Shuttles.Events;
 using Content.Server.Shuttles.Systems;
 using Content.Server.Station.Systems;
 using Content.Shared._Mono.Company;
@@ -61,12 +62,18 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
     /// <summary>When turrets that have been ordered up deploy, once the warning to everyone aboard has run.</summary>
     private TimeSpan? _deployAt;
 
+    /// <summary>Ships told the station is closed to guests since the turrets were ordered up, and when.</summary>
+    private readonly Dictionary<EntityUid, TimeSpan> _closedTold = new();
+
+    private static readonly TimeSpan ClosedRepeat = TimeSpan.FromSeconds(30);
+
     private TimeSpan _nextStep;
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<WGUndergroundHeatChangedEvent>(OnHeatChanged);
+        SubscribeLocalEvent<DockEvent>(OnDock);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnCleanup);
     }
 
@@ -131,6 +138,7 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
         if (!want)
         {
             _deployAt = null;
+            _closedTold.Clear();
             SetTurrets(false);
             return;
         }
@@ -145,6 +153,46 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
 
         _deployAt = _timing.CurTime + TimeSpan.FromSeconds(warning);
         _heat.TellFaction(Loc.GetString("wg-underground-turrets-warning", ("seconds", (int) warning)), Aboard());
+    }
+
+    private void OnDock(DockEvent args)
+    {
+        Docked(args.GridAUid, args.GridBUid);
+    }
+
+    /// <summary>
+    /// Tells a ship that has docked to the station while the turrets are up, or coming up, that it is closed to
+    /// guests. Those already docked when the order went out had the warning; a late arrival would get none.
+    /// </summary>
+    public void Docked(EntityUid gridA, EntityUid gridB)
+    {
+        if (!WantTurrets)
+            return;
+
+        EntityUid ship;
+        if (HasComp<WGUndergroundBaseComponent>(gridA))
+            ship = gridB;
+        else if (HasComp<WGUndergroundBaseComponent>(gridB))
+            ship = gridA;
+        else
+            return;
+
+        if (CompOrNull<CompanyComponent>(ship)?.CompanyName.Id == WGUndergroundHeatSystem.Company)
+            return;
+
+        // A ship with several airlocks docks once for each.
+        var now = _timing.CurTime;
+        if (_closedTold.TryGetValue(ship, out var told) && now < told + ClosedRepeat)
+            return;
+
+        _closedTold[ship] = now;
+        _heat.TellAboard(Loc.GetString("wg-underground-turrets-closed"), new HashSet<EntityUid> { ship });
+    }
+
+    /// <summary>Whether a ship has been told, since the turrets were last ordered up, that the station is closed to guests.</summary>
+    public bool ToldClosed(EntityUid ship)
+    {
+        return _closedTold.ContainsKey(ship);
     }
 
     /// <summary>The station's grids and every ship docked to them.</summary>
@@ -194,6 +242,7 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
     {
         Armed = false;
         _deployAt = null;
+        _closedTold.Clear();
         _nextStep = TimeSpan.Zero;
     }
 

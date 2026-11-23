@@ -201,11 +201,22 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
     /// <summary>Tells everyone flying the Underground's company, and anyone standing on the given grids.</summary>
     public void TellFaction(string message, HashSet<EntityUid>? aboard = null)
     {
+        Tell(message, aboard, true);
+    }
+
+    /// <summary>Tells only the people standing on the given grids, as the Underground.</summary>
+    public void TellAboard(string message, HashSet<EntityUid> aboard)
+    {
+        Tell(message, aboard, false);
+    }
+
+    private void Tell(string message, HashSet<EntityUid>? aboard, bool faction)
+    {
         var filter = Filter.Empty();
         var players = EntityQueryEnumerator<ActorComponent, TransformComponent>();
         while (players.MoveNext(out var uid, out var actor, out var xform))
         {
-            if (CompOrNull<CompanyComponent>(uid)?.CompanyName.Id == Company
+            if (faction && CompOrNull<CompanyComponent>(uid)?.CompanyName.Id == Company
                 || aboard != null && xform.GridUid is { } grid && aboard.Contains(grid))
             {
                 filter.AddPlayer(actor.PlayerSession);
