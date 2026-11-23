@@ -25,6 +25,7 @@ using Content.Shared.Shuttles.Components;
 using Content.Shared.Turrets;
 using Content.Shared.Verbs;
 using Robust.Shared.Configuration;
+using Robust.Shared.Containers;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Localization;
 using Robust.Shared.Map;
@@ -632,16 +633,20 @@ public sealed class WGUndergroundTest
 
         await server.WaitAssertion(() =>
         {
+            // Out in the open means on the grid or, once the crowd on this one tile has shoved them off it, the map.
             var grid = map.Grid.Owner;
+            var containers = entMan.System<SharedContainerSystem>();
             Assert.That(entMan.Deleted(crate), Is.True, "The crate didn't sell.");
             Assert.That(entMan.Deleted(boxed), Is.False, "A heretic was deleted inside a sold crate.");
             Assert.That(entMan.HasComponent<HereticComponent>(boxed), Is.True, "A heretic nobody handed in lost the mark.");
-            Assert.That(entMan.GetComponent<TransformComponent>(boxed).ParentUid, Is.EqualTo(grid), "The heretic wasn't left on the floor.");
+            Assert.That(containers.IsEntityInContainer(boxed), Is.False, "The heretic is still shut in something.");
+            Assert.That(entMan.GetComponent<TransformComponent>(boxed).ParentUid, Is.EqualTo(grid).Or.EqualTo(map.MapUid), "The heretic wasn't left out in the open.");
 
             Assert.That(entMan.Deleted(outer), Is.True, "The outer crate didn't sell.");
             Assert.That(entMan.Deleted(inner), Is.True, "The inner crate outlived the one it was in.");
             Assert.That(entMan.Deleted(nested), Is.False, "A heretic two crates deep was deleted with them.");
-            Assert.That(entMan.GetComponent<TransformComponent>(nested).ParentUid, Is.EqualTo(grid), "The nested heretic wasn't left on the floor.");
+            Assert.That(containers.IsEntityInContainer(nested), Is.False, "The nested heretic is still shut in something.");
+            Assert.That(entMan.GetComponent<TransformComponent>(nested).ParentUid, Is.EqualTo(grid).Or.EqualTo(map.MapUid), "The nested heretic wasn't left out in the open.");
             entMan.DeleteEntity(nested);
             entMan.DeleteEntity(boxed);
             entMan.DeleteEntity(heretic);
