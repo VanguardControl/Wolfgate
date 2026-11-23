@@ -8817,3 +8817,23 @@ Entries:
   id: 100563
   time: '2026-11-22T22:55:27.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/799
+- author: ImogenOC
+  changes:
+    - type: Fix
+      message: >-
+        the catcher keeps its bolas. The launcher is commented out in a
+        `WOLFGATE(Weapons)` block.
+    - type: Tweak
+      message: Rogue catcher units throw bolas and no longer launch viscerators.
+  id: 100564
+  time: '2026-11-23T00:04:11.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/805
+- author: ImogenOC
+  changes:
+    - type: Tweak
+      message: >-
+        The disposable ballistic turret fires one 9mm round per shot instead of
+        two rounds, and blows itself up once its 50 rounds are spent.
+  id: 100565
+  time: '2026-11-23T00:38:13.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/806
