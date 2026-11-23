@@ -451,13 +451,13 @@ public sealed class WGUndergroundTest
             drained = entMan.SpawnEntity("WGBallisticTurretHeavyAIUnderground", map.GridCoords);
             battery.SetCharge(drained, 0f);
 
-            // A guest who docks while the station is open hears nothing.
-            var maps = entMan.System<SharedMapSystem>();
-            var home = map.Grid.Owner;
+            // A guest who docks while the station is open hears nothing. Docking only reads what the two ends
+            // carry, so bare stand-ins do for the station and the ships, and are gone before a tick runs.
+            var home = entMan.SpawnEntity(null, MapCoordinates.Nullspace);
             entMan.AddComponent<WGUndergroundBaseComponent>(home);
-            var guest = maps.CreateGridEntity(map.MapId).Owner;
-            var ours = maps.CreateGridEntity(map.MapId).Owner;
-            entMan.EnsureComponent<CompanyComponent>(ours).CompanyName = WGUndergroundHeatSystem.Company;
+            var guest = entMan.SpawnEntity(null, MapCoordinates.Nullspace);
+            var ours = entMan.SpawnEntity(null, MapCoordinates.Nullspace);
+            entMan.AddComponent<CompanyComponent>(ours).CompanyName = WGUndergroundHeatSystem.Company;
             station.Docked(home, guest);
             Assert.That(station.ToldClosed(guest), Is.False, "A ship was warned off an open station.");
 
@@ -470,6 +470,9 @@ public sealed class WGUndergroundTest
             station.Docked(home, ours);
             Assert.That(station.ToldClosed(guest), Is.True, "A ship that docked with the turrets up wasn't told the station is closed.");
             Assert.That(station.ToldClosed(ours), Is.False, "One of the Underground's own ships was warned off.");
+            entMan.DeleteEntity(home);
+            entMan.DeleteEntity(guest);
+            entMan.DeleteEntity(ours);
             battery.SetCharge(drained, 5000f);
 
             // One that wasn't up when the order went out, like a turret that had no power.
@@ -520,11 +523,11 @@ public sealed class WGUndergroundTest
         await server.WaitAssertion(() =>
         {
             var session = pair.Player!;
-            var maps = entMan.System<SharedMapSystem>();
-            var guest = maps.CreateGridEntity(map.MapId).Owner;
-            var elsewhere = maps.CreateGridEntity(map.MapId).Owner;
+            // The test map's own grid stands for the docked ship; anything else stands for another.
+            var guest = map.Grid.Owner;
+            var elsewhere = entMan.SpawnEntity(null, MapCoordinates.Nullspace);
 
-            var body = entMan.SpawnEntity("MobHuman", new EntityCoordinates(guest, default));
+            var body = entMan.SpawnEntity("MobHuman", map.GridCoords);
             Assert.That(server.PlayerMan.SetAttachedEntity(session, body, true), "The player didn't take the body.");
 
             var aboard = new HashSet<EntityUid> { guest };
@@ -537,6 +540,7 @@ public sealed class WGUndergroundTest
 
             server.PlayerMan.SetAttachedEntity(session, null, true);
             entMan.DeleteEntity(body);
+            entMan.DeleteEntity(elsewhere);
         });
 
         await pair.CleanReturnAsync();
