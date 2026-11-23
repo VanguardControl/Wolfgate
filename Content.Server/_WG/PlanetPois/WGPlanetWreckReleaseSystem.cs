@@ -13,9 +13,9 @@ using Robust.Shared.Physics.Systems;
 namespace Content.Server._WG.PlanetPois;
 
 /// <summary>
-/// Gives a settled wreck or camp hull back to space once it leaves its world's layers. Settling makes a hull part of
-/// the ground (city grid, z-level anchor, static body, inherent gravity, a roof over every tile), and none of that
-/// should follow it off the planet, however it got out.
+/// Gives a settled wreck or camp hull back to space once it leaves its world's layers and the gaps between them.
+/// Settling makes a hull part of the ground (city grid, z-level anchor, static body, inherent gravity, a roof over
+/// every tile), and none of that should follow it off the planet, however it got out.
 /// </summary>
 public sealed class WGPlanetWreckReleaseSystem : EntitySystem
 {
@@ -35,10 +35,23 @@ public sealed class WGPlanetWreckReleaseSystem : EntitySystem
         if (ent.Comp.City.Id != null || TerminatingOrDeleted(ent) || !HasComp<MapGridComponent>(ent))
             return;
 
-        if (Transform(ent).MapUid is not { } map || TerminatingOrDeleted(map) || HasComp<WGPlanetLayerComponent>(map))
+        if (Transform(ent).MapUid is not { } map || TerminatingOrDeleted(map) || OnItsWorld(map))
             return;
 
         Release(ent);
+    }
+
+    /// <summary>Whether a map is a planet layer, or the transit gap between two layers of the same planet.</summary>
+    private bool OnItsWorld(EntityUid map)
+    {
+        if (HasComp<WGPlanetLayerComponent>(map))
+            return true;
+
+        return TryComp<CEZTransitMapComponent>(map, out var transit)
+            && TryComp<WGPlanetLayerComponent>(transit.LowerMap, out var lower)
+            && TryComp<WGPlanetLayerComponent>(transit.UpperMap, out var upper)
+            && lower.Network != null
+            && lower.Network == upper.Network;
     }
 
     /// <summary>Undoes a hull's settling: it is a vessel again, flies, and takes gravity from its own generators.</summary>

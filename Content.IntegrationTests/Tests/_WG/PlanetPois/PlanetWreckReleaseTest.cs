@@ -31,12 +31,17 @@ public sealed class PlanetWreckReleaseTest
         var ground = await pair.CreateTestMap();
         var air = await pair.CreateTestMap();
         var space = await pair.CreateTestMap();
+        var gap = await pair.CreateTestMap();
         var hull = ground.Grid.Owner;
 
         await server.WaitAssertion(() =>
         {
-            em.AddComponent<WGPlanetLayerComponent>(ground.MapUid);
-            em.AddComponent<WGPlanetLayerComponent>(air.MapUid);
+            var network = em.GetNetEntity(ground.MapUid);
+            em.AddComponent<WGPlanetLayerComponent>(ground.MapUid).Network = network;
+            em.AddComponent<WGPlanetLayerComponent>(air.MapUid).Network = network;
+            var transit = em.AddComponent<CEZTransitMapComponent>(gap.MapUid);
+            transit.LowerMap = ground.MapUid;
+            transit.UpperMap = air.MapUid;
 
             // As WGPlanetPoiSystem.SettleWreck leaves a hull.
             em.RemoveComponent<ShuttleComponent>(hull);
@@ -51,6 +56,9 @@ public sealed class PlanetWreckReleaseTest
             server.System<SharedPhysicsSystem>().SetBodyType(hull, BodyType.Static);
 
             var xforms = server.System<SharedTransformSystem>();
+            xforms.SetCoordinates(hull, new EntityCoordinates(gap.MapUid, Vector2.Zero));
+            Assert.That(em.HasComponent<WGPlanetCityGridComponent>(hull), Is.True, "The hull stopped being ground in the gap between two layers of its world.");
+
             xforms.SetCoordinates(hull, new EntityCoordinates(air.MapUid, Vector2.Zero));
             Assert.That(em.HasComponent<WGPlanetCityGridComponent>(hull), Is.True, "The hull stopped being ground on another layer of its world.");
 
@@ -64,6 +72,9 @@ public sealed class PlanetWreckReleaseTest
                 Assert.That(em.GetComponent<PhysicsComponent>(hull).BodyType, Is.EqualTo(BodyType.Dynamic), "The hull is still static.");
                 Assert.That(em.HasComponent<ShuttleComponent>(hull), Is.True, "The hull is not a shuttle again.");
             });
+
+            // The gap is a stand-in with no grid in transit; it goes before the z-level systems tick over it.
+            em.DeleteEntity(gap.MapUid);
         });
 
         await pair.CleanReturnAsync();

@@ -58,6 +58,9 @@ public sealed class WGUnstuckSystem : EntitySystem
     /// <summary>How deep the body must sit inside a structure to count as stuck, so standing against a wall doesn't.</summary>
     private const float EmbedDepth = 0.1f;
 
+    /// <summary>How far a body may touch a structure at its destination: a resting contact, not a wedge.</summary>
+    private const float ContactSlop = 0.01f;
+
     /// <summary>Tiles within this much of the same distance count as a tie, which breathable air breaks.</summary>
     private const float TieDistance = 0.05f;
 
@@ -252,8 +255,10 @@ public sealed class WGUnstuckSystem : EntitySystem
     {
         var local = _transform.WithEntityId(xform.Coordinates, grid).Position;
         var origin = new Vector2i((int) MathF.Floor(local.X / grid.Comp.TileSize), (int) MathF.Floor(local.Y / grid.Comp.TileSize));
-        var core = _lookup.GetWorldAABB(user, xform).Size - new Vector2(EmbedDepth * 2);
-        var footprint = Vector2.Max(core, new Vector2(0.01f));
+        // The whole body must fit at the destination; only a contact's worth is allowed, so a body exactly a corridor
+        // wide still fits.
+        var body = _lookup.GetWorldAABB(user, xform).Size - new Vector2(ContactSlop * 2);
+        var footprint = Vector2.Max(body, new Vector2(0.01f));
         var map = xform.MapUid ?? grid.Owner;
 
         if (TryFindNearest(grid, local, origin, footprint, map, mask, SearchRadius, false, out target)
@@ -391,14 +396,13 @@ public sealed class WGUnstuckSystem : EntitySystem
     }
 
     /// <summary>
-    /// Whether a body of the given size, centred on a grid-local point, would sit inside a structure it collides with,
-    /// including one anchored on a neighbouring tile or another grid that reaches over.
+    /// Whether a body with the given world-axis size, centred on a grid-local point, would sit inside a structure it
+    /// collides with, including one anchored on a neighbouring tile or another grid that reaches over.
     /// </summary>
     private bool Overlaps(Entity<MapGridComponent> grid, Vector2 center, Vector2 footprint, int mask)
     {
-        var (worldPos, worldRot) = _transform.GetWorldPositionRotation(grid);
-        var worldCenter = worldPos + worldRot.RotateVec(center);
-        var bounds = new Box2Rotated(Box2.CenteredAround(worldCenter, footprint), worldRot, worldCenter);
+        var worldCenter = Vector2.Transform(center, _transform.GetWorldMatrix(grid));
+        var bounds = new Box2Rotated(Box2.CenteredAround(worldCenter, footprint));
         var mapId = Transform(grid).MapID;
 
         foreach (var other in StaticIntersecting(mapId, bounds))
