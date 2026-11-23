@@ -67,7 +67,7 @@ public sealed partial class WGUndergroundBaseComponent : Component
 {
     /// <summary>The ship parked away from the station as a second place to wake up.</summary>
     [DataField]
-    public ProtoId<VesselPrototype> SafehouseVessel = "WGUBMLurker";
+    public ProtoId<VesselPrototype> SafehouseVessel = "WGLurker";
 
     /// <summary>Spawn markers put on the safehouse's seats.</summary>
     [DataField]
