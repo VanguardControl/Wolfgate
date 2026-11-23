@@ -39,12 +39,15 @@ wg-heretic-marked-popup = The Sultanate has marked you a heretic.
 # Station
 wg-underground-safehouse-name = Underground Safehouse
 wg-underground-turrets-armed = The station's turrets are armed. They fire on anyone without our access.
+wg-underground-turrets-warning = The station's turrets come up in {$seconds} seconds. They fire on anyone without Underground access. Guests, leave now.
 wg-underground-turrets-down = The station's turrets are standing down.
 wg-underground-hop-told = The Godfather is moving the station. It jumps in {$seconds} seconds. Get aboard, or cast off if you are not coming.
 wg-underground-hop-wait = The jump drive is recharging. It is ready in {$minutes} minutes.
 wg-underground-hop-raid = The station can't jump while a raid window is open.
 wg-underground-hop-jumping = The station is already jumping.
 wg-underground-hop-failed = The jump drive won't engage.
+wg-underground-hop-nowhere = The jump drive can't find clear space to jump to. Try again.
+wg-underground-hop-aborted = A raid window has opened. The jump is off, and the drive is ready again.
 
 # The cargo console's verbs
 wg-underground-verb-status = Faction status

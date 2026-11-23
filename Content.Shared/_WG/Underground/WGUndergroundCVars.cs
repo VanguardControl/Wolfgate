@@ -110,6 +110,10 @@ public sealed class WGUndergroundCVars
     public static readonly CVarDef<float> SafehouseMax =
         CVarDef.Create("wg.underground.safehouse_max", 9000f, CVar.SERVERONLY);
 
+    /// <summary>Seconds of warning everyone aboard gets before the station's turrets come up.</summary>
+    public static readonly CVarDef<float> TurretWarning =
+        CVarDef.Create("wg.underground.turret_warning", 30f, CVar.SERVERONLY);
+
     /// <summary>Minutes between the station's jumps. Zero turns jumping off.</summary>
     public static readonly CVarDef<float> HopMinutes =
         CVarDef.Create("wg.underground.hop_minutes", 60f, CVar.SERVERONLY);

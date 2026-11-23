@@ -38,6 +38,7 @@
 -- Protection returns when the raid window closes. A capture already under way can finish.
 
 - [bold]Market Truce.[/bold] Any ship the Underground has invited to dock or given a market pass is a guest, TSF and PDV ships included. Guests and the Underground don't attack each other while the ship is there.
+-- The station's turrets can't tell a guest from a raider. When the Godfather arms them or a raid window opens, everyone aboard gets a [color=#b8860b][bold]30 second[/bold][/color] warning before they come up. The truce does not cover a guest who stays past it.
 -- If a guest breaks the truce, the Underground can declare a Vendetta on the radio and attack that crew without further escalation for [color=#b8860b][bold]30 minutes[/bold][/color].
 
 - [bold]The Underground is for Hire.[/bold] Anyone can hire it for smuggling, theft, extraction, information and sabotage of ships, even while the war level is COLD.

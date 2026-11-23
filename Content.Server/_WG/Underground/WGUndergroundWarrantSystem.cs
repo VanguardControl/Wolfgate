@@ -10,6 +10,7 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
 using Content.Shared.Store;
 using Robust.Shared.Configuration;
+using Robust.Shared.Containers;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
@@ -27,8 +28,10 @@ public sealed partial class WGUndergroundWarrantSystem : EntitySystem
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private StackSystem _stack = default!;
     [Dependency] private WGHereticMarkSystem _marks = default!;
     [Dependency] private WGUndergroundHeatSystem _heat = default!;
@@ -156,6 +159,13 @@ public sealed partial class WGUndergroundWarrantSystem : EntitySystem
     /// </summary>
     public void TurnedIn(HashSet<EntityUid> sold, string rewardType)
     {
+        // A sold container is deleted with all it holds, so a heretic or member shut inside is put out on the pallet first.
+        foreach (var ent in sold)
+        {
+            if (!HasComp<MobStateComponent>(ent))
+                PutOut(ent);
+        }
+
         foreach (var ent in new List<EntityUid>(sold))
         {
             if (!HasComp<MobStateComponent>(ent))
@@ -178,6 +188,33 @@ public sealed partial class WGUndergroundWarrantSystem : EntitySystem
             _heat.Captures++;
             _heat.Add(-_cfg.GetCVar(WGUndergroundCVars.HeatCapture));
             _heat.TellFaction(Loc.GetString("wg-underground-captured", ("name", Name(ent))));
+        }
+    }
+
+    /// <summary>Takes marked heretics and Underground members out of a container, however deep, and leaves them where it stands.</summary>
+    private void PutOut(EntityUid holder)
+    {
+        var inside = new List<EntityUid>();
+        var children = Transform(holder).ChildEnumerator;
+        while (children.MoveNext(out var child))
+        {
+            inside.Add(child);
+        }
+
+        foreach (var child in inside)
+        {
+            if (!HasComp<MobStateComponent>(child))
+            {
+                PutOut(child);
+                continue;
+            }
+
+            if (!HasComp<HereticComponent>(child) && !HasComp<WGUndergroundMemberComponent>(child))
+                continue;
+
+            _container.TryRemoveFromContainer(child, true);
+            if (Transform(child).ParentUid == holder)
+                _transform.AttachToGridOrMap(child);
         }
     }
 

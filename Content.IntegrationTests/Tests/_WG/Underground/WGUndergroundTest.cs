@@ -7,6 +7,7 @@ using Content.Server._WG.Underground;
 using Content.Server.Access.Components;
 using Content.Server.Power.EntitySystems;
 using Content.Server.Shuttles.Systems;
+using Content.Server.Storage.EntitySystems;
 using Content.Shared._Mono.Company;
 using Content.Shared._NF.Contraband.Events;
 using Content.Shared._WG.Newbie;
@@ -142,7 +143,10 @@ public sealed class WGUndergroundTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The station jumps to a new place in its band, then not again for an hour, and never while a raid window is open.</summary>
+    /// <summary>
+    /// The station jumps to a new place in its band, then not again for an hour. It never leaves while a raid window
+    /// is open, even one that opens mid-spool, and a jump with nowhere to go is refused.
+    /// </summary>
     [Test]
     public async Task StationHopsOnceAnHourAndNotInARaid()
     {
@@ -154,6 +158,7 @@ public sealed class WGUndergroundTest
         var station = server.System<WGUndergroundBaseSystem>();
         var xforms = server.System<SharedTransformSystem>();
         var cfg = server.ResolveDependency<IConfigurationManager>();
+        var timing = server.ResolveDependency<IGameTiming>();
 
         await server.WaitAssertion(() =>
         {
@@ -162,17 +167,31 @@ public sealed class WGUndergroundTest
             var from = xforms.GetWorldPosition(grid);
 
             heat.Reset();
-            heat.Add(100);
-            Assert.That(heat.RaidEnds, Is.Not.Null);
-            Assert.That(station.TryHop((grid, home), out var refusal), Is.False, "The station jumped out of a raid.");
-            Assert.That(refusal, Is.EqualTo(Loc.GetString("wg-underground-hop-raid")));
-            heat.Tick(heat.RaidEnds!.Value);
+
+            // Nowhere in the band is far enough away: the jump is refused and nothing is charged for it.
+            cfg.SetCVar(WGUndergroundCVars.HopMove, 100000f);
+            Assert.That(station.TryHop((grid, home), out var refusal), Is.False, "The station jumped with nowhere to go.");
+            Assert.That(refusal, Is.EqualTo(Loc.GetString("wg-underground-hop-nowhere")));
+            Assert.That(entMan.HasComponent<FTLComponent>(grid), Is.False);
+            Assert.That(home.NextHop, Is.EqualTo(TimeSpan.Zero));
+            cfg.SetCVar(WGUndergroundCVars.HopMove, 10000f);
 
             Assert.That(station.TryHop((grid, home), out refusal), Is.True, refusal);
             Assert.That(entMan.TryGetComponent<FTLComponent>(grid, out var ftl), "The station didn't start its jump.");
             var target = xforms.ToMapCoordinates(ftl!.TargetCoordinates).Position;
             Assert.That(target.Length(), Is.InRange(cfg.GetCVar(WGUndergroundCVars.HopMinRange), cfg.GetCVar(WGUndergroundCVars.HopMaxRange)));
             Assert.That((target - from).Length(), Is.GreaterThanOrEqualTo(cfg.GetCVar(WGUndergroundCVars.HopMove)));
+
+            // A raid that opens while the drive is spooling holds the station and gives the hour back.
+            heat.Add(100);
+            Assert.That(heat.RaidEnds, Is.Not.Null);
+            Assert.That(entMan.HasComponent<FTLComponent>(grid), Is.False, "The station left during a raid window.");
+            Assert.That(home.NextHop, Is.LessThanOrEqualTo(timing.CurTime), "A jump the raid called off still cost the hour.");
+            Assert.That(station.TryHop((grid, home), out refusal), Is.False, "The station jumped out of a raid.");
+            Assert.That(refusal, Is.EqualTo(Loc.GetString("wg-underground-hop-raid")));
+            heat.Tick(heat.RaidEnds!.Value);
+
+            Assert.That(station.TryHop((grid, home), out refusal), Is.True, refusal);
 
             // The hour runs from the jump, whatever became of it.
             Assert.That(server.System<ShuttleSystem>().WgAbortFtlSpool(grid));
@@ -413,6 +432,7 @@ public sealed class WGUndergroundTest
         var entMan = server.EntMan;
         var map = await pair.CreateTestMap();
         var station = server.System<WGUndergroundBaseSystem>();
+        var cfg = server.ResolveDependency<IConfigurationManager>();
 
         var first = EntityUid.Invalid;
         var late = EntityUid.Invalid;
@@ -420,6 +440,9 @@ public sealed class WGUndergroundTest
 
         await server.WaitAssertion(() =>
         {
+            // No warning for now: the order goes straight to the turrets.
+            cfg.SetCVar(WGUndergroundCVars.TurretWarning, 0f);
+            server.System<WGUndergroundHeatSystem>().Reset();
             var battery = entMan.System<BatterySystem>();
             first = entMan.SpawnEntity("WGBallisticTurretHeavyAIUnderground", map.GridCoords);
             Assert.That(entMan.GetComponent<DeployableTurretComponent>(first).Enabled, Is.False, "The turrets should start retracted.");
@@ -446,6 +469,20 @@ public sealed class WGUndergroundTest
             station.SetArmed(false);
             Assert.That(entMan.GetComponent<DeployableTurretComponent>(first).Enabled, Is.False);
             Assert.That(entMan.GetComponent<DeployableTurretComponent>(late).Enabled, Is.False);
+
+            // With a warning set, guests get that long to leave before the turrets come up.
+            cfg.SetCVar(WGUndergroundCVars.TurretWarning, 5f);
+            station.SetArmed(true);
+            Assert.That(entMan.GetComponent<DeployableTurretComponent>(first).Enabled, Is.False, "The turrets came up with no warning.");
+        });
+        await pair.RunSeconds(7);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(entMan.GetComponent<DeployableTurretComponent>(first).Enabled, Is.True, "The turrets stayed down after the warning.");
+            station.SetArmed(false);
+            Assert.That(entMan.GetComponent<DeployableTurretComponent>(first).Enabled, Is.False);
+            cfg.SetCVar(WGUndergroundCVars.TurretWarning, 30f);
             entMan.DeleteEntity(first);
             entMan.DeleteEntity(late);
             entMan.DeleteEntity(drained);
@@ -465,6 +502,9 @@ public sealed class WGUndergroundTest
 
         var member = EntityUid.Invalid;
         var heretic = EntityUid.Invalid;
+        var pdvConsole = EntityUid.Invalid;
+        var crate = EntityUid.Invalid;
+        var boxed = EntityUid.Invalid;
 
         await server.WaitPost(() =>
         {
@@ -489,6 +529,7 @@ public sealed class WGUndergroundTest
             var mobState = entMan.System<MobStateSystem>();
             entMan.SpawnEntity("ContrabandPalletPirate", map.GridCoords);
             var pdv = entMan.SpawnEntity("ComputerContrabandPalletConsolePirate", map.GridCoords);
+            pdvConsole = pdv;
             heretic = entMan.SpawnEntity("MobHuman", map.GridCoords);
             entMan.EnsureComponent<ContrabandComponent>(heretic).TurnInValues[WGUndergroundWarrantSystem.Doubloons] = 250;
             entMan.AddComponent<HereticComponent>(heretic);
@@ -509,6 +550,26 @@ public sealed class WGUndergroundTest
             Assert.That(entMan.Deleted(heretic), Is.False, "The heretic's body was taken away.");
             Assert.That(entMan.HasComponent<HereticComponent>(heretic), Is.False, "The mark wasn't cleared.");
             Assert.That(entMan.GetComponent<ContrabandComponent>(heretic).TurnInValues.ContainsKey(WGUndergroundWarrantSystem.Doubloons), Is.False);
+
+            // A marked heretic shut in a crate the pallet buys: the crate goes, the heretic doesn't.
+            crate = entMan.SpawnEntity("CrateGenericSteel", map.GridCoords);
+            entMan.EnsureComponent<ContrabandComponent>(crate).TurnInValues[WGUndergroundWarrantSystem.Doubloons] = 10;
+            boxed = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            entMan.EnsureComponent<ContrabandComponent>(boxed).TurnInValues[WGUndergroundWarrantSystem.Doubloons] = 250;
+            entMan.AddComponent<HereticComponent>(boxed);
+            Assert.That(entMan.System<EntityStorageSystem>().Insert(boxed, crate), "The heretic didn't go into the crate.");
+            entMan.EventBus.RaiseLocalEvent(pdvConsole, new ContrabandPalletSellMessage { Actor = pdvConsole });
+        });
+        await pair.RunTicksSync(5);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(entMan.Deleted(crate), Is.True, "The crate didn't sell.");
+            Assert.That(entMan.Deleted(boxed), Is.False, "A heretic was deleted inside a sold crate.");
+            Assert.That(entMan.HasComponent<HereticComponent>(boxed), Is.True, "A heretic nobody handed in lost the mark.");
+            Assert.That(entMan.GetComponent<TransformComponent>(boxed).ParentUid, Is.Not.EqualTo(crate));
+            entMan.DeleteEntity(boxed);
+            entMan.DeleteEntity(heretic);
         });
 
         await pair.CleanReturnAsync();

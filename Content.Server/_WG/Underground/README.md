@@ -23,16 +23,20 @@ pallet.
 
 **Heretic marks** (`WGHereticMarkSystem`): the marked player is told; a tagged new player is never marked; a player
 handed in or killed as a heretic isn't marked again that round. The PDV's pallet pays in full for a live heretic and
-half for a dead one, clears the mark and leaves the body. No other pallet takes a body. The Underground's jobs no
+half for a dead one, clears the mark and leaves the body. No other pallet takes a body. A marked heretic or a member
+shut inside a container that is sold is put out on the pallet, not deleted with it, and counts as not handed in. The Underground's jobs no
 longer roll for a mark; the Heretic trait is open to them.
 
 **The station** (`WGUndergroundBaseSystem`): its turrets (`WGUndergroundTurretComponent`) stay retracted until a
-raid or until the Godfather arms them, and then fire on anyone without Underground access. A safehouse ship is parked
+raid or until the Godfather arms them, and then fire on anyone without Underground access. They have no guest list:
+everyone on the station or docked to it gets 30 seconds' warning before they come up (`wg.underground.turret_warning`),
+which is how the market truce's guests get clear. A safehouse ship is parked
 6 to 9 km away as part of the station, with spawn markers on its seats, so a raid can't hold everyone who joins.
 Fugitive slots grow by one for every 15 players in the round, up to five more. Once an hour the Godfather can jump
 the station (`TryHop`): after a minute's warning it goes through FTL to a new place 18 to 25 km out, at least 10 km
-from where it was and clear of other grids. Docked ships with their FTL lock on come along, one that can't jump is
-cast off, the safehouse stays, and the drive won't fire while a raid window is open.
+from where it was and clear of other grids, and is refused at no cost when no such place turns up. Docked ships with
+their FTL lock on come along, one that can't jump is cast off, and the safehouse stays. The drive won't fire while a
+raid window is open, and a raid that opens during the warning calls the jump off and gives the hour back.
 
 **The cargo console** (`WGUndergroundTerminalSystem`, alt-click verbs on the Underground's cargo request console):
 anyone with Underground access reads the faction's status; the Godfather and Fixers issue market passes (a pinpointer

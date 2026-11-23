@@ -146,8 +146,10 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
                 if (!Boss())
                     return;
 
+                // Arming tells everyone aboard itself, with the warning.
                 _base.SetArmed(!_base.Armed);
-                _heat.TellFaction(Loc.GetString(_base.Armed ? "wg-underground-turrets-armed" : "wg-underground-turrets-down"));
+                if (!_base.Armed)
+                    _heat.TellFaction(Loc.GetString("wg-underground-turrets-down"));
             },
         });
 

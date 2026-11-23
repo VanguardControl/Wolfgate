@@ -34,7 +34,7 @@ The Heat starts to cool once you have lain low for five minutes, and loses 1 eve
 - [color=#2e9e4f][bold]QUIET[/bold][/color]: nobody is looking for you.
 - [bold]WATCHED[/bold] (Heat 3): the TSF knows goods are moving.
 - [color=#b8860b][bold]WANTED[/bold][/color] (Heat 6): the TSF gets a bearing to the station every ten minutes. The bearing gives a direction but no distance.
-- [color=#d93c3c][bold]RAID[/bold][/color] (Heat 10): the station's position goes out to the whole sector, and it can be raided for 20 minutes. Its turrets arm themselves, and Safe Zones stop protecting you from capture until the window closes. Afterwards the Heat drops to WATCHED and can't reach RAID again for 45 minutes.
+- [color=#d93c3c][bold]RAID[/bold][/color] (Heat 10): the station's position goes out to the whole sector, and it can be raided for 20 minutes. Its turrets come up after a 30 second warning to everyone aboard, and Safe Zones stop protecting you from capture until the window closes. Afterwards the Heat drops to WATCHED and can't reach RAID again for 45 minutes.
 
 A sale made by someone outside the UBM adds no Heat and still pays the treasury. A hired courier keeps you quiet, and the price is the courier's cut.
 
@@ -89,7 +89,7 @@ The station has a jump drive. Once an hour the [color=purple]Godfather[/color] c
 - Everyone aboard and everyone in a docked ship gets a minute's warning.
 - Docked ships with their FTL lock on come along. The rest are cast off.
 - The safehouse stays where it is. Market passes keep pointing at the station.
-- The drive won't fire while a raid window is open.
+- The drive won't fire while a raid window is open. If one opens during the warning, the jump is called off and the drive is ready again.
 - A jump doesn't cool the Heat. While you are WANTED, the TSF's next bearing points at the new place.
 
 ## The Safehouse

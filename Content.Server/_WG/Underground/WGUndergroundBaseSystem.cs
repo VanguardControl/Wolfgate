@@ -50,10 +50,16 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
     /// <summary>How far a jump's arrival point keeps from every other grid, in metres.</summary>
     private const float HopClearance = 2000f;
 
-    private const int HopTries = 30;
+    private const int HopTries = 60;
 
     /// <summary>Whether the Godfather has armed the turrets outside a raid.</summary>
     public bool Armed { get; private set; }
+
+    /// <summary>Whether the turrets should be up: armed by the Godfather, or a raid window is open.</summary>
+    private bool WantTurrets => Armed || _heat.Level == WGUndergroundHeatSystem.Raid;
+
+    /// <summary>When turrets that have been ordered up deploy, once the warning to everyone aboard has run.</summary>
+    private TimeSpan? _deployAt;
 
     private TimeSpan _nextStep;
 
@@ -68,13 +74,20 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
     {
         base.Update(frameTime);
         var now = _timing.CurTime;
+        if (_deployAt is { } deploy && now >= deploy)
+        {
+            _deployAt = null;
+            if (WantTurrets)
+                SetTurrets(true);
+        }
+
         if (now < _nextStep)
             return;
 
         _nextStep = now + Step;
 
         // A turret with no power or shots refuses to deploy, so keep asking while they should be up.
-        if (Armed || _heat.Level == WGUndergroundHeatSystem.Raid)
+        if (WantTurrets && _deployAt == null)
             SetTurrets(true);
 
         var bases = EntityQueryEnumerator<WGUndergroundBaseComponent>();
@@ -96,8 +109,55 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
     /// <summary>Arms the station's turrets or stands them down. A raid keeps them armed either way.</summary>
     public void SetArmed(bool armed)
     {
+        var were = WantTurrets;
         Armed = armed;
-        SetTurrets(armed || _heat.Level == WGUndergroundHeatSystem.Raid);
+        OrderTurrets(were);
+    }
+
+    /// <summary>
+    /// Stands the turrets down at once, or brings them up after a warning to everyone aboard. The turrets can't tell
+    /// a guest from a raider, so the warning is what gives the market truce's guests time to leave.
+    /// </summary>
+    private void OrderTurrets(bool were)
+    {
+        var want = WantTurrets;
+        if (want == were)
+        {
+            if (_deployAt == null)
+                SetTurrets(want);
+            return;
+        }
+
+        if (!want)
+        {
+            _deployAt = null;
+            SetTurrets(false);
+            return;
+        }
+
+        var warning = Math.Max(0f, _cfg.GetCVar(WGUndergroundCVars.TurretWarning));
+        if (warning <= 0)
+        {
+            SetTurrets(true);
+            _heat.TellFaction(Loc.GetString("wg-underground-turrets-armed"), Aboard());
+            return;
+        }
+
+        _deployAt = _timing.CurTime + TimeSpan.FromSeconds(warning);
+        _heat.TellFaction(Loc.GetString("wg-underground-turrets-warning", ("seconds", (int) warning)), Aboard());
+    }
+
+    /// <summary>The station's grids and every ship docked to them.</summary>
+    private HashSet<EntityUid> Aboard()
+    {
+        var aboard = new HashSet<EntityUid>();
+        var bases = EntityQueryEnumerator<WGUndergroundBaseComponent>();
+        while (bases.MoveNext(out var uid, out _))
+        {
+            _shuttle.GetAllDockedShuttlesIgnoringFTLLock(uid, aboard);
+        }
+
+        return aboard;
     }
 
     private void SetTurrets(bool on)
@@ -113,12 +173,27 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
     private void OnHeatChanged(WGUndergroundHeatChangedEvent ev)
     {
         if (ev.Level == WGUndergroundHeatSystem.Raid || ev.Old == WGUndergroundHeatSystem.Raid)
-            SetTurrets(Armed || ev.Level == WGUndergroundHeatSystem.Raid);
+            OrderTurrets(Armed || ev.Old == WGUndergroundHeatSystem.Raid);
+
+        if (ev.Level != WGUndergroundHeatSystem.Raid)
+            return;
+
+        // A raid that opens while the drive is still spooling holds the station where it is, and gives the hour back.
+        var bases = EntityQueryEnumerator<WGUndergroundBaseComponent>();
+        while (bases.MoveNext(out var uid, out var home))
+        {
+            if (!_shuttle.WgAbortFtlSpool(uid))
+                continue;
+
+            home.NextHop = _timing.CurTime;
+            _heat.TellFaction(Loc.GetString("wg-underground-hop-aborted"), Aboard());
+        }
     }
 
     private void OnCleanup(RoundRestartCleanupEvent ev)
     {
         Armed = false;
+        _deployAt = null;
         _nextStep = TimeSpan.Zero;
     }
 
@@ -155,6 +230,17 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
             return false;
         }
 
+        // Nothing is cast off or charged for a jump that has nowhere to go.
+        if (!TryHopDestination(home, xform, out var spot))
+        {
+            refusal = Loc.GetString("wg-underground-hop-nowhere");
+            return false;
+        }
+
+        // Everyone docked is warned, whether or not their ship comes along.
+        var aboard = new HashSet<EntityUid>();
+        _shuttle.GetAllDockedShuttlesIgnoringFTLLock(home, aboard);
+
         // One docked ship that can't jump would hold the whole station back, so it is cast off.
         var docked = new HashSet<EntityUid>();
         _shuttle.GetAllDockedShuttles(home, docked);
@@ -165,7 +251,7 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
         }
 
         var spool = Math.Max(0f, _cfg.GetCVar(WGUndergroundCVars.HopSpool));
-        var target = new EntityCoordinates(map, HopDestination(home, xform));
+        var target = new EntityCoordinates(map, spot);
         _shuttle.FTLToCoordinates(home, shuttle, target, _transform.GetWorldRotation(xform), spool, HopTravelSeconds);
         if (!HasComp<FTLComponent>(home))
         {
@@ -174,12 +260,15 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
         }
 
         home.Comp.NextHop = _timing.CurTime + TimeSpan.FromMinutes(_cfg.GetCVar(WGUndergroundCVars.HopMinutes));
-        _heat.TellFaction(Loc.GetString("wg-underground-hop-told", ("seconds", (int) spool)), docked);
+        _heat.TellFaction(Loc.GetString("wg-underground-hop-told", ("seconds", (int) spool)), aboard);
         return true;
     }
 
-    /// <summary>A place at least a jump's length away, in the station's band of the sector and clear of other grids.</summary>
-    private Vector2 HopDestination(EntityUid home, TransformComponent xform)
+    /// <summary>
+    /// Finds a place at least a jump's length away, in the station's band of the sector and clear of other grids.
+    /// False when the settings leave no such place, or none turned up in the tries allowed.
+    /// </summary>
+    private bool TryHopDestination(EntityUid home, TransformComponent xform, out Vector2 spot)
     {
         var here = _transform.GetWorldPosition(xform);
         var min = Math.Max(0f, _cfg.GetCVar(WGUndergroundCVars.HopMinRange));
@@ -194,32 +283,28 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
                 others.Add(_transform.GetWorldPosition(gridXform));
         }
 
-        Vector2? best = null;
-        var bestGap = -1f;
         for (var i = 0; i < HopTries; i++)
         {
-            var spot = _random.NextAngle().ToVec() * _random.NextFloat(min, max);
+            spot = _random.NextAngle().ToVec() * _random.NextFloat(min, max);
             if ((spot - here).Length() < move)
                 continue;
 
-            var gap = float.MaxValue;
+            var clear = true;
             foreach (var other in others)
             {
-                gap = Math.Min(gap, (other - spot).Length());
+                if ((other - spot).Length() >= HopClearance)
+                    continue;
+
+                clear = false;
+                break;
             }
 
-            if (gap >= HopClearance)
-                return spot;
-
-            if (gap > bestGap)
-            {
-                best = spot;
-                bestGap = gap;
-            }
+            if (clear)
+                return true;
         }
 
-        // Nowhere in the band is far enough: go a jump's length in any direction.
-        return best ?? here + _random.NextAngle().ToVec() * Math.Max(move, HopClearance);
+        spot = default;
+        return false;
     }
 
     /// <summary>Adds a Fugitive slot for every so many players in the round, and never takes one back.</summary>
