@@ -12,6 +12,7 @@ It is led by the [color=purple]Godfather[/color], who has two [color=#d9730d]Fix
 ## Where You Stand
 
 - The [color=cyan]TSFMC[/color] pays a bounty for you [bold]alive[/bold]. They have to make a demand first, and they can only raid the station while your Heat is RAID. You can still invite them to dock and sell to them.
+- [color=#2e9e4f]Safe Zones[/color] protect you like anyone else, except while your Heat is RAID. Don't sell contraband from a ship docked at one. Meet your customers there and send them to the market.
 - The [color=tan]PDV[/color] buys from you and hires you.
 - Civilians are your customers. Invite them to dock and they are under the market truce.
 - The Reavers leave your ships, your crews, and your station alone. That is an arrangement, not an alliance, and what you know about them is yours to sell.
@@ -20,12 +21,22 @@ It is led by the [color=purple]Godfather[/color], who has two [color=#d9730d]Fix
 
 ## Heat
 
-Your PDA shows the Underground's Heat under the war level. Every job the UBM sells pushes the Heat up, and the Heat cools once you have lain low for five minutes.
+Your PDA shows the Underground's Heat under the war level. Heat goes up with what you and the rest of the UBM do:
+
+- A smuggling crate one of you sells at the Drop adds [bold]1[/bold].
+- A load of sealed freight one of you sells to the fence adds [bold]1[/bold].
+- An Underground supply crate one of you sells adds [bold]2[/bold].
+- A TSF or PDV player killed by one of you adds [bold]3[/bold].
+- A member handed in to the TSF takes [bold]2[/bold] off.
+
+The Heat starts to cool once you have lain low for five minutes, and loses 1 every five minutes after that.
 
 - [color=#2e9e4f][bold]QUIET[/bold][/color]: nobody is looking for you.
-- [bold]WATCHED[/bold]: the TSF knows goods are moving.
-- [color=#b8860b][bold]WANTED[/bold][/color]: the TSF gets a bearing to the station every ten minutes. The bearing gives a direction but no distance.
-- [color=#d93c3c][bold]RAID[/bold][/color]: the station's position goes out to the whole sector, and it can be struck for 20 minutes. Its turrets arm themselves. Afterwards the Heat drops to WATCHED and can't reach RAID again for 45 minutes.
+- [bold]WATCHED[/bold] (Heat 3): the TSF knows goods are moving.
+- [color=#b8860b][bold]WANTED[/bold][/color] (Heat 6): the TSF gets a bearing to the station every ten minutes. The bearing gives a direction but no distance.
+- [color=#d93c3c][bold]RAID[/bold][/color] (Heat 10): the station's position goes out to the whole sector, and it can be raided for 20 minutes. Its turrets arm themselves, and Safe Zones stop protecting you from capture until the window closes. Afterwards the Heat drops to WATCHED and can't reach RAID again for 45 minutes.
+
+A sale made by someone outside the UBM adds no Heat and still pays the treasury. A hired courier keeps you quiet, and the price is the courier's cut.
 
 The Godfather can close the market to cool off twice as fast. While it is closed, no market passes go out.
 
@@ -41,7 +52,7 @@ The Underground runs on [color=red]telecrystals[/color], which ship in illegal i
 
 [color=crimson]Underground supply crates[/color] full of deactivated telecrystals are ordered from the station's cargo request console for 20,000 each. Ordering one is quiet. Deactivated telecrystals give off a thermal signature, so don't carry too many.
 
-A crate sold at its destination pays the courier 30,000 and sends ten telecrystals to the UndergroundVend. The TSFMC is informed about the sale as well, so get out quick. Each one sold adds Heat.
+A crate sold at its destination pays the courier 30,000 and sends ten telecrystals to the UndergroundVend. The TSFMC is informed about the sale as well, so get out quick. Each one a member sells adds Heat.
 
 ## The Fence and the Drop
 
@@ -54,7 +65,7 @@ The fence vendor sells [color=crimson]smuggling crates[/color]. Only one station
 
 The fence chute buys freight that still has its manifest seal, such as cargo taken off NPC haulers, at full price and off the books.
 
-Every crate sold at the Drop and every load sold to the fence adds Heat, and pays 5,000 thalers into the Underground's treasury.
+Every crate sold at the Drop and every load sold to the fence pays 5,000 thalers into the Underground's treasury, and adds Heat when one of you makes the sale.
 
 ## The Cargo Console
 

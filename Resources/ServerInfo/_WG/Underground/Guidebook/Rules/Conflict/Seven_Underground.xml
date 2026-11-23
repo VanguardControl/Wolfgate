@@ -7,7 +7,9 @@
 - [color=#d93c3c][bold]Being Underground is not a reason to attack.[/bold][/color] You need an RP reason and escalation, like in any other conflict.
 -- The UBM's dealings with the Reavers are not a reason either.
 
-- [bold]Heat.[/bold] Your PDA shows the Underground's Heat: QUIET, WATCHED, WANTED, or RAID. Heat rises with the jobs the UBM sells and falls when the UBM lies low.
+- [bold]Heat.[/bold] Your PDA shows the Underground's Heat: QUIET, WATCHED, WANTED, or RAID. Heat rises with what the UBM's own members do and falls when the UBM lies low.
+-- Heat rises when a member sells a smuggling crate at the Drop, sells sealed freight to the fence, sells an Underground supply crate, or kills a TSF or PDV player.
+-- A sale made by someone outside the UBM adds no Heat. The UBM can hire couriers to stay quiet, and nobody else can run its Heat up.
 -- The warrant on each member grows with the jobs they sell themself.
 
 - [bold]Wanted means alive.[/bold] The TSF bounty on a Fugitive, a Fixer, or the Godfather is paid for a live prisoner. Make a [textlink="clear demand" link="MonolithRuleConflictThreeFairPlay"] and give them [color=#b8860b][bold]10 seconds[/bold][/color].
@@ -24,8 +26,14 @@
 
 - [bold]The Underground Station is a Faction Outpost.[/bold] It falls under [textlink="Conflict Rule 4" link="MonolithRuleConflictFourPortStriking"], but the war level never opens it. It can only be struck while the Underground's Heat is [color=#d93c3c][bold]RAID[/bold][/color], or with [color=#b8860b]admin permission[/color].
 -- A raid window lasts 20 minutes and is announced to the sector. When it closes, break off and leave.
+-- RAID opens the station, but it is not a reason to attack. The TSF has its bounties. Anyone else still needs an RP reason of their own, or to be hired by someone who has one.
+-- Hail the station on the radio before you fire on it or board it.
+-- A raid is a boarding action. Fight the defenders, make captures, and take what you can carry. Don't shell the station to rubble, and don't camp or wreck its cryo and spawn rooms.
 -- Outside a raid, going aboard to make a capture is a strike. Catch them out in the sector.
--- Don't camp, destroy, or make its cryo and spawn rooms uninhabitable.
+
+- [bold]Safe Zones During a Raid.[/bold] While the Heat is [color=#d93c3c][bold]RAID[/bold][/color], Underground members are not protected by a [textlink="Safe Zone" link="MonolithRuleRoleplaySevenSafeZones"], the same as a player with a command bounty.
+-- It is still a capture for the bounty. Make the demand, take them alive, and keep bystanders out of it.
+-- Protection returns when the raid window closes. A capture already under way can finish.
 
 - [bold]Market Truce.[/bold] Any ship the Underground has invited to dock or given a market pass is a guest, TSF and PDV ships included. Guests and the Underground don't attack each other while the ship is there.
 -- If a guest breaks the truce, the Underground can declare a Vendetta on the radio and attack that crew without further escalation for [color=#b8860b][bold]30 minutes[/bold][/color].

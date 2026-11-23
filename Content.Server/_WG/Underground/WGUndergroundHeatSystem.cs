@@ -20,8 +20,8 @@ using Robust.Shared.Timing;
 namespace Content.Server._WG.Underground;
 
 /// <summary>
-/// The Underground's Heat: one faction-wide level that rises with the jobs it sells, cools when it lies low and opens
-/// a raid window on its station at the top. Also keeps the faction's treasury and its round-end tally.
+/// The Underground's Heat: one faction-wide level that rises with the jobs its members sell, cools when it lies low
+/// and opens a raid window on its station at the top. Also keeps the faction's treasury and its round-end tally.
 /// </summary>
 public sealed partial class WGUndergroundHeatSystem : EntitySystem
 {
@@ -352,9 +352,22 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
     {
         Jobs += jobs;
         Earn(jobs * _cfg.GetCVar(WGUndergroundCVars.TreasuryJob));
-        Add(jobs * points);
+        Add(jobs * points * HeatShare(seller));
         if (seller is { } worker)
             _warrants.Worked(worker, jobs);
+    }
+
+    /// <summary>
+    /// How much of a sale's Heat lands. Only the Underground's own people run it up: a courier's sale adds the outsider
+    /// share, and the TSF and PDV, who gain from a raid, add none whatever that share is set to.
+    /// </summary>
+    public float HeatShare(EntityUid? seller)
+    {
+        if (seller is not { } worker || HasComp<WGUndergroundMemberComponent>(worker))
+            return 1f;
+
+        var family = WGCompanyFamily.Of(CompOrNull<CompanyComponent>(worker)?.CompanyName.Id);
+        return family is "TSF" or "PDV" ? 0f : Math.Clamp(_cfg.GetCVar(WGUndergroundCVars.HeatOutsider), 0f, 1f);
     }
 
     private void OnMobState(MobStateChangedEvent args)

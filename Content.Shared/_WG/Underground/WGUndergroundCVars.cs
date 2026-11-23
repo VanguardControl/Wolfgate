@@ -42,6 +42,10 @@ public sealed class WGUndergroundCVars
     public static readonly CVarDef<float> HeatSupply =
         CVarDef.Create("wg.underground.heat_supply", 2f, CVar.SERVERONLY);
 
+    /// <summary>Share of a job's Heat that lands when someone outside the Underground makes the sale, from 0 to 1.</summary>
+    public static readonly CVarDef<float> HeatOutsider =
+        CVarDef.Create("wg.underground.heat_outsider", 0f, CVar.SERVERONLY);
+
     /// <summary>Heat a TSF or PDV player killed by an Underground member adds.</summary>
     public static readonly CVarDef<float> HeatKill =
         CVarDef.Create("wg.underground.heat_kill", 3f, CVar.SERVERONLY);

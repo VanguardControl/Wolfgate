@@ -4,9 +4,11 @@ The Underground Black Market as a faction: a neutral broker under the Godfather,
 a Heat level that decides when it is hunted and when its station can be struck, and work of its own to do.
 
 **Heat** (`WGUndergroundHeatSystem`) is one faction-wide level, shown on every PDA under the war level: QUIET,
-WATCHED, WANTED and RAID. It rises when smuggling crates sell at the drop, sealed freight sells to the fence, supply
-crates sell at a cargo pallet, or a member kills a TSF or PDV player. It cools after five quiet minutes, twice as fast
-while the Godfather has the market closed. WATCHED and WANTED tell TSF security over the radio, WANTED with a bearing
+WATCHED, WANTED and RAID. It rises when a member sells smuggling crates at the drop, sealed freight to the fence or
+supply crates at a cargo pallet, or kills a TSF or PDV player. A sale by anyone else pays the treasury and adds no
+Heat (`wg.underground.heat_outsider`, never above zero for the TSF and PDV), so a courier keeps the faction quiet and
+its hunters can't run the Heat up. It cools after five quiet minutes, twice as fast while the Godfather has the
+market closed. WATCHED and WANTED tell TSF security over the radio, WANTED with a bearing
 every ten minutes. RAID announces the station's position to the sector and opens a 20 minute window in which it may
 be struck; afterwards Heat drops to WATCHED and can't reach RAID again for 45 minutes. The same system keeps the
 faction's treasury (5,000 thalers a job sold) and the round-end tally.
@@ -130,6 +132,7 @@ pay is the Godfather's payroll verb.
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Nine_CommandingRoles.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Nine_CommandingRoles.xml): the Godfather is a commander
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Seven_SafeZones.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Seven_SafeZones.xml)
   - job bounties and heretic marks are not command bounties
-  - the Underground can trade from its own ship
+  - a raid window lifts the Underground's protection
+  - the Underground gets no contraband exception in a Safe Zone
 
 <!-- WOLFGATE-GENERATED END -->

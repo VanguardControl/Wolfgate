@@ -1,6 +1,8 @@
 #nullable enable
 using System.Linq;
+using System.Collections.Generic;
 using Content.Server._Mono.PDV.Components;
+using Content.Server._WG.CargoSales;
 using Content.Server._WG.Underground;
 using Content.Server.Access.Components;
 using Content.Server.Power.EntitySystems;
@@ -8,6 +10,7 @@ using Content.Shared._Mono.Company;
 using Content.Shared._NF.Contraband.Events;
 using Content.Shared._WG.Newbie;
 using Content.Shared._WG.RoundSetup;
+using Content.Shared._WG.Underground;
 using Content.Shared.Access;
 using Content.Shared.Access.Systems;
 using Content.Shared.Contraband;
@@ -18,6 +21,7 @@ using Content.Shared.Preferences.Loadouts;
 using Content.Shared.Roles;
 using Content.Shared.Turrets;
 using Content.Shared.Verbs;
+using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Localization;
 using Robust.Shared.Map;
@@ -71,6 +75,61 @@ public sealed class WGUndergroundTest
 
             heat.Add(50);
             Assert.That(heat.Level, Is.EqualTo(2), "No second raid window opens straight after the first.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A member's sale adds Heat; a courier's or a marine's sale of the same crate adds none and still pays the treasury.</summary>
+    [Test]
+    public async Task OnlyMembersRaiseHeat()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var heat = server.System<WGUndergroundHeatSystem>();
+        var cfg = server.ResolveDependency<IConfigurationManager>();
+
+        await server.WaitAssertion(() =>
+        {
+            var member = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            entMan.AddComponent<WGUndergroundMemberComponent>(member);
+            var courier = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            var marine = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            entMan.EnsureComponent<CompanyComponent>(marine).CompanyName = "TSF";
+
+            void Sell(EntityUid seller)
+            {
+                var crate = entMan.SpawnEntity("CrateTradeContrabandSecureUnderground", map.GridCoords);
+                var sale = new WGPalletSaleEvent(new HashSet<EntityUid> { crate }, map.Grid, Seller: seller);
+                entMan.EventBus.RaiseEvent(EventSource.Local, ref sale);
+                entMan.DeleteEntity(crate);
+            }
+
+            var quiet = heat.Heat;
+            var treasury = heat.Treasury;
+            var cut = cfg.GetCVar(WGUndergroundCVars.TreasuryJob);
+
+            Sell(courier);
+            Sell(marine);
+            Assert.That(heat.Heat, Is.EqualTo(quiet), "A sale by someone outside the Underground added Heat.");
+            Assert.That(heat.Treasury, Is.EqualTo(treasury + 2 * cut), "A courier's sale didn't pay the treasury.");
+
+            Sell(member);
+            Assert.That(heat.Heat, Is.EqualTo(quiet + cfg.GetCVar(WGUndergroundCVars.HeatSupply)).Within(0.01), "A member's sale didn't add its Heat.");
+
+            // Raising the outsider share never lets the factions that gain from a raid run the Heat up.
+            cfg.SetCVar(WGUndergroundCVars.HeatOutsider, 0.5f);
+            Assert.That(heat.HeatShare(courier), Is.EqualTo(0.5f));
+            Assert.That(heat.HeatShare(marine), Is.EqualTo(0f));
+            Assert.That(heat.HeatShare(member), Is.EqualTo(1f));
+            Assert.That(heat.HeatShare(null), Is.EqualTo(1f), "A sale with no known seller counts as the Underground's.");
+            cfg.SetCVar(WGUndergroundCVars.HeatOutsider, 0f);
+
+            entMan.DeleteEntity(member);
+            entMan.DeleteEntity(courier);
+            entMan.DeleteEntity(marine);
         });
 
         await pair.CleanReturnAsync();
