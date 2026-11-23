@@ -169,10 +169,20 @@ public sealed partial class GuidebookWindow
         return button;
     }
 
+    /// <summary>Opens a result and moves the highlight to it, leaving the list in place.</summary>
     private void WGOpen(ProtoId<GuideEntryPrototype> id)
     {
         HandleClick(id.Id);
-        WGRefreshSearch();
+        for (var i = 0; i < _wgShown.Count && i < _wgResults.ChildCount; i++)
+        {
+            if (_wgResults.GetChild(i) is not ContainerButton row)
+                continue;
+
+            if (_wgShown[i] == LastEntry)
+                row.AddStyleClass(TreeItem.StyleClassSelected);
+            else
+                row.RemoveStyleClass(TreeItem.StyleClassSelected);
+        }
     }
 
     /// <summary>A page's text with markup and tags taken out, read once.</summary>
