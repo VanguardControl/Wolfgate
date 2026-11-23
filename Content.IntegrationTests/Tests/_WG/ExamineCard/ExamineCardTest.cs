@@ -350,18 +350,18 @@ public sealed class ExamineCardTest
             Assert.That(portraits, Has.Count.EqualTo(1), "the adult headshot gets a portrait");
 
             var portrait = portraits[0];
-            Control? panel = portrait;
-            while (panel?.Parent is { } parent && parent is not ExamineSideColumn)
+            Control panel = portrait;
+            while (panel.Parent is { } parent && parent is not ExamineSideColumn)
                 panel = parent;
 
             Assert.Multiple(() =>
             {
-                Assert.That(panel?.Parent, Is.InstanceOf<ExamineSideColumn>(), "it sits beside the card, not in its photo frame");
+                Assert.That(panel.Parent, Is.InstanceOf<ExamineSideColumn>(), "it sits beside the card, not in its photo frame");
                 Assert.That(portrait.Texture, Is.Null, "the image hasn't arrived");
             });
 
             // The open state is kept between examines, so compare with how it started.
-            var wasOpen = panel!.Visible;
+            var wasOpen = panel.Visible;
             hearts[0].Toggle();
             Assert.That(panel.Visible, Is.EqualTo(!wasOpen), "the heart opens and closes the adult panel");
             hearts[0].Toggle();
