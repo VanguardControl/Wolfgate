@@ -416,6 +416,8 @@ public sealed class AsteroidMiningTest
             marker = em.SpawnEntity("WGAsteroidClusterRock", new EntityCoordinates(mapUid, ShipPos));
             var cluster = em.GetComponent<WGAsteroidClusterComponent>(marker);
             cluster.RareChance = 0f;
+            // The chance also grows with distance from the sector centre, and the cluster sits 200 m out.
+            cluster.RareChancePerKm = 0f;
             budget = cluster.Mass;
         });
         await server.WaitRunTicks(10); // Rocks spawn a few per tick.
