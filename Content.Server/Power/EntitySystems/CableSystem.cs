@@ -74,6 +74,9 @@ public sealed partial class CableSystem : EntitySystem
 
         // This entity should not be un-anchorable. But this can happen if the grid-tile is deleted (RCD, explosion,
         // etc). In that case: behave as if the cable had been cut.
+        if (WGDeferCut(uid, args.Transform)) // WOLFGATE(EngineCompat): a grid split re-anchors through an unanchor since engine v292
+            return;
+
         Spawn(cable.CableDroppedOnCutPrototype, Transform(uid).Coordinates);
         QueueDel(uid);
     }

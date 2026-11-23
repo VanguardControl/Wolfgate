@@ -54,7 +54,6 @@ public abstract partial class SharedVentCrawlingSystem : EntitySystem
         SubscribeLocalEvent<VentExitComponent, VentExitDoafterEvent>(OnVentExitDoafter);
 
         SubscribeLocalEvent<VentCrawlableComponent, MapInitEvent>(OnVentDuctInit);
-        SubscribeLocalEvent<VentCrawlableComponent, ReAnchorEvent>(OnVentReanchor);
         SubscribeLocalEvent<VentCrawlableComponent, MoveEvent>(OnVentDuctMove);
         SubscribeLocalEvent<VentCrawlableComponent, AnchorStateChangedEvent>(OnVentAnchorChanged);
         // WOLFGATE: RMC empties destroyed containers through RMCStorageSystem, which isn't ported; destruction empties the vent instead
@@ -102,7 +101,10 @@ public abstract partial class SharedVentCrawlingSystem : EntitySystem
         Dirty(vent);
     }
 
-    private void OnVentReanchor(Entity<VentCrawlableComponent> vent, ref ReAnchorEvent args)
+    /// <summary>
+    /// Takes the travel direction from the original again; the move a re-anchor raises has turned it once more.
+    /// </summary>
+    private void ResetTravelDirection(Entity<VentCrawlableComponent> vent)
     {
         if (_net.IsClient)
             return;
@@ -126,6 +128,10 @@ public abstract partial class SharedVentCrawlingSystem : EntitySystem
     private void OnVentAnchorChanged(Entity<VentCrawlableComponent> vent, ref AnchorStateChangedEvent args)
     {
         EmptyVent(vent);
+
+        // Since engine v292 a grid split re-anchors through these events instead of a ReAnchorEvent.
+        if (args.Anchored)
+            ResetTravelDirection(vent);
     }
 
     private void OnVentDestroyed(EntityUid vent, VentCrawlableComponent comp, DestructionEventArgs args)

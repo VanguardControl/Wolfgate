@@ -286,7 +286,7 @@ public sealed class WGAiCoreTest
             var console = entMan.SpawnEntity("TSFOverwatchComputer", map.GridCoords);
             var view = new BoundUserInterfaceMessageAttempt(brain, console, OverwatchUiKey.Key,
                 new OverwatchViewCameraMessage(NetEntity.Invalid));
-            entMan.EventBus.RaiseLocalEvent(console, view);
+            entMan.EventBus.RaiseLocalEvent(console, ref view);
             Assert.That(view.Cancelled, Is.False, "An AI was refused an overwatch camera.");
             Assert.That(entMan.TryGetComponent<WGAiOverwatchEyeComponent>(eye, out var marker) && marker.Ai == brain,
                 "The AI's remote eye wasn't marked while it watches.");

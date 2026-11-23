@@ -127,8 +127,9 @@ public sealed partial class MappingToolsSystem
     }
 
     /// <summary>
-    /// Puts an entity at a pose. Anchored entities moving along their grid stay anchored, since unanchoring makes
-    /// cables cut themselves and pipes drop off their network.
+    /// Puts an entity at a pose. Anchored entities moving along their grid are re-anchored in one call, which raises
+    /// the unanchor and anchor events node networks and airtightness use; cables wait a tick before cutting
+    /// themselves and stay whole.
     /// </summary>
     private void MoveEntity(EntityUid uid, MappingPose pose)
     {
@@ -139,17 +140,9 @@ public sealed partial class MappingToolsSystem
             var oldCell = _map.LocalToTile(pose.Parent, grid, xform.Coordinates);
             var newCell = _map.LocalToTile(pose.Parent, grid, new EntityCoordinates(pose.Parent, pose.Position));
             if (oldCell != newCell)
-            {
-                // Already anchored, so re-anchoring at the new cell raises no anchor change.
-                _map.RemoveFromSnapGridCell(pose.Parent, grid, oldCell, uid);
                 _transform.AnchorEntity((uid, xform), (pose.Parent, grid), newCell);
-            }
 
             _transform.SetLocalRotation(uid, pose.Rotation, xform);
-
-            // Lets node networks, airtightness and the like drop the old cell and pick up the new one.
-            var ev = new ReAnchorEvent(uid, pose.Parent, pose.Parent, newCell, xform);
-            RaiseLocalEvent(uid, ref ev);
             return;
         }
 

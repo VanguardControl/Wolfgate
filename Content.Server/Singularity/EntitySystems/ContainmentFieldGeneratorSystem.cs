@@ -33,7 +33,7 @@ public sealed partial class ContainmentFieldGeneratorSystem : EntitySystem
         SubscribeLocalEvent<ContainmentFieldGeneratorComponent, ExaminedEvent>(OnExamine);
         SubscribeLocalEvent<ContainmentFieldGeneratorComponent, ActivateInWorldEvent>(OnActivate);
         SubscribeLocalEvent<ContainmentFieldGeneratorComponent, AnchorStateChangedEvent>(OnAnchorChanged);
-        SubscribeLocalEvent<ContainmentFieldGeneratorComponent, ReAnchorEvent>(OnReanchorEvent);
+        // SubscribeLocalEvent<ContainmentFieldGeneratorComponent, ReAnchorEvent>(OnReanchorEvent); // WOLFGATE(EngineCompat): engine v292 removed ReAnchorEvent (wizden#45353)
         SubscribeLocalEvent<ContainmentFieldGeneratorComponent, UnanchorAttemptEvent>(OnUnanchorAttempt);
         SubscribeLocalEvent<ContainmentFieldGeneratorComponent, ComponentRemove>(OnComponentRemoved);
         SubscribeLocalEvent<ContainmentFieldGeneratorComponent, EventHorizonAttemptConsumeEntityEvent>(PreventBreach);
@@ -114,12 +114,18 @@ public sealed partial class ContainmentFieldGeneratorSystem : EntitySystem
     {
         if (!args.Anchored)
             RemoveConnections(generator);
+        // WOLFGATE(EngineCompat) START: engine v292 removed ReAnchorEvent (wizden#45353)
+        else
+            GridCheck(generator);
+        // WOLFGATE END
     }
 
-    private void OnReanchorEvent(Entity<ContainmentFieldGeneratorComponent> generator, ref ReAnchorEvent args)
-    {
-        GridCheck(generator);
-    }
+    // WOLFGATE(EngineCompat) START: engine v292 removed ReAnchorEvent (wizden#45353)
+    // private void OnReanchorEvent(Entity<ContainmentFieldGeneratorComponent> generator, ref ReAnchorEvent args)
+    // {
+    //     GridCheck(generator);
+    // }
+    // WOLFGATE END
 
     private void OnUnanchorAttempt(EntityUid uid, ContainmentFieldGeneratorComponent component,
         UnanchorAttemptEvent args)
