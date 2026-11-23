@@ -88,6 +88,9 @@ public sealed partial class ModSuitSystem
 
     private void UpdateDeployQueues()
     {
+        if (_net.IsClient)
+            return;
+
         var now = _timing.CurTime;
         var query = EntityQueryEnumerator<ModSuitComponent>();
         while (query.MoveNext(out var uid, out var comp))
@@ -115,7 +118,7 @@ public sealed partial class ModSuitSystem
             {
                 comp.DeployQueue.Clear();
                 if (!comp.DeployQueueRetracting)
-                    _popup.PopupClient(Loc.GetString("modsuit-deploy-failed"), wearer, wearer);
+                    _popup.PopupEntity(Loc.GetString("modsuit-deploy-failed"), wearer, wearer);
             }
 
             comp.NextDeployStep = now + comp.DeployStepTime;
@@ -146,6 +149,15 @@ public sealed partial class ModSuitSystem
         if (ent.Comp.State is not (ModSuitState.Inactive or ModSuitState.Active))
         {
             PopupFail(ent, user, "modsuit-deactivate-first");
+            return false;
+        }
+
+        if (slot == OuterClothingSlot
+            && _inventory.TryGetSlotEntity(wearer, slot, out var wornOuter)
+            && _tags.HasTag(wornOuter.Value, "Hardsuit"))
+        {
+            if (user != null && !silent)
+                _popup.PopupClient(Loc.GetString("modsuit-hardsuit-too-thick"), ent, user.Value);
             return false;
         }
 
