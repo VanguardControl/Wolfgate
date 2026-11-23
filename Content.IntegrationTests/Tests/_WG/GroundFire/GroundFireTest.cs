@@ -161,6 +161,7 @@ public sealed class GroundFireTest
             Assert.That(groundFires.CanSpread(At(10)), Is.True, "A fire ten tiles off starts a line of its own.");
         });
 
+        await PutOut(pair, ground);
         await pair.CleanReturnAsync();
     }
 
@@ -195,7 +196,27 @@ public sealed class GroundFireTest
                 "Every fire past the planet's limit must be refused, even when lit in one tick.");
         });
 
+        await PutOut(pair, ground);
         await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Deletes the fires left on a ground, so the pooled server hands the next test none.</summary>
+    private static async Task PutOut(TestPair pair, EntityUid ground)
+    {
+        var entMan = pair.Server.EntMan;
+        await pair.Server.WaitPost(() =>
+        {
+            var lit = new List<EntityUid>();
+            var query = entMan.EntityQueryEnumerator<ESTileFireComponent, TransformComponent>();
+            while (query.MoveNext(out var uid, out _, out var xform))
+            {
+                if (xform.GridUid == ground)
+                    lit.Add(uid);
+            }
+
+            foreach (var uid in lit)
+                entMan.DeleteEntity(uid);
+        });
     }
 
     /// <summary>The smoke, missing oxygen and heat a ground fire leaves in a tracked tile go when it ends.</summary>
@@ -227,7 +248,8 @@ public sealed class GroundFireTest
         await server.WaitPost(() =>
         {
             Assert.That(fires.TryDoTileFire(new EntityCoordinates(ground, 2.5f, 2.5f)), Is.True);
-            fire = entMan.EntityQuery<ESTileFireComponent>().First().Owner;
+            fire = entMan.EntityQuery<ESTileFireComponent>()
+                .First(f => entMan.GetComponent<TransformComponent>(f.Owner).GridUid == ground).Owner;
         });
 
         await server.WaitRunTicks(pair.SecondsToTicks(4f));
