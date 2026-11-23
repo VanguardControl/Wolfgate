@@ -1,6 +1,6 @@
 #Author: Gooorn (Discord)
 - type: vessel
-  id: WGUBMExcelsior
+  id: WGExcelsior
   parent: BaseVessel
   name: 'UBM Excelsior'
   description: 'A sleek transport shuttle with an elegant backroom for all your executive needs, furbished with dispensers, a drinks cabinet and a RealLeather™ long sofa! Lightly armed and armored, with both a basic FTL drive and a shield.'
@@ -8,7 +8,7 @@
   category: Small # 234 tiles
   group: Syndicate # Underground
   access: Underground
-  shuttlePath: /SharedMaps/_WG/Shipyard/Shuttles/ubm_excelsior.yml
+  shuttlePath: /SharedMaps/_WG/Shipyard/Shuttles/excelsior.yml
   guidebookPage: null
   class:
   - Fighter
@@ -18,16 +18,16 @@
   - Uranium
 
 - type: gameMap
-  id: WGUBMExcelsior
+  id: WGExcelsior
   mapName: 'UBM Excelsior'
-  mapPath: /SharedMaps/_WG/Shipyard/Shuttles/ubm_excelsior.yml
+  mapPath: /SharedMaps/_WG/Shipyard/Shuttles/excelsior.yml
   minPlayers: 0
   stations:
-    WGUBMExcelsior:
+    WGExcelsior:
       stationProto: StandardFrontierVessel
       components:
       - type: StationNameSetup
-        mapNameTemplate: 'UBM Excelsior {1}'
+        mapNameTemplate: 'Excelsior UBM{1}'
         nameGenerator:
           !type:NanotrasenNameGenerator
           prefixCreator: '14'

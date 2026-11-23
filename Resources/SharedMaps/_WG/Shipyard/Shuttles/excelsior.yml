@@ -5853,7 +5853,7 @@ entities:
     - type: MetaData
       name: UBM Excelsior -464
     - type: ExtraShuttleInformation
-      vessel: WGUBMExcelsior
+      vessel: WGExcelsior
     - type: StationData
       grids:
       - 1

@@ -8837,3 +8837,172 @@ Entries:
   id: 100565
   time: '2026-11-23T00:38:13.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/806
+- author: ImogenOC
+  changes:
+    - type: Fix
+      message: >-
+        Cleanbots and other NPCs now path around railings, fences and barricades
+        instead of getting stuck on them.
+  id: 100566
+  time: '2026-11-23T01:49:51.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/810
+- author: ImogenOC
+  changes:
+    - type: Add
+      message: >-
+        Cyborgs have eight encryption key slots. Unlock the cyborg and open its
+        panel to install keys, which add to its built-in radio channels.
+  id: 100567
+  time: '2026-11-23T02:05:25.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/766
+- author: ImogenOC
+  changes:
+    - type: Fix
+      message: >-
+        Guns fired from the pilot's cockpit no longer stop working after a brief
+        loss of the seat or piloting.
+    - type: Tweak
+      message: >-
+        Fires on planet ground no longer keep spreading as new sparks or blasts
+        land beside them, and each planet can only have so many burning at once.
+  id: 100568
+  time: '2026-11-23T03:31:03.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/813
+- author: ImogenOC
+  changes:
+    - type: Tweak
+      message: >-
+        Admins skip request cooldowns (boombox, ship PA, distress, hailing,
+        feedback, Unstick me, respawn timer, comms console, news, fax, holopad
+        broadcast, bounty posting) and chat rate limits, and respawn without the
+        rules window.
+    - type: Fix
+      message: >-
+        Hovering over a manifested admin and moving off them no longer turns the
+        screen black.
+    - type: Fix
+      message: >-
+        A planet wreck that gets back to space is a ship again, not planet
+        ground.
+    - type: Add
+      message: Admin alerts about an entity have a follow link in chat.
+    - type: Fix
+      message: >-
+        Unstick me frees players wedged against hull armor out in space, and
+        searches up to 10 tiles for room.
+  id: 100569
+  time: '2026-11-23T03:32:27.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/809
+- author: ImogenOC
+  changes:
+    - type: Tweak
+      message: >-
+        LAPC substations now add their full 60 kW of supply at once instead of
+        15 kW, so a big machine switching on no longer blacks out the rest of
+        the room.
+    - type: Add
+      message: >-
+        Better capacitors raise an LAPC's supply, up to 210 kW with bluespace
+        capacitors.
+    - type: Add
+      message: Guidebook page for LAPC substations, under Engineering > Power.
+  id: 100570
+  time: '2026-11-23T03:39:44.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/808
+- author: DriftingSkies
+  changes:
+    - type: Tweak
+      message: >-
+        Replaced the ambient music in the inner, middle and outer rings, the
+        Outer Cloud and the beacon clusters with new tracks.
+  id: 100571
+  time: '2026-11-23T09:00:02.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/792
+- author: ImogenOC
+  changes:
+    - type: Add
+      message: >-
+        You can give your character a second, adult headshot from the Anatomy
+        tab. It shows with your adult description on the examine card, to the
+        same people who can read it.
+  id: 100572
+  time: '2026-11-23T09:06:53.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/811
+- author: Balls2zawall
+  changes:
+    - type: Tweak
+      message: >-
+        Xenonids disarmfailchance has gone from 0 to 0.35, they generally stun
+        anywhere from 2-6 shoves now depending on luck, instead of 1 like
+        previously
+    - type: Tweak
+      message: >-
+        Queen screech stun has gone from 8 seconds to 5, and the cooldown
+        increased to 4.5 minutes
+    - type: Fix
+      message: Xenonids can no longer 'weh'
+    - type: Fix
+      message: Xenonids now respect gravity and do the space doggy paddle like chimera
+  id: 100573
+  time: '2026-11-23T09:34:42.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/798
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        Empty space chunks nobody has visited for ten minutes are cleaned up, so
+        long rounds hold fewer entities.
+    - type: Tweak
+      message: >-
+        Footsteps, gunshots, casings and bullet hits are sent to players in a
+        lighter way. They should sound the same.
+  id: 100574
+  time: '2026-11-23T09:48:46.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/804
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Players waiting in the join queue can play Freedoom and Freedoom Phase
+        2.
+    - type: Tweak
+      message: >-
+        The moproach on the connect and queue screens asks for spills, and
+        clicking the floor makes a mess it rushes to mop up.
+  id: 100575
+  time: '2026-11-23T11:36:15.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/818
+- author: Balls2zawall
+  changes:
+    - type: Remove
+      message: >-
+        Removed the Skipjack as it wasn't able to be acquired and was added
+        mistakenly.
+    - type: Fix
+      message: Removed a duplicate Vrakrititat ship file.
+    - type: Fix
+      message: changed the Lurker's prefix to a postfix on IFF.
+    - type: Fix
+      message: changed the Excelsior's prefix to a postfix on IFF.
+    - type: Fix
+      message: >-
+        The Viscount's LV wiring has been pathed properly and avoids the walls
+        where it can.
+    - type: Fix
+      message: >-
+        Fixed the mapname for the PDV Foxtrot-II, it should have the proper name
+        on the shipyard now.
+    - type: Fix
+      message: >-
+        Added missing latejoin spawners to the Venom, Leviathan, Lancehead, and
+        Keelback. VG group members shouldn't spawn outside their ships when
+        starting as crew now.
+    - type: Fix
+      message: Fixes a loose distro pipe in anvilhold's atrium area.
+    - type: Tweak
+      message: >-
+        Gives the guppy an m12 mining laser to do some rock bottom asteroid
+        mining and increases its price accordingly.
+  id: 100576
+  time: '2026-11-23T12:21:54.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/807
