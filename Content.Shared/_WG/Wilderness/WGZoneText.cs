@@ -1,6 +1,6 @@
 namespace Content.Shared._WG.Wilderness;
 
-/// <summary>A zone's title and summary as shown, given the war level, who may fight and who staying marks.</summary>
+/// <summary>A zone's title and summary as shown, given the war level and who staying marks.</summary>
 public static class WGZoneText
 {
     public static string Title(WGZonePrototype zone, bool hot)
@@ -8,10 +8,10 @@ public static class WGZoneText
         return Loc.GetString(hot && zone.HotTitle is { } title ? title : zone.Title);
     }
 
-    public static string Summary(WGZonePrototype zone, bool hot, bool openToAll, bool onFoot)
+    public static string Summary(WGZonePrototype zone, bool hot, bool onFoot)
     {
         var key = hot && zone.HotSummary is { } summary ? summary : zone.Summary;
-        return Loc.GetString(key, ("open", openToAll ? "yes" : "no"), ("onfoot", onFoot ? "yes" : "no"));
+        return Loc.GetString(key, ("onfoot", onFoot ? "yes" : "no"));
     }
 
     /// <summary>"9:42" for a span, never negative.</summary>

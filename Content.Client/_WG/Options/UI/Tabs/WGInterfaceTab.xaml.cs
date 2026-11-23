@@ -49,6 +49,10 @@ public sealed partial class WGInterfaceTab : Control
         Control.AddOptionDropDown(WildernessCVars.Banner, WildernessBannerDropDown, zoneShow);
         Control.AddOptionDropDown(WildernessCVars.Titles, WildernessTitlesDropDown, zoneShow);
         Control.AddOptionDropDown(WildernessCVars.Sounds, WildernessSoundsDropDown, zoneShow);
+        foreach (var dropDown in new[] { WildernessBannerDropDown, WildernessTitlesDropDown, WildernessSoundsDropDown })
+        {
+            dropDown.Button.ToolTip = Loc.GetString("ui-options-wg-wilderness-danger-tooltip");
+        }
         Control.AddOptionDropDown(WildernessCVars.ScreenBorder, WildernessBorderDropDown, new List<OptionDropDownCVar<string>.ValueOption>
         {
             new(WildernessCVars.BorderWilderness, Loc.GetString("ui-options-wg-wilderness-border-wilderness")),

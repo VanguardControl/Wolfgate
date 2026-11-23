@@ -268,8 +268,7 @@ public sealed partial class WGZoneSystem
         var minutes = _skullLength.TotalMinutes;
         var message = Loc.GetString(key,
             ("ship", HasComp<MapGridComponent>(carrier) ? "yes" : "no"),
-            ("minutes", minutes),
-            ("open", _cfg.GetCVar(WildernessCVars.OpenToAll) ? "yes" : "no"));
+            ("minutes", minutes));
 
         if (TryComp<ActorComponent>(carrier, out var actor))
         {

@@ -25,8 +25,9 @@ Ships and people carry their own Wilderness mark, `WGSkullComponent`:
   console in the last minute, for the full time, at once. `FireControlSystem` reports each order through `NoteAim`;
   only a gun that then takes a shot (`GunShotEvent`) counts, so guns cooling down, empty or locked don't.
 
-A marked ship or person has no protection anywhere, Safe Zone included. `wg.wilderness.open_to_all` says whether anyone
-or only TSF and PDV may fight there. The guidebook's `<WGWildernessRule/>` writes the settings into the rules.
+A Wilderness is a PvP zone for everyone: anyone may fight anyone there without escalation, whatever their faction. A
+marked ship or person has no protection anywhere, Safe Zone included. The guidebook's `<WGWildernessRule/>` writes the
+mark's settings into the rules as guidebook bullets.
 
 The client (`WGZoneHudSystem`) shows a one-line pill under the top menu (zone, place, mark state) that opens to explain
 the zone for a few seconds on entering danger or under the cursor, and opens the rule when clicked; a title and a sound
@@ -149,8 +150,9 @@ The zone icons are built by `Tools/_WG/Wilderness/make_icons.py` from the radar 
 - [`Resources/Prototypes/Alerts/alerts.yml`](../../../Resources/Prototypes/Alerts/alerts.yml): the zone you're in sits high, where it is seen
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/One_RandomDeathmatch.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/One_RandomDeathmatch.xml)
   - conflict zones are Wildernesses, with the mark
-  - who may fight and the mark follow the server's settings
+  - the PvP rule, and the mark with the server's timings
   - was "The fight stays there. Do not hunt them down once they leave."
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml): the zones page, otherwise only reachable from other rules
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Seven_SafeZones.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Seven_SafeZones.xml)
   - Caelestinus Central is the Safe Zone; Medical Dispatch no longer spawns
   - the on-screen zone banner

@@ -341,10 +341,9 @@ public sealed class WGZoneHudSystem : EntitySystem
 
         banner.HoldOpen = _openFor > 0f;
 
-        var open = _cfg.GetCVar(WildernessCVars.OpenToAll);
         if (zone != null && inZone != null)
         {
-            var summary = WGZoneText.Summary(zone, inZone.Hot, open, _cfg.GetCVar(WildernessCVars.SkullOnFoot));
+            var summary = WGZoneText.Summary(zone, inZone.Hot, _cfg.GetCVar(WildernessCVars.SkullOnFoot));
             if (skull != null && zone.Kind == WGZoneKind.Safe)
                 summary = Loc.GetString("wg-zone-banner-overridden");
 

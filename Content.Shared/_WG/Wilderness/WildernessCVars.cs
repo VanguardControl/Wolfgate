@@ -6,10 +6,6 @@ namespace Content.Shared._WG.Wilderness;
 [CVarDefs]
 public sealed class WildernessCVars
 {
-    /// <summary>Whether anyone may fight anyone in a Wilderness, and engage a marked ship, without escalation. Off: TSF and PDV only.</summary>
-    public static readonly CVarDef<bool> OpenToAll =
-        CVarDef.Create("wg.wilderness.open_to_all", false, CVar.SERVER | CVar.REPLICATED);
-
     /// <summary>
     /// Whether staying in a Wilderness marks someone not aboard a ship. Off: only ships are marked for staying; people
     /// are still marked by flying with a marked ship or pilot, or by attacking into a Wilderness.

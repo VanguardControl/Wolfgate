@@ -38,6 +38,8 @@ public sealed partial class GuidebookWindow : FancyWindow, ILinkClickHandler
         {
             HandleFilter();
         };
+
+        WGInitSearch(); // WOLFGATE(GuidebookSearch): a search bar over the contents tree
     }
 
     public void HandleClick(string link)
@@ -110,6 +112,7 @@ public sealed partial class GuidebookWindow : FancyWindow, ILinkClickHandler
         _entries = entries;
         RepopulateTree(rootEntries, forceRoot);
         ClearSelectedGuide();
+        WGRefreshSearch(); // WOLFGATE(GuidebookSearch): search the new set of pages
 
         Split.State = SplitContainer.SplitState.Auto;
         if (entries.Count == 1)

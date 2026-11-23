@@ -231,7 +231,7 @@ public sealed partial class WGZoneSystem : EntitySystem
         Dirty(mob, current);
 
         if (WantsZoneChat(session) && Due(session, $"{zone.ID}/{place}"))
-            Tell(session, Loc.GetString(zone.Entered, ("place", place), ("summary", WGZoneText.Summary(zone, hot, _cfg.GetCVar(WildernessCVars.OpenToAll), _onFoot))), zone.Color);
+            Tell(session, Loc.GetString(zone.Entered, ("place", place), ("summary", WGZoneText.Summary(zone, hot, _onFoot))), zone.Color);
     }
 
     /// <summary>Whether the player wants a chat line on entering or leaving a zone.</summary>

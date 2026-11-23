@@ -15,10 +15,7 @@ wg-zone-outpost-left = You left the outpost zone of {$place}.
 wg-zone-outpost-ring = OUTPOST
 
 wg-zone-wilderness-title = WILDERNESS: NO PROTECTION
-wg-zone-wilderness-summary = { $open ->
-    [yes] Anyone may attack anyone here without escalation.
-   *[no] TSF and PDV may fight here without escalation; everyone else still needs it.
-} { $onfoot ->
+wg-zone-wilderness-summary = A PvP zone: anyone may attack anyone here without escalation. { $onfoot ->
     [yes] Stay and you are marked.
    *[no] Ships that stay are marked.
 }
@@ -40,10 +37,7 @@ wg-zone-chat-wrap = [color={$color}][bold]{$message}[/bold][/color]
 wg-zone-skull-marked = { $ship ->
     [yes] Your ship is now MARKED.
    *[no] You are now MARKED.
-} { $open ->
-    [yes] Anyone
-   *[no] TSF and PDV
-} may engage { $ship ->
+} Anyone may engage { $ship ->
     [yes] it
    *[no] you
 } without escalation, anywhere, Safe Zone included, until the mark runs out, {$minutes} minutes after you leave the Wilderness.
@@ -58,30 +52,21 @@ wg-zone-skull-expired = { $ship ->
 wg-zone-skull-inherited = { $ship ->
     [yes] Your ship is now MARKED: its pilot is.
    *[no] You took the helm of a MARKED ship, and are MARKED with it.
-} { $open ->
-    [yes] Anyone
-   *[no] TSF and PDV
-} may engage { $ship ->
+} Anyone may engage { $ship ->
     [yes] it
    *[no] you
 } without escalation, anywhere, Safe Zone included, until the mark runs out.
 wg-zone-skull-attacked = { $ship ->
     [yes] Your ship is now MARKED
    *[no] You are now MARKED
-} for attacking a ship in a Wilderness from outside it. { $open ->
-    [yes] Anyone
-   *[no] TSF and PDV
-} may engage { $ship ->
+} for attacking a ship in a Wilderness from outside it. Anyone may engage { $ship ->
     [yes] it
    *[no] you
 } without escalation, anywhere, Safe Zone included, for {$minutes} minutes.
 wg-zone-skull-staff-marked = Staff have MARKED { $ship ->
     [yes] your ship
    *[no] you
-}. { $open ->
-    [yes] Anyone
-   *[no] TSF and PDV
-} may engage { $ship ->
+}. Anyone may engage { $ship ->
     [yes] it
    *[no] you
 } without escalation, anywhere, Safe Zone included, until the mark runs out, {$minutes} minutes after you leave the Wilderness.
@@ -92,10 +77,7 @@ wg-zone-skull-staff-cleared = Staff have cleared { $ship ->
 wg-zone-skull-staff-standing = Staff have given { $ship ->
     [yes] your ship
    *[no] you
-} a STANDING MARK. { $open ->
-    [yes] Anyone
-   *[no] TSF and PDV
-} may engage { $ship ->
+} a STANDING MARK. Anyone may engage { $ship ->
     [yes] it
    *[no] you
 } without escalation, anywhere, Safe Zone included. It does not run out: it lasts until staff clear it, or until { $ship ->
@@ -155,7 +137,7 @@ wg-alert-zone-safe-desc = Policy protects you here: no theft, no unprovoked atta
 wg-alert-zone-outpost-name = Faction outpost
 wg-alert-zone-outpost-desc = Within 256 m of a faction outpost: protected from port strikes while the war is COLD, open to them while it is HOT.
 wg-alert-zone-wilderness-name = Wilderness
-wg-alert-zone-wilderness-desc = No policy protection. Who may fight here without escalation is in the Wilderness rules in the guidebook. Staying marks a ship, and on some servers a person on foot; while it is counting, the sweep over this icon shows when.
+wg-alert-zone-wilderness-desc = A PvP zone with no policy protection: anyone may attack anyone here without escalation. Staying marks a ship, and on some servers a person on foot; while it is counting, the sweep over this icon shows when.
 wg-alert-zone-notsafe-name = Not a Safe Zone
 wg-alert-zone-notsafe-desc = This station is not a Safe Zone. Ordinary rules and escalation apply.
 wg-alert-marked-name = Marked
@@ -164,23 +146,20 @@ wg-alert-marked-desc = You, or your ship, are marked: for staying in a Wildernes
 ## Guidebook
 
 guide-entry-wg-wilderness = Zones and the Wilderness
-wg-wilderness-rule-who = { $open ->
-    [yes] -- [bold]Anyone may fight anyone[/bold] in a Wilderness without escalation.
-   *[no] -- [bold]TSF and PDV may fight each other[/bold] in a Wilderness without escalation, even while COLD. Everyone else still needs escalation.
-}
+wg-wilderness-rule-who = -- A Wilderness is a [color=#d93c3c][bold]PvP zone for everyone[/bold][/color]: anyone may fight anyone there without escalation, whatever their faction, even while COLD.
 wg-wilderness-rule-mark = { $onfoot ->
     [yes] -- A ship, or a person not aboard one,
    *[no] -- A ship
-} that stays [bold]{$seconds} seconds[/bold] in a Wilderness is [color=#d93c3c][bold]marked[/bold][/color]: a skull on every radar, and over a marked person's head. The mark holds while it stays and runs out [bold]{$minutes} minutes[/bold] after it leaves. Those who may fight in a Wilderness may engage a marked ship or person [bold]anywhere, Safe Zone included[/bold], until then.
+} that stays [bold]{$seconds} seconds[/bold] in a Wilderness is [color=#d93c3c][bold]marked[/bold][/color]: a skull on every radar, and over a marked person's head. The mark holds while it stays and runs out [bold]{$minutes} minutes[/bold] after it leaves. Anyone may engage a marked ship or person [bold]anywhere, Safe Zone included[/bold], until then.
 wg-wilderness-rule-pilot = -- A ship and the people aboard carry their own marks. A marked pilot marks the ship they fly, and a marked ship marks whoever takes its helm, with the time the mark has left.
 wg-wilderness-rule-attack = -- Damaging a ship in a Wilderness from outside one marks you, and the ship you fire from, for [bold]{$minutes} minutes[/bold].
 wg-wilderness-rule-permanent = -- A character with the [bold]Marked for Life[/bold] trait carries the mark always: it never runs out and outlasts death. A ship they fly is marked while they fly it.
-wg-wilderness-rule-standing =-- Staff can give a ship or person a [color=#d93c3c][bold]standing mark[/bold][/color]. It never runs out: it lasts until staff clear it, the person dies or the ship is destroyed. A pilot flying a ship with one, or the ship a pilot with one flies, is marked for as long as they fly together.
+wg-wilderness-rule-standing = -- Staff can give a ship or person a [color=#d93c3c][bold]standing mark[/bold][/color]. It never runs out: it lasts until staff clear it, the person dies or the ship is destroyed. A pilot flying a ship with one, or the ship a pilot with one flies, is marked for as long as they fly together.
 
 ## Trait
 
 trait-wg-marked-for-life-name = Marked for Life
-trait-wg-marked-for-life-desc = You carry the Wilderness mark always, from the moment you arrive: a skull over your head and on every radar, and no protection anywhere, Safe Zone included. Those who may fight in a Wilderness may engage you without escalation wherever you are. It never runs out and outlasts death, and a ship you fly is marked while you fly it. Only staff can clear it.
+trait-wg-marked-for-life-desc = You carry the Wilderness mark always, from the moment you arrive: a skull over your head and on every radar, and no protection anywhere, Safe Zone included. Anyone may engage you without escalation wherever you are. It never runs out and outlasts death, and a ship you fly is marked while you fly it. Only staff can clear it.
 
 ## Options
 
@@ -190,7 +169,8 @@ ui-options-wg-wilderness-titles = Title on crossing a zone edge
 ui-options-wg-wilderness-sounds = Zone sounds
 ui-options-wg-wilderness-border = Coloured screen border
 ui-options-wg-wilderness-always = In every zone
-ui-options-wg-wilderness-danger = Only where you can be attacked (Wilderness, outpost at war, marked)
+ui-options-wg-wilderness-danger = Only where you can be attacked
+ui-options-wg-wilderness-danger-tooltip = Where you can be attacked: in a Wilderness, near an outpost at war, or anywhere while you are marked.
 ui-options-wg-wilderness-off = Off
 ui-options-wg-wilderness-border-wilderness = In a Wilderness and while marked
 ui-options-wg-wilderness-border-marked = Only while marked

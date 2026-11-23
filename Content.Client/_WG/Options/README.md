@@ -41,6 +41,7 @@ the query to `KeybindSearch`, which also matches a bound key exactly (typing `W`
 - [`Content.Client/_WG/Options/OptionsMenu.Wolfgate.cs`](OptionsMenu.Wolfgate.cs)
 - [`Content.Client/_WG/Options/OptionsSearch.cs`](OptionsSearch.cs)
 - [`Content.Client/_WG/Options/Ss13KeybindPreset.cs`](Ss13KeybindPreset.cs)
+- [`Content.Client/_WG/Options/UI/OptionDropDown.Fit.cs`](UI/OptionDropDown.Fit.cs)
 - [`Content.Client/_WG/Options/UI/Tabs/WGAccessibilityTab.xaml`](UI/Tabs/WGAccessibilityTab.xaml)
 - [`Content.Client/_WG/Options/UI/Tabs/WGAccessibilityTab.xaml.cs`](UI/Tabs/WGAccessibilityTab.xaml.cs)
 - [`Content.Client/_WG/Options/UI/Tabs/WGAudioTab.xaml`](UI/Tabs/WGAudioTab.xaml)
