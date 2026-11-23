@@ -142,7 +142,11 @@ public sealed partial class WGMappingIssuesSystem
             if (!pipes.TryGetValue(key, out var onLayer))
                 pipes[key] = onLayer = new List<(EntityUid, PipeDirection)>();
 
-            onLayer.Add((uid, pipe.CurrentPipeDirection));
+            // From the rotation itself: a pipe with connections off keeps stale directions after a mapping-tool turn.
+            var sides = pipe.RotationsEnabled
+                ? pipe.OriginalPipeDirection.RotatePipeDirection(Transform(uid).LocalRotation)
+                : pipe.OriginalPipeDirection;
+            onLayer.Add((uid, sides));
         }
 
         return found;

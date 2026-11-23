@@ -130,7 +130,8 @@ public sealed partial class WGMappingTestSystem : EntitySystem
             return;
         }
 
-        test.Appraisal = (int) Math.Round(_pricing.AppraiseGrid(ship));
+        // Testers aboard aren't part of the ship.
+        test.Appraisal = (int) Math.Round(_pricing.AppraiseGrid(ship, uid => !HasComp<WGMappingTesterComponent>(uid)));
         foreach (var (user, tester) in test.Testers)
         {
             ShowAppraisal(tester.Mob, test);
