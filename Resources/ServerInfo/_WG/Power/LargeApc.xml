@@ -10,7 +10,7 @@
   </Box>
 
   ## What it does
-  The LAPC takes power straight from [color=orange]High Voltage[/color] cable and feeds [color=green]Low Voltage[/color] cable, with no substation in between. It can supply [color=green]60 kW[/color] and add all of it at once, so a large machine switching on doesn't brown out the rest of the room. It stores 150 kJ.
+  The LAPC takes power straight from [color=orange]High Voltage[/color] cable and feeds [color=green]Low Voltage[/color] cable, with no substation in between. It can supply [color=green]60 kW[/color] and add all of it at once, so a large machine switching on doesn't brown out the rest of the room, as long as everything on it together stays within that supply and the HV network has the power to feed it. It stores 150 kJ.
 
   ## Building one
   Put [color=#a4885c]APC electronics[/color] into a machine frame instead of building a wall APC. The frame needs:
