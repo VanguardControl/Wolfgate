@@ -182,6 +182,55 @@ public sealed class WGMappingIssuesTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>
+    /// Any two walls on a tile are doubles, as are pipes on one layer whose openings overlap; directional windows on
+    /// different edges of one tile are not.
+    /// </summary>
+    [Test]
+    public async Task DoublesCoverWallsAndPipes()
+    {
+        await using var pair = await PoolManager.GetServerClient(Settings);
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var mapping = entMan.System<WGMappingModeSystem>();
+        var issues = entMan.System<WGMappingIssuesSystem>();
+        var mapSys = entMan.System<MapSystem>();
+        var xformSys = entMan.System<SharedTransformSystem>();
+        var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
+        await Enable(pair);
+        var a = (await AddMappers(pair, 1))[0];
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(mapping.TryCreateSession(a, "Issues Doubles", out var created), Is.True);
+            var session = created!;
+            var grid = MakeGrid(entMan, mapSys, tileDefs, session.RootMap, 4, 2);
+
+            entMan.SpawnEntity("WallSolid", new EntityCoordinates(grid, 0.5f, 0.5f));
+            var reinforced = entMan.SpawnEntity("WallReinforced", new EntityCoordinates(grid, 0.5f, 0.5f));
+
+            // A straight pipe (north-south) and a bend (south-west) share the south opening on layer one.
+            entMan.SpawnEntity("GasPipeStraight", new EntityCoordinates(grid, 1.5f, 0.5f));
+            var bend = entMan.SpawnEntity("GasPipeBend", new EntityCoordinates(grid, 1.5f, 0.5f));
+
+            entMan.SpawnEntity("WindowDirectional", new EntityCoordinates(grid, 2.5f, 0.5f));
+            var east = entMan.SpawnEntity("WindowDirectional", new EntityCoordinates(grid, 2.5f, 0.5f));
+            xformSys.SetLocalRotation(east, Angle.FromDegrees(90));
+
+            var found = issues.Check(session, WGMappingIssueScope.Map);
+            Assert.That(Ids(found), Is.EqualTo(new[] { WGMappingIssueCatalog.MapDoubled, WGMappingIssueCatalog.MapDoubled }),
+                "A wall over a reinforced wall and two overlapping pipes are doubles; windows on two edges aren't.");
+            Assert.That(found.Select(issue => issue.Where?.Position),
+                Is.EquivalentTo(new Vector2?[] { new Vector2(0.5f, 0.5f), new Vector2(1.5f, 0.5f) }));
+
+            entMan.DeleteEntity(reinforced);
+            entMan.DeleteEntity(bend);
+            Assert.That(issues.Check(session, WGMappingIssueScope.Map), Is.Empty, "Erasing the extras clears them.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     [Test]
     public async Task MapRulesFindWrongPlacements()
     {
