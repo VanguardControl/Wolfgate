@@ -394,6 +394,12 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
 
     private void OnCleanup(RoundRestartCleanupEvent ev)
     {
+        Reset();
+    }
+
+    /// <summary>Puts the Heat, the treasury and the round's tally back to how a round starts.</summary>
+    public void Reset()
+    {
         Heat = 0;
         Level = 0;
         Closed = false;

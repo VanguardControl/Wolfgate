@@ -50,6 +50,8 @@ public sealed class WGUndergroundTest
 
         await server.WaitAssertion(() =>
         {
+            // The Heat belongs to the server, not the map, so a pooled pair can still hold another test's.
+            heat.Reset();
             var now = timing.CurTime;
             Assert.That(heat.Level, Is.EqualTo(0));
             Assert.That(heat.PdaLine(), Is.Null, "A round with no Underground station shows no Heat line.");
@@ -77,6 +79,7 @@ public sealed class WGUndergroundTest
 
             heat.Add(50);
             Assert.That(heat.Level, Is.EqualTo(2), "No second raid window opens straight after the first.");
+            heat.Reset();
         });
 
         await pair.CleanReturnAsync();
@@ -109,6 +112,7 @@ public sealed class WGUndergroundTest
                 entMan.DeleteEntity(crate);
             }
 
+            heat.Reset();
             var quiet = heat.Heat;
             var treasury = heat.Treasury;
             var cut = cfg.GetCVar(WGUndergroundCVars.TreasuryJob);
@@ -128,6 +132,7 @@ public sealed class WGUndergroundTest
             Assert.That(heat.HeatShare(member), Is.EqualTo(1f));
             Assert.That(heat.HeatShare(null), Is.EqualTo(1f), "A sale with no known seller counts as the Underground's.");
             cfg.SetCVar(WGUndergroundCVars.HeatOutsider, 0f);
+            heat.Reset();
 
             entMan.DeleteEntity(member);
             entMan.DeleteEntity(courier);
@@ -156,6 +161,7 @@ public sealed class WGUndergroundTest
             var home = entMan.AddComponent<WGUndergroundBaseComponent>(grid);
             var from = xforms.GetWorldPosition(grid);
 
+            heat.Reset();
             heat.Add(100);
             Assert.That(heat.RaidEnds, Is.Not.Null);
             Assert.That(station.TryHop((grid, home), out var refusal), Is.False, "The station jumped out of a raid.");
@@ -175,6 +181,7 @@ public sealed class WGUndergroundTest
 
             home.NextHop = TimeSpan.Zero;
             Assert.That(station.CanHop((grid, home), out _), "The station can't jump once its hour is up.");
+            heat.Reset();
         });
 
         await pair.CleanReturnAsync();
