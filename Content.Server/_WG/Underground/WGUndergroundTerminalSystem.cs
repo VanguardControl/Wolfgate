@@ -22,7 +22,7 @@ namespace Content.Server._WG.Underground;
 
 /// <summary>
 /// The Underground's faction business, run from its cargo console's verbs: market passes, bail, payroll, closing the
-/// market, arming the turrets and declaring a vendetta.
+/// market, arming the turrets, jumping the station and declaring a vendetta.
 /// </summary>
 public sealed partial class WGUndergroundTerminalSystem : EntitySystem
 {
@@ -162,6 +162,22 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
             },
         });
 
+        if (Transform(ent).GridUid is { } station && TryComp<WGUndergroundBaseComponent>(station, out var found))
+        {
+            var home = new Entity<WGUndergroundBaseComponent>(station, found);
+            args.Verbs.Add(new AlternativeVerb
+            {
+                Text = Loc.GetString("wg-underground-verb-hop"),
+                Priority = priority--,
+                ConfirmationPopup = true,
+                Act = () =>
+                {
+                    if (Boss())
+                        Hop(ent, user, home);
+                },
+            });
+        }
+
         foreach (var ship in NearbyShips(ent))
         {
             if (UnderVendetta(ship))
@@ -281,6 +297,17 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
         _heat.Earn(unpaid * each);
         _heat.TellFaction(Loc.GetString("wg-underground-payroll-paid", ("amount", each), ("count", crew.Count - unpaid)));
         _adminLog.Add(LogType.Action, LogImpact.Low, $"{ToPrettyString(user):player} paid {crew.Count - unpaid} Underground members {each} each from the treasury");
+    }
+
+    private void Hop(EntityUid terminal, EntityUid user, Entity<WGUndergroundBaseComponent> home)
+    {
+        if (!_base.TryHop(home, out var refusal))
+        {
+            _popup.PopupEntity(refusal, terminal, user);
+            return;
+        }
+
+        _adminLog.Add(LogType.Action, LogImpact.Medium, $"{ToPrettyString(user):player} jumped the Underground's station");
     }
 
     private void DeclareVendetta(EntityUid user, EntityUid ship)

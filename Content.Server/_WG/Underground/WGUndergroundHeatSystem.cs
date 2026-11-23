@@ -11,6 +11,8 @@ using Content.Shared.GameTicking;
 using Content.Shared.Mobs;
 using Content.Shared.Radio;
 using Content.Shared.Radio.Components;
+using Content.Shared.Shuttles.Components;
+using Content.Shared.Shuttles.Systems;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
@@ -196,15 +198,18 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
         };
     }
 
-    /// <summary>Tells everyone flying the Underground's company.</summary>
-    public void TellFaction(string message)
+    /// <summary>Tells everyone flying the Underground's company, and anyone standing on the given grids.</summary>
+    public void TellFaction(string message, HashSet<EntityUid>? aboard = null)
     {
         var filter = Filter.Empty();
-        var players = EntityQueryEnumerator<ActorComponent, CompanyComponent>();
-        while (players.MoveNext(out _, out var actor, out var company))
+        var players = EntityQueryEnumerator<ActorComponent, TransformComponent>();
+        while (players.MoveNext(out var uid, out var actor, out var xform))
         {
-            if (company.CompanyName.Id == Company)
+            if (CompOrNull<CompanyComponent>(uid)?.CompanyName.Id == Company
+                || aboard != null && xform.GridUid is { } grid && aboard.Contains(grid))
+            {
                 filter.AddPlayer(actor.PlayerSession);
+            }
         }
 
         if (filter.Count > 0)
@@ -295,8 +300,12 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
     private System.Numerics.Vector2? StationPosition()
     {
         var bases = EntityQueryEnumerator<WGUndergroundBaseComponent, TransformComponent>();
-        while (bases.MoveNext(out _, out _, out var xform))
+        while (bases.MoveNext(out var uid, out _, out var xform))
         {
+            // Mid-jump the station is off the map, so this is where it will come out.
+            if (TryComp<FTLComponent>(uid, out var ftl) && ftl.State is FTLState.Travelling or FTLState.Arriving)
+                return _transform.ToMapCoordinates(ftl.TargetCoordinates).Position;
+
             return _transform.GetWorldPosition(xform);
         }
 

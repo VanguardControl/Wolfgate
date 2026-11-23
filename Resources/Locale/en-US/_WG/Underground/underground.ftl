@@ -40,6 +40,11 @@ wg-heretic-marked-popup = The Sultanate has marked you a heretic.
 wg-underground-safehouse-name = Underground Safehouse
 wg-underground-turrets-armed = The station's turrets are armed. They fire on anyone without our access.
 wg-underground-turrets-down = The station's turrets are standing down.
+wg-underground-hop-told = The Godfather is moving the station. It jumps in {$seconds} seconds. Get aboard, or cast off if you are not coming.
+wg-underground-hop-wait = The jump drive is recharging. It is ready in {$minutes} minutes.
+wg-underground-hop-raid = The station can't jump while a raid window is open.
+wg-underground-hop-jumping = The station is already jumping.
+wg-underground-hop-failed = The jump drive won't engage.
 
 # The cargo console's verbs
 wg-underground-verb-status = Faction status
@@ -50,6 +55,7 @@ wg-underground-verb-close = Close the market
 wg-underground-verb-arm = Arm the turrets
 wg-underground-verb-disarm = Stand the turrets down
 wg-underground-verb-payroll = Pay the crew ({$amount} thalers each)
+wg-underground-verb-hop = Jump the station
 wg-underground-verb-vendetta = Declare a vendetta on {$ship}
 
 wg-underground-status = Heat: {$level}. Treasury: {$treasury} thalers. The market is {$market}.

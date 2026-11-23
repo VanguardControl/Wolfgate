@@ -30,6 +30,7 @@
 -- Hail the station on the radio before you fire on it or board it.
 -- A raid is a boarding action. Fight the defenders, make captures, and take what you can carry. Don't shell the station to rubble, and don't camp or wreck its cryo and spawn rooms.
 -- Outside a raid, going aboard to make a capture is a strike. Catch them out in the sector.
+-- The Godfather can jump the station to a new place once an hour, but never while a raid window is open.
 
 - [bold]Safe Zones During a Raid.[/bold] While the Heat is [color=#d93c3c][bold]RAID[/bold][/color], Underground members are not protected by a [textlink="Safe Zone" link="MonolithRuleRoleplaySevenSafeZones"], the same as a player with a command bounty.
 -- It is still a capture for the bounty. Make the demand, take them alive, and keep bystanders out of it.

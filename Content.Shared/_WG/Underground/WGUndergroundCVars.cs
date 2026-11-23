@@ -110,6 +110,26 @@ public sealed class WGUndergroundCVars
     public static readonly CVarDef<float> SafehouseMax =
         CVarDef.Create("wg.underground.safehouse_max", 9000f, CVar.SERVERONLY);
 
+    /// <summary>Minutes between the station's jumps. Zero turns jumping off.</summary>
+    public static readonly CVarDef<float> HopMinutes =
+        CVarDef.Create("wg.underground.hop_minutes", 60f, CVar.SERVERONLY);
+
+    /// <summary>Seconds of warning before the station jumps.</summary>
+    public static readonly CVarDef<float> HopSpool =
+        CVarDef.Create("wg.underground.hop_spool", 60f, CVar.SERVERONLY);
+
+    /// <summary>Nearest the station jumps to the middle of the sector, in metres.</summary>
+    public static readonly CVarDef<float> HopMinRange =
+        CVarDef.Create("wg.underground.hop_min_range", 18000f, CVar.SERVERONLY);
+
+    /// <summary>Farthest the station jumps from the middle of the sector, in metres.</summary>
+    public static readonly CVarDef<float> HopMaxRange =
+        CVarDef.Create("wg.underground.hop_max_range", 25000f, CVar.SERVERONLY);
+
+    /// <summary>The least distance a jump moves the station, in metres.</summary>
+    public static readonly CVarDef<float> HopMove =
+        CVarDef.Create("wg.underground.hop_move", 10000f, CVar.SERVERONLY);
+
     /// <summary>Minutes a declared vendetta lasts.</summary>
     public static readonly CVarDef<float> VendettaMinutes =
         CVarDef.Create("wg.underground.vendetta_minutes", 30f, CVar.SERVERONLY);

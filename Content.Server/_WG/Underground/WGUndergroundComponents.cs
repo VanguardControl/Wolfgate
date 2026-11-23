@@ -88,4 +88,8 @@ public sealed partial class WGUndergroundBaseComponent : Component
     /// <summary>Fugitive slots the population has added so far.</summary>
     [ViewVariables]
     public int BonusSlots;
+
+    /// <summary>When the station can jump again.</summary>
+    [ViewVariables]
+    public TimeSpan NextHop;
 }

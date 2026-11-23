@@ -6,6 +6,7 @@ using Content.Server._WG.CargoSales;
 using Content.Server._WG.Underground;
 using Content.Server.Access.Components;
 using Content.Server.Power.EntitySystems;
+using Content.Server.Shuttles.Systems;
 using Content.Shared._Mono.Company;
 using Content.Shared._NF.Contraband.Events;
 using Content.Shared._WG.Newbie;
@@ -19,6 +20,7 @@ using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Preferences.Loadouts;
 using Content.Shared.Roles;
+using Content.Shared.Shuttles.Components;
 using Content.Shared.Turrets;
 using Content.Shared.Verbs;
 using Robust.Shared.Configuration;
@@ -130,6 +132,49 @@ public sealed class WGUndergroundTest
             entMan.DeleteEntity(member);
             entMan.DeleteEntity(courier);
             entMan.DeleteEntity(marine);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>The station jumps to a new place in its band, then not again for an hour, and never while a raid window is open.</summary>
+    [Test]
+    public async Task StationHopsOnceAnHourAndNotInARaid()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var heat = server.System<WGUndergroundHeatSystem>();
+        var station = server.System<WGUndergroundBaseSystem>();
+        var xforms = server.System<SharedTransformSystem>();
+        var cfg = server.ResolveDependency<IConfigurationManager>();
+
+        await server.WaitAssertion(() =>
+        {
+            var grid = map.Grid.Owner;
+            var home = entMan.AddComponent<WGUndergroundBaseComponent>(grid);
+            var from = xforms.GetWorldPosition(grid);
+
+            heat.Add(100);
+            Assert.That(heat.RaidEnds, Is.Not.Null);
+            Assert.That(station.TryHop((grid, home), out var refusal), Is.False, "The station jumped out of a raid.");
+            Assert.That(refusal, Is.EqualTo(Loc.GetString("wg-underground-hop-raid")));
+            heat.Tick(heat.RaidEnds!.Value);
+
+            Assert.That(station.TryHop((grid, home), out refusal), Is.True, refusal);
+            Assert.That(entMan.TryGetComponent<FTLComponent>(grid, out var ftl), "The station didn't start its jump.");
+            var target = xforms.ToMapCoordinates(ftl!.TargetCoordinates).Position;
+            Assert.That(target.Length(), Is.InRange(cfg.GetCVar(WGUndergroundCVars.HopMinRange), cfg.GetCVar(WGUndergroundCVars.HopMaxRange)));
+            Assert.That((target - from).Length(), Is.GreaterThanOrEqualTo(cfg.GetCVar(WGUndergroundCVars.HopMove)));
+
+            // The hour runs from the jump, whatever became of it.
+            Assert.That(server.System<ShuttleSystem>().WgAbortFtlSpool(grid));
+            Assert.That(station.TryHop((grid, home), out refusal), Is.False, "The station jumped twice in an hour.");
+            Assert.That(refusal, Is.EqualTo(Loc.GetString("wg-underground-hop-wait", ("minutes", 60))));
+
+            home.NextHop = TimeSpan.Zero;
+            Assert.That(station.CanHop((grid, home), out _), "The station can't jump once its hour is up.");
         });
 
         await pair.CleanReturnAsync();

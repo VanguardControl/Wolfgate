@@ -1,3 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
+using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Systems;
 using Content.Server.Station.Systems;
 using Content.Shared._Mono.Company;
@@ -10,6 +13,8 @@ using Content.Shared.Turrets;
 using Robust.Server.Player;
 using Robust.Shared.Configuration;
 using Robust.Shared.EntitySerialization.Systems;
+using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
@@ -27,6 +32,7 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
     [Dependency] private IPlayerManager _players = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private DockingSystem _dock = default!;
     [Dependency] private MapLoaderSystem _mapLoader = default!;
     [Dependency] private SharedDeployableTurretSystem _turrets = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
@@ -37,6 +43,14 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
 
     private const string ScaledJob = "Fugitive";
     private static readonly TimeSpan Step = TimeSpan.FromSeconds(10);
+
+    /// <summary>Seconds a jump spends off the map.</summary>
+    private const float HopTravelSeconds = 30f;
+
+    /// <summary>How far a jump's arrival point keeps from every other grid, in metres.</summary>
+    private const float HopClearance = 2000f;
+
+    private const int HopTries = 30;
 
     /// <summary>Whether the Godfather has armed the turrets outside a raid.</summary>
     public bool Armed { get; private set; }
@@ -106,6 +120,106 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
     {
         Armed = false;
         _nextStep = TimeSpan.Zero;
+    }
+
+    /// <summary>Whether the station can jump now, with the reason for the Godfather when it can't.</summary>
+    public bool CanHop(Entity<WGUndergroundBaseComponent> home, [NotNullWhen(false)] out string? refusal)
+    {
+        refusal = null;
+        var now = _timing.CurTime;
+        if (_cfg.GetCVar(WGUndergroundCVars.HopMinutes) <= 0 || !HasComp<ShuttleComponent>(home))
+            refusal = Loc.GetString("wg-underground-hop-failed");
+        else if (HasComp<FTLComponent>(home))
+            refusal = Loc.GetString("wg-underground-hop-jumping");
+        else if (_heat.RaidEnds != null)
+            refusal = Loc.GetString("wg-underground-hop-raid");
+        else if (now < home.Comp.NextHop)
+            refusal = Loc.GetString("wg-underground-hop-wait", ("minutes", (int) Math.Ceiling((home.Comp.NextHop - now).TotalMinutes)));
+
+        return refusal == null;
+    }
+
+    /// <summary>
+    /// Jumps the station to a new place in its band of the sector, after a warning to everyone aboard. Ships docked
+    /// with their FTL lock on come along; the safehouse stays where it is.
+    /// </summary>
+    public bool TryHop(Entity<WGUndergroundBaseComponent> home, [NotNullWhen(false)] out string? refusal)
+    {
+        if (!CanHop(home, out refusal))
+            return false;
+
+        var xform = Transform(home);
+        if (!TryComp<ShuttleComponent>(home, out var shuttle) || xform.MapUid is not { } map)
+        {
+            refusal = Loc.GetString("wg-underground-hop-failed");
+            return false;
+        }
+
+        // One docked ship that can't jump would hold the whole station back, so it is cast off.
+        var docked = new HashSet<EntityUid>();
+        _shuttle.GetAllDockedShuttles(home, docked);
+        foreach (var ship in docked)
+        {
+            if (ship != home.Owner && !_shuttle.CanFTL(ship, out _))
+                _dock.UndockDocks(ship);
+        }
+
+        var spool = Math.Max(0f, _cfg.GetCVar(WGUndergroundCVars.HopSpool));
+        var target = new EntityCoordinates(map, HopDestination(home, xform));
+        _shuttle.FTLToCoordinates(home, shuttle, target, _transform.GetWorldRotation(xform), spool, HopTravelSeconds);
+        if (!HasComp<FTLComponent>(home))
+        {
+            refusal = Loc.GetString("wg-underground-hop-failed");
+            return false;
+        }
+
+        home.Comp.NextHop = _timing.CurTime + TimeSpan.FromMinutes(_cfg.GetCVar(WGUndergroundCVars.HopMinutes));
+        _heat.TellFaction(Loc.GetString("wg-underground-hop-told", ("seconds", (int) spool)), docked);
+        return true;
+    }
+
+    /// <summary>A place at least a jump's length away, in the station's band of the sector and clear of other grids.</summary>
+    private Vector2 HopDestination(EntityUid home, TransformComponent xform)
+    {
+        var here = _transform.GetWorldPosition(xform);
+        var min = Math.Max(0f, _cfg.GetCVar(WGUndergroundCVars.HopMinRange));
+        var max = Math.Max(min, _cfg.GetCVar(WGUndergroundCVars.HopMaxRange));
+        var move = _cfg.GetCVar(WGUndergroundCVars.HopMove);
+
+        var others = new List<Vector2>();
+        var grids = EntityQueryEnumerator<MapGridComponent, TransformComponent>();
+        while (grids.MoveNext(out var uid, out _, out var gridXform))
+        {
+            if (uid != home && gridXform.MapUid == xform.MapUid)
+                others.Add(_transform.GetWorldPosition(gridXform));
+        }
+
+        Vector2? best = null;
+        var bestGap = -1f;
+        for (var i = 0; i < HopTries; i++)
+        {
+            var spot = _random.NextAngle().ToVec() * _random.NextFloat(min, max);
+            if ((spot - here).Length() < move)
+                continue;
+
+            var gap = float.MaxValue;
+            foreach (var other in others)
+            {
+                gap = Math.Min(gap, (other - spot).Length());
+            }
+
+            if (gap >= HopClearance)
+                return spot;
+
+            if (gap > bestGap)
+            {
+                best = spot;
+                bestGap = gap;
+            }
+        }
+
+        // Nowhere in the band is far enough: go a jump's length in any direction.
+        return best ?? here + _random.NextAngle().ToVec() * Math.Max(move, HopClearance);
     }
 
     /// <summary>Adds a Fugitive slot for every so many players in the round, and never takes one back.</summary>

@@ -78,9 +78,19 @@ Alt-click the station's cargo request console to run the faction's business.
 
 - Anyone in the Underground can read the Heat and the treasury.
 - [color=#d9730d]Fixers[/color] and the [color=purple]Godfather[/color] issue [bold]market passes[/bold] and pay [bold]bail[/bold] from the treasury.
-- The [color=purple]Godfather[/color] opens and closes the market, arms the turrets, pays the crew, and declares a Vendetta on a ship near the station.
+- The [color=purple]Godfather[/color] opens and closes the market, arms the turrets, pays the crew, jumps the station, and declares a Vendetta on a ship near the station.
 
 A market pass points its holder at the station for 30 minutes. Hand one to a customer you want to dock. The Underground's contact on Caelestinus Central sells them too.
+
+## Moving the Station
+
+The station has a jump drive. Once an hour the [color=purple]Godfather[/color] can jump it to a new place in the [color=orange]Outer Cloud[/color] from the cargo console.
+
+- Everyone aboard and everyone in a docked ship gets a minute's warning.
+- Docked ships with their FTL lock on come along. The rest are cast off.
+- The safehouse stays where it is. Market passes keep pointing at the station.
+- The drive won't fire while a raid window is open.
+- A jump doesn't cool the Heat. While you are WANTED, the TSF's next bearing points at the new place.
 
 ## The Safehouse
 
