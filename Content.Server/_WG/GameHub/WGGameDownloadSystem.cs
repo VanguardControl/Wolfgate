@@ -89,8 +89,15 @@ public sealed partial class WGGameDownloadSystem : EntitySystem
 
     private void OnDownloadRequest(string id, ICommonSession session)
     {
-        if (!_protos.TryIndex<WGGamePrototype>(id, out var game) || !_active.Add(session.UserId))
+        if (!_protos.TryIndex<WGGamePrototype>(id, out var game))
             return;
+
+        // One download per player at a time. Refuse the other out loud, or the client waits on it for good.
+        if (!_active.Add(session.UserId))
+        {
+            _net.ServerSendMessage(Failed(game.ID), session.Channel);
+            return;
+        }
 
         Send(session, game);
     }
