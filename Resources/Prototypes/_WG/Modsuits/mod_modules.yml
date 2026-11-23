@@ -722,7 +722,7 @@
   parent: BaseModsuitModuleDevice
   id: ModsuitModuleInjector
   name: MOD injector module
-  description: A module installed into the wrist of the suit, this functions as a high-capacity hypopen, with a tip fine enough to locate the emergency injection ports on any suit of armor.
+  description: A module installed into the wrist of the suit, this functions as a high-capacity hypospray, with a tip fine enough to locate the emergency injection ports on any suit of armor.
   components:
   - type: Sprite
     state: injector
@@ -1136,10 +1136,10 @@
     device: ModsuitDeviceJanitorMister
 
 - type: entity
-  parent: Hypopen
+  parent: Hypospray
   id: ModsuitDeviceInjector
   name: MOD injector
-  description: A high-capacity hypopen extending from the suit's wrist.
+  description: A high-capacity hypospray extending from the suit's wrist.
   categories: [ HideSpawnMenu ]
   components:
   - type: PhysicalComposition
