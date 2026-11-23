@@ -1,22 +1,28 @@
+using Content.Client._WG.DoomArcade;
+using Content.Client._WG.GameHub;
 using Content.Client._WG.JoinProgress;
+using Content.Client.Launcher;
 using Content.Client._WG.Stylesheets;
 using Content.Client.Parallax;
 using Content.Client.Stylesheets;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._WG.CCVar;
+using Content.Shared._WG.GameHub;
 using Content.Shared._WG.JoinQueue;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Configuration;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Client._WG.JoinQueue;
 
 /// <summary>
 /// The join queue as the player sees it, in the join console's terminal look: how full the server is, their place,
-/// how long they have waited and roughly how long is left.
+/// how long they have waited and roughly how long is left. Freedoom and Freedoom Phase 2 can be played while waiting, and
+/// the moproach from the connect screen keeps them company.
 /// </summary>
 public sealed class JoinQueueScreen : Control
 {
@@ -37,6 +43,7 @@ public sealed class JoinQueueScreen : Control
 
     private float _timer;
     private int _notesHold = -1;
+    private DoomArcadeWindow? _arcade;
 
     public event Action? LeavePressed;
 
@@ -48,6 +55,7 @@ public sealed class JoinQueueScreen : Control
 
         LayoutContainer.SetAnchorPreset(this, LayoutContainer.LayoutPreset.Wide);
         AddChild(new ParallaxControl());
+        AddChild(new SymphonyMoproach());
 
         var leave = new Button
         {
@@ -67,6 +75,12 @@ public sealed class JoinQueueScreen : Control
         AddDivider(rows);
         _notes = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
         rows.AddChild(_notes);
+        AddDivider(rows);
+        rows.AddChild(new Label { Text = Loc.GetString("join-queue-arcade"), FontColorOverride = _style.Done });
+        var arcade = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, Align = BoxContainer.AlignMode.Center };
+        arcade.AddChild(ArcadeButton(WGGameHubSystem.DoomGame));
+        arcade.AddChild(ArcadeButton(WGGameHubSystem.Doom2Game));
+        rows.AddChild(arcade);
 
         var window = new Control
         {
@@ -116,6 +130,23 @@ public sealed class JoinQueueScreen : Control
     {
         base.ExitedTree();
         _queue.Updated -= Refresh;
+        // Let in or gone: the game was only for the wait.
+        _arcade?.Close();
+    }
+
+    private Button ArcadeButton(string game)
+    {
+        var name = Loc.GetString(IoCManager.Resolve<IPrototypeManager>().Index<WGGamePrototype>(game).Name);
+        var button = new Button { Text = Loc.GetString("join-queue-arcade-play", ("game", name)), Margin = new Thickness(4, 4) };
+        button.OnPressed += _ =>
+        {
+            _arcade?.Close();
+            _arcade = new DoomArcadeWindow();
+            _arcade.OnClose += () => _arcade = null;
+            _arcade.OpenCentered();
+            _arcade.Begin(null, game);
+        };
+        return button;
     }
 
     protected override void FrameUpdate(FrameEventArgs args)
