@@ -8837,3 +8837,21 @@ Entries:
   id: 100565
   time: '2026-11-23T00:38:13.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/806
+- author: ImogenOC
+  changes:
+    - type: Fix
+      message: >-
+        Cleanbots and other NPCs now path around railings, fences and barricades
+        instead of getting stuck on them.
+  id: 100566
+  time: '2026-11-23T01:49:51.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/810
+- author: ImogenOC
+  changes:
+    - type: Add
+      message: >-
+        Cyborgs have eight encryption key slots. Unlock the cyborg and open its
+        panel to install keys, which add to its built-in radio channels.
+  id: 100567
+  time: '2026-11-23T02:05:25.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/766
