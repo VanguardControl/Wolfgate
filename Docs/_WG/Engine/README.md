@@ -74,6 +74,7 @@ None.
 
 ## Non-modular edits
 
+- [`.github/workflows/wg-modules.yml`](../../../.github/workflows/wg-modules.yml): fails while the engine gitlink is not a commit on the Lupine branch .gitmodules names
 - [`.gitmodules`](../../../.gitmodules): The engine submodule points at the Lupine fork (branch wolfgate/v295) instead of space-wizards.
 - [`BuildChecker/git_helper.py`](../../../BuildChecker/git_helper.py): pick up the Lupine URL in clones made before the submodule moved off space-wizards
 
