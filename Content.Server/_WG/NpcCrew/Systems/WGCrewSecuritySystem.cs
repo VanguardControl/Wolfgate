@@ -92,7 +92,7 @@ public sealed partial class WGCrewSecuritySystem : EntitySystem
             return false;
         if (!TryComp<NpcFactionMemberComponent>(visitor, out var theirs) || !TryComp<NpcFactionMemberComponent>(crew, out var ours))
             return true;
-        return !theirs.HostileFactions.Overlaps(ours.Factions) && !ours.HostileFactions.Overlaps(theirs.Factions);
+        return !_factions.IsMemberOfAny(crew, theirs.HostileFactions) && !_factions.IsMemberOfAny(visitor, ours.HostileFactions);
     }
 
     /// <summary>Every station AI core's remote body.</summary>

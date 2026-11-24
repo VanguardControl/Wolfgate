@@ -33,6 +33,7 @@ public sealed class WGCrewReadinessSystem : EntitySystem
     [Dependency] private WGCrewSystem _crew = default!;
     [Dependency] private WGCrewBarkSystem _barks = default!;
 
+    private static readonly ProtoId<ShipAlertCodePrototype> Green = "WGShipCodeGreen";
     private static readonly ProtoId<ShipAlertCodePrototype> Yellow = "WGShipCodeYellow";
     private static readonly ProtoId<ShipAlertCodePrototype> Red = "WGShipCodeRed";
     private static readonly ProtoId<ShipAlertCodePrototype> Black = "WGShipCodeBlack";
@@ -77,7 +78,7 @@ public sealed class WGCrewReadinessSystem : EntitySystem
 
     private void OnQuarters(ref ShipGeneralQuartersChangedEvent ev)
     {
-        var code = CompOrNull<ShipAlertComponent>(ev.Grid)?.Code ?? "WGShipCodeGreen";
+        var code = CompOrNull<ShipAlertComponent>(ev.Grid)?.Code ?? Green;
         Changed(ev.Grid, Of(code, !ev.Active), Of(code, ev.Active));
     }
 

@@ -168,12 +168,12 @@ public sealed class WGCrewDowntimeSystem : EntitySystem
         var kind = roll < 0.35f ? WGCrewBreakKind.Snack : roll < 0.7f ? WGCrewBreakKind.Drink : WGCrewBreakKind.Rest;
         comp.Started = _timing.CurTime;
         comp.Uses = 0;
-        if (kind != WGCrewBreakKind.Rest && FindVendor(uid, comp, xform, kind) is { } (machine, item))
+        if (kind != WGCrewBreakKind.Rest && FindVendor(uid, comp, xform, kind) is { } vendor)
         {
             comp.Kind = kind;
             comp.Stage = WGCrewBreakStage.ToVendor;
-            comp.Target = machine;
-            comp.Vended = item;
+            comp.Target = vendor.Machine;
+            comp.Vended = vendor.Item;
         }
         else if (FindSeat(uid, comp, Transform(uid).Coordinates) is { } seat)
         {
@@ -396,7 +396,7 @@ public sealed class WGCrewDowntimeSystem : EntitySystem
         {
             WGCrewBreakKind.Snack => proto.TryGetComponent<FoodComponent>(out var food, EntityManager.ComponentFactory)
                 && !food.UtensilRequired,
-            WGCrewBreakKind.Drink => proto.HasComponent<DrinkComponent>(EntityManager.ComponentFactory),
+            WGCrewBreakKind.Drink => proto.TryGetComponent<DrinkComponent>(out _, EntityManager.ComponentFactory),
             _ => false,
         };
     }
