@@ -107,8 +107,14 @@ public sealed class LupercalVendingTest
                     $"Vend {i + 1} drew {line} down.");
             });
 
-            // Past the eject delay, so the item comes out and the machine takes the next order.
-            await pair.RunTicksSync(ticks * 2);
+            // Until the item is out and the machine takes the next order: each machine has its own eject delay (a coffee
+            // machine's brew is longer than most).
+            var ejecting = true;
+            for (var wait = 0; wait < 15 && ejecting; wait++)
+            {
+                await pair.RunTicksSync(ticks);
+                await server.WaitPost(() => ejecting = entMan.GetComponent<VendingMachineComponent>(coffee).Ejecting);
+            }
         }
 
         // A forced eject (a hit, an EMP) draws a line down; the sweep puts it back.

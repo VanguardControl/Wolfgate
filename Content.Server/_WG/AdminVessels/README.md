@@ -140,6 +140,7 @@ thruster and gyroscope Lupercal ids, so a mapchecker run needn't whitelist debug
 
 ## Non-modular edits
 
+- [`Content.Client/Doors/DoorSystem.cs`](../../../Content.Client/Doors/DoorSystem.cs): only airlocks build a deny animation; a plain door with an access reader (a holodoor) had none and crashed the client on a refusal
 - [`Content.Server/Anomaly/AnomalySystem.Generator.cs`](../../Anomaly/AnomalySystem.Generator.cs): a grid's test chamber takes the anomaly
 - [`Content.Server/Explosion/EntitySystems/ExplosionSystem.Processing.cs`](../../Explosion/EntitySystems/ExplosionSystem.Processing.cs): a blast-proof grid loses no tile
 
