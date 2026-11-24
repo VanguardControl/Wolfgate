@@ -93,6 +93,8 @@ public sealed partial class WGCrewLifeTest
         {
             janitor = Crewman(entMan, scene, "WGCrewJanitor");
             mouse = entMan.SpawnEntity("MobMouse", scene.Origin.Offset(new System.Numerics.Vector2(2, 0)));
+            // The test map has no air: the mouse would suffocate before the hunt is looked at.
+            entMan.System<Content.Shared.Damage.Systems.SharedGodmodeSystem>().EnableGodmode(mouse);
             var hunter = entMan.GetComponent<WGCrewPestHunterComponent>(janitor);
             hunter.Chance = 1f;
             hunter.NextLook = System.TimeSpan.Zero;
