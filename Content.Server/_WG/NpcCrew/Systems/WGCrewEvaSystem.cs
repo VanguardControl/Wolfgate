@@ -313,7 +313,9 @@ public sealed partial class WGCrewEvaSystem : EntitySystem
             var seeking = _safetyDestinations.ContainsKey(uid);
             var attempted = false;
             // A pilot or gunner in breathable air keeps the post; only crew in bad air or about to work need a good tank.
-            if (low && (!safe || seeking || work.HasJob(uid)))
+            // A low tank in safe air with nothing to do goes to a canister below, not a spare-tank hunt here.
+            var refilling = _refills.ContainsKey(uid);
+            if (low && (!safe || seeking && !refilling || work.HasJob(uid)))
             {
                 attempted = true;
                 if (!Ready(uid))
@@ -330,7 +332,7 @@ public sealed partial class WGCrewEvaSystem : EntitySystem
                         _tanks.ConnectToInternals((wornTank.Value, connectable), uid);
                 }
             }
-            else if (!low && seeking && !_refills.ContainsKey(uid))
+            else if (!low && seeking && !refilling)
                 _safetyDestinations.Remove(uid);
             if (!safe)
             {
@@ -340,25 +342,39 @@ public sealed partial class WGCrewEvaSystem : EntitySystem
             }
             else
             {
-                // In breathable air internals come off, whichever tank feeds them, unless he is about to go out.
-                if (internals is { GasTankEntity: not null } && (!_prepared.TryGetValue(uid, out var until) || _timing.CurTime >= until))
+                // In breathable air internals come off, whichever tank feeds them, unless he is about to go out. Through
+                // the tank, so the tank and his internals agree: a tank still in its connect delay keeps him until the
+                // next pass.
+                if (internals is { GasTankEntity: { } feeding } && TryComp<GasTankComponent>(feeding, out var feedingGas)
+                    && (!_prepared.TryGetValue(uid, out var until) || _timing.CurTime >= until))
                 {
-                    _internals.DisconnectTank((uid, internals));
+                    _tanks.DisconnectFromInternals((feeding, feedingGas), uid);
                     _prepared.Remove(uid);
                 }
-                if (!immune && !low)
+                if (!immune)
                     UpdateRefill(uid, crew, xform, work.HasJob(uid));
             }
         }
     }
 
-    /// <summary>Puts a crewman in bad air on whatever tank he carries, when he has no full suit to be ready in.</summary>
+    /// <summary>
+    /// Puts a crewman in bad air on a tank he carries that holds breathable gas, when he has no full suit to be ready
+    /// in. A tank of anything else, or one still connected elsewhere, is passed over for the next.
+    /// </summary>
     private void ConnectAnyTank(EntityUid mob, InternalsComponent? internals)
     {
-        if (internals == null || internals.GasTankEntity != null || internals.BreathTools.Count == 0
-            || _internals.FindBestGasTank(mob) is not { } tank || tank.Comp.Air.Pressure <= 0f)
+        if (internals == null || internals.GasTankEntity != null || internals.BreathTools.Count == 0)
             return;
-        _tanks.ConnectToInternals(tank, mob);
+        foreach (var item in _inventory.GetHandOrInventoryEntities(mob))
+        {
+            if (!TryComp<GasTankComponent>(item, out var gas) || gas.IsConnected || gas.Air.Pressure <= 0f
+                || HasComp<Content.Shared.Movement.Components.JetpackComponent>(item)
+                || !WGCrewPlannerSystem.IsBreathable(gas.Air, gas.OutputPressure)
+                || !_tanks.CanConnectToInternals((item, gas)))
+                continue;
+            if (_tanks.ConnectToInternals((item, gas), mob))
+                return;
+        }
     }
 
     /// <summary>The tank a crewman breathes from: the connected one, else the one internals would pick.</summary>
@@ -387,7 +403,9 @@ public sealed partial class WGCrewEvaSystem : EntitySystem
             }
             if (!_interaction.InRangeUnobstructed(mob, refill.Canister))
                 return;
-            Fill(tank, canister.Air);
+            // Its air may have changed since he chose it (a pipe net merged in): only breathable gas goes in his tank.
+            if (IsRefillSource(canister.Air))
+                Fill(tank, canister.Air);
             EndRefill(mob);
             _nextRefillSearch[mob] = now + RefillSearchBackoff;
             return;

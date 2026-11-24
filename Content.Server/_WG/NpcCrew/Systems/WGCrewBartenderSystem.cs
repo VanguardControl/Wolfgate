@@ -418,6 +418,9 @@ public sealed partial class WGCrewBartenderSystem : EntitySystem
             return false;
         }
 
+        // A full rack losing its first glass starts the restock clock; later ones don't move it.
+        if (ent.Comp.Glasses >= ent.Comp.MaxGlasses)
+            ent.Comp.NextRestock = _timing.CurTime + ent.Comp.RestockTime;
         ent.Comp.Glasses--;
         ent.Comp.Glass = glass;
         return true;
@@ -455,6 +458,15 @@ public sealed partial class WGCrewBartenderSystem : EntitySystem
         ent.Comp.Pouring = null;
         ent.Comp.PouringAt = null;
         if (args.Cancelled || args.Handled || source is not { } dispenser || TerminatingOrDeleted(dispenser))
+            return;
+
+        // Relieved, or the glass knocked out of his hand while he poured: nothing goes in.
+        if (!CanWork(ent.Owner))
+        {
+            Reset(ent);
+            return;
+        }
+        if (ent.Comp.Glass is not { } glass || !_hands.IsHolding(ent.Owner, glass, out _))
             return;
 
         args.Handled = true;
@@ -689,7 +701,14 @@ public sealed partial class WGCrewBartenderSystem : EntitySystem
     /// <summary>Picks the glass up and puts it on his rack to wash.</summary>
     private void CollectGlass(Entity<WGCrewBartenderComponent> ent, EntityUid glass)
     {
-        _hands.TryPickupAnyHand(ent.Owner, glass, checkActionBlocker: false);
+        // Hands full: the glass stays on the bar, and the next scan may try it again.
+        if (!_hands.TryPickupAnyHand(ent.Owner, glass, checkActionBlocker: false))
+        {
+            ent.Comp.Collect = null;
+            ent.Comp.NextCollectScan = _timing.CurTime + CollectScanGap;
+            return;
+        }
+
         QueueDel(glass);
         ent.Comp.Glasses = Math.Min(ent.Comp.MaxGlasses, ent.Comp.Glasses + 1);
         ent.Comp.Collect = null;

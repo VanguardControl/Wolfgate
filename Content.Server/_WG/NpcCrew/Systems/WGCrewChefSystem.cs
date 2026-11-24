@@ -430,12 +430,26 @@ public sealed class WGCrewChefSystem : EntitySystem
             return !Transform(uid).Anchored;
 
         var owner = container.Owner;
-        if (HasComp<SmartFridgeComponent>(owner))
-            return true;
+        if (!HasComp<SmartFridgeComponent>(owner)
+            && !(HasComp<EntityStorageComponent>(owner) && !HasComp<MobStateComponent>(owner) && !Shut(owner)))
+            return false;
 
-        return HasComp<EntityStorageComponent>(owner) && !HasComp<MobStateComponent>(owner)
-               && !(TryComp<LockComponent>(owner, out var locked) && locked.Locked)
-               && !(TryComp<WeldableComponent>(owner, out var weld) && weld.IsWelded);
+        // Nothing above it may be shut either: an unlocked crate inside a locked locker is still locked away.
+        var above = owner;
+        while (_containers.TryGetContainingContainer(above, out var outer))
+        {
+            above = outer.Owner;
+            if (HasComp<MobStateComponent>(above) || Shut(above))
+                return false;
+        }
+        return true;
+    }
+
+    /// <summary>Locked or welded shut.</summary>
+    private bool Shut(EntityUid uid)
+    {
+        return TryComp<LockComponent>(uid, out var locked) && locked.Locked
+               || TryComp<WeldableComponent>(uid, out var weld) && weld.IsWelded;
     }
 
     /// <summary>Whether another job than <paramref name="own"/> has an item or appliance.</summary>
@@ -570,7 +584,9 @@ public sealed class WGCrewChefSystem : EntitySystem
     /// <summary>Puts what he carries in the appliance; with every ingredient in, sets its recipe's time and starts it.</summary>
     private bool Load(EntityUid mob, Job job, TimeSpan now)
     {
-        if (!TryComp<MicrowaveComponent>(job.Appliance, out var oven) || oven.Broken || HasComp<ActiveMicrowaveComponent>(job.Appliance))
+        // Power can go while he fetches: then the ingredients stay with him and go back, not into a dead oven.
+        if (!TryComp<MicrowaveComponent>(job.Appliance, out var oven) || oven.Broken || HasComp<ActiveMicrowaveComponent>(job.Appliance)
+            || !(TryComp<ApcPowerReceiverComponent>(job.Appliance, out var power) && power.Powered))
         {
             Abort(mob, job, true);
             return true;
@@ -792,18 +808,24 @@ public sealed class WGCrewChefSystem : EntitySystem
             return false;
 
         var at = Transform(pantry).Coordinates;
+        var stored = false;
         foreach (var (solid, amount) in recipes[lowest].IngredientsSolids)
         {
             // Whatever is left over after the sharing out goes toward this set first.
             var missing = amount.Int() - Math.Max(0, have.GetValueOrDefault(solid));
             for (var i = 0; i < missing; i++)
             {
-                // One that won't go in, a full or open crate, is left beside it.
-                _storage.Insert(Spawn(solid, at), pantry);
+                // One that won't go in (a full or open crate) is not made at all: left beside it, it wasn't counted
+                // next time and another came.
+                var item = Spawn(solid, at);
+                if (_storage.Insert(item, pantry))
+                    stored = true;
+                else
+                    Del(item);
             }
         }
 
-        return true;
+        return stored;
     }
 
     /// <summary>Calls out what's on to a player who comes up to him, now and then.</summary>

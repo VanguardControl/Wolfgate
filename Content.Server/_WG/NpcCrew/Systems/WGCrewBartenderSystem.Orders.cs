@@ -44,6 +44,14 @@ public sealed partial class WGCrewBartenderSystem
         var addressed = HasPhrase(text, "wg-bartender-address-cues");
         var casual = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length <= ent.Comp.CasualWords;
         var atCounter = AtCounter(ent, speaker);
+        var menu = HasPhrase(text, "wg-bartender-menu-cues");
+        // "Is beer on the menu?" asks about the menu; "can I get a beer?" orders one.
+        if (menu && !request && (addressed || casual || atCounter))
+        {
+            Reply(ent, () => SayMenu(ent));
+            return;
+        }
+
         if (drinks.Count > 0 && (request || addressed || casual))
         {
             foreach (var drink in drinks)
@@ -51,7 +59,7 @@ public sealed partial class WGCrewBartenderSystem
             return;
         }
 
-        if (HasPhrase(text, "wg-bartender-menu-cues") && (addressed || request || casual || atCounter))
+        if (menu && (addressed || request || casual || atCounter))
         {
             Reply(ent, () => SayMenu(ent));
             return;

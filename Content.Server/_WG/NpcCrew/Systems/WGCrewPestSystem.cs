@@ -15,7 +15,6 @@ public sealed class WGCrewPestSystem : EntitySystem
     [Dependency] private MobStateSystem _mobs = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private WGCrewWeaponSystem _weapons = default!;
-    [Dependency] private WGCrewClaimSystem _claims = default!;
 
     /// <summary>The blackboard key the hunted pest is held under.</summary>
     public const string PestKey = "WGCrewPest";
@@ -74,6 +73,19 @@ public sealed class WGCrewPestSystem : EntitySystem
             && _mobs.IsAlive(hunter) && Transform(target).GridUid == Transform(hunter).GridUid;
     }
 
+    /// <summary>Whether another hunter is after this pest now, his hunt not yet run out: one hunter to a pest.</summary>
+    private bool Hunted(EntityUid hunter, EntityUid pest)
+    {
+        var now = _timing.CurTime;
+        var others = EntityQueryEnumerator<WGCrewPestHunterComponent>();
+        while (others.MoveNext(out var other, out var comp))
+        {
+            if (other != hunter && comp.Target == pest && now < comp.Until)
+                return true;
+        }
+        return false;
+    }
+
     /// <summary>The nearest pest he can see within range that nobody else is already after.</summary>
     private EntityUid? FindPest(EntityUid uid, WGCrewPestHunterComponent hunter, TransformComponent xform)
     {
@@ -87,7 +99,7 @@ public sealed class WGCrewPestSystem : EntitySystem
                 || !hunter.Pests.Contains(proto.ID) || !_mobs.IsAlive(other) || HasComp<ActorComponent>(other))
                 continue;
             var squared = (_transform.GetWorldPosition(there) - here).LengthSquared();
-            if (squared >= distance || !_weapons.CanSee(uid, other) || _claims.ClaimedByOther(uid, other, PestKey))
+            if (squared >= distance || !_weapons.CanSee(uid, other) || Hunted(uid, other))
                 continue;
             best = other;
             distance = squared;

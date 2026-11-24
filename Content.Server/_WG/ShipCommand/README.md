@@ -319,6 +319,7 @@ sector, no mass penalty and short timings.
 
 ### Localization
 
+- [`Resources/Locale/en-US/_WG/ShipCommand/posts.ftl`](../../../Resources/Locale/en-US/_WG/ShipCommand/posts.ftl)
 - [`Resources/Locale/en-US/_WG/ShipCommand/recovery-pad.ftl`](../../../Resources/Locale/en-US/_WG/ShipCommand/recovery-pad.ftl)
 - [`Resources/Locale/en-US/_WG/ShipCommand/ship-command.ftl`](../../../Resources/Locale/en-US/_WG/ShipCommand/ship-command.ftl)
 - [`Resources/Locale/en-US/_WG/ShipCommand/ship-console.ftl`](../../../Resources/Locale/en-US/_WG/ShipCommand/ship-console.ftl)

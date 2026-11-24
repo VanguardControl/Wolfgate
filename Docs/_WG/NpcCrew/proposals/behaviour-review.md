@@ -234,6 +234,9 @@ does. Fix: a per-role `combatant` flag read by `IsFighter`; non-combatants defen
 
 ### G4. A revived crewman is replaced anyway and then there are two (high on the Lupercal; confident, re-read)
 
+**Fixed in this PR:** `OnMemberState` now clears `slot.Down` when the occupant comes back from Dead before his post is
+refilled. The text below describes the code as reviewed, before that fix.
+
 `OnMemberState` handles only `MobState.Dead` and sets `slot.Down` (`SC/WGShipRosterSystem.cs:343-363`). Nothing
 clears `slot.Down` on revival; only `Relieve` and `SpawnInto` do. NPC medics defibrillate. Two minutes after the
 death, auto-restaff spawns a replacement and strips the first man's roster membership (`:389-392`, `:313-315`).

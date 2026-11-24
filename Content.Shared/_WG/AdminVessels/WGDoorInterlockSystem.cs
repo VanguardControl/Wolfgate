@@ -38,14 +38,28 @@ public sealed class WGDoorInterlockSystem : EntitySystem
 
         ent.Comp.CycleUser = user;
         ent.Comp.CycleUntil = _timing.CurTime + CycleTime;
-        if (door.State is DoorState.Open or DoorState.Opening)
+        // A partner still opening is closed once it is open: closing it partway would leave it passable as "closed".
+        if (door.State == DoorState.Open)
             _doors.TryClose(partner, door);
+        else if (door.State == DoorState.Opening && TryComp<WGDoorInterlockComponent>(partner, out var opening))
+            opening.CloseWhenOpen = true;
     }
 
-    /// <summary>The partner of a door waiting to cycle has shut: the waiting door opens.</summary>
+    /// <summary>
+    /// A door told to close once open does so; and when a door shuts, a partner waiting to cycle opens.
+    /// </summary>
     private void OnStateChanged(Entity<WGDoorInterlockComponent> ent, ref DoorStateChangedEvent args)
     {
-        if (_net.IsClient || args.State != DoorState.Closed || ent.Comp.Partner is not { } partner
+        if (_net.IsClient)
+            return;
+        if (args.State == DoorState.Open && ent.Comp.CloseWhenOpen)
+        {
+            ent.Comp.CloseWhenOpen = false;
+            _doors.TryClose(ent);
+            return;
+        }
+
+        if (args.State != DoorState.Closed || ent.Comp.Partner is not { } partner
             || !TryComp<WGDoorInterlockComponent>(partner, out var waiting) || waiting.CycleUntil < _timing.CurTime)
             return;
 

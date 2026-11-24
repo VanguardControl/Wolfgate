@@ -21,4 +21,8 @@ public sealed partial class WGDoorInterlockComponent : Component
     /// <summary>Who asked this door to open, so it opens with their access once the partner shuts.</summary>
     [ViewVariables]
     public EntityUid? CycleUser;
+
+    /// <summary>Close as soon as this door is fully open: its partner wants to cycle. Server only.</summary>
+    [ViewVariables]
+    public bool CloseWhenOpen;
 }

@@ -1,11 +1,14 @@
 wg-crew-role-bartender = Bartender
 
+ent-WGMobCrewBartender = bartender
+    .desc = Polishes the same glass whenever you look at him.
+
 ## The menu. Keywords are comma-separated and match whole words; the longest match wins.
 
 wg-bartender-drink-beer = beer
 wg-bartender-drink-beer-keywords = beer, beers, a pint, pint, lager
 wg-bartender-drink-ale = ale
-wg-bartender-drink-ale-keywords = ale, ales
+wg-bartender-drink-ale-keywords = ale, ales, a pint of ale, pint of ale
 wg-bartender-drink-wine = wine
 wg-bartender-drink-wine-keywords = wine, glass of wine, red wine, vino
 wg-bartender-drink-whiskey = whiskey
