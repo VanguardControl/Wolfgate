@@ -6,6 +6,7 @@ ent-WGCrewChefPantry = galley pantry
     .desc = A freezer of the galley's ingredients. The cook draws on it, and it is topped up with the ship's provisions while he works.
 ent-WGCrewChefPantryFilled = { ent-WGCrewChefPantry }
     .desc = { ent-WGCrewChefPantry.desc }
+    .suffix = Filled
 ent-WGCrewChefServeSpot = chef serving spot
     .desc = A galley's serving counter. The ship's chef puts his dishes out here and keeps count of what is left.
 

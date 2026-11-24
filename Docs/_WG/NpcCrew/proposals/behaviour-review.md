@@ -234,8 +234,11 @@ does. Fix: a per-role `combatant` flag read by `IsFighter`; non-combatants defen
 
 ### G4. A revived crewman is replaced anyway and then there are two (high on the Lupercal; confident, re-read)
 
-**Fixed in this PR:** `OnMemberState` now clears `slot.Down` when the occupant comes back from Dead before his post is
-refilled. The text below describes the code as reviewed, before that fix.
+**Partly fixed in this PR.** Revived before his post is restaffed, a crewman keeps it: `OnMemberState` now clears
+`slot.Down` when the occupant comes back from Dead, so no replacement is sent. Revived after the replacement came,
+he does not get the post back: `SpawnInto` has already taken his roster membership and given the post to the
+newcomer, and he stays aboard outside the roster, as below. That second case is still open. The text below describes
+the code as reviewed, before the fix.
 
 `OnMemberState` handles only `MobState.Dead` and sets `slot.Down` (`SC/WGShipRosterSystem.cs:343-363`). Nothing
 clears `slot.Down` on revival; only `Relieve` and `SpawnInto` do. NPC medics defibrillate. Two minutes after the
@@ -435,7 +438,7 @@ Rules applied throughout:
 
 | # | Fix | Hook |
 |---|---|---|
-| 0.1 | Clear `slot.Down` when a roster occupant returns to Alive (G4). | `WGShipRosterSystem.OnMemberState`; the pair is already this system's. |
+| 0.1 | Clear `slot.Down` when a roster occupant returns to Alive (G4); done in this PR for revival before restaffing. Still open: a crewman revived after his replacement came is outside the roster; send him off at the crew bay or make him a spare. | `WGShipRosterSystem.OnMemberState`; the pair is already this system's. |
 | 0.2 | Medics stay awake while they have, or could have, a patient (G5). | `WGCrewSleepSystem.StaysAwake`; a public `HasWork(uid)` on `WGCrewMedicSystem`. |
 | 0.3 | `combatant` on `wgCrewRole`, copied to `WGCrewComponent`; `IsFighter` reads it. Non-combatants answer only a blow to themselves (G3). | `WGCrewRolePrototype`, `WGCrewSystem.IsFighter`, `WGCrewRallySystem.Rally`, README. Check `IsFighter` callers in Conduct and Encounters. |
 | 0.4 | Unsuited crew in bad air walk to safe air (G6). | `WGCrewEvaSystem.Update`: call `FindSafety(uid, crew, false)` when `!safe && !Ready && !immune`, whatever `low` says. Coordinate with the in-flight EVA edit to the same method. |
