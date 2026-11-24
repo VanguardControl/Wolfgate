@@ -3,11 +3,12 @@
 Shows players where the rules protect them, and marks those who stay where they don't. A `wgZone` prototype is a kind
 of zone (Safe Zone, Wilderness, faction outpost, not a safe zone) with its banner text, colour, icon, alert and the
 rule it links to. A `WGZoneSource` on a grid, or a `WGZoneMarker` point on a planet, centres one: the Safe Zone on
-Caelestinus Central (256 m), a Wilderness on every bluespace event site, PDV drop pod, Monolithic Fragment and
-planetary vault (512 m), outposts on Halcyon and Helios (256 m), not-safe on Camelot and the Jupiter (aboard, or aboard
+Caelestinus Central (256 m), a Wilderness on bluespace vaults, weapons caches and FTL intercepts, PDV drop pods,
+Monolithic Fragments and planetary vaults (512 m), outposts on Halcyon and Helios (256 m), not-safe on Camelot and the Jupiter (aboard, or aboard
 a ship docked there). The Underground Black Market is `WGUndergroundOutpost`: an outpost with no HOT text, so the war
 level never opens it (it may be struck only in an Underground RAID, from the `Underground` module, or with admin
-permission). Its ring, like Helios' and the drop pods', stays off radar.
+permission). Its ring, like Helios' and the drop pods', stays off radar. Salvage wrecks and bluespace dungeon asteroids
+have no zone on purpose: they are PvE dungeons, not contested sites.
 
 `WGZoneSystem` works out each player's zone once a second (the ship they're aboard, edge to edge, or them on foot),
 sets `WGInZoneComponent` for their client, shows the alert and says it in chat.
@@ -146,9 +147,7 @@ The zone icons are built by `Tools/_WG/Wilderness/make_icons.py` from the radar 
 - [`Resources/Prototypes/_Mono/PointsOfInterest/tsfmchalcyon.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/tsfmchalcyon.yml): port-strike protection round the faction outpost
 - [`Resources/Prototypes/_Mono/PointsOfInterest/underground.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/underground.yml): a faction outpost the war level never opens, its edge kept off radars like its name
 - [`Resources/Prototypes/_Mono/PointsOfInterest/ussp.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/ussp.yml): named as not a safe zone
-- [`Resources/Prototypes/_NF/Events/nf_bluespace_dungeons_events.yml`](../../../Resources/Prototypes/_NF/Events/nf_bluespace_dungeons_events.yml): event sites are Wildernesses
 - [`Resources/Prototypes/_NF/Events/nf_bluespace_grids_events.yml`](../../../Resources/Prototypes/_NF/Events/nf_bluespace_grids_events.yml): event sites are Wildernesses
-- [`Resources/Prototypes/_NF/Events/nf_bluespace_salvage_events.yml`](../../../Resources/Prototypes/_NF/Events/nf_bluespace_salvage_events.yml): unclaimed wrecks are Wildernesses
 - [`Resources/Prototypes/Alerts/alerts.yml`](../../../Resources/Prototypes/Alerts/alerts.yml): the zone you're in sits high, where it is seen
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/One_RandomDeathmatch.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/One_RandomDeathmatch.xml)
   - conflict zones are Wildernesses, with the mark

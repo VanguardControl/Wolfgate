@@ -7,7 +7,7 @@ Some places change what the rules protect. An alert shows the zone you are in, a
 [color=#2e9e4f][bold]Green banner.[/bold][/color] Caelestinus Central and everything within 256 m of it. Policy protects everyone here who is not causing trouble: no theft, no unprovoked attacks. See [textlink="Safe Zones" link="MonolithRuleRoleplaySevenSafeZones"].
 
 ## Wilderness
-[color=#d93c3c][bold]Red banner with hazard stripes.[/bold][/color] A PvP zone for everyone: everything within 512 m of an event site: bluespace vaults and weapons caches, wrecks and other bluespace events, PDV drop pods, planetary vaults and Monolithic Fragments. A salvage wreck someone has claimed is their ship and no longer a Wilderness; claiming a vault, cache or fragment changes nothing.
+[color=#d93c3c][bold]Red banner with hazard stripes.[/bold][/color] A PvP zone for everyone: everything within 512 m of an event site: bluespace vaults and weapons caches, FTL intercepts, PDV drop pods, planetary vaults and Monolithic Fragments. Claiming a vault, cache or fragment changes nothing. Salvage wrecks and bluespace dungeon asteroids are not Wildernesses: they are left to whoever is clearing them.
 <WGWildernessRule/>
 
 While you are being marked, the banner counts down. Once marked, it shows how long your mark, or your ship's, has left, and a faint red border shows round the screen. A marked ship's name shows red with a skull on everyone's radar, and a marked person has a skull over their head. See [textlink="Random deathmatch" link="MonolithRuleConflictOneRandomDeathmatch"].
