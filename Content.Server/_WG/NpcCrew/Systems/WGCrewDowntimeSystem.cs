@@ -143,7 +143,21 @@ public sealed class WGCrewDowntimeSystem : EntitySystem
             && !_weapons.HasLiveThreat(uid) && !_work.HasJob(uid)
             && CompOrNull<WGCrewMedicComponent>(uid)?.Patient == null
             && CompOrNull<WGCrewPestHunterComponent>(uid)?.Target == null
-            && !EntityManager.System<WGCrewShelterSystem>().IsSheltering(uid);
+            && !EntityManager.System<WGCrewShelterSystem>().IsSheltering(uid)
+            && !RoleAway(uid, crew, home);
+    }
+
+    /// <summary>Whether another crewman of his role on his ship is already on a break: one away at a time.</summary>
+    private bool RoleAway(EntityUid uid, WGCrewComponent crew, EntityUid home)
+    {
+        var others = EntityQueryEnumerator<WGCrewDowntimeComponent, WGCrewComponent>();
+        while (others.MoveNext(out var other, out var comp, out var otherCrew))
+        {
+            if (other != uid && comp.Stage != WGCrewBreakStage.None && otherCrew.Role == crew.Role
+                && otherCrew.Post?.EntityId == home)
+                return true;
+        }
+        return false;
     }
 
     private void StartBreak(EntityUid uid, WGCrewDowntimeComponent comp, TransformComponent xform)

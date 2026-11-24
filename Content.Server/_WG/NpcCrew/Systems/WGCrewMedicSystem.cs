@@ -102,6 +102,9 @@ public sealed partial class WGCrewMedicSystem : EntitySystem
     private static readonly TimeSpan DoseGap = TimeSpan.FromMinutes(1);
     private static readonly TimeSpan LineGap = TimeSpan.FromSeconds(20);
     private static readonly TimeSpan CprLength = TimeSpan.FromSeconds(10);
+
+    /// <summary>How long a spent medipen lies on the floor before it is gone.</summary>
+    private static readonly TimeSpan SpentPenLifetime = TimeSpan.FromMinutes(10);
     private static readonly SoundSpecifier ShockSound = new SoundPathSpecifier("/Audio/Items/Defib/defib_zap.ogg");
 
     /// <summary>Refusals a surgeon may yet fix (blood, a heart): such a body goes to a bed, not the morgue.</summary>
@@ -643,6 +646,8 @@ public sealed partial class WGCrewMedicSystem : EntitySystem
         }
 
         _transform.DropNextTo(item, _container.IsEntityInContainer(patient) ? medic.Owner : patient);
+        // Spent pens don't pile up for the whole round.
+        EnsureComp<Robust.Shared.Spawners.TimedDespawnComponent>(item).Lifetime = (float) SpentPenLifetime.TotalSeconds;
         return true;
     }
 
@@ -686,12 +691,14 @@ public sealed partial class WGCrewMedicSystem : EntitySystem
     }
 
     /// <summary>
-    /// Whether a patient has walked off: on their feet, out of bed, out of his hands and not asking for help. A patient
-    /// who leaves is let go; staying is their choice.
+    /// Whether a patient has walked off: on their feet, out of bed, out of his hands and reach, and not asking for help.
+    /// A patient who leaves is let go; staying is their choice. One he got back on their feet who is still beside him
+    /// has not left.
     /// </summary>
     private bool WalkedOff(Entity<WGCrewMedicComponent> medic, EntityUid patient)
     {
         return !Down(patient) && !OnBed(patient) && !_container.IsEntityInContainer(patient)
+               && !_interaction.InRangeUnobstructed(medic.Owner, patient, Reach)
                && !Drags(medic.Owner, patient) && !medic.Comp.Busy && Priority(patient, false) == null
                && (medic.Comp.Table is not { } table || !OnTable(table, patient));
     }

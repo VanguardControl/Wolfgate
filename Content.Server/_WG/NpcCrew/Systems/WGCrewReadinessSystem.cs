@@ -108,7 +108,9 @@ public sealed class WGCrewReadinessSystem : EntitySystem
             if (after != WGCrewReadiness.Normal)
                 downtime.EndBreak(uid);
             _htn.Replan(htn);
-            _barks.Bark(uid, bark);
+            // A medic with a patient on his hands keeps his mind on them.
+            if (CompOrNull<WGCrewMedicComponent>(uid)?.Patient == null)
+                _barks.Bark(uid, bark);
         }
     }
 }
