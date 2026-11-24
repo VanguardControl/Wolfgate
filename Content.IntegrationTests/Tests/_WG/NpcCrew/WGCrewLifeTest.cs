@@ -32,7 +32,7 @@ namespace Content.IntegrationTests.Tests._WG.NpcCrew;
 /// gates cycle. HTNs sleep and steps are driven by hand, so nobody walks.
 /// </summary>
 [TestFixture]
-public sealed class WGCrewLifeTest
+public sealed partial class WGCrewLifeTest
 {
     private sealed record Scene(TestPair Pair, EntityUid Grid, EntityCoordinates Origin);
 

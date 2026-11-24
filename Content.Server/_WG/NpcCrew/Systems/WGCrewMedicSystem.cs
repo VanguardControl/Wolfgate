@@ -104,7 +104,7 @@ public sealed partial class WGCrewMedicSystem : EntitySystem
     private static readonly TimeSpan CprLength = TimeSpan.FromSeconds(10);
 
     /// <summary>How long a spent medipen lies on the floor before it is gone.</summary>
-    private static readonly TimeSpan SpentPenLifetime = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan SpentPenLifetime = TimeSpan.FromMinutes(20);
     private static readonly SoundSpecifier ShockSound = new SoundPathSpecifier("/Audio/Items/Defib/defib_zap.ogg");
 
     /// <summary>Refusals a surgeon may yet fix (blood, a heart): such a body goes to a bed, not the morgue.</summary>
@@ -646,7 +646,8 @@ public sealed partial class WGCrewMedicSystem : EntitySystem
         }
 
         _transform.DropNextTo(item, _container.IsEntityInContainer(patient) ? medic.Owner : patient);
-        // Spent pens don't pile up for the whole round.
+        // A spent pen is rubbish for the janitors to bin, and doesn't pile up for the whole round if there are none.
+        EntityManager.System<Content.Shared.Tag.TagSystem>().AddTag(item, "Trash");
         EnsureComp<Robust.Shared.Spawners.TimedDespawnComponent>(item).Lifetime = (float) SpentPenLifetime.TotalSeconds;
         return true;
     }
@@ -1003,6 +1004,12 @@ public sealed partial class WGCrewMedicSystem : EntitySystem
         return _mobState.IsCritical(patient)
                || CompOrNull<WolfmedConsciousnessComponent>(patient)?.State == WolfmedConsciousness.Unconscious;
     }
+
+    /// <summary>Whether a body is down: critical or dead, or downed or out by Wolfmed's consciousness.</summary>
+    public bool IsDown(EntityUid patient) => Down(patient);
+
+    /// <summary>Whether a medic has this patient on his hands.</summary>
+    public bool UnderCare(EntityUid patient) => _claims.ContainsKey(patient);
 
     private bool Down(EntityUid patient)
     {

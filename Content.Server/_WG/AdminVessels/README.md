@@ -41,8 +41,9 @@ marked line in `AnomalySystem.Generator.cs`) rather than on a random tile of the
 and the station keeps its offers (`SalvageMagnetData` in the gameMap). Since v0.31 (the draft's `crewlife.py`): a
 second paramedic and surgeon post, the NPC chef's post, pantry crate and serving spots on the kitchen's pass, the NPC
 bartender's post behind the bar, open shutters in place of the pass's locked windoors so guests can take the chef's
-food, and a potted-plant vendor in hydroponics. The other machine kinds the vending survey found missing don't fit any
-room without crowding it; `crewlife.VENDORS` places them once a room has space.
+food, a potted-plant vendor in hydroponics, and seventeen pride flags (PrideFlags) on walls of the public rooms and the
+crew's own, by the wall-art rules (`crewlife.PRIDE_ROOMS`). The other machine kinds the vending survey found missing
+don't fit any room without crowding it; `crewlife.VENDORS` places them once a room has space.
 
 A fresh Lupercal stays put and defends: marines walk the posts, gunners defend the docks, the pilot holds station facing
 the attacker (`WGShipRoster` on the vessel). Its crew are Elite, never run dry, are replaced two minutes after they

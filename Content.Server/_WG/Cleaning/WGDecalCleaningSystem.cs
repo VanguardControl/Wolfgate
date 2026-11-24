@@ -71,10 +71,11 @@ public sealed partial class WGDecalCleaningSystem : EntitySystem
 
     /// <summary>
     /// Picks one of the nearest dirty tiles within range of a point on a grid, at random so an unreachable one
-    /// doesn't hold a cleanbot forever. Tiles in <paramref name="taken"/>, someone else's, are left out.
+    /// doesn't hold a cleanbot forever. Tiles in <paramref name="taken"/>, someone else's, are left out;
+    /// <paramref name="extra"/> are dirty too (blood splats on a wall, say), if in range.
     /// </summary>
     public bool TryPickDirtyTile(EntityUid gridUid, Vector2 localPos, float range, int choices, out Vector2i tile,
-        IReadOnlySet<Vector2i>? taken = null)
+        IReadOnlySet<Vector2i>? taken = null, IEnumerable<Vector2i>? extra = null)
     {
         tile = default;
         if (!TryComp(gridUid, out DecalGridComponent? decalGrid))
@@ -82,6 +83,14 @@ public sealed partial class WGDecalCleaningSystem : EntitySystem
 
         // GetDecalsInRange only looks in one chunk, so this takes a box and trims it to a circle.
         var tiles = new HashSet<Vector2i>();
+        if (extra != null)
+        {
+            foreach (var at in extra)
+            {
+                if (((Vector2) at + new Vector2(0.5f, 0.5f) - localPos).Length() <= range && (taken == null || !taken.Contains(at)))
+                    tiles.Add(at);
+            }
+        }
         var bounds = Box2.CenteredAround(localPos, new Vector2(range * 2f, range * 2f));
         foreach (var (_, decal) in _decals.GetDecalsIntersecting(gridUid, bounds, decalGrid))
         {

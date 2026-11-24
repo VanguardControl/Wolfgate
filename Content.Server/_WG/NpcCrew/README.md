@@ -290,7 +290,19 @@ swapped while he was down replaces the old one. Janitors (`WGCrewJanitor`, duty 
 A puddle another crewman's plan holds is left to him (`WGTargetUnclaimedCon`, `WGCrewClaimSystem`), as is a dirty tile
 another cleaner is headed for, so several janitors spread out. Every two minutes a janitor may go after a mouse or a
 roach loose on his ship (`WGCrewPestHunterComponent` on the role, `WGCrewPestSystem`, `WGCrewPestOperator`), one
-hunter to a pest, for up to 45 s.
+hunter to a pest, for up to 45 s. He bins loose rubbish (anything tagged Trash, the medics' spent medipens included)
+in the nearest disposal unit, one piece at a time and one janitor to a piece (`WGCrewTidySystem`,
+`WGCrewTidyOperator`), and his wash reaches 60 tiles and takes footprints, blood and dirt off the floor and Wolfmed's
+blood splats off the walls (`WGPickDirtyTileOperator` and `WGCleanTileOperator` with `stains`).
+
+Revived crew get back to it. A deckhand's built-in repair tool, taken at death so his body is no endless tool, comes
+back with his life (`WGCrewSystem.RestoreRepair`). A crewman left lying in a bed or on a table gets up once he is up
+again and no medic has him: at once under 40 damage, else after two minutes' rest (`WGCrewRoutineSystem.GetUp`; seats
+he is meant to sit in, a vehicle's or a break's, are left alone). Roster crew are dressed with some variety when staffed
+(`wgCrewWardrobe` prototypes in `wardrobe.yml`, by role: colours, skirts, caps, glasses, scarves, pride pins), what
+each then wears is remembered (`WGCrewOutfitComponent`), and a crewman stripped of any of it (for surgery, by a looter,
+at his death) fetches each piece back from the floor or an unheld container and puts it on before other work
+(`WGCrewOutfitSystem`, `WGCrewRedressOperator`).
 
 Vermin are no boarders (`WGCrewSecuritySystem.IsFauna`): an animal that is no person, cyborg or borer and whose faction
 and the crewman's aren't hostile either way is neither warned, reported, pointed at nor shot. A cortical borer is never
@@ -435,6 +447,7 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 - [`Content.Server/_WG/NpcCrew/Components/WGCrewMedicComponent.cs`](Components/WGCrewMedicComponent.cs)
 - [`Content.Server/_WG/NpcCrew/Components/WGCrewNonLethalComponent.cs`](Components/WGCrewNonLethalComponent.cs)
 - [`Content.Server/_WG/NpcCrew/Components/WGCrewOnSightComponent.cs`](Components/WGCrewOnSightComponent.cs)
+- [`Content.Server/_WG/NpcCrew/Components/WGCrewOutfitComponent.cs`](Components/WGCrewOutfitComponent.cs)
 - [`Content.Server/_WG/NpcCrew/Components/WGCrewPatrolOrdersComponent.cs`](Components/WGCrewPatrolOrdersComponent.cs)
 - [`Content.Server/_WG/NpcCrew/Components/WGCrewPestHunterComponent.cs`](Components/WGCrewPestHunterComponent.cs)
 - [`Content.Server/_WG/NpcCrew/Components/WGCrewPropertyComponent.cs`](Components/WGCrewPropertyComponent.cs)
@@ -468,10 +481,12 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 - [`Content.Server/_WG/NpcCrew/HTN/WGCrewMedicOperator.cs`](HTN/WGCrewMedicOperator.cs)
 - [`Content.Server/_WG/NpcCrew/HTN/WGCrewMusterOperator.cs`](HTN/WGCrewMusterOperator.cs)
 - [`Content.Server/_WG/NpcCrew/HTN/WGCrewPestOperator.cs`](HTN/WGCrewPestOperator.cs)
+- [`Content.Server/_WG/NpcCrew/HTN/WGCrewRedressOperator.cs`](HTN/WGCrewRedressOperator.cs)
 - [`Content.Server/_WG/NpcCrew/HTN/WGCrewReturnOperator.cs`](HTN/WGCrewReturnOperator.cs)
 - [`Content.Server/_WG/NpcCrew/HTN/WGCrewSidestepOperator.cs`](HTN/WGCrewSidestepOperator.cs)
 - [`Content.Server/_WG/NpcCrew/HTN/WGCrewStationsOperator.cs`](HTN/WGCrewStationsOperator.cs)
 - [`Content.Server/_WG/NpcCrew/HTN/WGCrewTargetOperator.cs`](HTN/WGCrewTargetOperator.cs)
+- [`Content.Server/_WG/NpcCrew/HTN/WGCrewTidyOperator.cs`](HTN/WGCrewTidyOperator.cs)
 - [`Content.Server/_WG/NpcCrew/HTN/WGCrewWorkOperator.cs`](HTN/WGCrewWorkOperator.cs)
 - [`Content.Server/_WG/NpcCrew/HTN/WGDrawWeaponOperator.cs`](HTN/WGDrawWeaponOperator.cs)
 - [`Content.Server/_WG/NpcCrew/HTN/WGHolsterWeaponOperator.cs`](HTN/WGHolsterWeaponOperator.cs)
@@ -525,6 +540,7 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewMusterSystem.cs`](Systems/WGCrewMusterSystem.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewObjectiveSystem.cs`](Systems/WGCrewObjectiveSystem.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewObjectiveSystem.Virtual.cs`](Systems/WGCrewObjectiveSystem.Virtual.cs)
+- [`Content.Server/_WG/NpcCrew/Systems/WGCrewOutfitSystem.cs`](Systems/WGCrewOutfitSystem.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewPestSystem.cs`](Systems/WGCrewPestSystem.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewPlannerSystem.cs`](Systems/WGCrewPlannerSystem.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewRallySystem.cs`](Systems/WGCrewRallySystem.cs)
@@ -542,6 +558,7 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewSpeechSystem.cs`](Systems/WGCrewSpeechSystem.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewStealthSystem.cs`](Systems/WGCrewStealthSystem.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewSystem.cs`](Systems/WGCrewSystem.cs)
+- [`Content.Server/_WG/NpcCrew/Systems/WGCrewTidySystem.cs`](Systems/WGCrewTidySystem.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewUiDiagnosticsSystem.cs`](Systems/WGCrewUiDiagnosticsSystem.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewWeaponSystem.Brace.cs`](Systems/WGCrewWeaponSystem.Brace.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewWeaponSystem.cs`](Systems/WGCrewWeaponSystem.cs)
@@ -572,6 +589,7 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 - [`Content.Shared/_WG/NpcCrew/WGCrewProfilePrototype.cs`](../../../Content.Shared/_WG/NpcCrew/WGCrewProfilePrototype.cs)
 - [`Content.Shared/_WG/NpcCrew/WGCrewRolePrototype.cs`](../../../Content.Shared/_WG/NpcCrew/WGCrewRolePrototype.cs)
 - [`Content.Shared/_WG/NpcCrew/WGCrewSetupMessages.cs`](../../../Content.Shared/_WG/NpcCrew/WGCrewSetupMessages.cs)
+- [`Content.Shared/_WG/NpcCrew/WGCrewWardrobePrototype.cs`](../../../Content.Shared/_WG/NpcCrew/WGCrewWardrobePrototype.cs)
 - [`Content.Shared/_WG/NpcCrew/WGGunnerPolicy.cs`](../../../Content.Shared/_WG/NpcCrew/WGGunnerPolicy.cs)
 - [`Content.Shared/_WG/NpcCrew/WGMedicalBedComponent.cs`](../../../Content.Shared/_WG/NpcCrew/WGMedicalBedComponent.cs)
 - [`Content.Shared/_WG/NpcCrew/WGPilotOrder.cs`](../../../Content.Shared/_WG/NpcCrew/WGPilotOrder.cs)
@@ -595,6 +613,7 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGBodyToolTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGBodyToolTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewBartenderTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewBartenderTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewLifeTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewLifeTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewLifeTest.Upkeep.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewLifeTest.Upkeep.cs)
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewMedicTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewMedicTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewPostRangeTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewPostRangeTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewSidestepPruneTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewSidestepPruneTest.cs)
@@ -679,6 +698,7 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 - [`Resources/Prototypes/_WG/NpcCrew/profiles.yml`](../../../Resources/Prototypes/_WG/NpcCrew/profiles.yml)
 - [`Resources/Prototypes/_WG/NpcCrew/roles.yml`](../../../Resources/Prototypes/_WG/NpcCrew/roles.yml)
 - [`Resources/Prototypes/_WG/NpcCrew/stores.yml`](../../../Resources/Prototypes/_WG/NpcCrew/stores.yml)
+- [`Resources/Prototypes/_WG/NpcCrew/wardrobe.yml`](../../../Resources/Prototypes/_WG/NpcCrew/wardrobe.yml)
 
 ### Localization
 

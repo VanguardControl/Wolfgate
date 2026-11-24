@@ -70,6 +70,21 @@
     - !type:HTNPrimitiveTask
       operator: !type:WGCrewMedicOperator
         perform: true
+  # Stripped of his own clothes or kit (surgery, a looter, a death): he fetches each piece back and puts it on
+  # (WGCrewOutfitSystem), before any work that may need the suit.
+  - tasks:
+    - !type:HTNPrimitiveTask
+      operator: !type:WGCrewRedressOperator
+    - !type:HTNPrimitiveTask
+      operator: !type:WGHolsterWeaponOperator
+    - !type:HTNPrimitiveTask
+      operator: !type:MoveToOperator
+        targetKey: WGCrewRedressDestination
+        rangeKey: InteractRange
+        removeKeyOnFinish: false
+    - !type:HTNPrimitiveTask
+      operator: !type:WGCrewRedressOperator
+        perform: true
   - tasks:
     - !type:HTNPrimitiveTask
       operator: !type:WGCrewWorkOperator
@@ -222,8 +237,8 @@
       task: WGCrewIdleCompound
 
 # Janitor: now and then run down a mouse or roach loose aboard (WGCrewPestSystem), mop the nearest puddles on its own
-# ship that no other janitor has taken (WGCrewShipPuddles), then wash dirt off the floor further out, then back to the
-# post (WGCrewGuardCompound).
+# ship that no other janitor has taken (WGCrewShipPuddles), bin loose rubbish, then wash footprints, dirt and blood off
+# the floors and walls further out, then back to the post (WGCrewGuardCompound).
 - type: htnCompound
   id: WGCrewJanitorCompound
   branches:
@@ -266,10 +281,24 @@
         id: PuddleService
         proto: WGCrewShipPuddles
         key: Target
+  # Loose rubbish, spent medipens included, to a disposal unit (WGCrewTidySystem).
+  - tasks:
+    - !type:HTNPrimitiveTask
+      operator: !type:WGCrewTidyOperator
+    - !type:HTNPrimitiveTask
+      operator: !type:MoveToOperator
+        removeKeyOnFinish: false
+        targetKey: WGCrewTidyDestination
+        rangeKey: InteractRange
+    - !type:HTNPrimitiveTask
+      operator: !type:WGCrewTidyOperator
+        perform: true
+  # Footprints, dirt and blood off the floor, and blood splats off the walls, across the ship.
   - tasks:
     - !type:HTNPrimitiveTask
       operator: !type:WGPickDirtyTileOperator
-        range: 30
+        range: 60
+        stains: true
     - !type:HTNPrimitiveTask
       operator: !type:MoveToOperator
         pathfindInPlanning: true
@@ -279,6 +308,7 @@
         rangeKey: MeleeRange
     - !type:HTNPrimitiveTask
       operator: !type:WGCleanTileOperator
+        stains: true
   - tasks:
     - !type:HTNCompoundTask
       task: WGCrewGuardCompound
