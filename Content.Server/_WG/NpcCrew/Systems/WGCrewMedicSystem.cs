@@ -387,6 +387,13 @@ public sealed partial class WGCrewMedicSystem : EntitySystem
         // put there as they are; otherwise he takes hold again, and gives up after a few tries.
         if (medic.Destination is { } heading && !TerminatingOrDeleted(heading) && !_container.IsEntityInContainer(patient))
         {
+            // Up again before the pull took: a paramedic lets them walk rather than haul them to a bed.
+            if (medic.Rank == WGCrewMedicRank.Paramedic && !Down(patient) && CareBed(heading))
+            {
+                Release(ent);
+                return true;
+            }
+
             if (_interaction.InRangeUnobstructed(mob, heading, Reach))
                 return Arrive(ent, patient, heading);
 

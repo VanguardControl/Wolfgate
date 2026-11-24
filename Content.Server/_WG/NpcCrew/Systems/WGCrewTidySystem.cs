@@ -204,8 +204,11 @@ public sealed class WGCrewTidySystem : EntitySystem
         // A run whose janitor is gone, or that ran out of time without him coming back to it, frees its rubbish.
         foreach (var (mob, run) in new List<KeyValuePair<EntityUid, Run>>(_runs))
         {
-            if (TerminatingOrDeleted(mob) || now > run.Until)
+            // A janitor still about whose run timed out leaves that rubbish a while, as a failed run does.
+            if (TerminatingOrDeleted(mob))
                 End(mob, run, skip: false);
+            else if (now > run.Until)
+                End(mob, run, skip: true);
         }
         foreach (var (item, until) in new List<KeyValuePair<EntityUid, TimeSpan>>(_skipped))
         {

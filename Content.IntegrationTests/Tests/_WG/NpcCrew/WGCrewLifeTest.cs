@@ -216,14 +216,15 @@ public sealed partial class WGCrewLifeTest
             var bed = entMan.SpawnEntity("MedicalBed", bedAt);
             patient = entMan.SpawnEntity("MobHuman", bedAt);
             Assert.That(buckle.TryBuckle(patient, patient, bed, popup: false), Is.True, "Precondition: the patient lies down.");
-            medics.Assign((uid, entMan.GetComponent<WGCrewMedicComponent>(uid)), patient);
         });
 
-        // Past the buckle's unbuckle delay.
+        // Past the buckle's unbuckle delay. He is given the patient only now, so his own sweep can't let them go first.
         await scene.Pair.RunTicksSync(60);
         await server.WaitAssertion(() =>
         {
             var medic = new Entity<WGCrewMedicComponent>(uid, entMan.GetComponent<WGCrewMedicComponent>(uid));
+            medics.Assign(medic, patient);
+            Assert.That(medic.Comp.Patient, Is.EqualTo(patient), "Precondition: he has the patient when they get up.");
             Assert.That(buckle.TryUnbuckle(patient, patient, popup: false), Is.True, "Precondition: the patient gets up.");
             entMan.System<SharedTransformSystem>().SetCoordinates(patient, scene.Origin.Offset(new System.Numerics.Vector2(-2, -2)));
             Assert.That(medics.NeedsTakingIn(medic, patient), Is.False, "Someone on their feet isn't hauled back to bed.");

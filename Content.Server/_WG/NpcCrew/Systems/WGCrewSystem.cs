@@ -411,7 +411,11 @@ public sealed partial class WGCrewSystem : EntitySystem
             if (!source.Components.TryGetValue("WGCrewRepair", out var marker)
                 || !source.Components.TryGetValue("ShipRepairTool", out var tool))
                 continue;
-            EntityManager.AddComponents(uid, new ComponentRegistry { ["ShipRepairTool"] = tool, ["WGCrewRepair"] = marker });
+            var registry = new ComponentRegistry { ["ShipRepairTool"] = tool, ["WGCrewRepair"] = marker };
+            // His death took the tool qualities too.
+            if (source.Components.TryGetValue("Tool", out var qualities))
+                registry["Tool"] = qualities;
+            EntityManager.AddComponents(uid, registry);
             return;
         }
     }
