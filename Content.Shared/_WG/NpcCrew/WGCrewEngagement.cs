@@ -22,6 +22,7 @@ public static class WGCrewDuties
     public const string Pilot = "Pilot";
     public const string Gunnery = "Gunnery";
     public const string Janitor = "Janitor";
+    public const string Bartender = "Bartender";
 }
 
 /// <summary>The role prototypes the planner hands out.</summary>
