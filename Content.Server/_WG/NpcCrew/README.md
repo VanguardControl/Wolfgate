@@ -407,6 +407,10 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 - [`Content.Server/_WG/NpcCrew/Commands/WGCrewCommand.cs`](Commands/WGCrewCommand.cs)
 - [`Content.Server/_WG/NpcCrew/Components/WGCaptainComponent.cs`](Components/WGCaptainComponent.cs)
 - [`Content.Server/_WG/NpcCrew/Components/WGCrewArmedGrenadeComponent.cs`](Components/WGCrewArmedGrenadeComponent.cs)
+- [`Content.Server/_WG/NpcCrew/Components/WGCrewBartenderComponent.cs`](Components/WGCrewBartenderComponent.cs)
+- [`Content.Server/_WG/NpcCrew/Components/WGCrewChefComponent.cs`](Components/WGCrewChefComponent.cs)
+- [`Content.Server/_WG/NpcCrew/Components/WGCrewChefPantryComponent.cs`](Components/WGCrewChefPantryComponent.cs)
+- [`Content.Server/_WG/NpcCrew/Components/WGCrewChefServeSpotComponent.cs`](Components/WGCrewChefServeSpotComponent.cs)
 - [`Content.Server/_WG/NpcCrew/Components/WGCrewComponent.cs`](Components/WGCrewComponent.cs)
 - [`Content.Server/_WG/NpcCrew/Components/WGCrewDowntimeComponent.cs`](Components/WGCrewDowntimeComponent.cs)
 - [`Content.Server/_WG/NpcCrew/Components/WGCrewEngineerComponent.cs`](Components/WGCrewEngineerComponent.cs)
@@ -436,7 +440,9 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 - [`Content.Server/_WG/NpcCrew/Components/WGPilotDutyComponent.cs`](Components/WGPilotDutyComponent.cs)
 - [`Content.Server/_WG/NpcCrew/Components/WGRadioOperatorComponent.cs`](Components/WGRadioOperatorComponent.cs)
 - [`Content.Server/_WG/NpcCrew/HTN/WGCrewAtStationsPrecondition.cs`](HTN/WGCrewAtStationsPrecondition.cs)
+- [`Content.Server/_WG/NpcCrew/HTN/WGCrewBartenderOperator.cs`](HTN/WGCrewBartenderOperator.cs)
 - [`Content.Server/_WG/NpcCrew/HTN/WGCrewBraceOperator.cs`](HTN/WGCrewBraceOperator.cs)
+- [`Content.Server/_WG/NpcCrew/HTN/WGCrewChefOperator.cs`](HTN/WGCrewChefOperator.cs)
 - [`Content.Server/_WG/NpcCrew/HTN/WGCrewDowntimeOperator.cs`](HTN/WGCrewDowntimeOperator.cs)
 - [`Content.Server/_WG/NpcCrew/HTN/WGCrewFallBackOperator.cs`](HTN/WGCrewFallBackOperator.cs)
 - [`Content.Server/_WG/NpcCrew/HTN/WGCrewGrabOperator.cs`](HTN/WGCrewGrabOperator.cs)
@@ -480,6 +486,9 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewAlertSystem.cs`](Systems/WGCrewAlertSystem.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewAlertSystem.Docked.cs`](Systems/WGCrewAlertSystem.Docked.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewAlertSystem.Mechs.cs`](Systems/WGCrewAlertSystem.Mechs.cs)
+- [`Content.Server/_WG/NpcCrew/Systems/WGCrewBartenderSystem.cs`](Systems/WGCrewBartenderSystem.cs)
+- [`Content.Server/_WG/NpcCrew/Systems/WGCrewBartenderSystem.Orders.cs`](Systems/WGCrewBartenderSystem.Orders.cs)
+- [`Content.Server/_WG/NpcCrew/Systems/WGCrewChefSystem.cs`](Systems/WGCrewChefSystem.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewClaimSystem.cs`](Systems/WGCrewClaimSystem.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewCommsSystem.cs`](Systems/WGCrewCommsSystem.cs)
 - [`Content.Server/_WG/NpcCrew/Systems/WGCrewConductSystem.Bodies.cs`](Systems/WGCrewConductSystem.Bodies.cs)
@@ -538,6 +547,7 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 
 - [`Content.Shared/_WG/NpcCrew/WGBodyToolSystem.cs`](../../../Content.Shared/_WG/NpcCrew/WGBodyToolSystem.cs)
 - [`Content.Shared/_WG/NpcCrew/WGCompanyFamily.cs`](../../../Content.Shared/_WG/NpcCrew/WGCompanyFamily.cs)
+- [`Content.Shared/_WG/NpcCrew/WGCrewDrinkPrototype.cs`](../../../Content.Shared/_WG/NpcCrew/WGCrewDrinkPrototype.cs)
 - [`Content.Shared/_WG/NpcCrew/WGCrewEngagement.cs`](../../../Content.Shared/_WG/NpcCrew/WGCrewEngagement.cs)
 - [`Content.Shared/_WG/NpcCrew/WGCrewLimits.cs`](../../../Content.Shared/_WG/NpcCrew/WGCrewLimits.cs)
 - [`Content.Shared/_WG/NpcCrew/WGCrewMedicDoAfterEvent.cs`](../../../Content.Shared/_WG/NpcCrew/WGCrewMedicDoAfterEvent.cs)
@@ -567,6 +577,7 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGBodyToolTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGBodyToolTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewBartenderTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewBartenderTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewLifeTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewLifeTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewMedicTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewMedicTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewPostRangeTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewPostRangeTest.cs)
@@ -581,6 +592,7 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewTest.BoardingDevices.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewTest.BoardingDevices.cs)
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewTest.CaptainHold.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewTest.CaptainHold.cs)
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewTest.CaptainResume.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewTest.CaptainResume.cs)
+- [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewTest.Chef.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewTest.Chef.cs)
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewTest.Circle.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewTest.Circle.cs)
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewTest.CombatFixes.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewTest.CombatFixes.cs)
 - [`Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewTest.Command.cs`](../../../Content.IntegrationTests/Tests/_WG/NpcCrew/WGCrewTest.Command.cs)
@@ -638,6 +650,8 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 ### Prototypes
 
 - [`Resources/Prototypes/_WG/NpcCrew/ai_factions.yml`](../../../Resources/Prototypes/_WG/NpcCrew/ai_factions.yml)
+- [`Resources/Prototypes/_WG/NpcCrew/bartender.yml`](../../../Resources/Prototypes/_WG/NpcCrew/bartender.yml)
+- [`Resources/Prototypes/_WG/NpcCrew/chef.yml`](../../../Resources/Prototypes/_WG/NpcCrew/chef.yml)
 - [`Resources/Prototypes/_WG/NpcCrew/companies.yml`](../../../Resources/Prototypes/_WG/NpcCrew/companies.yml)
 - [`Resources/Prototypes/_WG/NpcCrew/gear.yml`](../../../Resources/Prototypes/_WG/NpcCrew/gear.yml)
 - [`Resources/Prototypes/_WG/NpcCrew/htn.yml`](../../../Resources/Prototypes/_WG/NpcCrew/htn.yml)
@@ -652,7 +666,9 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 
 ### Localization
 
+- [`Resources/Locale/en-US/_WG/NpcCrew/bartender.ftl`](../../../Resources/Locale/en-US/_WG/NpcCrew/bartender.ftl)
 - [`Resources/Locale/en-US/_WG/NpcCrew/challenge.ftl`](../../../Resources/Locale/en-US/_WG/NpcCrew/challenge.ftl)
+- [`Resources/Locale/en-US/_WG/NpcCrew/chef.ftl`](../../../Resources/Locale/en-US/_WG/NpcCrew/chef.ftl)
 - [`Resources/Locale/en-US/_WG/NpcCrew/companies.ftl`](../../../Resources/Locale/en-US/_WG/NpcCrew/companies.ftl)
 - [`Resources/Locale/en-US/_WG/NpcCrew/crew.ftl`](../../../Resources/Locale/en-US/_WG/NpcCrew/crew.ftl)
 - [`Resources/Locale/en-US/_WG/NpcCrew/medics.ftl`](../../../Resources/Locale/en-US/_WG/NpcCrew/medics.ftl)
@@ -666,6 +682,8 @@ crew never turns on what it carries, such as the Remade aboard a flesh ship.
 
 ### Docs
 
+- [`Docs/_WG/NpcCrew/bartender.md`](../../../Docs/_WG/NpcCrew/bartender.md)
+- [`Docs/_WG/NpcCrew/chef.md`](../../../Docs/_WG/NpcCrew/chef.md)
 - [`Docs/_WG/NpcCrew/design.md`](../../../Docs/_WG/NpcCrew/design.md)
 - [`Docs/_WG/NpcCrew/handoff.md`](../../../Docs/_WG/NpcCrew/handoff.md)
 - [`Docs/_WG/NpcCrew/navigation.md`](../../../Docs/_WG/NpcCrew/navigation.md)

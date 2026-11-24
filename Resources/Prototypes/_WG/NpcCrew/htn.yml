@@ -151,6 +151,15 @@
   - preconditions:
     - !type:KeyEqualsPrecondition
       key: WGCrewDuty
+      value: Chef
+    tasks:
+    - !type:HTNPrimitiveTask
+      operator: !type:WGHolsterWeaponOperator
+    - !type:HTNCompoundTask
+      task: WGCrewChefCompound
+  - preconditions:
+    - !type:KeyEqualsPrecondition
+      key: WGCrewDuty
       value: Guard
     tasks:
     - !type:HTNPrimitiveTask
