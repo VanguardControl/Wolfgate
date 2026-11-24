@@ -46,8 +46,9 @@ microwave.
 He never spawns a dish. Every one costs a full set of real ingredients and an appliance's real cook time, so with the
 stores empty he stops. The only new ingredients are a pantry's restock: every `RestockInterval` (4 minutes) while a
 chef is alive and at work aboard, the first `WGCrewChefPantry` crate on the grid gets one dish's worth for the dish it
-holds fewest sets of, up to `PantrySets` (2) of each, sharing out ingredients two dishes use. New ingredients come
-aboard at about 15 dishes' worth an hour at most (what is already in the stores is extra), and nothing comes aboard with no pantry, a stolen pantry or a dead
+holds fewest sets of, up to `PantrySets` (2) of each, sharing out ingredients two dishes use. Each chef's clock is his
+own, so new ingredients come aboard at about 15 dishes' worth an hour per chef at most, though never past the pantry's
+cap (what is already in the stores is extra), and nothing comes aboard with no pantry, a stolen pantry or a dead
 chef. `WGCrewChefPantryFilled` comes stocked with two of each default dish.
 
 ## Placing one

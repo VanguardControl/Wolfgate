@@ -430,8 +430,8 @@ public sealed class WGCrewChefSystem : EntitySystem
             return !Transform(uid).Anchored;
 
         var owner = container.Owner;
-        if (!HasComp<SmartFridgeComponent>(owner)
-            && !(HasComp<EntityStorageComponent>(owner) && !HasComp<MobStateComponent>(owner) && !Shut(owner)))
+        if (Shut(owner) || !HasComp<SmartFridgeComponent>(owner)
+            && !(HasComp<EntityStorageComponent>(owner) && !HasComp<MobStateComponent>(owner)))
             return false;
 
         // Nothing above it may be shut either: an unlocked crate inside a locked locker is still locked away.
