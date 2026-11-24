@@ -1,0 +1,38 @@
+# Vessel prototype made in mapping mode from "bonita". Check every field before it goes in the game.
+# Grid: put bonita.yml at Resources/SharedMaps/_WG/Community/bonita2.yml
+# Prototype: put this file, bonita.vessel.yml, at Resources/Prototypes/_WG/Community/bonita2.yml
+# Guessed from the grid (329 tiles), not set by the mapper: description, price, category, class, engine. Check them.
+# Set by the mapper in the export wizard: name, group, access, requireCrew.
+
+- type: vessel
+  id: WGBonita2
+  parent: BaseVessel
+  name: 'Bonita'
+  description: 'The Bonita i% @)#-- You shouldn''t be reading this.'
+  price: 45000 # appraised at 44219
+  category: Medium # 329 tiles
+  group: Shipyard
+  shuttlePath: /SharedMaps/_WG/Community/bonita2.yml
+  guidebookPage: null
+  class:
+  - Mercenary
+  engine:
+  - Plasma
+
+- type: gameMap
+  id: WGBonita2
+  mapName: 'The Quiet Cafe'
+  mapPath: /SharedMaps/_WG/Community/bonita2.yml
+  minPlayers: 0
+  stations:
+    WGBonita2:
+      stationProto: StandardFrontierVessel
+      components:
+      - type: StationNameSetup
+        mapNameTemplate: 'Bonita {1}'
+        nameGenerator:
+          !type:NanotrasenNameGenerator
+          prefixCreator: '14'
+      - type: StationJobs
+        availableJobs:
+          Contractor: [ 0, 0 ]
