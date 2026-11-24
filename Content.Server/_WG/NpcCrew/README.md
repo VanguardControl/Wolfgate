@@ -306,7 +306,23 @@ Breaks (`WGCrewDowntimeSystem`, `WGCrewDowntimeComponent`, given to roster crew 
 staffed): every 8 to 16 minutes at Code Green, with no fight, job, patient or pest on, a crewman buys a snack or a
 drink from a vending machine aboard (`TryEjectVendorItem`), picks it up, eats or drinks it in a free chair through the
 normal use-in-hand, puts the wrapper or the empty in a disposal unit, or just sits down a while. A break gives up after
-five minutes.
+five minutes, and only one crewman of a role on a ship is away at a time.
+
+Chefs (`WGCrewChef`, duty Chef, post `WGShipCrewPostChef`, `chef.yml`) keep a small menu (`WGCrewChefComponent.Menu`:
+a recipe and a count each) stocked on the galley's serving counter (`WGCrewChefServeSpot` markers, else tables beside
+the post) (`WGCrewChefSystem`). A dish that runs short is cooked for real: the recipe's solid ingredients come from the
+stores within 10 m (crates, lockers, the smart fridge or loose), go into a free powered appliance of the recipe's type,
+and the appliance is started with the recipe's own time; the result goes on the counter. Nothing is spawned as food.
+A `WGCrewChefPantry` crate gets one dish's worth of ingredients every four minutes while the chef works, up to two
+sets per dish, so the galley stops when its stores and its chef are gone. See `Docs/_WG/NpcCrew/chef.md`.
+
+Bartenders (`WGCrewBartender`, duty Bartender, post `WGShipCrewPostBartender`, `bartender.yml`) take drink orders said
+at the bar ("a gin and tonic, please", matched against each `wgCrewDrink`'s Fluent keywords) or picked from their
+"Order a drink" verbs, and serve them in turn (`WGCrewBartenderSystem`): a glass from the rack, a two-second pour at
+each dispenser holding an ingredient, the reagents taken from its real bottles so mixes react in the glass, then the
+glass set on the counter in front of the customer or handed over. Drinks are free, the bottles run dry, and the barred
+and the crew's attackers are refused. Idle, he takes empty glasses off the bar back onto his rack. See
+`Docs/_WG/NpcCrew/bartender.md`.
 Hull impacts from another ship's artillery raise crew alerts and a radio mayday through the existing projectile
 handler. Gunners walk to an available powered console and use Mono's ship targeting and fire-control path only
 against explicitly reported hostile vessels, excluding friendly factions. Console loss, incapacitation, player
