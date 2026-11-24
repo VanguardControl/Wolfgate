@@ -93,8 +93,11 @@ public sealed partial class WGCrewLifeTest
         {
             janitor = Crewman(entMan, scene, "WGCrewJanitor");
             mouse = entMan.SpawnEntity("MobMouse", scene.Origin.Offset(new System.Numerics.Vector2(2, 0)));
-            // The test map has no air: the mouse would suffocate before the hunt is looked at.
+            // The test map has no air and is small: both stay alive and the mouse stays put while the hunt is looked at.
             entMan.System<Content.Shared.Damage.Systems.SharedGodmodeSystem>().EnableGodmode(mouse);
+            entMan.System<Content.Shared.Damage.Systems.SharedGodmodeSystem>().EnableGodmode(janitor);
+            if (entMan.TryGetComponent<HTNComponent>(mouse, out var mouseBrain))
+                entMan.System<NPCSystem>().SleepNPC(mouse, mouseBrain);
             var hunter = entMan.GetComponent<WGCrewPestHunterComponent>(janitor);
             hunter.Chance = 1f;
             hunter.NextLook = System.TimeSpan.Zero;
@@ -103,8 +106,14 @@ public sealed partial class WGCrewLifeTest
         await scene.Pair.RunTicksSync(90);
         await scene.Pair.Server.WaitAssertion(() =>
         {
-            Assert.That(entMan.GetComponent<WGCrewPestHunterComponent>(janitor).Target, Is.EqualTo(mouse), "The janitor goes after the mouse.");
-            Assert.That(entMan.System<WGCrewPestSystem>().TryGetPest(janitor, out var pest, out _), Is.True);
+            var hunter = entMan.GetComponent<WGCrewPestHunterComponent>(janitor);
+            Assert.That(hunter.Target, Is.EqualTo(mouse), "The janitor goes after the mouse.");
+            var mobs = entMan.System<Content.Shared.Mobs.Systems.MobStateSystem>();
+            var now = scene.Pair.Server.ResolveDependency<Robust.Shared.Timing.IGameTiming>().CurTime;
+            var why = $"hunt ends {hunter.Until} at {now}, mouse alive {mobs.IsAlive(mouse)}, "
+                      + $"janitor alive {mobs.IsAlive(janitor)}, mouse grid {entMan.GetComponent<TransformComponent>(mouse).GridUid}, "
+                      + $"janitor grid {entMan.GetComponent<TransformComponent>(janitor).GridUid}";
+            Assert.That(entMan.System<WGCrewPestSystem>().TryGetPest(janitor, out var pest, out _), Is.True, why);
             Assert.That(pest, Is.EqualTo(mouse));
         });
 
