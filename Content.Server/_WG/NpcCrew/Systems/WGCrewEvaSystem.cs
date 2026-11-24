@@ -180,6 +180,9 @@ public sealed partial class WGCrewEvaSystem : EntitySystem
     /// <summary>Sends a crewman refused work for want of air to the nearest usable spare tank, if there is one.</summary>
     public void SeekSpare(EntityUid mob)
     {
+        // On his way to a canister already: that walk stands.
+        if (_refills.ContainsKey(mob))
+            return;
         if (TryComp<WGCrewComponent>(mob, out var crew))
             FindSafety(mob, crew, true);
     }

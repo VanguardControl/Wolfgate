@@ -445,7 +445,7 @@ public sealed class WGCrewDowntimeSystem : EntitySystem
     private bool SeatFree(EntityUid seat, EntityUid mob)
     {
         if (!TryComp<StrapComponent>(seat, out var strap) || !strap.Enabled
-            || strap.BuckledEntities.Count > 0 && !strap.BuckledEntities.Contains(mob))
+            || strap.BuckledEntities.Count > 0 && CompOrNull<BuckleComponent>(mob)?.BuckledTo != seat)
             return false;
         var others = EntityQueryEnumerator<WGCrewDowntimeComponent>();
         while (others.MoveNext(out var other, out var comp))
