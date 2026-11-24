@@ -148,11 +148,13 @@ public sealed partial class WGCrewLifeTest
         var entMan = server.EntMan;
         var medics = entMan.System<WGCrewMedicSystem>();
         Entity<WGCrewMedicComponent> medic = default;
+        WGCrewMedicComponent medicComp = default!;
         EntityUid patient = default;
         await server.WaitPost(() =>
         {
             var uid = Crewman(entMan, scene, "WGCrewParamedic");
-            medic = (uid, entMan.GetComponent<WGCrewMedicComponent>(uid));
+            medicComp = entMan.GetComponent<WGCrewMedicComponent>(uid);
+            medic = (uid, medicComp);
             patient = entMan.SpawnEntity("MobHuman", scene.Origin.Offset(new System.Numerics.Vector2(1, 0)));
             var arm = entMan.System<SharedBodySystem>().GetBodyChildren(patient)
                 .First(p => p.Component.PartType == BodyPartType.Arm).Id;
@@ -161,7 +163,7 @@ public sealed partial class WGCrewLifeTest
             medics.Assign(medic, patient);
         });
 
-        for (var i = 0; i < 60 && medic.Comp.Last != WGCrewMedicAction.BrutePen; i++)
+        for (var i = 0; i < 60 && medicComp.Last != WGCrewMedicAction.BrutePen; i++)
         {
             await server.WaitPost(() => medics.Perform(medic));
             await scene.Pair.RunTicksSync(30);
@@ -169,7 +171,7 @@ public sealed partial class WGCrewLifeTest
 
         await server.WaitAssertion(() =>
         {
-            Assert.That(medic.Comp.Last, Is.EqualTo(WGCrewMedicAction.BrutePen), "Heavy brute gets a brute auto-injector.");
+            Assert.That(medicComp.Last, Is.EqualTo(WGCrewMedicAction.BrutePen), "Heavy brute gets a brute auto-injector.");
             var containers = entMan.System<SharedContainerSystem>();
             var pens = new System.Collections.Generic.List<EntityUid>();
             var query = entMan.EntityQueryEnumerator<MetaDataComponent>();
