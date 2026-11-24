@@ -257,29 +257,25 @@ public sealed partial class WGCrewLifeTest
         EntityUid outer = default;
         EntityUid inner = default;
         EntityUid walker = default;
+        // Holodoors: plain doors with no airlock timers or power of their own to get in the way.
         await server.WaitPost(() =>
         {
-            outer = entMan.SpawnEntity("AirlockGlass", scene.Origin.Offset(new System.Numerics.Vector2(0, 2)));
-            inner = entMan.SpawnEntity("AirlockGlass", scene.Origin.Offset(new System.Numerics.Vector2(0, -2)));
+            outer = entMan.SpawnEntity("WGHoloDoor", scene.Origin.Offset(new System.Numerics.Vector2(0, 2)));
+            inner = entMan.SpawnEntity("WGHoloDoor", scene.Origin.Offset(new System.Numerics.Vector2(0, -2)));
             walker = entMan.SpawnEntity("MobHuman", scene.Origin.Offset(new System.Numerics.Vector2(1, -1)));
             entMan.EnsureComponent<WGDoorInterlockComponent>(outer).Partner = inner;
             entMan.EnsureComponent<WGDoorInterlockComponent>(inner).Partner = outer;
-            foreach (var uid in new[] { outer, inner })
-            {
-                var powered = new PowerChangedEvent(true, 0f);
-                entMan.EventBus.RaiseLocalEvent(uid, ref powered);
-            }
             doors.StartOpening(outer);
         });
 
-        await scene.Pair.RunTicksSync(60);
+        await scene.Pair.RunTicksSync(30);
         await server.WaitPost(() =>
         {
             Assert.That(entMan.GetComponent<DoorComponent>(outer).State, Is.EqualTo(DoorState.Open), "Precondition: the outer door is open.");
             Assert.That(doors.TryOpen(inner, user: walker), Is.False, "The inner door won't open while the outer stands open.");
         });
 
-        await scene.Pair.RunTicksSync(90);
+        await scene.Pair.RunTicksSync(45);
         await server.WaitAssertion(() =>
         {
             Assert.That(entMan.GetComponent<DoorComponent>(outer).State, Is.EqualTo(DoorState.Closed), "Asking at the inner door closed the outer.");

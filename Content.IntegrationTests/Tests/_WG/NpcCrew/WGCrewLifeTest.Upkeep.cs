@@ -36,11 +36,15 @@ public sealed partial class WGCrewLifeTest
             mobs.ChangeMobState(deckhand, MobState.Alive);
             Assert.That(entMan.HasComponent<ShipRepairToolComponent>(deckhand), Is.True, "Revived, he has it back.");
 
+            // Getting up is tried on a crewman who never died: a forced revival leaves Wolfmed's consciousness to
+            // catch up, which is the medic's business, not this test's.
+            deckhand = Crewman(entMan, scene, "WGCrewDeckhand", -1, -1);
             var bedAt = scene.Origin.Offset(new System.Numerics.Vector2(1, 1));
             var bed = entMan.SpawnEntity("MedicalBed", bedAt);
             entMan.System<SharedTransformSystem>().SetCoordinates(deckhand, bedAt);
             Assert.That(entMan.System<SharedBuckleSystem>().TryBuckle(deckhand, deckhand, bed, popup: false), Is.True,
                 "Precondition: the medic left him in a bed.");
+            Assert.That(entMan.System<WGCrewMedicSystem>().IsDown(deckhand), Is.False, "Precondition: he is up.");
         });
 
         // Past the buckle's unbuckle delay.
@@ -87,7 +91,8 @@ public sealed partial class WGCrewLifeTest
             var tidy = entMan.System<WGCrewTidySystem>();
             var janitor = Crewman(entMan, scene, "WGCrewJanitor");
             var bin = entMan.SpawnEntity("DisposalUnit", scene.Origin.Offset(new System.Numerics.Vector2(0, 1)));
-            entMan.System<SharedTransformSystem>().AnchorEntity(bin);
+            if (!entMan.GetComponent<TransformComponent>(bin).Anchored)
+                entMan.System<SharedTransformSystem>().AnchorEntity(bin);
             var pen = entMan.SpawnEntity("BruteAutoInjector", scene.Origin.Offset(new System.Numerics.Vector2(1, 0)));
             entMan.System<TagSystem>().AddTag(pen, "Trash");
 
