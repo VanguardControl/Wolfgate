@@ -93,6 +93,16 @@
   - type: WGShipCrewPost
     role: WGCrewSurgeon
 
+# In the galley beside the serving counter: the chef cooks with the appliances, stores and counter around it.
+- type: entity
+  parent: WGShipCrewPostBase
+  id: WGShipCrewPostChef
+  name: command crew post (chef)
+  description: A commanded ship's roster post. The roster staffs it; nothing spawns here on its own.
+  components:
+  - type: WGShipCrewPost
+    role: WGCrewChef
+
 # A counter post: the roster stands the named trader here, facing the way the marker faces (the counter table).
 - type: entity
   abstract: true
