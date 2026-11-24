@@ -97,9 +97,9 @@ public sealed class WGCrewTidySystem : EntitySystem
         if (!_interaction.InRangeUnobstructed(mob, run.Bin, Reach))
             return true;
         _interaction.InteractUsing(mob, run.Item, run.Bin, Transform(run.Bin).Coordinates, checkCanInteract: false);
-        if (_hands.IsHolding(mob, run.Item, out _))
-            _hands.TryDrop(mob, run.Item);
-        End(mob, run, skip: false);
+        // Still in his hand: the bin wouldn't take it (a whitelist), so it is left a while rather than fetched again.
+        var rejected = _hands.IsHolding(mob, run.Item, out _);
+        End(mob, run, skip: rejected);
         return true;
     }
 
@@ -115,7 +115,7 @@ public sealed class WGCrewTidySystem : EntitySystem
     private void End(EntityUid mob, Run run, bool skip)
     {
         _runs.Remove(mob);
-        if (run.Carrying && _hands.IsHolding(mob, run.Item, out _))
+        if (run.Carrying && !TerminatingOrDeleted(mob) && _hands.IsHolding(mob, run.Item, out _))
             _hands.TryDrop(mob, run.Item);
         if (skip && !TerminatingOrDeleted(run.Item))
             _skipped[run.Item] = _timing.CurTime + SkipTime;
@@ -197,10 +197,16 @@ public sealed class WGCrewTidySystem : EntitySystem
     {
         base.Update(frameTime);
         _timer += frameTime;
-        if (_timer < 5f || _skipped.Count == 0)
+        if (_timer < 5f)
             return;
         _timer = 0f;
         var now = _timing.CurTime;
+        // A run whose janitor is gone, or that ran out of time without him coming back to it, frees its rubbish.
+        foreach (var (mob, run) in new List<KeyValuePair<EntityUid, Run>>(_runs))
+        {
+            if (TerminatingOrDeleted(mob) || now > run.Until)
+                End(mob, run, skip: false);
+        }
         foreach (var (item, until) in new List<KeyValuePair<EntityUid, TimeSpan>>(_skipped))
         {
             if (now >= until || TerminatingOrDeleted(item))

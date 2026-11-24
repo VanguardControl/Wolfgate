@@ -59,6 +59,10 @@ public sealed class WGDoorInterlockSystem : EntitySystem
             return;
         }
 
+        // Shut some other way before it ever got open: the deferred close is moot.
+        if (args.State == DoorState.Closed)
+            ent.Comp.CloseWhenOpen = false;
+
         if (args.State != DoorState.Closed || ent.Comp.Partner is not { } partner
             || !TryComp<WGDoorInterlockComponent>(partner, out var waiting) || waiting.CycleUntil < _timing.CurTime)
             return;

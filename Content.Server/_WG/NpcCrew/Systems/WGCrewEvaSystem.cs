@@ -317,6 +317,9 @@ public sealed partial class WGCrewEvaSystem : EntitySystem
             var attempted = false;
             // A pilot or gunner in breathable air keeps the post; only crew in bad air or about to work need a good tank.
             // A low tank in safe air with nothing to do goes to a canister below, not a spare-tank hunt here.
+            // Bad air ends a refill first, so the safety search below keeps the destination it stores.
+            if (!safe)
+                EndRefill(uid);
             var refilling = _refills.ContainsKey(uid);
             if (low && (!safe || seeking && !refilling || work.HasJob(uid)))
             {
@@ -339,7 +342,6 @@ public sealed partial class WGCrewEvaSystem : EntitySystem
                 _safetyDestinations.Remove(uid);
             if (!safe)
             {
-                EndRefill(uid);
                 if (!attempted && !Ready(uid))
                     ConnectAnyTank(uid, internals);
             }

@@ -375,8 +375,8 @@ public sealed partial class WGCrewSystem : EntitySystem
         _crewAccess.SetDown(uid, component, args.NewMobState);
         if (args.NewMobState == MobState.Alive)
         {
-            if (args.OldMobState == MobState.Dead)
-                RestoreRepair(uid, component);
+            // Revival may pass through Critical, so any return to Alive gives back a tool his death took.
+            RestoreRepair(uid, component);
             return;
         }
 

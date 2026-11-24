@@ -775,6 +775,14 @@ public sealed partial class WGCrewMedicSystem : EntitySystem
             return true;
         }
 
+        // Back on their feet on the way to a bed: a paramedic lets them walk. Surgery and the morgue still need taking.
+        if (medic.Comp.Rank == WGCrewMedicRank.Paramedic && !Down(patient) && CareBed(destination))
+        {
+            LetGo(medic.Owner, patient);
+            Release(medic);
+            return true;
+        }
+
         if (!_interaction.InRangeUnobstructed(medic.Owner, destination, Reach))
             return true;
 

@@ -24,10 +24,11 @@ public sealed partial class WGCrewLifeTest
     {
         var scene = await Setup();
         var entMan = scene.Pair.Server.EntMan;
+        EntityUid deckhand = default;
         await scene.Pair.Server.WaitAssertion(() =>
         {
             var mobs = entMan.System<MobStateSystem>();
-            var deckhand = Crewman(entMan, scene, "WGCrewDeckhand");
+            deckhand = Crewman(entMan, scene, "WGCrewDeckhand");
             Assert.That(entMan.HasComponent<ShipRepairToolComponent>(deckhand), Is.True, "Precondition: a deckhand has his repair tool.");
 
             mobs.ChangeMobState(deckhand, MobState.Dead);
@@ -40,6 +41,12 @@ public sealed partial class WGCrewLifeTest
             entMan.System<SharedTransformSystem>().SetCoordinates(deckhand, bedAt);
             Assert.That(entMan.System<SharedBuckleSystem>().TryBuckle(deckhand, deckhand, bed, popup: false), Is.True,
                 "Precondition: the medic left him in a bed.");
+        });
+
+        // Past the buckle's unbuckle delay.
+        await scene.Pair.RunTicksSync(60);
+        await scene.Pair.Server.WaitAssertion(() =>
+        {
             entMan.System<WGCrewRoutineSystem>().GetUp(deckhand);
             Assert.That(entMan.GetComponent<BuckleComponent>(deckhand).BuckledTo, Is.Null, "Well and nobody seeing to him, he gets up.");
         });

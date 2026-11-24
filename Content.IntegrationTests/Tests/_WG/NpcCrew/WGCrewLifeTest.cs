@@ -195,17 +195,24 @@ public sealed partial class WGCrewLifeTest
         var server = scene.Pair.Server;
         var entMan = server.EntMan;
         var medics = entMan.System<WGCrewMedicSystem>();
+        var buckle = entMan.System<SharedBuckleSystem>();
+        EntityUid uid = default;
+        EntityUid patient = default;
         await server.WaitAssertion(() =>
         {
-            var uid = Crewman(entMan, scene, "WGCrewParamedic");
-            var medic = new Entity<WGCrewMedicComponent>(uid, entMan.GetComponent<WGCrewMedicComponent>(uid));
+            uid = Crewman(entMan, scene, "WGCrewParamedic");
             var bedAt = scene.Origin.Offset(new System.Numerics.Vector2(1, 1));
             var bed = entMan.SpawnEntity("MedicalBed", bedAt);
-            var patient = entMan.SpawnEntity("MobHuman", bedAt);
-            var buckle = entMan.System<SharedBuckleSystem>();
+            patient = entMan.SpawnEntity("MobHuman", bedAt);
             Assert.That(buckle.TryBuckle(patient, patient, bed, popup: false), Is.True, "Precondition: the patient lies down.");
-            medics.Assign(medic, patient);
+            medics.Assign((uid, entMan.GetComponent<WGCrewMedicComponent>(uid)), patient);
+        });
 
+        // Past the buckle's unbuckle delay.
+        await scene.Pair.RunTicksSync(60);
+        await server.WaitAssertion(() =>
+        {
+            var medic = new Entity<WGCrewMedicComponent>(uid, entMan.GetComponent<WGCrewMedicComponent>(uid));
             Assert.That(buckle.TryUnbuckle(patient, patient, popup: false), Is.True, "Precondition: the patient gets up.");
             entMan.System<SharedTransformSystem>().SetCoordinates(patient, scene.Origin.Offset(new System.Numerics.Vector2(-2, -2)));
             Assert.That(medics.NeedsTakingIn(medic, patient), Is.False, "Someone on their feet isn't hauled back to bed.");

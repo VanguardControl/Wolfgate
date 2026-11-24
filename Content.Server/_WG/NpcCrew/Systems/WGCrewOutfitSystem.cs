@@ -188,8 +188,12 @@ public sealed class WGCrewOutfitSystem : EntitySystem
 
         if (!_containers.TryGetContainingContainer(piece, out var container))
             return xform.ParentUid == grid && !xform.Anchored;
-        // Never off a person, or out of something a person carries.
-        return !HasComp<MobStateComponent>(container.Owner) && Transform(container.Owner).ParentUid == grid;
+        // Never off a person, out of something a person carries, or out of anything locked or welded shut.
+        var holder = container.Owner;
+        if (TryComp<Content.Shared.Lock.LockComponent>(holder, out var locked) && locked.Locked
+            || TryComp<Content.Shared.Tools.Components.WeldableComponent>(holder, out var weld) && weld.IsWelded)
+            return false;
+        return !HasComp<MobStateComponent>(holder) && Transform(holder).ParentUid == grid;
     }
 
     /// <summary>The thing a piece lies in, if any.</summary>
