@@ -584,7 +584,8 @@ public sealed class WGCrewChefSystem : EntitySystem
     /// <summary>Puts what he carries in the appliance; with every ingredient in, sets its recipe's time and starts it.</summary>
     private bool Load(EntityUid mob, Job job, TimeSpan now)
     {
-        // Power can go while he fetches: then the ingredients stay with him and go back, not into a dead oven.
+        // Power can go while he fetches: then the dish is given up and what he holds is dropped where he stands, not
+        // put into a dead oven.
         if (!TryComp<MicrowaveComponent>(job.Appliance, out var oven) || oven.Broken || HasComp<ActiveMicrowaveComponent>(job.Appliance)
             || !(TryComp<ApcPowerReceiverComponent>(job.Appliance, out var power) && power.Powered))
         {

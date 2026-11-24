@@ -35,7 +35,7 @@ Adjacent things those fixes will not cover, each detailed in section 2:
 | In-flight item | What it leaves open | Gap |
 |---|---|---|
 | Air tanks and internals | Crew with no suit at all (janitor, paramedic, surgeon) never leave bad air. A worker indoors still breathes his tank for the whole job. | G6, G8 |
-| Second paramedic and surgeon | A revived crewman is replaced anyway two minutes after he died, so there are then three. | G4 |
+| Second paramedic and surgeon | Revived before his post is restaffed, a crewman keeps it (fixed in this PR). Revived after the replacement came, he does not get the post back and stays aboard outside the roster, so there are then three. | G4 |
 | Paramedic fixes | A medic with a patient sleeps when no living player is near him, and a downed player does not count as one. | G5 |
 | Critters as intruders | A hostile-faction animal on a Warn ship is neither warned nor fought until it bites; only ships with `WGCrewOnSight` shoot it on sight. | G21 |
 | General quarters and alert codes | The reverse link is missing: nothing the crew detects raises the code, the PA or the distress marker. | G17 |
