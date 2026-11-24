@@ -3,12 +3,12 @@
 Shows players where the rules protect them, and marks those who stay where they don't. A `wgZone` prototype is a kind
 of zone (Safe Zone, Wilderness, faction outpost, not a safe zone) with its banner text, colour, icon, alert and the
 rule it links to. A `WGZoneSource` on a grid, or a `WGZoneMarker` point on a planet, centres one: the Safe Zone on
-Caelestinus Central (256 m), a Wilderness on bluespace vaults, weapons caches and FTL intercepts, PDV drop pods,
-Monolithic Fragments and planetary vaults (512 m), outposts on Halcyon and Helios (256 m), not-safe on Camelot and the Jupiter (aboard, or aboard
-a ship docked there). The Underground Black Market is `WGUndergroundOutpost`: an outpost with no HOT text, so the war
+Caelestinus Central (256 m), a Wilderness on bluespace vaults, weapons caches and FTL intercepts, PDV drop pods
+and planetary vaults (512 m), outposts on Halcyon and Helios (256 m), not-safe on Camelot and the Jupiter (aboard, or
+aboard a ship docked there). The Underground Black Market is `WGUndergroundOutpost`: an outpost with no HOT text, so the war
 level never opens it (it may be struck only in an Underground RAID, from the `Underground` module, or with admin
-permission). Its ring, like Helios' and the drop pods', stays off radar. Salvage wrecks and bluespace dungeon asteroids
-have no zone on purpose: they are PvE dungeons, not contested sites.
+permission). Its ring, like Helios' and the drop pods', stays off radar. Salvage wrecks, bluespace dungeon asteroids
+and Monolithic Fragments have no zone on purpose: they are PvE dungeons, not contested sites.
 
 `WGZoneSystem` works out each player's zone once a second (the ship they're aboard, edge to edge, or them on foot),
 sets `WGInZoneComponent` for their client, shows the alert and says it in chat.
@@ -137,7 +137,6 @@ The zone icons are built by `Tools/_WG/Wilderness/make_icons.py` from the radar 
   - a marked ship past name range keeps its skull
 - [`Content.Server/_Mono/FireControl/FireControlSystem.Console.cs`](../../_Mono/FireControl/FireControlSystem.Console.cs): who fired, for attacks into a Wilderness
 - [`Content.Server/_NF/Smuggling/DeadDropSystem.cs`](../../_NF/Smuggling/DeadDropSystem.cs): a drop pod is a Wilderness, its edge kept off radars like its name
-- [`Resources/Prototypes/_Mono/GameRules/monolithic.yml`](../../../Resources/Prototypes/_Mono/GameRules/monolithic.yml): Monolithic Fragments are Wildernesses
 - [`Resources/Prototypes/_Mono/Guidebook/rules.yml`](../../../Resources/Prototypes/_Mono/Guidebook/rules.yml): the zones page sits with the conflict rules
 - [`Resources/Prototypes/_Mono/Outpost/caelestinus.yml`](../../../Resources/Prototypes/_Mono/Outpost/caelestinus.yml): the Safe Zone round Central
 - [`Resources/Prototypes/_Mono/PointsOfInterest/pdvhelios.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/pdvhelios.yml)

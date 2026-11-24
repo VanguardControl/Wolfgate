@@ -10,7 +10,7 @@
 <!-- WOLFGATE: rule colours readable on light and dark backgrounds -->-- Or if they stay within [color=#b8860b][bold]512 meters[/bold][/color] of your base for [color=#b8860b][bold]30 seconds[/bold][/color] after being warned.
 -- Or if you catch them spying or sabotaging on your ship or base (that person only).
 
-<!-- WOLFGATE(Wilderness): conflict zones are Wildernesses, with the mark -->- Event POIs (bluespace vaults, weapons caches, FTL intercepts, planetary vaults), PDV drop pods and Monolithic Fragments are [color=#d93c3c][bold]Wildernesses[/bold][/color], PvP zones for everyone: everything within [color=#b8860b][bold]512 meters[/bold][/color] of one, even while COLD. Your screen shows a red WILDERNESS banner while you are in one. Salvage wrecks and bluespace dungeon asteroids are not Wildernesses.
+<!-- WOLFGATE(Wilderness): conflict zones are Wildernesses, with the mark -->- Event POIs (bluespace vaults, weapons caches, FTL intercepts, planetary vaults) and PDV drop pods are [color=#d93c3c][bold]Wildernesses[/bold][/color], PvP zones for everyone: everything within [color=#b8860b][bold]512 meters[/bold][/color] of one, even while COLD. Your screen shows a red WILDERNESS banner while you are in one. Salvage wrecks, bluespace dungeon asteroids and Monolithic Fragments are not Wildernesses.
 <!-- WOLFGATE(Wilderness): the PvP rule, and the mark with the server's timings --><WGWildernessRule/>
 <!-- WOLFGATE(Wilderness): was "The fight stays there. Do not hunt them down once they leave." -->-- Once out of the Wilderness and unmarked, the fight is over. Do not hunt them down. See [textlink="Zones and the Wilderness" link="WGWilderness"].
 
