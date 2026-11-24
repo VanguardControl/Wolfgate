@@ -143,6 +143,7 @@ public sealed class WGCrewDowntimeSystem : EntitySystem
             && !_weapons.HasLiveThreat(uid) && !_work.HasJob(uid)
             && CompOrNull<WGCrewMedicComponent>(uid)?.Patient == null
             && CompOrNull<WGCrewPestHunterComponent>(uid)?.Target == null
+            && (CompOrNull<WGCrewBartenderComponent>(uid) is not { } bar || bar.Current == null && bar.Queue.Count == 0)
             && !EntityManager.System<WGCrewShelterSystem>().IsSheltering(uid)
             && !RoleAway(uid, crew, home);
     }
