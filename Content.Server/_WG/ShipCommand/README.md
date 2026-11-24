@@ -210,7 +210,11 @@ which sells for nothing. A print merged into a stack already lying there loses t
 print apart for its materials. The same pass optionally hardens the ship: `IndestructibleArms` puts godmode on every
 ship gun, hardpoint and sentry turret, `UnpryableDoors` clears `CanPry` on every door, `GunChargeScale` and
 `GunRechargeScale` multiply each gun's battery and recharge (filled at once), and `CraneSpeed` sets the speed of
-berth cranes that take no part upgrades.
+berth cranes that take no part upgrades. `VendingExtras` adds a pack's lines to every vending machine aboard that
+carries the pack it is keyed by, and `UnlimitedVending` sets every regular line to `uint.MaxValue`, Frontier's
+unlimited amount, which a vend leaves alone and a restock skips; prices are unchanged. Every five seconds the system
+stocks any vending machine aboard a fitted grid again (`StockVendor`), so a machine placed later is covered and a line
+a forced eject drew down is put back.
 
 ## Unrestricted FTL
 

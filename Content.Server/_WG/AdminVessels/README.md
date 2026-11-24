@@ -54,6 +54,9 @@ Staff by default); those on the public side are mapped unlocked. The shield is t
 generator's window. The vehicle bay sells heavy vehicles (`WGComputerVehicleShopLupercal`); its apron is public, and a
 three-door gate opens it onto the Exchange lobby, wide enough for every vehicle sold there. `canisters.yml` holds the
 admin gas stock: nine canisters that can't be destroyed, each a thousand times the usual gas at the usual pressure.
+Its vending machines never run out (`WGShipFitting.unlimitedVending`) and sell what the sector's stations sell from
+the same kind of machine and more (`vendingExtras`, the packs in `vending.yml`); `Docs/_WG/AdminVessels/vending-survey.md`
+compares the stations' machines with the Lupercal's and lists the machines still to be placed by the generator.
 Each drydock crane stands on a pad in the hull, open to space down its arm's lane; a wall with an external airlock seals
 the pad from the room behind it, and the airlock carries the crane's high-voltage cable.
 
@@ -93,6 +96,7 @@ thruster and gyroscope Lupercal ids, so a mapchecker run needn't whitelist debug
 - [`Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalFlightTest.cs`](../../../Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalFlightTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalPlaytestTest.cs`](../../../Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalPlaytestTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalPlaytestTest.Second.cs`](../../../Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalPlaytestTest.Second.cs)
+- [`Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalVendingTest.cs`](../../../Content.IntegrationTests/Tests/_WG/AdminVessels/LupercalVendingTest.cs)
 
 ### Prototypes
 
@@ -106,6 +110,7 @@ thruster and gyroscope Lupercal ids, so a mapchecker run needn't whitelist debug
 - [`Resources/Prototypes/_WG/AdminVessels/medical.yml`](../../../Resources/Prototypes/_WG/AdminVessels/medical.yml)
 - [`Resources/Prototypes/_WG/AdminVessels/science.yml`](../../../Resources/Prototypes/_WG/AdminVessels/science.yml)
 - [`Resources/Prototypes/_WG/AdminVessels/vehicles.yml`](../../../Resources/Prototypes/_WG/AdminVessels/vehicles.yml)
+- [`Resources/Prototypes/_WG/AdminVessels/vending.yml`](../../../Resources/Prototypes/_WG/AdminVessels/vending.yml)
 - [`Resources/Prototypes/_WG/AdminVessels/walls.yml`](../../../Resources/Prototypes/_WG/AdminVessels/walls.yml)
 
 ### Localization
@@ -123,6 +128,10 @@ thruster and gyroscope Lupercal ids, so a mapchecker run needn't whitelist debug
 ### Tools
 
 - [`Tools/_WG/AdminVessels/holodoor_open.py`](../../../Tools/_WG/AdminVessels/holodoor_open.py)
+
+### Docs
+
+- [`Docs/_WG/AdminVessels/vending-survey.md`](../../../Docs/_WG/AdminVessels/vending-survey.md)
 
 ## Non-modular edits
 
