@@ -102,7 +102,8 @@ with NpcCrew crewmen of one group and mission (boarding Warn, docking Ignore, pi
 the counter in front. A post marker spawns nothing on its own: the roster reads them on map init and staffs them
 where they stand (`StaffOnSpawn`). Each crewman is spawned alone (`WGCrewSystem.SpawnCrewman`, then
 `WGCrewSetupSystem.ApplyMission`), so restaffing one post never resets the rest of the crew or the grid's faction.
-A post is lost when its occupant dies or is deleted (`WGShipRosterMemberComponent`); bodies stay. Restaffing is by
+A post is lost when its occupant dies or is deleted (`WGShipRosterMemberComponent`); bodies stay, and one revived
+before the post is filled takes it back. Restaffing is by
 hand (the command console's Crew tab, or `wg_shipcrew staff`) unless `AutoRestaff` is switched on, when a lost post is filled after `RestaffDelay`, at
 most `RestaffsPerHour` an hour; with a crew bay marker (`WGShipCrewBay`) restaffed crew come aboard there and walk
 to their posts. A post can be stood down (`wg_shipcrew down|up`), which relieves its occupant and leaves it empty,

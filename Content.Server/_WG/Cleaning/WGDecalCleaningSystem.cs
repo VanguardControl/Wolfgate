@@ -71,9 +71,10 @@ public sealed partial class WGDecalCleaningSystem : EntitySystem
 
     /// <summary>
     /// Picks one of the nearest dirty tiles within range of a point on a grid, at random so an unreachable one
-    /// doesn't hold a cleanbot forever.
+    /// doesn't hold a cleanbot forever. Tiles in <paramref name="taken"/>, someone else's, are left out.
     /// </summary>
-    public bool TryPickDirtyTile(EntityUid gridUid, Vector2 localPos, float range, int choices, out Vector2i tile)
+    public bool TryPickDirtyTile(EntityUid gridUid, Vector2 localPos, float range, int choices, out Vector2i tile,
+        IReadOnlySet<Vector2i>? taken = null)
     {
         tile = default;
         if (!TryComp(gridUid, out DecalGridComponent? decalGrid))
@@ -87,7 +88,9 @@ public sealed partial class WGDecalCleaningSystem : EntitySystem
             if (!IsCleanable(decal) || (decal.Coordinates + new Vector2(0.5f, 0.5f) - localPos).Length() > range)
                 continue;
 
-            tiles.Add(new Vector2i((int) MathF.Floor(decal.Coordinates.X + 0.5f), (int) MathF.Floor(decal.Coordinates.Y + 0.5f)));
+            var at = new Vector2i((int) MathF.Floor(decal.Coordinates.X + 0.5f), (int) MathF.Floor(decal.Coordinates.Y + 0.5f));
+            if (taken == null || !taken.Contains(at))
+                tiles.Add(at);
         }
 
         if (tiles.Count == 0)

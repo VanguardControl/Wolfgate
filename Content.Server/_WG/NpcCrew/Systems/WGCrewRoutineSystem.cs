@@ -47,7 +47,9 @@ public sealed partial class WGCrewRoutineSystem : EntitySystem
             if (_timing.CurTime < crew.NextPatrol || crew.Duty != WGCrewDuties.Guard
                 || crew.Role != WGCrewRoles.Deckhand && crew.Role != WGCrewRoles.Marine
                 || xform.GridUid is not { } grid || crew.Post is not { } home || home.EntityId != grid
-                || _work.HomeGrid(uid) != null || _weapons.HasLiveThreat(uid))
+                || _work.HomeGrid(uid) != null || _weapons.HasLiveThreat(uid)
+                || EntityManager.System<WGCrewReadinessSystem>().AtStations(uid)
+                || EntityManager.System<WGCrewDowntimeSystem>().OnBreak(uid))
                 continue;
             crew.NextPatrol = _timing.CurTime + TimeSpan.FromSeconds(_random.Next(45, 91));
             if (NextPatrolPoint(uid, grid, xform) is not { } point)

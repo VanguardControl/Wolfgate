@@ -70,6 +70,7 @@ public sealed partial class WGCrewMedicSystem : EntitySystem
     [Dependency] private EntityStorageSystem _storage = default!;
     [Dependency] private EuiManager _eui = default!;
     [Dependency] private HealingSystem _healing = default!;
+    [Dependency] private Content.Server.Chemistry.EntitySystems.HypospraySystem _hypospray = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private PullingSystem _pulling = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
@@ -477,7 +478,16 @@ public sealed partial class WGCrewMedicSystem : EntitySystem
         if (_toxin.GetLoad(patient) > medic.Comp.ToxinLoad && now >= (care?.NextAntitoxin ?? TimeSpan.Zero))
             return WGCrewMedicAction.Antitoxin;
 
-        if (medic.Comp.Rank == WGCrewMedicRank.Paramedic && Serious(medic.Comp, patient))
+        if (medic.Comp.BrutePen != null && GroupDamage(patient, "Brute") >= medic.Comp.PenDamage
+            && now >= (care?.NextBrutePen ?? TimeSpan.Zero))
+            return WGCrewMedicAction.BrutePen;
+
+        if (medic.Comp.BurnPen != null && GroupDamage(patient, "Burn") >= medic.Comp.PenDamage
+            && now >= (care?.NextBurnPen ?? TimeSpan.Zero))
+            return WGCrewMedicAction.BurnPen;
+
+        // The serious cases are the surgeon's once they are in bed or being carried there; one on their feet is patched up here.
+        if (medic.Comp.Rank == WGCrewMedicRank.Paramedic && Serious(medic.Comp, patient) && (Down(patient) || OnBed(patient)))
             return WGCrewMedicAction.None;
 
         if (NeedsItem(medic, patient, medic.Comp.Brutepack))
@@ -496,7 +506,7 @@ public sealed partial class WGCrewMedicSystem : EntitySystem
         {
             WGCrewMedicAction.Shock => 4,
             WGCrewMedicAction.Cpr => 6,
-            WGCrewMedicAction.Stimulant or WGCrewMedicAction.Antitoxin => 2,
+            WGCrewMedicAction.Stimulant or WGCrewMedicAction.Antitoxin or WGCrewMedicAction.BrutePen or WGCrewMedicAction.BurnPen => 2,
             _ => 3,
         });
 
@@ -573,10 +583,16 @@ public sealed partial class WGCrewMedicSystem : EntitySystem
                 return Heal(medic, patient, part, medic.Comp.Gauze);
             case WGCrewMedicAction.Stimulant:
                 Care(patient).NextStimulant = now + DoseGap;
-                return Inject(patient, medic.Comp.Stimulant, medic.Comp.Dose);
+                return InjectPen(medic, patient, medic.Comp.StimulantPen) || Inject(patient, medic.Comp.Stimulant, medic.Comp.Dose);
             case WGCrewMedicAction.Antitoxin:
                 Care(patient).NextAntitoxin = now + DoseGap;
-                return Inject(patient, medic.Comp.Antitoxin, medic.Comp.Dose);
+                return InjectPen(medic, patient, medic.Comp.AntitoxinPen) || Inject(patient, medic.Comp.Antitoxin, medic.Comp.Dose);
+            case WGCrewMedicAction.BrutePen:
+                Care(patient).NextBrutePen = now + DoseGap;
+                return InjectPen(medic, patient, medic.Comp.BrutePen);
+            case WGCrewMedicAction.BurnPen:
+                Care(patient).NextBurnPen = now + DoseGap;
+                return InjectPen(medic, patient, medic.Comp.BurnPen);
             case WGCrewMedicAction.Brute:
                 return Heal(medic, patient, null, medic.Comp.Brutepack);
             case WGCrewMedicAction.Burn:
@@ -613,6 +629,31 @@ public sealed partial class WGCrewMedicSystem : EntitySystem
         return _bloodstream.TryAddToChemicals(patient, new Solution(reagent, FixedPoint2.New(amount)));
     }
 
+    /// <summary>Uses a real medipen on the patient and drops the spent pen on the floor beside them.</summary>
+    private bool InjectPen(Entity<WGCrewMedicComponent> medic, EntityUid patient, EntProtoId? pen)
+    {
+        if (pen is not { } proto)
+            return false;
+
+        var item = Spawn(proto, _transform.GetMapCoordinates(medic));
+        if (!TryComp<HyposprayComponent>(item, out var hypo) || !_hypospray.TryDoInject((item, hypo), patient, medic))
+        {
+            QueueDel(item);
+            return false;
+        }
+
+        _transform.DropNextTo(item, _container.IsEntityInContainer(patient) ? medic.Owner : patient);
+        return true;
+    }
+
+    /// <summary>The patient's damage in one damage group.</summary>
+    private float GroupDamage(EntityUid patient, string group)
+    {
+        return TryComp<DamageableComponent>(patient, out var damageable) && damageable.DamagePerGroup.TryGetValue(group, out var amount)
+            ? amount.Float()
+            : 0f;
+    }
+
     /// <summary>One of the medic's endless healing items, kept off the map.</summary>
     private EntityUid? Supply(Entity<WGCrewMedicComponent> medic, EntProtoId item)
     {
@@ -632,13 +673,27 @@ public sealed partial class WGCrewMedicSystem : EntitySystem
                && _healing.IsWoundDamaged((patient, damageable), healing, null);
     }
 
-    /// <summary>A paramedic's patient goes to Medical when downed or badly hurt and not already in a bed or the morgue.</summary>
+    /// <summary>
+    /// A paramedic's patient is carried to Medical when downed and not already in a bed or the morgue. Someone on their
+    /// feet is treated where they stand however hurt, and never dragged off.
+    /// </summary>
     public bool NeedsTakingIn(Entity<WGCrewMedicComponent> medic, EntityUid patient)
     {
         return medic.Comp.Rank == WGCrewMedicRank.Paramedic
                && !OnBed(patient)
                && !_container.IsEntityInContainer(patient)
-               && (Down(patient) || Serious(medic.Comp, patient));
+               && Down(patient);
+    }
+
+    /// <summary>
+    /// Whether a patient has walked off: on their feet, out of bed, out of his hands and not asking for help. A patient
+    /// who leaves is let go; staying is their choice.
+    /// </summary>
+    private bool WalkedOff(Entity<WGCrewMedicComponent> medic, EntityUid patient)
+    {
+        return !Down(patient) && !OnBed(patient) && !_container.IsEntityInContainer(patient)
+               && !Drags(medic.Owner, patient) && !medic.Comp.Busy && Priority(patient, false) == null
+               && (medic.Comp.Table is not { } table || !OnTable(table, patient));
     }
 
     /// <summary>
@@ -781,6 +836,12 @@ public sealed partial class WGCrewMedicSystem : EntitySystem
         if (!TryComp<WGCrewComponent>(medic, out var crew) || _crew.HomeGrid(medic, crew) is not { } home
             || Transform(patient).GridUid is not { } grid || !CareGrids(home).Contains(grid) || !MayTreat(medic, patient, home))
             return false;
+
+        if (WalkedOff(medic, patient))
+        {
+            Say(medic, "wg-crew-medic-walked-off");
+            return false;
+        }
 
         if (Drags(medic, patient) || medic.Comp.Busy || medic.Comp.Destination != null)
             return true;
