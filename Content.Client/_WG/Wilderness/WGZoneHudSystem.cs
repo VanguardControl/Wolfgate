@@ -394,7 +394,7 @@ public sealed class WGZoneHudSystem : EntitySystem
             _overlays.AddOverlay(_border);
 
         _border.Color = marked ? MarkColor : zone!.Color;
-        _border.Alpha = 1f;
+        _border.Alpha = Math.Clamp(_cfg.GetCVar(WildernessCVars.ScreenBorderIntensity), 0f, 1f);
     }
 
     private void HideBanner()

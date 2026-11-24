@@ -36,8 +36,9 @@ The client (`WGZoneHudSystem`) shows a one-line pill under the top menu (zone, p
 the zone for a few seconds on entering danger or under the cursor, and opens the rule when clicked; a title and a sound
 on crossing in; and a faint, still border while marked. It shows the player's own mark, or else their ship's. Each part
 has a client setting (`wg.wilderness.banner`, `titles`, `sounds`: always, danger or off; `screen_border`: wilderness,
-marked or off; `zone_chat`, read by the server for the crossing lines). Danger means a Wilderness, an outpost at war,
-or being marked, and is the default for all three. A ghost sees none of it. The same crossing's title and sound, and
+marked or off; `screen_border_intensity`, 0.1 to 1, default 0.4; `zone_chat`, read by the server for the crossing
+lines). Danger means a Wilderness, an outpost at war, or being marked, and is the default for all three. The border and
+title fit the visible part of whichever view draws them, the full screen or a console's cockpit view. A ghost sees none of it. The same crossing's title and sound, and
 its chat line or the "still marked" line, wait 60 s before they repeat, so hopping over an edge stays quiet. The
 player gets one zone alert: the zone's, with a sweep counting down to the mark in a Wilderness, or the mark's, counting
 down once out. `WGSkullOverlay` draws an 8 px skull centred over each marked person, like the status icons, and hidden

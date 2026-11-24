@@ -59,6 +59,7 @@ public sealed partial class WGInterfaceTab : Control
             new(WildernessCVars.BorderMarked, Loc.GetString("ui-options-wg-wilderness-border-marked")),
             new(WildernessCVars.ShowOff, Loc.GetString("ui-options-wg-wilderness-off")),
         });
+        Control.AddOptionPercentSlider(WildernessCVars.ScreenBorderIntensity, WildernessBorderIntensitySlider, 0.1f, 1f);
         Control.AddOptionCheckBox(WildernessCVars.ZoneChat, WildernessChatCheckBox);
         Control.AddOptionCheckBox(WildernessCVars.RadarRings, WildernessRingsCheckBox);
 

@@ -15,15 +15,19 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._WG.Wilderness;
 
-/// <summary>The viewport in the coordinates a screen-space overlay draws in.</summary>
+/// <summary>The part of a viewport that shows on screen, in the coordinates a screen-space overlay draws in.</summary>
 internal static class WGZoneScreen
 {
-    // ViewportBounds is in global physical pixels, but the handle is already at the viewport's top-left.
+    // The engine resets the handle to the window's origin before each overlay, so ViewportBounds (window pixels) is
+    // already in its coordinates, whether the view fills the window or sits in a console panel. A stretched view can
+    // be drawn wider than its control, so it is clipped to the control.
     public static UIBox2 Of(in OverlayDrawArgs args)
     {
-        var origin = (args.ViewportControl as Control)?.GlobalPixelPosition ?? Vector2i.Zero;
         var bounds = args.ViewportBounds;
-        return new UIBox2(bounds.Left - origin.X, bounds.Top - origin.Y, bounds.Right - origin.X, bounds.Bottom - origin.Y);
+        if (args.ViewportControl is not Control control)
+            return bounds;
+
+        return bounds.Intersection(UIBox2i.FromDimensions(control.GlobalPixelPosition, control.PixelSize)) ?? bounds;
     }
 }
 
@@ -36,7 +40,7 @@ public sealed class WGZoneBorderOverlay : Overlay
 
     public Color Color = Color.Red;
 
-    /// <summary>0 to 1; drawn only above zero.</summary>
+    /// <summary>0 to 1, the player's border intensity; drawn only above zero.</summary>
     public float Alpha;
 
     protected override bool BeforeDraw(in OverlayDrawArgs args) => Alpha > 0.001f;

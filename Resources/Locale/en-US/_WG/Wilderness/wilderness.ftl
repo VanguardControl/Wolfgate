@@ -170,6 +170,7 @@ ui-options-wg-wilderness-banner = Zone banner
 ui-options-wg-wilderness-titles = Title on crossing a zone edge
 ui-options-wg-wilderness-sounds = Zone sounds
 ui-options-wg-wilderness-border = Coloured screen border
+ui-options-wg-wilderness-border-intensity = Screen border strength
 ui-options-wg-wilderness-always = In every zone
 ui-options-wg-wilderness-danger = Only where you can be attacked
 ui-options-wg-wilderness-danger-tooltip = Where you can be attacked: in a Wilderness, near an outpost at war, or anywhere while you are marked.

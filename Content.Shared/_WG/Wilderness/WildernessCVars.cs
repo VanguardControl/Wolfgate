@@ -52,6 +52,10 @@ public sealed class WildernessCVars
     public static readonly CVarDef<string> ScreenBorder =
         CVarDef.Create("wg.wilderness.screen_border", BorderMarked, CVar.CLIENTONLY | CVar.ARCHIVE);
 
+    /// <summary>How strong the screen border is, from 0.1 to 1; 1 is the original strength.</summary>
+    public static readonly CVarDef<float> ScreenBorderIntensity =
+        CVarDef.Create("wg.wilderness.screen_border_intensity", 0.4f, CVar.CLIENTONLY | CVar.ARCHIVE);
+
     /// <summary>Whether the server sends a chat line on entering or leaving a zone. Mark messages are always sent.</summary>
     public static readonly CVarDef<bool> ZoneChat =
         CVarDef.Create("wg.wilderness.zone_chat", true, CVar.CLIENT | CVar.REPLICATED | CVar.ARCHIVE);
