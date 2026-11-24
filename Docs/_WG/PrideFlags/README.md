@@ -17,6 +17,10 @@ does. Rerun it to change a flag or add one; the states and `meta.json` are rewri
 
 - [`Resources/Prototypes/_WG/PrideFlags/flags.yml`](../../../Resources/Prototypes/_WG/PrideFlags/flags.yml)
 
+### Localization
+
+- [`Resources/Locale/en-US/_WG/PrideFlags/flags.ftl`](../../../Resources/Locale/en-US/_WG/PrideFlags/flags.ftl)
+
 ### Textures
 
 - [`Resources/Textures/_WG/PrideFlags/flags.rsi/`](../../../Resources/Textures/_WG/PrideFlags/flags.rsi/)
