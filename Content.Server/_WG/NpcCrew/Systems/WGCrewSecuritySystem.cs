@@ -2,7 +2,7 @@ using System.Linq;
 using Content.Server._WG.NpcCrew.Components;
 using Content.Server.Shuttles.Events;
 using Content.Shared._Mono.Company;
-using Content.Shared._Mono.CorticalBorer.Components;
+using Content.Shared._Mono.CorticalBorer;
 using Content.Shared._WG.NpcCrew;
 using Content.Shared.Humanoid;
 using Content.Shared.Mobs.Components;

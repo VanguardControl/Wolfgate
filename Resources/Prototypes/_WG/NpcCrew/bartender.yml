@@ -12,8 +12,6 @@
 - type: entity
   parent: [ WGCrewKitBartender, WGMobCrewBase ]
   id: WGMobCrewBartender
-  name: bartender
-  description: Polishes the same glass whenever you look at him.
   components:
   - type: Loadout
     prototypes: [ WGCrewBartenderGear ]

@@ -15,8 +15,6 @@
 - type: entity
   parent: WGMobCrewBase
   id: WGMobCrewChef
-  name: chef
-  description: Runs the galley, and would rather you didn't touch the knives.
   components:
   - type: Loadout
     prototypes: [ WGCrewChefGear ]
@@ -65,8 +63,6 @@
 - type: entity
   parent: CrateFreezer
   id: WGCrewChefPantry
-  name: galley pantry
-  description: A freezer of the galley's ingredients. The cook draws on it, and it is topped up with the ship's provisions while he works.
   components:
   - type: WGCrewChefPantry
 
@@ -74,7 +70,6 @@
 - type: entity
   parent: WGCrewChefPantry
   id: WGCrewChefPantryFilled
-  suffix: Filled
   components:
   - type: StorageFill
     contents:
@@ -97,8 +92,6 @@
 - type: entity
   parent: MarkerBase
   id: WGCrewChefServeSpot
-  name: chef serving spot
-  description: A galley's serving counter. The ship's chef puts his dishes out here and keeps count of what is left.
   components:
   - type: WGCrewChefServeSpot
   - type: Sprite

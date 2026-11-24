@@ -10,8 +10,6 @@
 - type: entity
   parent: WGPrideFlagBase
   id: WGPrideFlagGay
-  name: gay pride flag
-  description: Green, blue and white, for men who love men.
   components:
   - type: Sprite
     state: gay
@@ -19,8 +17,6 @@
 - type: entity
   parent: WGPrideFlagBase
   id: WGPrideFlagLesbian
-  name: lesbian pride flag
-  description: Sunset oranges and pinks, for women who love women.
   components:
   - type: Sprite
     state: lesbian
@@ -28,8 +24,6 @@
 - type: entity
   parent: WGPrideFlagBase
   id: WGPrideFlagBisexual
-  name: bisexual pride flag
-  description: Pink, purple and blue.
   components:
   - type: Sprite
     state: bisexual
@@ -37,8 +31,6 @@
 - type: entity
   parent: WGPrideFlagBase
   id: WGPrideFlagTransgender
-  name: transgender pride flag
-  description: Blue, pink and white. However you hang it, it's the right way up.
   components:
   - type: Sprite
     state: transgender
@@ -46,8 +38,6 @@
 - type: entity
   parent: WGPrideFlagBase
   id: WGPrideFlagPansexual
-  name: pansexual pride flag
-  description: Pink, yellow and blue.
   components:
   - type: Sprite
     state: pansexual
@@ -55,8 +45,6 @@
 - type: entity
   parent: WGPrideFlagBase
   id: WGPrideFlagAsexual
-  name: asexual pride flag
-  description: Black, grey, white and purple.
   components:
   - type: Sprite
     state: asexual
@@ -64,8 +52,6 @@
 - type: entity
   parent: WGPrideFlagBase
   id: WGPrideFlagAromantic
-  name: aromantic pride flag
-  description: Greens, white, grey and black.
   components:
   - type: Sprite
     state: aromantic
@@ -73,8 +59,6 @@
 - type: entity
   parent: WGPrideFlagBase
   id: WGPrideFlagNonbinary
-  name: nonbinary pride flag
-  description: Yellow, white, purple and black.
   components:
   - type: Sprite
     state: nonbinary
@@ -82,8 +66,6 @@
 - type: entity
   parent: WGPrideFlagBase
   id: WGPrideFlagGenderfluid
-  name: genderfluid pride flag
-  description: Pink, white, purple, black and blue.
   components:
   - type: Sprite
     state: genderfluid
@@ -91,8 +73,6 @@
 - type: entity
   parent: WGPrideFlagBase
   id: WGPrideFlagAgender
-  name: agender pride flag
-  description: Black, grey, white and green, mirrored.
   components:
   - type: Sprite
     state: agender
@@ -100,8 +80,6 @@
 - type: entity
   parent: WGPrideFlagBase
   id: WGPrideFlagGenderqueer
-  name: genderqueer pride flag
-  description: Lavender, white and green.
   components:
   - type: Sprite
     state: genderqueer
@@ -109,8 +87,6 @@
 - type: entity
   parent: WGPrideFlagBase
   id: WGPrideFlagIntersex
-  name: intersex pride flag
-  description: A purple ring on yellow.
   components:
   - type: Sprite
     state: intersex

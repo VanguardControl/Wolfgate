@@ -97,8 +97,6 @@
 - type: entity
   parent: WGShipCrewPostBase
   id: WGShipCrewPostBartender
-  name: command crew post (bartender)
-  description: A commanded ship's roster post. The roster staffs it; nothing spawns here on its own.
   components:
   - type: WGShipCrewPost
     role: WGCrewBartender
@@ -107,8 +105,6 @@
 - type: entity
   parent: WGShipCrewPostBase
   id: WGShipCrewPostChef
-  name: command crew post (chef)
-  description: A commanded ship's roster post. The roster staffs it; nothing spawns here on its own.
   components:
   - type: WGShipCrewPost
     role: WGCrewChef
