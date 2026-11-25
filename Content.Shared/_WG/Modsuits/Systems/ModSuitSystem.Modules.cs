@@ -11,6 +11,26 @@ public sealed partial class ModSuitSystem
         if (ent.Comp.ModulesContainer.ContainedEntities.Count != 0)
             return;
 
+        SpawnInbuiltModules(ent);
+
+        var coords = Transform(ent).Coordinates;
+        foreach (var proto in ent.Comp.StartingModules)
+        {
+            var module = PredictedSpawnAttachedTo(proto, coords);
+            if (!TryComp<ModModuleComponent>(module, out var moduleComp) || !CanInstallModule(ent, (module, moduleComp), out _, true))
+            {
+                Log.Warning($"Starting module {proto} could not be installed into {ToPrettyString(ent)}");
+                PredictedQueueDel(module);
+                continue;
+            }
+
+            InstallModule(ent, (module, moduleComp));
+        }
+    }
+
+    /// <summary>Spawns and installs the theme's and the suit's inbuilt modules.</summary>
+    private void SpawnInbuiltModules(Entity<ModSuitComponent> ent)
+    {
         var theme = _proto.Index(ent.Comp.Theme);
         var coords = Transform(ent).Coordinates;
 
@@ -25,19 +45,6 @@ public sealed partial class ModSuitSystem
 
             moduleComp.Removable = false;
             Dirty(module, moduleComp);
-            InstallModule(ent, (module, moduleComp));
-        }
-
-        foreach (var proto in ent.Comp.StartingModules)
-        {
-            var module = PredictedSpawnAttachedTo(proto, coords);
-            if (!TryComp<ModModuleComponent>(module, out var moduleComp) || !CanInstallModule(ent, (module, moduleComp), out _, true))
-            {
-                Log.Warning($"Starting module {proto} could not be installed into {ToPrettyString(ent)}");
-                PredictedQueueDel(module);
-                continue;
-            }
-
             InstallModule(ent, (module, moduleComp));
         }
     }
