@@ -535,4 +535,9 @@ public enum LogType
     /// <summary>Paintings finished, scanned into the catalogue, ordered, removed and blocked.</summary>
     WGPainting = 12495,
     // WOLFGATE END
+
+    // WOLFGATE(Proteans) START: what a Protean absorbs, and later its collapses and form changes
+    /// <summary>A Protean absorbed or was fed an item, or changed state.</summary>
+    WGProtean = 12496,
+    // WOLFGATE END
 }

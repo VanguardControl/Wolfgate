@@ -1,12 +1,28 @@
 using System.Linq;
+using Content.Shared._WG.Augments;
 using Content.Shared.Body.Organ;
 using Content.Shared.Body.Part;
+using Content.Shared.IdentityManagement;
+using Content.Shared.Popups;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._Goobstation.Autosurgeon;
 
 public sealed partial class AutoSurgeonSystem
 {
+    [Dependency] private SharedPopupSystem _wgPopup = default!;
+
+    /// <summary>Whether the body takes no augments; tells the user so from the server.</summary>
+    public bool WgRefusesBody(EntityUid body)
+    {
+        if (!TryComp(body, out WGNoAugmentsComponent? none))
+            return false;
+
+        if (_netManager.IsServer)
+            _wgPopup.PopupEntity(Loc.GetString(none.AutosurgeonRefuse, ("target", Identity.Entity(body, EntityManager))), body, body);
+        return true;
+    }
+
     /// <summary>The part or organ an upgrading autosurgeon works on in a body, if it has one.</summary>
     public EntityUid? WgUpgradeTarget(EntityUid body, AutoSurgeonComponent surgeon)
     {

@@ -131,11 +131,22 @@ public static class WGAugmentRules
         IComponentFactory factory,
         WGBiotype biotype = WGBiotype.Default)
     {
-        if (Body(species, biotype, proto, factory) is not { } body
+        if (NoAugmentsReason(species, proto, factory) != null
+            || Body(species, biotype, proto, factory) is not { } body
             || !body.Slots.TryGetValue(PartSlot(slot), out var part))
             return false;
 
         return OrganSlot(slot) is not { } organ || part.Organs.ContainsKey(organ);
+    }
+
+    /// <summary>Why the species takes no augments at all, or null when it takes them.</summary>
+    public static LocId? NoAugmentsReason(string species, IPrototypeManager proto, IComponentFactory factory)
+    {
+        return proto.TryIndex<SpeciesPrototype>(species, out var speciesProto)
+               && proto.TryIndex(speciesProto.Prototype, out var mob)
+               && mob.TryComp(out WGNoAugmentsComponent? none, factory)
+            ? none.Reason
+            : (LocId?) null;
     }
 
     /// <summary>

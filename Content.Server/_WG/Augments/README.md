@@ -6,6 +6,10 @@ hands and feet (free), J.W.L arms, S.P.E.E.D legs, D.E.X hands, cyber eyes, IAS 
 Sandevistans, mantis blades, dermal armor and muscle fibers. A piece of cyberware missing from it is lost at the
 end of every round.
 
+A species whose mob has `WGNoAugmentsComponent` (the Protean) takes none: `WGAugmentRules.SlotAvailable` is false for
+every slot, so the creator offers nothing and a saved profile loads with its picks dropped and nothing due, the tab
+shows the component's `reason`, and an autosurgeon used on the body refuses with `autosurgeonRefuse`.
+
 A character gets an augment three ways:
 
 - **The creator.** The Augments tab draws the character as a doll (`WGAugmentDoll`); hovering a part outlines it
@@ -274,6 +278,7 @@ scratch, so an unpicked augment comes off it.
 - [`Content.Shared/_WG/Augments/WGHandShieldComponent.cs`](../../../Content.Shared/_WG/Augments/WGHandShieldComponent.cs)
 - [`Content.Shared/_WG/Augments/WGHoloProjectorComponent.cs`](../../../Content.Shared/_WG/Augments/WGHoloProjectorComponent.cs)
 - [`Content.Shared/_WG/Augments/WGIatricMonitorComponent.cs`](../../../Content.Shared/_WG/Augments/WGIatricMonitorComponent.cs)
+- [`Content.Shared/_WG/Augments/WGNoAugmentsComponent.cs`](../../../Content.Shared/_WG/Augments/WGNoAugmentsComponent.cs)
 - [`Content.Shared/_WG/Augments/WGNutrimentPumpComponent.cs`](../../../Content.Shared/_WG/Augments/WGNutrimentPumpComponent.cs)
 - [`Content.Shared/_WG/Augments/WGOpticalCamoComponent.cs`](../../../Content.Shared/_WG/Augments/WGOpticalCamoComponent.cs)
 - [`Content.Shared/_WG/Augments/WGPainEditorComponent.cs`](../../../Content.Shared/_WG/Augments/WGPainEditorComponent.cs)
@@ -421,7 +426,9 @@ scratch, so an unpicked augment comes off it.
   - the balance the client last saw, to tell a stale copy
   - a client save can't unlock augments; new priced ones are bought from the bank here
   - the creator shows the balance, unlocks and dropped augments the save left
-- [`Content.Shared/_Goobstation/Autosurgeon/AutoSurgeonSystem.cs`](../../../Content.Shared/_Goobstation/Autosurgeon/AutoSurgeonSystem.cs): augments reapply and detect upgrades
+- [`Content.Shared/_Goobstation/Autosurgeon/AutoSurgeonSystem.cs`](../../../Content.Shared/_Goobstation/Autosurgeon/AutoSurgeonSystem.cs)
+  - augments reapply and detect upgrades
+  - a species with no augments refuses the autosurgeon
 - [`Content.Shared/Body/Systems/SharedBodySystem.Parts.cs`](../../../Content.Shared/Body/Systems/SharedBodySystem.Parts.cs): a part cut loose for an augment isn't lost
 - [`Content.Shared/Damage/Systems/StaminaSystem.cs`](../../../Content.Shared/Damage/Systems/StaminaSystem.cs)
   - who dealt it and with what, for the hand shield

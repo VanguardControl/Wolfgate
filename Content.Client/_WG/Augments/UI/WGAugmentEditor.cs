@@ -253,6 +253,12 @@ public sealed partial class WGAugmentEditor : BoxContainer
 
     private void UpdateHint()
     {
+        if (_profile != null && WGAugmentRules.NoAugmentsReason(_profile.Species, _proto, _factory) is { } reason)
+        {
+            _hint.Text = Loc.GetString(reason);
+            return;
+        }
+
         var region = _doll.Hovered ?? _doll.Selected;
         _hint.Text = region is { } shown ? RegionName(shown) : Loc.GetString("wg-augments-pick");
     }

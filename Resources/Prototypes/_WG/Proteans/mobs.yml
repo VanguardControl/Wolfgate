@@ -1,0 +1,92 @@
+# Not on BaseMobSpeciesOrganic, which brings blood, breathing, wounds and pain; nothing here eats, drinks or breathes.
+- type: entity
+  save: false
+  parent: [ BaseMobSpecies, MobAtmosStandard, MobFlammable ]
+  id: BaseMobWGProtean
+  name: Urist McProtean
+  abstract: true
+  components:
+  - type: Icon
+    sprite: Mobs/Species/Slime/parts.rsi
+    state: full
+  - type: HumanoidAppearance
+    species: WGProtean
+  - type: Body
+    prototype: WGProtean
+    requiredLegs: 2
+  - type: Damageable
+    damageContainer: Biological
+    damageModifierSet: WGProtean
+  # Collapse replaces Critical and Dead in the next PR.
+  - type: MobThresholds
+    thresholds:
+      0: Alive
+      75: Critical
+      150: Dead
+  - type: DamageVisuals
+    damageOverlayGroups:
+      Brute:
+        sprite: Mobs/Effects/brute_damage.rsi
+        color: "#8a929c"
+      Burn:
+        sprite: Mobs/Effects/burn_damage.rsi
+  - type: Speech
+    speechVerb: WGProtean
+    speechSounds: Slime
+    allowedEmotes: ['Squish', 'Bubble', 'Pop']
+  - type: TypingIndicator
+    proto: slime
+  - type: Vocal
+    sounds:
+      Male: MaleSlime
+      Female: FemaleSlime
+      Unsexed: MaleSlime
+  - type: Inventory
+    femaleDisplacements:
+      jumpsuit:
+        sizeMaps:
+          32:
+            sprite: Mobs/Species/Human/displacement.rsi
+            state: jumpsuit-female
+  - type: Carriable
+  - type: LayingDown
+  - type: CanMoveInAir
+  - type: Blindable
+  - type: ZombieImmune
+  - type: WGBiotype
+    biotype: Synthetic
+  - type: WGProtean
+  - type: WGNanomass
+    absorbBlacklist:
+      components:
+      - IdCard
+      - Pda
+      - NukeDisk
+      - AccessOverrider
+      - DoorRemote
+      - Currency
+      - ShipyardVoucher
+      - Implanter
+  - type: WGNoAugments
+    reason: wg-protean-augments-tab
+    autosurgeonRefuse: wg-protean-autosurgeon-refuse
+
+- type: entity
+  save: false
+  parent: BaseMobWGProtean
+  id: MobWGProtean
+
+- type: entity
+  parent: MobHumanDummy
+  id: MobWGProteanDummy
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: HumanoidAppearance
+    species: WGProtean
+  - type: Inventory
+    femaleDisplacements:
+      jumpsuit:
+        sizeMaps:
+          32:
+            sprite: Mobs/Species/Human/displacement.rsi
+            state: jumpsuit-female

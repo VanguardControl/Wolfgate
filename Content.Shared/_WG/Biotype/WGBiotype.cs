@@ -15,9 +15,12 @@ public enum WGBiotype : byte
 /// <summary>Resolves a profile's stored biotype against its species.</summary>
 public static class WGBiotypeRules
 {
-    /// <summary>The effective biotype: Default becomes the species' native one.</summary>
+    /// <summary>The effective biotype: Default, or anything on a locked species, becomes the species' native one.</summary>
     public static WGBiotype Resolve(WGBiotype stored, SpeciesPrototype species)
     {
+        if (species.BiotypeLocked)
+            return species.Biotype;
+
         return stored switch
         {
             WGBiotype.Organic => WGBiotype.Organic,
