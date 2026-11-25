@@ -209,7 +209,8 @@ public sealed class ProteanBodyTest
 
             // The refusal shows above the Protean, not at the cursor; other refusals keep the cursor.
             Assert.That(inventory.CanEquip(dresser, protean, suit, "outerClothing", out var reason), Is.False);
-            Assert.That(inventory.WgEquipRefusalOnMob(reason, dresser, protean), Is.True, "the refusal would show at the cursor");
+            Assert.That(reason, Is.Not.Null);
+            Assert.That(inventory.WgEquipRefusalOnMob(reason!, dresser, protean), Is.True, "the refusal would show at the cursor");
             Assert.That(inventory.WgEquipRefusalOnMob("inventory-component-can-equip-cannot", dresser, protean), Is.False);
 
             // The helmet that comes with it is refused as well.
