@@ -30,7 +30,7 @@ public sealed class ModPatternTest
             {
                 foreach (var proto in protoMan.EnumeratePrototypes<EntityPrototype>())
                 {
-                    if (proto.Abstract || !proto.TryGetComponent<ModSuitComponent>(out var suit, factory))
+                    if (proto.Abstract || !proto.TryComp<ModSuitComponent>(out var suit, factory))
                         continue;
 
                     var parts = new Dictionary<string, EntProtoId>(suit.Parts);
@@ -72,19 +72,19 @@ public sealed class ModPatternTest
                     foreach (var module in pattern.InbuiltModules)
                     {
                         Assert.That(protoMan.TryIndex(module, out var moduleProto)
-                                    && moduleProto.TryGetComponent<ModModuleComponent>(out _, factory),
+                                    && moduleProto.TryComp<ModModuleComponent>(out _, factory),
                             $"{pattern.ID}: inbuilt module {module} does not exist or is not a module");
                     }
 
                     Assert.That(protoMan.TryIndex(pattern.Source, out var source)
-                                && source.TryGetComponent<ModSuitComponent>(out _, factory),
+                                && source.TryComp<ModSuitComponent>(out _, factory),
                         $"{pattern.ID}: source {pattern.Source} is not a control unit");
 
                     if (pattern.Plating is not { } plating)
                         continue;
 
                     Assert.That(protoMan.HasIndex(plating), $"{pattern.ID}: plating tag {plating} does not exist");
-                    Assert.That(entities.Any(e => e.TryGetComponent<TagComponent>(out var tag, factory) && tags.HasTag(tag, plating)),
+                    Assert.That(entities.Any(e => e.TryComp<TagComponent>(out var tag, factory) && tags.HasTag(tag, plating)),
                         $"{pattern.ID}: no item carries plating tag {plating}");
                 }
             });
