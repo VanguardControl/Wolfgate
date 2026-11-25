@@ -32,6 +32,13 @@ installed into the unit and spend the core's charge while they run.
   the DNA-lock state, cover state, a module table with per-module icons and power/complexity columns, hardware
   rows for each part and a toggle-all control. It uses the restored `icons.rsi` icon set and sends activate,
   deploy, toggle, pin and eject messages.
+- **Patterns.** A `modPattern` (players say "plate") names a theme, four parts, inbuilt modules and the
+  plating tag that teaches it. `patterns.yml` and the plate names are generated from the control units by
+  `Tools/_WG/Modsuits/patterns.py`; run it after adding or changing a control unit (`--check` reports stale
+  output), and `ModPatternTest` fails until you do. `ModSuitSystem.TryReplate` regrows an inactive, retracted
+  suit as another pattern: the old parts and inbuilt modules go, and removable modules the new theme forbids or
+  can't fit leave newest first (never storage modules) into the suit's storage or next to it. Groundwork for
+  Proteans, who grow their own plates.
 
 Entry points: `ModSuitComponent`, `ModModuleComponent`, `ModPartComponent`, `ModThemePrototype`,
 `ModSuitSystem` (parts, activation, power, modules, UI), the module systems under
