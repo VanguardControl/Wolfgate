@@ -28,7 +28,8 @@ What a Protean is now:
   Augments tab and makes autosurgeons refuse. No surgery: `WGProteanSystem` strips `SurgeryTargetComponent`, which
   every surgery and the autodoc need, and answers a surgical tool with `wg-protean-surgery-refuse`.
 - No hardsuits, as a joke: anything tagged `Hardsuit`, or attached to such a suit, is refused on
-  `IsEquippingAttemptEvent`, whoever is dressing the Protean. Forced equips (job loadouts) skip that event; the
+  `IsEquippingAttemptEvent`, whoever is dressing the Protean. The line shows above the Protean, not at the cursor:
+  `InventorySystem.WgEquipRefusalOnMob` (marked calls in `InventorySystem.Equip.cs` and the strip menu). Forced equips (job loadouts) skip that event; the
   harness PR handles loadouts.
 
 Entry points: `WGProteanSystem` (shared: surgery, hardsuits, examine, seed EMP, thin slowdown) on
@@ -58,6 +59,7 @@ explicit, with `WOLFMED_RANGE_OUT` set).
 
 ### Shared
 
+- [`Content.Shared/_WG/Proteans/InventorySystem.Proteans.cs`](../../../Content.Shared/_WG/Proteans/InventorySystem.Proteans.cs)
 - [`Content.Shared/_WG/Proteans/WGNanomassComponent.cs`](../../../Content.Shared/_WG/Proteans/WGNanomassComponent.cs)
 - [`Content.Shared/_WG/Proteans/WGProteanComponent.cs`](../../../Content.Shared/_WG/Proteans/WGProteanComponent.cs)
 - [`Content.Shared/_WG/Proteans/WGProteanDietPrototype.cs`](../../../Content.Shared/_WG/Proteans/WGProteanDietPrototype.cs)
@@ -84,5 +86,7 @@ explicit, with `WOLFMED_RANGE_OUT` set).
 ## Non-modular edits
 
 - [`Content.Shared.Database/LogType.cs`](../../../Content.Shared.Database/LogType.cs): what a Protean absorbs, and later its collapses and form changes
+- [`Content.Shared/Inventory/InventorySystem.Equip.cs`](../../../Content.Shared/Inventory/InventorySystem.Equip.cs): a Protean's hardsuit refusal shows above it
+- [`Content.Shared/Strip/SharedStrippableSystem.cs`](../../../Content.Shared/Strip/SharedStrippableSystem.cs): a Protean's hardsuit refusal shows its own line above it
 
 <!-- WOLFGATE-GENERATED END -->

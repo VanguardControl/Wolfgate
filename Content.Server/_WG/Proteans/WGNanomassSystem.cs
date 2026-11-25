@@ -186,21 +186,23 @@ public sealed partial class WGNanomassSystem : EntitySystem
 
     /// <summary>
     /// Sets running thin, the speed that goes with it and the HUD alert from the current mass. Called after every
-    /// change to the seed's charge; the popup fires only on the step into thin.
+    /// change to the seed's charge. Returns true on the step into thin; with <paramref name="announce"/> it also
+    /// shows <c>wg-protean-mass-starving</c>, else the caller folds that line into its own popup so two don't stack.
     /// </summary>
-    private void Refresh(Entity<WGNanomassComponent> ent)
+    private bool Refresh(Entity<WGNanomassComponent> ent, bool announce = true)
     {
         if (GetSeed(ent) is not { } seed)
-            return;
+            return false;
 
         var mass = seed.Comp.CurrentCharge;
         var thin = mass < ent.Comp.ThinThreshold;
+        var wentThin = thin && !ent.Comp.Thin;
         if (thin != ent.Comp.Thin)
         {
             ent.Comp.Thin = thin;
             Dirty(ent);
             _speed.RefreshMovementSpeedModifiers(ent);
-            if (thin)
+            if (wentThin && announce)
                 _popup.PopupEntity(Loc.GetString("wg-protean-mass-starving"), ent, ent, PopupType.MediumCaution);
         }
 
@@ -215,6 +217,8 @@ public sealed partial class WGNanomassSystem : EntitySystem
             var max = Math.Max(seed.Comp.MaxCharge, 1f);
             _alerts.ShowAlert(ent, ent.Comp.MassAlert, (short) Math.Clamp(MathF.Round(mass / max * 10f), 0f, 10f));
         }
+
+        return wentThin;
     }
 
     /// <summary>
@@ -312,8 +316,10 @@ public sealed partial class WGNanomassSystem : EntitySystem
             _battery.UseCharge(seed, heavy ? ent.Comp.EmpHeavyBurn : ent.Comp.EmpLightBurn, seed.Comp);
 
         _stun.TryKnockdown(ent, ent.Comp.EmpStagger, true);
-        _popup.PopupEntity(Loc.GetString(heavy ? "wg-protean-emp" : "wg-protean-emp-light"), ent, ent, PopupType.MediumCaution);
-        Refresh(ent);
+        var message = Loc.GetString(heavy ? "wg-protean-emp" : "wg-protean-emp-light");
+        if (Refresh(ent, announce: false))
+            message += "\n" + Loc.GetString("wg-protean-mass-starving");
+        _popup.PopupEntity(message, ent, ent, PopupType.MediumCaution);
     }
 
     /// <summary>The Protean's own Absorb verb, on items nearby or in hand. Innate verbs are raised on the user.</summary>
@@ -327,7 +333,7 @@ public sealed partial class WGNanomassSystem : EntitySystem
         args.Verbs.Add(new InnateVerb
         {
             Text = Loc.GetString("wg-protean-absorb-verb"),
-            Icon = new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/VerbIcons/eat.svg.192dpi.png")),
+            Icon = new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/VerbIcons/cutlery.svg.192dpi.png")),
             Act = () => TryAbsorb((user, ent.Comp), item, null),
         });
     }
@@ -344,7 +350,7 @@ public sealed partial class WGNanomassSystem : EntitySystem
         args.Verbs.Add(new InteractionVerb
         {
             Text = Loc.GetString("wg-protean-feed-verb"),
-            Icon = new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/VerbIcons/eat.svg.192dpi.png")),
+            Icon = new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/VerbIcons/cutlery.svg.192dpi.png")),
             Act = () => TryAbsorb((protean, ent.Comp), item, user),
         });
     }
@@ -415,22 +421,25 @@ public sealed partial class WGNanomassSystem : EntitySystem
             _status.TrySetStatusEffectDuration(ent, trace, diet.TraceDuration);
         }
 
+        // The Protean gets one popup: two at once on the same entity draw over each other.
+        string own;
         if (feeder is { } user)
         {
             if (TryComp(ent, out DamageableComponent? damageable))
                 Heal((ent, damageable), ent.Comp.FedHeal);
-            _popup.PopupEntity(Loc.GetString("wg-protean-fed-self", ("user", Identity.Entity(user, EntityManager)), ("item", itemName)), ent, ent);
+            own = Loc.GetString("wg-protean-fed-self", ("user", Identity.Entity(user, EntityManager)), ("item", itemName));
             _popup.PopupEntity(Loc.GetString("wg-protean-fed-user", ("item", itemName), ("target", Identity.Entity(ent, EntityManager))), ent, user);
         }
         else
         {
-            _popup.PopupEntity(Loc.GetString("wg-protean-absorb-self", ("item", itemName)), ent, ent);
+            own = Loc.GetString("wg-protean-absorb-self", ("item", itemName));
             _popup.PopupEntity(Loc.GetString("wg-protean-absorb-others", ("user", Identity.Entity(ent, EntityManager)), ("item", itemName)),
                 ent, Filter.PvsExcept(ent), true);
         }
 
         if (seed.Comp.CurrentCharge >= seed.Comp.MaxCharge - 0.01f)
-            _popup.PopupEntity(Loc.GetString("wg-protean-mass-full"), ent, ent);
+            own += "\n" + Loc.GetString("wg-protean-mass-full");
+        _popup.PopupEntity(own, ent, ent);
 
         _adminLog.Add(LogType.WGProtean, LogImpact.Low,
             $"{ToPrettyString(feeder ?? ent.Owner):user} had {ToPrettyString(ent.Owner):protean} absorb {taken} of {ToPrettyString(item):item} for {gained:F1} mass");

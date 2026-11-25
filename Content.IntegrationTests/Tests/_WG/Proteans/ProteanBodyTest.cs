@@ -207,6 +207,11 @@ public sealed class ProteanBodyTest
             Assert.That(inventory.TryGetSlotEntity(protean, "outerClothing", out _), Is.False);
             Assert.That(entities.GetComponent<TransformComponent>(suit).Coordinates, Is.EqualTo(coords), "the hardsuit moved");
 
+            // The refusal shows above the Protean, not at the cursor; other refusals keep the cursor.
+            Assert.That(inventory.CanEquip(dresser, protean, suit, "outerClothing", out var reason), Is.False);
+            Assert.That(inventory.WgEquipRefusalOnMob(reason, dresser, protean), Is.True, "the refusal would show at the cursor");
+            Assert.That(inventory.WgEquipRefusalOnMob("inventory-component-can-equip-cannot", dresser, protean), Is.False);
+
             // The helmet that comes with it is refused as well.
             var helmet = entities.GetComponent<ToggleableClothingComponent>(suit).ClothingUids.Keys.FirstOrDefault();
             if (helmet.IsValid())
