@@ -40,7 +40,22 @@ jobs:
 
     # Runs even when the check above failed; skipped for Monolith ports, whose upstream edits carry no markers.
     - name: Check edits outside _WG
-      if: ${{ !cancelled() && github.event_name == 'pull_request' && !startsWith(github.head_ref, 'autoport/') && !startsWith(github.event.pull_request.title, '[AUTOPORT]') }}
+      # WOLFGATE(Downstreams): a downstream (MODULES_LAYER_CONFIG set) checks its own layer below instead
+      if: ${{ !cancelled() && vars.MODULES_LAYER_CONFIG == '' && github.event_name == 'pull_request' && !startsWith(github.head_ref, 'autoport/') && !startsWith(github.event.pull_request.title, '[AUTOPORT]') }}
       env:
         BASE_REF: ${{ github.base_ref }}
       run: python3 Tools/_WG/Ci/modules.py --pr-check "origin/$BASE_REF"
+
+    # WOLFGATE(Downstreams) START: a downstream's own layer, from the repository variable MODULES_LAYER_CONFIG
+    # Set only in a downstream repository (KnotGate: Tools/_KG/Ci/modules.yml); Wolfgate itself skips both steps.
+    # Wolfgate merges into the downstream (branch upstream/*, or a title starting [UPSTREAM]) are upstream code.
+    - name: Check downstream module docs and markers
+      if: ${{ !cancelled() && vars.MODULES_LAYER_CONFIG != '' }}
+      run: python3 Tools/_WG/Ci/modules.py --config "${{ vars.MODULES_LAYER_CONFIG }}" --check
+
+    - name: Check downstream edits outside its layer
+      if: ${{ !cancelled() && vars.MODULES_LAYER_CONFIG != '' && github.event_name == 'pull_request' && !startsWith(github.head_ref, 'upstream/') && !startsWith(github.event.pull_request.title, '[UPSTREAM]') }}
+      env:
+        BASE_REF: ${{ github.base_ref }}
+      run: python3 Tools/_WG/Ci/modules.py --config "${{ vars.MODULES_LAYER_CONFIG }}" --pr-check "origin/$BASE_REF"
+    # WOLFGATE END

@@ -64,6 +64,11 @@ existing events, a partial class in `_WG`, then a marked edit. Don't reformat, r
 code, and don't delete upstream code outright; comment or branch around it inside a marked block so a merge
 shows what changed.
 
+Wolfgate has downstreams of its own (KnotGate, which shares this database). For their sake: put a feature a
+downstream might not want behind a cvar with Wolfgate's behaviour as the default, keep migrations additive
+(nullable or defaulted columns; rename or drop a release later), and keep anything saved in a profile here
+rather than in a downstream. `Docs/_WG/Downstreams/README.md` has the rules and how a downstream is set up.
+
 ## Documenting changes
 
 Each module has a `README.md` in `Content.Server/_WG/<Module>/`, or in `Content.Shared/_WG/<Module>/` or

@@ -124,7 +124,7 @@ jobs:
         ARTIFACT_ID: ${{ steps.artifact.outputs.artifact-id }}
         GITHUB_REPOSITORY: ${{ github.repository }}
         VERSION_SUFFIX: ${{ steps.testmerge.outputs.suffix }}${{ inputs.request_id != '' && format('-{0}', inputs.request_id) || '' }}
-        FORK_ID: ${{ inputs.fork_id }}
+        FORK_ID: ${{ inputs.fork_id || vars.CDN_FORK_ID }} # WOLFGATE(Downstreams): a downstream names its CDN fork in a repository variable
 
     # The artifact is only a hand-off to the CDN. Every one left behind counts against the org's 500 MB
     # Actions storage, and once that is full every upload fails with a 403.
