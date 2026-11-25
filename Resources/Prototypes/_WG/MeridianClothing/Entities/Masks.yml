@@ -267,7 +267,7 @@
     - "#C6C6C6"
 
 - type: entity
-  parent: ClothingMaskBreath
+  parent: ClothingMaskMuzzle
   id: WGMeridianClothingMaskBreathMuzzle
   components:
   - type: Sprite
@@ -407,7 +407,7 @@
   - type: IngestionBlocker
 
 - type: entity
-  parent: ClothingMaskGas
+  parent: ClothingMaskMuzzle
   id: WGMeridianClothingMaskGasBdsmMask
   components:
   - type: Sprite
@@ -1215,7 +1215,7 @@
   - type: IdentityBlocker
 
 - type: entity
-  parent: ClothingMaskBase
+  parent: ClothingMaskMuzzle
   id: WGMeridianClothingMaskMuzzleBallgag
   components:
   - type: Sprite
@@ -1245,7 +1245,7 @@
     - "#DC7EF4"
 
 - type: entity
-  parent: ClothingMaskBase
+  parent: ClothingMaskMuzzle
   id: WGMeridianClothingMaskMuzzleBallgagChoking
   components:
   - type: Sprite
@@ -1275,7 +1275,7 @@
     - "#DC7EF4"
 
 - type: entity
-  parent: ClothingMaskBase
+  parent: ClothingMaskMuzzle
   id: WGMeridianClothingMaskMuzzleRing
   components:
   - type: Sprite
@@ -1285,7 +1285,7 @@
     sprite: _WG/MeridianClothing/Masks/muzzle_ring.rsi
 
 - type: entity
-  parent: ClothingMaskBase
+  parent: ClothingMaskMuzzle
   id: WGMeridianClothingMaskMuzzleTape
   components:
   - type: Sprite
@@ -1304,7 +1304,7 @@
     - "#B2B2B2"
 
 - type: entity
-  parent: ClothingMaskBase
+  parent: ClothingMaskMuzzle
   id: WGMeridianClothingMaskMuzzleTapePointy
   components:
   - type: Sprite
