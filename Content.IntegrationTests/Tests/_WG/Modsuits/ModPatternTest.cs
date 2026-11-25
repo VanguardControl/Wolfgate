@@ -72,12 +72,12 @@ public sealed class ModPatternTest
                     foreach (var module in pattern.InbuiltModules)
                     {
                         Assert.That(protoMan.TryIndex(module, out var moduleProto)
-                                    && moduleProto.HasComponent<ModModuleComponent>(factory),
+                                    && moduleProto.TryGetComponent<ModModuleComponent>(out _, factory),
                             $"{pattern.ID}: inbuilt module {module} does not exist or is not a module");
                     }
 
                     Assert.That(protoMan.TryIndex(pattern.Source, out var source)
-                                && source.HasComponent<ModSuitComponent>(factory),
+                                && source.TryGetComponent<ModSuitComponent>(out _, factory),
                         $"{pattern.ID}: source {pattern.Source} is not a control unit");
 
                     if (pattern.Plating is not { } plating)
