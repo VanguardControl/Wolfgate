@@ -13,8 +13,12 @@ using Robust.Shared.Utility;
 
 namespace Content.Shared._WG.Proteans;
 
-/// <summary>A Protean's body rules: no surgery, no hardsuits, an EMP-proof seed and the slowdown of running thin.</summary>
-public sealed class WGProteanSystem : EntitySystem
+/// <summary>
+/// A Protean's body rules, run on both sides so the client predicts them: no surgery, no hardsuits, hurt lines on
+/// examine, an EMP-proof seed and the slowdown of running thin. Nanomass itself is server-side, in
+/// <c>WGNanomassSystem</c>.
+/// </summary>
+public sealed partial class WGProteanSystem : EntitySystem
 {
     [Dependency] private MovementSpeedModifierSystem _speed = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
@@ -39,6 +43,10 @@ public sealed class WGProteanSystem : EntitySystem
         RemComp<SurgeryTargetComponent>(ent);
     }
 
+    /// <summary>
+    /// Refuses a hardsuit piece with <see cref="WGProteanComponent.HardsuitRefuse"/>. Forced equips (job loadouts)
+    /// never raise this event, so they get through; the harness PR covers loadouts.
+    /// </summary>
     private void OnEquipAttempt(Entity<WGProteanComponent> ent, ref IsEquippingAttemptEvent args)
     {
         // Also raised on the one dressing someone else.
@@ -93,6 +101,7 @@ public sealed class WGProteanSystem : EntitySystem
             args.PushMarkup(Loc.GetString(shown));
     }
 
+    /// <summary>The seed's battery would otherwise lose a pulse's whole drain; the body's EMP handler burns mass instead.</summary>
     private void OnSeedEmpAttempt(Entity<WGProteanSeedComponent> ent, ref EmpAttemptEvent args)
     {
         args.Cancelled = true;
@@ -104,6 +113,7 @@ public sealed class WGProteanSystem : EntitySystem
             args.ModifySpeed(ent.Comp.ThinSpeed, ent.Comp.ThinSpeed);
     }
 
+    /// <summary>The client refreshes its predicted speed when the server's <see cref="WGNanomassComponent.Thin"/> arrives.</summary>
     private void OnNanomassState(Entity<WGNanomassComponent> ent, ref AfterAutoHandleStateEvent args)
     {
         _speed.RefreshMovementSpeedModifiers(ent);

@@ -3,7 +3,10 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WG.Proteans;
 
-/// <summary>A Protean's body: no surgery, no hardsuits.</summary>
+/// <summary>
+/// Marks a Protean's body for <see cref="WGProteanSystem"/>: it can't be operated on, won't wear hardsuits and
+/// describes its damage on examine. Nanomass lives on <see cref="WGNanomassComponent"/>.
+/// </summary>
 [RegisterComponent]
 public sealed partial class WGProteanComponent : Component
 {
@@ -11,21 +14,23 @@ public sealed partial class WGProteanComponent : Component
     [DataField]
     public ProtoId<TagPrototype> HardsuitTag = "Hardsuit";
 
-    /// <summary>Why a hardsuit piece won't go on.</summary>
+    /// <summary>Why a hardsuit piece won't go on; shown to whoever tried, the Protean or someone dressing it.</summary>
     [DataField]
     public LocId HardsuitRefuse = "wg-protean-hardsuit-refuse";
 
-    /// <summary>Damage from which examining shows the light, medium and heavy hurt lines.</summary>
+    /// <summary>Total damage from which examining shows <c>wg-protean-examine-hurt-light</c>.</summary>
     [DataField]
     public float HurtLight = 10f;
 
+    /// <summary>Total damage from which examining shows <c>wg-protean-examine-hurt-medium</c>.</summary>
     [DataField]
     public float HurtMedium = 30f;
 
+    /// <summary>Total damage from which examining shows <c>wg-protean-examine-hurt-heavy</c>.</summary>
     [DataField]
     public float HurtHeavy = 55f;
 
-    /// <summary>Popup when someone tries to operate.</summary>
+    /// <summary>Popup for whoever uses a surgical tool's verb on the Protean.</summary>
     [DataField]
     public LocId SurgeryRefuse = "wg-protean-surgery-refuse";
 }

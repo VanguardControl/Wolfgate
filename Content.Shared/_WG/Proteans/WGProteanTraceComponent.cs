@@ -1,6 +1,11 @@
 namespace Content.Shared._WG.Proteans;
 
-/// <summary>On a trace status effect: how it bends the Protean's nanomass and damage while it lasts.</summary>
+/// <summary>
+/// On a trace status effect entity (<c>nanomass.yml</c>): how it bends the Protean's nanomass and damage while it
+/// lasts. Absorbing a material in the diet adds its trace for <see cref="WGProteanDietPrototype.TraceDuration"/>.
+/// Multipliers from several traces at once multiply together. A trace with every field at its default (Limber,
+/// Conductive) only shows its alert until the forms and modules PRs read it.
+/// </summary>
 [RegisterComponent]
 public sealed partial class WGProteanTraceComponent : Component
 {
@@ -24,6 +29,7 @@ public sealed partial class WGProteanTraceComponent : Component
     [DataField]
     public Color? Glow;
 
+    /// <summary>Radius of the <see cref="Glow"/> light, in tiles.</summary>
     [DataField]
     public float GlowRadius = 1.5f;
 }

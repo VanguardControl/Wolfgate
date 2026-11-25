@@ -36,10 +36,12 @@ using StatusEffectsSystem = Content.Shared.StatusEffectNew.StatusEffectsSystem;
 namespace Content.Server._WG.Proteans;
 
 /// <summary>
-/// A Protean's nanomass, kept as the charge of its seed's battery: upkeep, healing, slurry, running thin, EMP,
-/// absorbing materials and being fed, and the traces materials leave.
+/// A Protean's nanomass, kept as the charge of its seed's battery (<see cref="WGProteanSeedComponent"/>): upkeep,
+/// healing, slurry, running thin, EMP, absorbing materials and being fed, and the traces materials leave. Tuning is
+/// on <see cref="WGNanomassComponent"/>, the diet in <see cref="WGProteanDietPrototype"/>. Every mass change ends
+/// in <see cref="Refresh"/>, which keeps the thin state and the alert in step with the battery.
 /// </summary>
-public sealed class WGNanomassSystem : EntitySystem
+public sealed partial class WGNanomassSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _proto = default!;
@@ -55,7 +57,6 @@ public sealed class WGNanomassSystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedStackSystem _stacks = default!;
     [Dependency] private SharedStunSystem _stun = default!;
-    [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private StatusEffectsSystem _status = default!;
 
     /// <summary>Slurry this close to a new spill takes its mass instead of a second puddle.</summary>
@@ -101,6 +102,11 @@ public sealed class WGNanomassSystem : EntitySystem
         }
     }
 
+    /// <summary>
+    /// One update covering <paramref name="seconds"/>: upkeep (scaled by traces, divided while pooled), then healing
+    /// when the Protean is above the heal threshold and past the delay since its last hit. Healing never spends mass
+    /// below the threshold.
+    /// </summary>
     private void Tick(Entity<WGNanomassComponent> ent, float seconds, TimeSpan now)
     {
         if (GetSeed(ent) is not { } seed)
@@ -128,7 +134,9 @@ public sealed class WGNanomassSystem : EntitySystem
     /// <summary>The Protean's seed and its battery, while the seed is in the body.</summary>
     public Entity<BatteryComponent>? GetSeed(EntityUid protean)
     {
-        if (!_body.TryGetBodyOrganEntityComps<WGProteanSeedComponent>(protean, out var seeds))
+        // Resolving a missing body logs an error; a nanomass holder may have none (tests add the component alone).
+        if (!TryComp(protean, out BodyComponent? body)
+            || !_body.TryGetBodyOrganEntityComps<WGProteanSeedComponent>((protean, body), out var seeds))
             return null;
 
         foreach (var seed in seeds)
@@ -176,7 +184,10 @@ public sealed class WGNanomassSystem : EntitySystem
         return Math.Max(0f, (before - ent.Comp.TotalDamage).Float());
     }
 
-    /// <summary>Running thin, the speed that goes with it and the HUD alert, from the current mass.</summary>
+    /// <summary>
+    /// Sets running thin, the speed that goes with it and the HUD alert from the current mass. Called after every
+    /// change to the seed's charge; the popup fires only on the step into thin.
+    /// </summary>
     private void Refresh(Entity<WGNanomassComponent> ent)
     {
         if (GetSeed(ent) is not { } seed)
@@ -204,10 +215,12 @@ public sealed class WGNanomassSystem : EntitySystem
             var max = Math.Max(seed.Comp.MaxCharge, 1f);
             _alerts.ShowAlert(ent, ent.Comp.MassAlert, (short) Math.Clamp(MathF.Round(mass / max * 10f), 0f, 10f));
         }
-
-        ent.Comp.LastMass = mass;
     }
 
+    /// <summary>
+    /// A hit sheds <see cref="WGNanomassComponent.SlurryPerDamage"/> mass a point as slurry at the Protean's feet and
+    /// restarts the heal delay. Healing lowers damage too, which this ignores.
+    /// </summary>
     private void OnDamageChanged(Entity<WGNanomassComponent> ent, ref DamageChangedEvent args)
     {
         if (!args.DamageIncreased || args.DamageDelta is not { } delta)
@@ -244,6 +257,7 @@ public sealed class WGNanomassSystem : EntitySystem
         return spilled;
     }
 
+    /// <summary>Slurry triggers only for Proteans; everyone else walks over it.</summary>
     private void OnSlurryStepAttempt(Entity<WGProteanSlurryComponent> ent, ref StepTriggerAttemptEvent args)
     {
         args.Continue |= HasComp<WGNanomassComponent>(args.Tripper);
@@ -274,6 +288,7 @@ public sealed class WGNanomassSystem : EntitySystem
         return true;
     }
 
+    /// <summary>Applies the traces' damage multipliers after the species' own modifier set.</summary>
     private void OnDamageModify(Entity<WGNanomassComponent> ent, ref DamageModifyEvent args)
     {
         var traces = Traces(ent);
@@ -284,6 +299,11 @@ public sealed class WGNanomassSystem : EntitySystem
             args.Damage.DamageDict["Heat"] = heat * traces.Heat;
     }
 
+    /// <summary>
+    /// Burns <see cref="WGNanomassComponent.EmpHeavyBurn"/> or <see cref="WGNanomassComponent.EmpLightBurn"/> mass,
+    /// by whether the pulse drains at least <see cref="WGNanomassComponent.EmpHeavyEnergy"/>, and knocks the Protean
+    /// down. The seed itself refuses the pulse (<see cref="WGProteanSystem"/>).
+    /// </summary>
     private void OnEmp(Entity<WGNanomassComponent> ent, ref EmpPulseEvent args)
     {
         args.Affected = true;
@@ -296,6 +316,7 @@ public sealed class WGNanomassSystem : EntitySystem
         Refresh(ent);
     }
 
+    /// <summary>The Protean's own Absorb verb, on items nearby or in hand. Innate verbs are raised on the user.</summary>
     private void OnInnateVerbs(Entity<WGNanomassComponent> ent, ref GetVerbsEvent<InnateVerb> args)
     {
         if (!args.CanInteract || !args.CanAccess || args.Target == args.User || !Absorbable(ent, args.Target))
@@ -311,6 +332,7 @@ public sealed class WGNanomassSystem : EntitySystem
         });
     }
 
+    /// <summary>Someone else's Feed verb on the Protean, offered for the item in their active hand.</summary>
     private void OnInteractionVerbs(Entity<WGNanomassComponent> ent, ref GetVerbsEvent<InteractionVerb> args)
     {
         if (!args.CanInteract || !args.CanAccess || args.User == ent.Owner || args.Using is not { } item
@@ -456,6 +478,7 @@ public sealed class WGNanomassSystem : EntitySystem
         return result;
     }
 
+    /// <summary>A glowing trace lights the Protean, unless it already has a light of its own, which is left alone.</summary>
     private void OnTraceApplied(Entity<WGProteanTraceComponent> ent, ref StatusEffectAppliedEvent args)
     {
         if (ent.Comp.Glow is not { } color || HasComp<PointLightComponent>(args.Target))
@@ -467,6 +490,7 @@ public sealed class WGNanomassSystem : EntitySystem
         EnsureComp<WGProteanGlowComponent>(args.Target);
     }
 
+    /// <summary>Removes the light only if a trace added it (<see cref="WGProteanGlowComponent"/>).</summary>
     private void OnTraceRemoved(Entity<WGProteanTraceComponent> ent, ref StatusEffectRemovedEvent args)
     {
         if (ent.Comp.Glow == null || !RemComp<WGProteanGlowComponent>(args.Target))

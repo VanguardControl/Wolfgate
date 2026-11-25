@@ -7,17 +7,24 @@ using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 namespace Content.Shared._WG.Proteans;
 
 /// <summary>
-/// Spends and refills a Protean's nanomass, which is the charge of its seed's battery: upkeep, healing, slurry,
-/// running thin, EMP, absorbing and being fed.
+/// Tuning and state for a Protean's nanomass. The mass itself is not stored here: it is the charge of the seed
+/// organ's battery (<see cref="WGProteanSeedComponent"/>), so it stays with the seed. The server's
+/// <c>WGNanomassSystem</c> spends and refills it; <see cref="WGProteanSystem"/> applies the thin slowdown on both sides.
 /// </summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true), AutoGenerateComponentPause]
 public sealed partial class WGNanomassComponent : Component
 {
-    /// <summary>Below <see cref="ThinThreshold"/>: slowed, and plates and modules are off.</summary>
+    /// <summary>
+    /// Mass is below <see cref="ThinThreshold"/>. Set by the server and networked so the client predicts the
+    /// <see cref="ThinSpeed"/> slowdown. The harness PR also switches plates and modules off while it is set.
+    /// </summary>
     [DataField, AutoNetworkedField]
     public bool Thin;
 
-    /// <summary>Lying as a puddle, which costs a fraction of the upkeep.</summary>
+    /// <summary>
+    /// Lying as a puddle, which divides upkeep by <see cref="PooledUpkeepDivisor"/>. Nothing sets it yet; the
+    /// forms PR does, and tests set it by hand.
+    /// </summary>
     [DataField, AutoNetworkedField]
     public bool Pooled;
 
@@ -61,6 +68,7 @@ public sealed partial class WGNanomassComponent : Component
     [DataField]
     public float SlurryPerDamage = 0.3f;
 
+    /// <summary>Spawned to carry shed mass when no slurry lies on the spot already.</summary>
     [DataField]
     public EntProtoId SlurryPrototype = "WGProteanSlurry";
 
@@ -80,30 +88,34 @@ public sealed partial class WGNanomassComponent : Component
     [DataField]
     public TimeSpan EmpStagger = TimeSpan.FromSeconds(2);
 
+    /// <summary>The materials the Protean can absorb, what each yields and the trace each leaves.</summary>
     [DataField]
     public ProtoId<WGProteanDietPrototype> Diet = "WGProtean";
 
-    /// <summary>Items the Protean refuses to absorb: keys, IDs, money and the like.</summary>
+    /// <summary>
+    /// Items refused as owned (<c>wg-protean-absorb-refuse-owned</c>): keys, IDs, money and the like. Paid augments are
+    /// refused in code as well.
+    /// </summary>
     [DataField]
     public EntityWhitelist? AbsorbBlacklist;
 
+    /// <summary>The nanomass alert, severity 0 to 10 by mass over capacity; hidden while thin.</summary>
     [DataField]
     public ProtoId<AlertPrototype> MassAlert = "WGProteanMass";
 
+    /// <summary>Shown in place of <see cref="MassAlert"/> while thin.</summary>
     [DataField]
     public ProtoId<AlertPrototype> ThinAlert = "WGProteanMassLow";
 
-    /// <summary>When the Protean was last hurt; healing waits on it.</summary>
+    /// <summary>When the Protean was last hurt; healing waits <see cref="HealDelay"/> after it.</summary>
     [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoPausedField]
     public TimeSpan LastHit;
 
+    /// <summary>When the server next runs upkeep and healing.</summary>
     [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoPausedField]
     public TimeSpan NextUpdate;
 
+    /// <summary>How often upkeep and healing run; each run covers the whole interval.</summary>
     [DataField]
     public TimeSpan UpdateInterval = TimeSpan.FromSeconds(1);
-
-    /// <summary>Mass the last update left, to tell when it crosses a threshold.</summary>
-    [ViewVariables]
-    public float LastMass = -1f;
 }
