@@ -55,13 +55,23 @@ namespace Content.Client.Administration.UI.Bwoink
 
         public void ReceiveLine(SharedBwoinkSystem.BwoinkTextMessage message)
         {
-            if (!Visible)
+            // WOLFGATE(AHelpTickets) START: connect, resolve and other system lines don't count as new activity
+            var wgSystem = message.TrueSender == SharedBwoinkSystem.SystemUserId;
+            if (!Visible && !wgSystem)
                 Unread++;
+            // if (!Visible)
+            //     Unread++;
+            // WOLFGATE END
 
             var formatted = new FormattedMessage(1);
-            formatted.AddMarkupOrThrow($"[color=gray]{message.SentAt.ToShortTimeString()}[/color] {message.Text}");
+            // WOLFGATE(AHelpTickets) START: bad markup from a relayed name shows as text instead of throwing
+            if (!formatted.TryAddMarkup($"[color=gray]{message.SentAt.ToShortTimeString()}[/color] {message.Text}", out _))
+                formatted.AddText($"{message.SentAt.ToShortTimeString()} {message.Text}");
+            // formatted.AddMarkupOrThrow($"[color=gray]{message.SentAt.ToShortTimeString()}[/color] {message.Text}");
+            // WOLFGATE END
             TextOutput.AddMessage(formatted);
-            LastMessage = message.SentAt;
+            if (!wgSystem) // WOLFGATE(AHelpTickets)
+                LastMessage = message.SentAt;
         }
 
         private void UpdateTypingIndicator()

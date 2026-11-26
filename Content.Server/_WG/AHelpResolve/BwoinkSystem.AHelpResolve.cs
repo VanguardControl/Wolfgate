@@ -1,7 +1,7 @@
 using Content.Shared._WG.AHelpResolve;
+using Content.Shared._WG.AHelpTickets;
 using Content.Shared.Administration;
 using Robust.Shared.Network;
-using Robust.Shared.Utility;
 
 namespace Content.Server.Administration.Systems;
 
@@ -35,30 +35,12 @@ public sealed partial class BwoinkSystem
         return playSound && !_claimedAHelps.Contains(channel);
     }
 
+    /// <summary>The Resolve button closes the player's ticket (AHelpTickets announces it).</summary>
     private void OnAHelpResolve(AHelpResolveMessage msg, EntitySessionEventArgs args)
     {
-        var admin = _adminManager.GetAdminData(args.SenderSession);
-        if (!(admin?.HasFlag(AdminFlags.Adminhelp) ?? false) && !CanEventStaffAnswer(admin, msg.Channel))
+        if (!WGCanAnswer(args.SenderSession, msg.Channel))
             return;
 
-        _claimedAHelps.Remove(msg.Channel);
-
-        var category = GetAHelpCategory(msg.Channel);
-        var adminText = Loc.GetString("wg-bwoink-resolved-admin", ("admin", FormattedMessage.EscapeText(args.SenderSession.Name)));
-        var adminMsg = new BwoinkTextMessage(msg.Channel, SystemUserId, $"{CategoryTag(category)} {adminText}", playSound: false, category: category);
-        var admins = GetTargetAdmins(category);
-        foreach (var channel in admins)
-        {
-            RaiseNetworkEvent(adminMsg, channel);
-        }
-
-        var playerMsg = new BwoinkTextMessage(msg.Channel, SystemUserId, Loc.GetString("wg-bwoink-resolved-player"), playSound: false);
-        if (_playerManager.TryGetSessionById(msg.Channel, out var player) && !admins.Contains(player.Channel))
-            RaiseNetworkEvent(playerMsg, player.Channel);
-
-        // Kept with the ahelp, so staff who connect later see it was resolved instead of an open ticket.
-        WgRecordHistory(msg.Channel, adminMsg, playerMsg);
-
-        _sawmill.Info($"{args.SenderSession.Name} resolved the ahelp of {msg.Channel}");
+        _wgTickets.StaffActionOnPlayer(args.SenderSession, msg.Channel, AHelpTicketAction.Resolve);
     }
 }

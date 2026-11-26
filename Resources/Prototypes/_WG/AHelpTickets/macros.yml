@@ -1,0 +1,65 @@
+# Canned ahelp replies in the staff ticket panel. Owned by Hosts and Owners: change the list here and the
+# words in Resources/Locale/en-US/_WG/AHelpTickets/macros.ftl.
+# action: Claim, Unclaim, Resolve, Reject, IcIssue or Reopen, applied after the reply.
+# command: run by the staffer's console after the reply; {username} and {entity} are the player's.
+
+- type: wgAHelpMacro
+  id: WGMacroLookingIntoIt
+  name: wg-ahelp-macro-looking-name
+  text: wg-ahelp-macro-looking-text
+  action: Claim
+  order: 0
+
+- type: wgAHelpMacro
+  id: WGMacroAnythingElse
+  name: wg-ahelp-macro-anything-else-name
+  text: wg-ahelp-macro-anything-else-text
+  order: 10
+
+- type: wgAHelpMacro
+  id: WGMacroDone
+  name: wg-ahelp-macro-done-name
+  text: wg-ahelp-macro-done-text
+  action: Resolve
+  order: 20
+
+- type: wgAHelpMacro
+  id: WGMacroBugReport
+  name: wg-ahelp-macro-bug-report-name
+  text: wg-ahelp-macro-bug-report-text
+  action: Resolve
+  order: 30
+
+- type: wgAHelpMacro
+  id: WGMacroRespawn
+  name: wg-ahelp-macro-respawn-name
+  text: wg-ahelp-macro-respawn-text
+  command: respawn "{username}"
+  action: Resolve
+  order: 40
+
+- type: wgAHelpMacro
+  id: WGMacroUnstick
+  name: wg-ahelp-macro-unstick-name
+  text: wg-ahelp-macro-unstick-text
+  order: 50
+
+- type: wgAHelpMacro
+  id: WGMacroDetails
+  name: wg-ahelp-macro-details-name
+  text: wg-ahelp-macro-details-text
+  action: Claim
+  order: 60
+
+- type: wgAHelpMacro
+  id: WGMacroDeed
+  name: wg-ahelp-macro-deed-name
+  text: wg-ahelp-macro-deed-text
+  order: 70
+
+- type: wgAHelpMacro
+  id: WGMacroIcIssue
+  name: wg-ahelp-macro-ic-name
+  text: wg-ahelp-macro-ic-text
+  action: IcIssue
+  order: 80

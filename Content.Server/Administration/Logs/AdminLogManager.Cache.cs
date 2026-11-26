@@ -158,10 +158,19 @@ public sealed partial class AdminLogManager
             query = query.Where(log => log.Players.Length == 0);
         }
 
-        if (filter.LogsSent != 0)
+        // WOLFGATE(LogInvestigator) START: page by the last log sent; new logs at the front made Skip repeat the tail
+        if (filter.LastLogId != null)
         {
-            query = query.Skip(filter.LogsSent);
+            var wgLast = filter.LastLogId.Value;
+            query = filter.DateOrder == DateOrder.Ascending
+                ? query.Where(log => log.Id > wgLast)
+                : query.Where(log => log.Id < wgLast);
         }
+        // if (filter.LogsSent != 0)
+        // {
+        //     query = query.Skip(filter.LogsSent);
+        // }
+        // WOLFGATE END
 
         if (filter.Limit != null)
         {

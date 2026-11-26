@@ -46,6 +46,7 @@ namespace Content.Client.Administration.UI.Bwoink
 
             _adminManager.AdminStatusUpdated += UpdateButtons;
             UpdateButtons();
+            _cfg.OnValueChanged(CCVars.NewPlayerThreshold, WGThresholdChanged, true); // WOLFGATE(AHelpTickets): read once for the sort
 
             AdminOnly.OnToggled += args => PlaySound.Disabled = args.Pressed;
 
@@ -88,8 +89,12 @@ namespace Content.Client.Administration.UI.Bwoink
 
             ChannelSelector.Comparison = (a, b) =>
             {
-                var ach = AHelpHelper.EnsurePanel(a.SessionId);
-                var bch = AHelpHelper.EnsurePanel(b.SessionId);
+                // WOLFGATE(AHelpTickets) START: the sort reads panels without making one for every player
+                var ach = WGPanelKey(a.SessionId);
+                var bch = WGPanelKey(b.SessionId);
+                // var ach = AHelpHelper.EnsurePanel(a.SessionId);
+                // var bch = AHelpHelper.EnsurePanel(b.SessionId);
+                // WOLFGATE END
 
                 // Pinned players first
                 if (a.IsPinned != b.IsPinned)
@@ -114,8 +119,12 @@ namespace Content.Client.Administration.UI.Bwoink
                 // Sort connected players by New Player status, then by Antag status
                 if (a.Connected && b.Connected)
                 {
-                    var aNewPlayer = a.OverallPlaytime <= TimeSpan.FromMinutes(_cfg.GetCVar(CCVars.NewPlayerThreshold));
-                    var bNewPlayer = b.OverallPlaytime <= TimeSpan.FromMinutes(_cfg.GetCVar(CCVars.NewPlayerThreshold));
+                    // WOLFGATE(AHelpTickets) START: the threshold is read once, not twice per comparison
+                    var aNewPlayer = a.OverallPlaytime <= _wgNewPlayerThreshold;
+                    var bNewPlayer = b.OverallPlaytime <= _wgNewPlayerThreshold;
+                    // var aNewPlayer = a.OverallPlaytime <= TimeSpan.FromMinutes(_cfg.GetCVar(CCVars.NewPlayerThreshold));
+                    // var bNewPlayer = b.OverallPlaytime <= TimeSpan.FromMinutes(_cfg.GetCVar(CCVars.NewPlayerThreshold));
+                    // WOLFGATE END
 
                     if (aNewPlayer != bNewPlayer)
                         return aNewPlayer ? -1 : 1;
@@ -132,7 +141,15 @@ namespace Content.Client.Administration.UI.Bwoink
                 }
 
                 // Finally, sort by the most recent message.
-                return bch.LastMessage.CompareTo(ach.LastMessage);
+                // WOLFGATE(AHelpTickets) START: ties break on name and id, so the order is the same on every sort
+                var wgByMessage = bch.LastMessage.CompareTo(ach.LastMessage);
+                if (wgByMessage != 0)
+                    return wgByMessage;
+
+                var wgByName = string.Compare(a.Username, b.Username, StringComparison.OrdinalIgnoreCase);
+                return wgByName != 0 ? wgByName : a.SessionId.UserId.CompareTo(b.SessionId.UserId);
+                // return bch.LastMessage.CompareTo(ach.LastMessage);
+                // WOLFGATE END
             };
 
 
@@ -168,8 +185,13 @@ namespace Content.Client.Administration.UI.Bwoink
 
             Follow.OnPressed += _ =>
             {
-                if (_currentPlayer is not null)
-                    _console.ExecuteCommand($"follow \"{_currentPlayer.NetEntity}\"");
+                // WOLFGATE(AHelpTickets) START: follow the player's current body, not the one when they were selected
+                var wgCurrent = _currentPlayer == null ? null : ChannelSelector.PlayerInfo.FirstOrDefault(p => p.SessionId == _currentPlayer.SessionId) ?? _currentPlayer;
+                if (wgCurrent is not null)
+                    _console.ExecuteCommand($"follow \"{wgCurrent.NetEntity}\"");
+                // if (_currentPlayer is not null)
+                //     _console.ExecuteCommand($"follow \"{_currentPlayer.NetEntity}\"");
+                // WOLFGATE END
             };
 
             Respawn.OnPressed += _ =>
@@ -307,5 +329,33 @@ namespace Content.Client.Administration.UI.Bwoink
 
             UpdateButtons();
         }
+
+        // WOLFGATE(AHelpTickets) START: sort helpers, and the subscriptions go with the control
+        private TimeSpan _wgNewPlayerThreshold;
+
+        private void WGThresholdChanged(int minutes)
+        {
+            _wgNewPlayerThreshold = TimeSpan.FromMinutes(minutes);
+        }
+
+        /// <summary>What the sort reads of a player's panel; a player with no panel has no messages.</summary>
+        private (int Unread, DateTime LastMessage) WGPanelKey(NetUserId channel)
+        {
+            return AHelpHelper.TryGetChannel(channel, out var panel)
+                ? (panel.Unread, panel.LastMessage)
+                : (0, DateTime.MinValue);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (!disposing)
+                return;
+
+            _adminManager.AdminStatusUpdated -= UpdateButtons;
+            _cfg.UnsubValueChanged(CCVars.NewPlayerThreshold, WGThresholdChanged);
+        }
+        // WOLFGATE END
     }
 }

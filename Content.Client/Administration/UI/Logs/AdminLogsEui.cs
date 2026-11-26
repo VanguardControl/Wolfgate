@@ -55,7 +55,7 @@ public sealed partial class AdminLogsEui : BaseEui
             LogsControl.SelectedRoundId,
             LogsControl.Search,
             LogsControl.SelectedTypes.ToHashSet(),
-            null,
+            LogsControl.SelectedImpacts.ToHashSet(), // WOLFGATE(LogInvestigator): filter impact on the server, not only the loaded page
             null,
             null,
             LogsControl.SelectedPlayers.Count != 0,

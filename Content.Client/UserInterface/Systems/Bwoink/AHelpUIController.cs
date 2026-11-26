@@ -172,12 +172,22 @@ public sealed partial class AHelpUIController: UIController, IOnSystemChanged<Bw
     {
         var isAdmin = _adminManager.HasFlag(AdminFlags.Adminhelp) || _adminManager.HasFlag(AdminFlags.Event); // WOLFGATE(EventStaff): event staff get the staff window
 
-        if (UIHelper != null && UIHelper.IsAdmin == isAdmin)
+        // WOLFGATE(AHelpTickets) START: staff get the ticket panel unless wg.ahelp.tickets_panel is off
+        var wgTickets = isAdmin && _config.GetCVar(Content.Shared._WG.AHelpTickets.AHelpTicketCVars.TicketsPanel);
+        if (UIHelper != null && UIHelper.IsAdmin == isAdmin && UIHelper is Content.Client._WG.AHelpTickets.WGTicketAHelpUIHandler == wgTickets)
             return;
+        // if (UIHelper != null && UIHelper.IsAdmin == isAdmin)
+        //     return;
+        // WOLFGATE END
 
         UIHelper?.Dispose();
         var ownerUserId = _playerManager.LocalUser!.Value;
-        UIHelper = isAdmin ? new AdminAHelpUIHandler(ownerUserId) : new UserAHelpUIHandler(ownerUserId);
+        // WOLFGATE(AHelpTickets) START: staff get the ticket panel unless wg.ahelp.tickets_panel is off
+        UIHelper = wgTickets
+            ? new Content.Client._WG.AHelpTickets.WGTicketAHelpUIHandler(ownerUserId)
+            : isAdmin ? new AdminAHelpUIHandler(ownerUserId) : new UserAHelpUIHandler(ownerUserId);
+        // UIHelper = isAdmin ? new AdminAHelpUIHandler(ownerUserId) : new UserAHelpUIHandler(ownerUserId);
+        // WOLFGATE END
         UIHelper.DiscordRelayChanged(_discordRelayActive);
 
         UIHelper.SendMessageAction = (userId, textMessage, playSound, adminOnly) => _bwoinkSystem?.Send(userId, textMessage, playSound, adminOnly, (UIHelper as UserAHelpUIHandler)?.Category ?? AHelpCategory.Player); // WOLFGATE(EventStaff): send the picked category
@@ -217,6 +227,13 @@ public sealed partial class AHelpUIController: UIController, IOnSystemChanged<Bw
     public void PopOut()
     {
         EnsureUIHelper();
+        // WOLFGATE(AHelpTickets) START: the ticket panel pops out on its own
+        if (UIHelper is Content.Client._WG.AHelpTickets.WGTicketAHelpUIHandler wgTickets)
+        {
+            wgTickets.PopOut();
+            return;
+        }
+        // WOLFGATE END
         if (UIHelper is not AdminAHelpUIHandler helper)
             return;
 
@@ -589,6 +606,7 @@ public sealed class UserAHelpUIHandler : IAHelpUIHandler
         _categorySelector = new AHelpCategorySelector();
         _chatPanel.VerticalExpand = true;
         var layout = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
+        layout.AddChild(new Content.Client._WG.AHelpTickets.AHelpTicketStatusLabel()); // WOLFGATE(AHelpTickets): the player's ticket number and state
         layout.AddChild(_categorySelector);
         layout.AddChild(_chatPanel);
         _window.Contents.AddChild(layout);

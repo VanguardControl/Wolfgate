@@ -122,6 +122,7 @@ public sealed partial class AdminLogsEui : BaseEui
                     AnyPlayers = request.AnyPlayers,
                     AllPlayers = request.AllPlayers,
                     IncludeNonPlayers = request.IncludeNonPlayers,
+                    DateOrder = request.DateOrder, // WOLFGATE(LogInvestigator): the requested order was dropped
                     LastLogId = null,
                     Limit = _clientBatchSize
                 };
@@ -157,8 +158,20 @@ public sealed partial class AdminLogsEui : BaseEui
         var stopwatch = new Stopwatch();
         stopwatch.Start();
 
-        var logs = await Task.Run(async () => await _adminLogs.All(_filter, _adminLogListPool.Get),
-            _filter.CancellationToken);
+        // WOLFGATE(LogInvestigator) START: a request replaced by a newer one is cancelled, not an error
+        List<SharedAdminLog> logs;
+        try
+        {
+            logs = await Task.Run(async () => await _adminLogs.All(_filter, _adminLogListPool.Get),
+                _filter.CancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        // var logs = await Task.Run(async () => await _adminLogs.All(_filter, _adminLogListPool.Get),
+        //     _filter.CancellationToken);
+        // WOLFGATE END
 
         if (logs.Count > 0)
         {

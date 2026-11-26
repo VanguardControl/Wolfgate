@@ -1753,6 +1753,143 @@ namespace Content.Server.Database.Migrations.Sqlite
                     b.ToTable("wolfgate_admin_observer", (string)null);
                 });
 
+            modelBuilder.Entity("Content.Server.Database.WolfgateAhelpMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("wolfgate_ahelp_message_id");
+
+                    b.Property<bool>("AdminOnly")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("admin_only");
+
+                    b.Property<string>("AuthorName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("author_name");
+
+                    b.Property<Guid?>("AuthorUserId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("author_user_id");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("sent_at");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("source");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("text");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("ticket_id");
+
+                    b.HasKey("Id")
+                        .HasName("PK_wolfgate_ahelp_message");
+
+                    b.HasIndex("TicketId", "SentAt");
+
+                    b.ToTable("wolfgate_ahelp_message", (string)null);
+                });
+
+            modelBuilder.Entity("Content.Server.Database.WolfgateAhelpTicket", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("wolfgate_ahelp_ticket_id");
+
+                    b.Property<string>("AssigneeName")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("assignee_name");
+
+                    b.Property<Guid?>("AssigneeUserId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("assignee_user_id");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("category");
+
+                    b.Property<string>("CharacterName")
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("character_name");
+
+                    b.Property<DateTime?>("ClaimedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("claimed_at");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("closed_at");
+
+                    b.Property<string>("ClosedBy")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("closed_by");
+
+                    b.Property<DateTime?>("FirstReplyAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("first_reply_at");
+
+                    b.Property<string>("Macros")
+                        .HasMaxLength(512)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("macros");
+
+                    b.Property<DateTime>("OpenedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("opened_at");
+
+                    b.Property<string>("PlayerName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("player_name");
+
+                    b.Property<Guid>("PlayerUserId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("player_user_id");
+
+                    b.Property<int>("RoundId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("round_id");
+
+                    b.Property<string>("ServerName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("server_name");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("state");
+
+                    b.HasKey("Id")
+                        .HasName("PK_wolfgate_ahelp_ticket");
+
+                    b.HasIndex("RoundId");
+
+                    b.HasIndex("PlayerUserId", "OpenedAt");
+
+                    b.ToTable("wolfgate_ahelp_ticket", (string)null);
+                });
+
             modelBuilder.Entity("Content.Server.Database.WolfgateCensus", b =>
                 {
                     b.Property<int>("Id")
@@ -2651,6 +2788,62 @@ namespace Content.Server.Database.Migrations.Sqlite
                     b.ToTable("wolfgate_photo_album", (string)null);
                 });
 
+            modelBuilder.Entity("Content.Server.Database.WolfgatePlayerPosition", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("wolfgate_player_position_id");
+
+                    b.Property<bool>("Alive")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("alive");
+
+                    b.Property<int>("EntityId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("entity_id");
+
+                    b.Property<string>("EntityName")
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("entity_name");
+
+                    b.Property<int?>("GridId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("grid_id");
+
+                    b.Property<int>("MapId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("map_id");
+
+                    b.Property<Guid>("PlayerUserId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("player_user_id");
+
+                    b.Property<int>("RoundId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("round_id");
+
+                    b.Property<DateTime>("SampledAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("sampled_at");
+
+                    b.Property<float>("X")
+                        .HasColumnType("REAL")
+                        .HasColumnName("x");
+
+                    b.Property<float>("Y")
+                        .HasColumnType("REAL")
+                        .HasColumnName("y");
+
+                    b.HasKey("Id")
+                        .HasName("PK_wolfgate_player_position");
+
+                    b.HasIndex("RoundId", "SampledAt");
+
+                    b.ToTable("wolfgate_player_position", (string)null);
+                });
+
             modelBuilder.Entity("Content.Server.Database.WolfgateShipCommandPreset", b =>
                 {
                     b.Property<int>("Id")
@@ -3338,6 +3531,18 @@ namespace Content.Server.Database.Migrations.Sqlite
                     b.Navigation("Box");
                 });
 
+            modelBuilder.Entity("Content.Server.Database.WolfgateAhelpMessage", b =>
+                {
+                    b.HasOne("Content.Server.Database.WolfgateAhelpTicket", "Ticket")
+                        .WithMany("Messages")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_wolfgate_ahelp_message_wolfgate_ahelp_ticket_ticket_id");
+
+                    b.Navigation("Ticket");
+                });
+
             modelBuilder.Entity("Content.Server.Database.WolfgateCensusResponse", b =>
                 {
                     b.HasOne("Content.Server.Database.WolfgateCensus", "Census")
@@ -3610,6 +3815,11 @@ namespace Content.Server.Database.Migrations.Sqlite
             modelBuilder.Entity("Content.Server.Database.WayfarerSafetyDepositBox", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Content.Server.Database.WolfgateAhelpTicket", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("Content.Server.Database.WolfgateCensus", b =>

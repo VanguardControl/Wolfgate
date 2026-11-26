@@ -107,7 +107,9 @@ public sealed partial class AdminSystem : EntitySystem
                 continue;
 
             if (!_playerManager.TryGetPlayerData(id, out var playerData))
-                return;
+                // WOLFGATE: one missing player stopped the rest of the list being sent at round restart
+                continue;
+                // return;
 
             _playerManager.TryGetSessionById(id, out var session);
             _playerList[id] = GetPlayerInfo(playerData, session);

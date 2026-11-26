@@ -55,7 +55,14 @@ public sealed partial class BwoinkSystem
     /// <summary>Perms that arrive after the session is in game (a slow login, a readmin) bring the staff history.</summary>
     private void WgOnPermsChanged(AdminPermsChangedEventArgs args)
     {
-        if (args.Flags != null && args.Player.Status == SessionStatus.InGame)
+        // A deadmin drops the client's staff view, so the next readmin needs the history again.
+        if (args.Flags == null)
+        {
+            _wgStaffReplayed.Remove(args.Player.UserId);
+            return;
+        }
+
+        if (args.Player.Status == SessionStatus.InGame)
             WgReplayStaffHistory(args.Player);
     }
 

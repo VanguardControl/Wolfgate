@@ -1,0 +1,44 @@
+<Control xmlns="https://spacestation14.io"
+         xmlns:ui="clr-namespace:Content.Client.UserInterface.Controls">
+    <PanelContainer StyleClasses="BackgroundDark">
+        <SplitContainer Orientation="Horizontal" VerticalExpand="True">
+            <BoxContainer Orientation="Vertical" HorizontalExpand="True" SizeFlagsStretchRatio="1" MinWidth="300">
+                <LineEdit Name="SearchBox" Access="Public" HorizontalExpand="True"
+                          PlaceHolder="{Loc 'wg-ahelp-tickets-search-placeholder'}" />
+                <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
+                    <Button Name="FilterMine" ToggleMode="True" Text="{Loc 'wg-ahelp-tickets-filter-mine'}" StyleClasses="OpenRight" />
+                    <Button Name="FilterOnline" ToggleMode="True" Text="{Loc 'wg-ahelp-tickets-filter-online'}" StyleClasses="OpenBoth" />
+                    <Button Name="FilterNotes" ToggleMode="True" Text="{Loc 'wg-ahelp-tickets-filter-notes'}" StyleClasses="OpenBoth" />
+                    <Button Name="FilterClosed" ToggleMode="True" Pressed="True" Text="{Loc 'wg-ahelp-tickets-filter-closed'}" StyleClasses="OpenLeft" />
+                </BoxContainer>
+                <ui:ListContainer Name="TicketList" Access="Public" Toggle="True" Group="True" VerticalExpand="True" />
+                <Label Name="EmptyLabel" Text="{Loc 'wg-ahelp-tickets-empty'}" StyleClasses="LabelSubText" Visible="False" />
+            </BoxContainer>
+            <BoxContainer Orientation="Vertical" HorizontalExpand="True" SizeFlagsStretchRatio="2" Margin="4 0 0 0">
+                <RichTextLabel Name="Header" />
+                <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
+                    <Button Name="ClaimButton" Text="{Loc 'wg-ahelp-tickets-claim'}" StyleClasses="OpenRight" />
+                    <Button Name="UnclaimButton" Text="{Loc 'wg-ahelp-tickets-unclaim'}" StyleClasses="OpenBoth" />
+                    <Button Name="ResolveButton" Text="{Loc 'wg-ahelp-tickets-resolve'}" StyleClasses="OpenBoth" />
+                    <Button Name="RejectButton" Text="{Loc 'wg-ahelp-tickets-reject'}" StyleClasses="OpenBoth" />
+                    <Button Name="IcButton" Text="{Loc 'wg-ahelp-tickets-ic'}" StyleClasses="OpenBoth" />
+                    <Button Name="ReopenButton" Text="{Loc 'wg-ahelp-tickets-reopen'}" StyleClasses="OpenLeft" />
+                    <Control HorizontalExpand="True" />
+                    <Button Name="PopOut" Access="Public" Text="{Loc 'wg-ahelp-tickets-pop-out'}" />
+                </BoxContainer>
+                <RichTextLabel Name="Card" />
+                <GridContainer Name="Actions" Columns="6" HorizontalExpand="True" />
+                <Label Name="Collision" Visible="False" FontColorOverride="#ffb347" />
+                <Label Name="Placeholder" Text="{Loc 'wg-ahelp-tickets-none-selected'}" StyleClasses="LabelSubText" VerticalExpand="True" VAlign="Center" Align="Center" />
+                <BoxContainer Name="BwoinkArea" Access="Public" VerticalExpand="True" />
+                <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
+                    <CheckBox Name="AdminOnly" Access="Public" Text="{Loc 'wg-ahelp-tickets-admin-only'}" />
+                    <Control MinWidth="8" />
+                    <CheckBox Name="PlaySound" Access="Public" Text="{Loc 'wg-ahelp-tickets-play-sound'}" Pressed="True" />
+                    <Control HorizontalExpand="True" />
+                    <OptionButton Name="Macros" />
+                </BoxContainer>
+            </BoxContainer>
+        </SplitContainer>
+    </PanelContainer>
+</Control>

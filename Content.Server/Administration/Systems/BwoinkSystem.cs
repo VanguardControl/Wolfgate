@@ -330,7 +330,9 @@ namespace Content.Server.Administration.Systems
             {
                 var id = interaction.Id;
                 if (id == null)
-                    return;
+                    // WOLFGATE: one embed without an id stopped the rest being kept
+                    continue;
+                    // return;
 
                 _oldMessageIds[user] = id;
             }
@@ -813,6 +815,7 @@ namespace Content.Server.Administration.Systems
 
             LogBwoink(msg);
             WgRecordHistory(message.UserId, adminMsg, message.AdminOnly || _overrideClientName != string.Empty ? null : msg); // WOLFGATE(AHelpResolve): kept for replay on connect
+            WGTicketLine(message, senderId, senderName, fromWebhook); // WOLFGATE(AHelpTickets): every line goes to its ticket
 
             var admins = GetTargetAdmins(category); // WOLFGATE(EventStaff): gameplay ahelps reach event staff
 
