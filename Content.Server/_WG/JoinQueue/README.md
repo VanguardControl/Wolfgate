@@ -5,6 +5,10 @@ refused. A queued player is connected but not in the game, and sees a screen wit
 in the queue, how long they have waited and a rough estimate of the wait. When a slot opens the first in line joins
 the lobby or the game as usual.
 
+While they wait they can play Freedoom or Freedoom Phase 2 from buttons on the screen (DoomArcade, with no cabinet, so
+nobody else hears it and finished levels win nothing; the window closes when they are let in), and the moproach from
+the connect screen wanders about asking for spills, mopping up any the player clicks onto the background.
+
 - Admins who bypass the cap and players who already reached the lobby this round skip the queue, as they skip the cap.
 - A round restart leaves waiting players out of the lobby, so they can't ready up past the queue. Admins see
   "waiting in the join queue" when a player starts waiting and "joined from the join queue" when let in.
@@ -54,6 +58,7 @@ the player was let in: the screen says so until the lobby or the game takes over
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WG/JoinQueue/JoinQueueArcadeTest.cs`](../../../Content.IntegrationTests/Tests/_WG/JoinQueue/JoinQueueArcadeTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/JoinQueue/JoinQueueTest.cs`](../../../Content.IntegrationTests/Tests/_WG/JoinQueue/JoinQueueTest.cs)
 
 ### Unit tests

@@ -19,5 +19,8 @@ join-queue-note-hold = IF YOU DISCONNECT, YOUR PLACE IS HELD FOR { $time }.
 join-queue-hold-seconds = { $seconds } SECONDS
 join-queue-hold-minutes = { $minutes } MINUTES
 
+join-queue-arcade = PASS THE TIME. ONLY YOU HEAR IT, AND IT WINS NO PRIZES.
+join-queue-arcade-play = PLAY { $game }
+
 join-queue-admin-waiting = Player {$name} is waiting in the join queue.
 join-queue-admin-admitted = Player {$name} joined from the join queue.

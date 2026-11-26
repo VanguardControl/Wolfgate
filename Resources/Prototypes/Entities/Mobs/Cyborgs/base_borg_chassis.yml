@@ -154,8 +154,13 @@
     drinkSpeed: 2
   - type: BankAccount
   # WOLFGATE END
-  # WOLFGATE(Cyborgs) START: buckle into seats and climb onto tables
+  # WOLFGATE(Cyborgs) START: buckle into seats, carry patients, and climb onto tables
   - type: Buckle
+  - type: Strap
+    position: Stand
+    buckleOffset: "0, 0.25"
+    buckleOnInteractHand: false
+    maintainSpriteLayers: true
   - type: Climbing
   # WOLFGATE END
   # WOLFGATE(Cyborgs) START: a built-in PDA with a vagrant's apps, opened from an action
@@ -167,8 +172,13 @@
       locked: true
     paiSlot:
       locked: true
+    diskSlot:
+      locked: true
   - type: WGBorgPda
   - type: WGGameHubInstaller
+  # WOLFGATE(PdaStorage): the built-in PDA gets the app store too
+  - type: PdaAppStoreInstaller
+    program: PdaAppStoreCartridge
   - type: Ringer
   - type: CartridgeLoader
     uiKey: enum.PdaUiKey.Key
