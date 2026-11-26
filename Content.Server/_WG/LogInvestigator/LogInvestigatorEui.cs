@@ -52,6 +52,9 @@ public sealed class LogInvestigatorEui : BaseEui
     /// <summary>The round load in progress, if any; queries and reports wait for it.</summary>
     private Task? _roundLoad;
 
+    /// <summary>The last round load failed, so the round shown isn't the one asked for.</summary>
+    private bool _roundLoadFailed;
+
     private int _roundId;
     private DateTime? _roundStart;
     private List<LogPlayer> _roundPlayers = new();
@@ -189,8 +192,26 @@ public sealed class LogInvestigatorEui : BaseEui
         _loading = true;
         StateDirty();
 
-        var round = await _adminLogs.Round(roundId);
+        Round round;
+        try
+        {
+            round = await _adminLogs.Round(roundId);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            // No round to search: say so instead of leaving the window loading, and refuse queries until one loads.
+            _roundLoadFailed = true;
+            if (!cancel.IsCancellationRequested && !IsShutDown)
+            {
+                _loading = false;
+                StateDirty();
+            }
+
+            throw;
+        }
+
         cancel.ThrowIfCancellationRequested();
+        _roundLoadFailed = false;
         if (IsShutDown)
             return;
 
@@ -223,7 +244,15 @@ public sealed class LogInvestigatorEui : BaseEui
             {
                 // Replaced by a newer load, which the loop waits for next.
             }
+            catch (Exception)
+            {
+                // Failed; checked below.
+            }
         }
+
+        // A failed load leaves the previous round's id and players behind; nothing runs against them.
+        if (_roundLoadFailed)
+            throw new InvalidOperationException($"Round {_roundId} could not be loaded; pick a round again.");
     }
 
     private async Task RunQuery(LogInvestigatorQueryMsg msg)
