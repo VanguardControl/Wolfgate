@@ -1220,13 +1220,22 @@ INSERT INTO player_round (players_id, rounds_id) VALUES ({players[player]}, {id}
                 };
             }
 
+            // WOLFGATE(LogInvestigator) START: ties on date break by id, which the page cursor follows
             query = filter.DateOrder switch
             {
-                DateOrder.Ascending => query.OrderBy(log => log.Date),
-                DateOrder.Descending => query.OrderByDescending(log => log.Date),
+                DateOrder.Ascending => query.OrderBy(log => log.Date).ThenBy(log => log.Id),
+                DateOrder.Descending => query.OrderByDescending(log => log.Date).ThenByDescending(log => log.Id),
                 _ => throw new ArgumentOutOfRangeException(nameof(filter),
                     $"Unknown {nameof(DateOrder)} value {filter.DateOrder}")
             };
+            // query = filter.DateOrder switch
+            // {
+            //     DateOrder.Ascending => query.OrderBy(log => log.Date),
+            //     DateOrder.Descending => query.OrderByDescending(log => log.Date),
+            //     _ => throw new ArgumentOutOfRangeException(nameof(filter),
+            //         $"Unknown {nameof(DateOrder)} value {filter.DateOrder}")
+            // };
+            // WOLFGATE END
 
             const int hardLogLimit = 500_000;
             if (filter.Limit != null)

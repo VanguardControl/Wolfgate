@@ -481,8 +481,10 @@ public sealed partial class AHelpTicketsControl : Control
         if (SelectedPlayer is not { } player || !CanRun(macro))
             return;
 
+        // The player's own tickets decide where the macro goes, not which ticket is selected: a closed one picked from
+        // the list for reading must not swallow a macro meant for the open one.
         var info = Info();
-        var ticket = CurrentTicket();
+        var ticket = _tickets.LatestFor(player);
         var open = ticket is { } current && !current.State.IsClosed() ? current : null;
         if (macro.Text is { } text)
         {

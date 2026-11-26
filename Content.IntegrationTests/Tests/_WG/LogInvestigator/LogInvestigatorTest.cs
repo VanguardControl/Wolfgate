@@ -102,7 +102,8 @@ public sealed class LogInvestigatorTest
     [Test]
     public async Task RetriedPositionBatchIsStoredOnce()
     {
-        await using var pair = await PoolManager.GetServerClient();
+        // Dirty: it writes rows the next borrower of this pair shouldn't see.
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
         var db = pair.Server.ResolveDependency<IServerDbManager>();
         var at = new DateTime(2026, 11, 26, 12, 0, 0, 123, DateTimeKind.Utc);
         var round = 987_654;

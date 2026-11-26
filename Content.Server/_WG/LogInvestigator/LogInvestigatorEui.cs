@@ -200,9 +200,10 @@ public sealed class LogInvestigatorEui : BaseEui
         catch (Exception e) when (e is not OperationCanceledException)
         {
             // No round to search: say so instead of leaving the window loading, and refuse queries until one loads.
-            _roundLoadFailed = true;
+            // A load already replaced by a newer one changes nothing.
             if (!cancel.IsCancellationRequested && !IsShutDown)
             {
+                _roundLoadFailed = true;
                 _loading = false;
                 StateDirty();
             }

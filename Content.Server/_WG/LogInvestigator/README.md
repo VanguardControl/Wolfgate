@@ -90,7 +90,9 @@ search (which never found ids), cursor paging in the cache, the requested order 
   - the next page starts after the last row sent, in either order
 - [`Content.Server/Administration/PlayerPanelEui.cs`](../../Administration/PlayerPanelEui.cs): open on the player, not a text search for their name
 - [`Content.Server/Administration/Systems/AdminVerbSystem.cs`](../../Administration/Systems/AdminVerbSystem.cs): the investigator filters by the entity itself
-- [`Content.Server/Database/ServerDbBase.cs`](../../Database/ServerDbBase.cs): "all players" means the log involves every one of them, as in the cache
+- [`Content.Server/Database/ServerDbBase.cs`](../../Database/ServerDbBase.cs)
+  - "all players" means the log involves every one of them, as in the cache
+  - ties on date break by id, which the page cursor follows
 - [`Content.Server/Database/ServerDbPostgres.cs`](../../Database/ServerDbPostgres.cs)
   - substring match, so entity ids and partial words are found like in the cache
   - escapes LIKE wildcards in a search

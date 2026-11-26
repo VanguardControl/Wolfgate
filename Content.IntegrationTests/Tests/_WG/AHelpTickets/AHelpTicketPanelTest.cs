@@ -45,8 +45,12 @@ public sealed class AHelpTicketPanelTest
             control.ApplyMacro(macro);
         });
 
+        // In steps, so a failure says which hop broke.
+        var clientTickets = client.System<AHelpTicketClientSystem>();
+        await WaitFor(pair, () => tickets.Tickets.Any(t => t.Player == player), "the reply to open a ticket on the server");
+        await WaitFor(pair, () => clientTickets.LatestFor(player) != null, "the client to hear of the new ticket");
         await WaitFor(pair, () => tickets.Tickets.Any(t => t.Player == player && t.State == AHelpTicketState.Resolved),
-            "the macro to resolve the ticket its reply opened");
+            $"the macro to resolve the ticket its reply opened (server: {string.Join(", ", tickets.Tickets.Where(t => t.Player == player).Select(t => $"#{t.Key} {t.State}"))}; client: {clientTickets.LatestFor(player)?.State})");
         Assert.Multiple(() =>
         {
             Assert.That(tickets.GetOpenTicket(player), Is.Null);

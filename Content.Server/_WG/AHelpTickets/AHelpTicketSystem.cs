@@ -520,7 +520,9 @@ public sealed class AHelpTicketSystem : EntitySystem
             if (!ticket.Retired)
             {
                 SendUpdate(ticket);
-                SendPlayerStatus(ticket);
+                // A closed ticket getting its number late mustn't replace the status of the player's newer one.
+                if (IsCurrentFor(ticket))
+                    SendPlayerStatus(ticket);
             }
         }
 
@@ -623,6 +625,16 @@ public sealed class AHelpTicketSystem : EntitySystem
             return;
 
         RaiseNetworkEvent(new AHelpTicketPlayerStatusMessage(ticket.Info.Number, ticket.Info.State, ticket.Info.AssigneeName), session);
+    }
+
+    /// <summary>Whether this is the ticket the player sees: their open one, or their newest when none is open.</summary>
+    private bool IsCurrentFor(Ticket ticket)
+    {
+        var player = ticket.Info.Player;
+        if (_open.TryGetValue(player, out var open))
+            return open == ticket;
+
+        return _tickets.Values.Where(t => !t.Retired && t.Info.Player == player).MaxBy(t => t.Info.Key) == ticket;
     }
 
     private IEnumerable<ICommonSession> StaffSessions()
