@@ -18,10 +18,12 @@ persistent silo first and puts the rest in round storage; a faction only has rou
 sheets, with one sheet equal to 100 material units. Each completed trade messages the affected faction or company.
 
 Quick buy, quick sell and the sell pad's Sell all work for anyone. Only a faction or company account may place a
-resting limit order. A character with no account pays from cash they carry (thalers in hands, inventory or containers) and, when
-buying, receives the material on the exchange console's attached `WGStockDeliveryPad` instead of account storage. Cash
-is always spent before the character's faction or company funds. A character with no account who sells is handed the
-proceeds as cash immediately. The delivery pad is linked with the same mapping device linker
+resting limit order. A character with no account pays from cash they carry (thalers in hands, inventory or containers)
+and, when buying, receives the material on the exchange console's attached `WGStockDeliveryPad` instead of account
+storage. Cash is always spent before the character's faction or company funds. Any company money the exchange spends
+(quick buys, bid escrow, or a withdrawal to a character's bank) needs the company rank's `Withdraw` permission, and a
+withdrawal to a bank also respects the rank's daily cap. A character with no account who sells is handed the proceeds
+as cash immediately. The delivery pad is linked with the same mapping device linker
 (`DeviceLinkSource` port `WGStockExchangeConsole` to `DeviceLinkSink` port `WGStockDeliveryPad`), or any delivery pad on
 the console's grid is used.
 

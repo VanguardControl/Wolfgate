@@ -78,7 +78,13 @@ public sealed partial class WGCompanySystem
             error = "wg-stock-error-no-company";
             return false;
         }
-        error = Withdraw(company, company.Members[character.ProfileId], character, amount, out _);
+        var member = company.Members[character.ProfileId];
+        if (!Has(company, member, WGCompanyPermissions.Withdraw))
+        {
+            error = "wg-stock-error-permission";
+            return false;
+        }
+        error = Withdraw(company, member, character, amount, out _);
         if (error == null)
             Touch(company);
         return error == null;
@@ -87,8 +93,11 @@ public sealed partial class WGCompanySystem
     /// <summary>Takes money from a company account for an exchange purchase; false if it cannot cover it.</summary>
     public bool StockSpend(int companyId, long amount, int? actor, string actorName, string note)
     {
-        return amount > 0 && _companies.TryGetValue(companyId, out var company) &&
-               Transact(company, WGCompanyLedgerKind.MarketTrade, -amount, actor, actorName, note);
+        if (amount <= 0 || !_companies.TryGetValue(companyId, out var company) ||
+            actor is not { } profile || !company.Members.TryGetValue(profile, out var member) ||
+            !Has(company, member, WGCompanyPermissions.Withdraw))
+            return false;
+        return Transact(company, WGCompanyLedgerKind.MarketTrade, -amount, actor, actorName, note);
     }
 
     /// <summary>Pays exchange proceeds into a company account.</summary>

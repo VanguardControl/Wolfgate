@@ -178,7 +178,7 @@ public sealed class WGStockWindow : FancyWindow
         _buy.Disabled = !state.HasOwner;
         _sell.Disabled = !state.HasOwner;
         _depositFunds.Disabled = !state.HasOwner;
-        _withdrawFunds.Disabled = !state.HasOwner;
+        _withdrawFunds.Disabled = !state.HasOwner || !state.CanWithdrawFunds;
         if (state.Mode != WGStockTerminalMode.Market)
             SetTab(false);
         RebuildGoods();

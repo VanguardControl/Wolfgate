@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Shared._WG.Companies;
 using Content.Shared._WG.StockExchange;
 using Content.Shared.Cargo.Components;
 using Content.Shared.DeviceLinking;
@@ -73,23 +74,31 @@ public sealed partial class WGStockSystem
         return taken;
     }
 
-    /// <summary>Whether cash plus, if the character has one, their faction or company can cover a purchase.</summary>
-    private bool CanPayWithCashFirst(OwnerInfo? owner, EntityUid actor, long amount)
+    /// <summary>The reason a purchase cannot be paid for, or null when cash and account funds can cover it.</summary>
+    private string? PaymentError(OwnerInfo? owner, EntityUid actor, long amount)
     {
         if (amount <= 0)
-            return false;
+            return "wg-stock-error-amount";
 
         var cash = CashAvailable(actor);
         if (cash >= amount)
-            return true;
-        if (owner == null || owner.Frozen)
-            return false;
+            return null;
+        if (owner == null)
+            return "wg-stock-error-balance";
+        if (owner.Frozen)
+            return "wg-stock-error-frozen";
+        if (owner.Kind == WGStockOwnerKind.Company && (owner.Permissions & WGCompanyPermissions.Withdraw) == 0)
+            return "wg-stock-error-permission";
 
         var funds = owner.Kind == WGStockOwnerKind.Company
             ? _companies.GetBalance(owner.CompanyId) ?? 0
             : owner.AccountComp.FactionBalance;
-        return cash + funds >= amount;
+        return cash + funds >= amount ? null : "wg-stock-error-balance";
     }
+
+    /// <summary>Whether cash plus, if the character has one, their faction or company can cover a purchase.</summary>
+    private bool CanPayWithCashFirst(OwnerInfo? owner, EntityUid actor, long amount) =>
+        PaymentError(owner, actor, amount) == null;
 
     /// <summary>How many units at this price the character's cash and, if they have one, account can cover.</summary>
     private long AffordableUnits(OwnerInfo? owner, EntityUid actor, int price)
@@ -97,7 +106,8 @@ public sealed partial class WGStockSystem
         if (price <= 0)
             return 0;
         var funds = CashAvailable(actor);
-        if (owner is { Frozen: false })
+        if (owner is { Frozen: false } && (owner.Kind != WGStockOwnerKind.Company ||
+            (owner.Permissions & WGCompanyPermissions.Withdraw) != 0))
         {
             funds += owner.Kind == WGStockOwnerKind.Company
                 ? _companies.GetBalance(owner.CompanyId) ?? 0

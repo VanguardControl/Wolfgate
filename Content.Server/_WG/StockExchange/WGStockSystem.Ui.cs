@@ -205,6 +205,8 @@ public sealed partial class WGStockSystem
         state.PersistentUsed = owner.AccountComp.PersistentMaterials.Values.Sum();
         state.CanWithdrawSilo = owner.Kind == WGStockOwnerKind.Company &&
                                 (owner.Permissions & WGCompanyPermissions.SiloWithdraw) != 0;
+        state.CanWithdrawFunds = owner.Kind != WGStockOwnerKind.Company ||
+                                 (owner.Permissions & WGCompanyPermissions.Withdraw) != 0;
         state.CanBuySlots = owner.Kind == WGStockOwnerKind.Company &&
                             (owner.Permissions & WGCompanyPermissions.EditDetails) != 0;
         state.RoundMaterials = owner.AccountComp.RoundMaterials.OrderBy(pair => pair.Key)

@@ -79,6 +79,7 @@ public sealed class WGStockState
     public int PersistentCapacity;
     public int PersistentUsed;
     public bool CanWithdrawSilo;
+    public bool CanWithdrawFunds;
     public bool CanBuySlots;
     public int SlotCost;
     public int UnitsPerSheet = WGStockPolicy.UnitsPerSheet;

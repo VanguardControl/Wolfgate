@@ -27,9 +27,14 @@ public sealed partial class WGStockSystem
             return false;
         }
         var escrow = (long) price * quantity;
+        if (PaymentError(owner, actor, escrow) is { } paymentError)
+        {
+            error = paymentError;
+            return false;
+        }
         if (!PayWithCashFirst(owner, actor, escrow, $"bid {quantity} {GoodName(good)} @ {price}"))
         {
-            error = "wg-stock-error-balance";
+            error = "wg-stock-error-failed";
             return false;
         }
         AddOrder(market, owner.Account, good, WGStockOrderSide.Buy, price, quantity);
@@ -99,6 +104,15 @@ public sealed partial class WGStockSystem
                 break;
             }
             var cost = (long) sell.Price * take;
+            if (PaymentError(owner, actor, cost) is { } paymentError)
+            {
+                if (remaining == quantity)
+                {
+                    error = paymentError;
+                    return false;
+                }
+                break;
+            }
             if (!PayWithCashFirst(owner, actor, cost, $"buy {take} {GoodName(good)} @ {sell.Price}"))
                 break;
             var seller = OwnerFromAccount(sell.Account, Comp<WGStockAccountComponent>(sell.Account));
