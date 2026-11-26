@@ -1,6 +1,6 @@
-using System.Linq;
 using Content.Shared._WG.AHelpTickets;
 using Robust.Shared.Network;
+using Robust.Shared.Timing;
 
 namespace Content.Client._WG.AHelpTickets;
 
@@ -9,7 +9,12 @@ public sealed class AHelpTicketClientSystem : EntitySystem
 {
     private readonly Dictionary<int, AHelpTicketInfo> _tickets = new();
     private readonly Dictionary<NetUserId, AHelpTicketPlayerCardMessage> _cards = new();
-    private readonly Dictionary<NetUserId, (int AfterKey, string Macro, AHelpTicketAction? Action)> _pendingMacros = new();
+    private readonly Dictionary<NetUserId, (TimeSpan Until, string Macro, AHelpTicketAction? Action)> _pendingMacros = new();
+
+    [Dependency] private IGameTiming _timing = default!;
+
+    /// <summary>How long a macro waits for the ticket its reply lands on.</summary>
+    private static readonly TimeSpan MacroWait = TimeSpan.FromSeconds(15);
 
     /// <summary>This round's tickets, by key.</summary>
     public IReadOnlyDictionary<int, AHelpTicketInfo> Tickets => _tickets;
@@ -80,28 +85,24 @@ public sealed class AHelpTicketClientSystem : EntitySystem
     }
 
     /// <summary>
-    /// Records the macro and applies its action to the player's next ticket newer than <paramref name="afterKey"/>,
-    /// the one its reply opens. Kept here rather than in the panel, so a rebuilt panel doesn't drop it.
+    /// For a macro whose reply went to a player with no open ticket the client knows of: records the macro and
+    /// applies its action to the ticket the reply lands on, which is the player's next ticket update. A reply that
+    /// lands nowhere within <see cref="MacroWait"/> is dropped, so the action can't reach a later, unrelated ticket.
     /// </summary>
-    public void QueueMacro(NetUserId player, int afterKey, string macro, AHelpTicketAction? action)
+    public void QueueMacro(NetUserId player, string macro, AHelpTicketAction? action)
     {
-        _pendingMacros[player] = (afterKey, macro, action);
-        Log.Debug($"Macro {macro} waits for a ticket of {player} after key {afterKey}");
+        _pendingMacros[player] = (_timing.RealTime + MacroWait, macro, action);
     }
 
-    private void ApplyPendingMacros()
+    /// <summary>Applies a waiting macro to the ticket that just changed, if it is that player's and still in time.</summary>
+    private void ApplyPendingMacro(AHelpTicketInfo ticket)
     {
-        foreach (var (player, (afterKey, macro, action)) in _pendingMacros.ToList())
-        {
-            if (LatestFor(player) is not { } ticket || ticket.Key <= afterKey)
-                continue;
+        if (!_pendingMacros.Remove(ticket.Player, out var pending) || _timing.RealTime > pending.Until)
+            return;
 
-            Log.Debug($"Macro {macro} applies to ticket key {ticket.Key} ({ticket.State}) of {player}: {action}");
-            _pendingMacros.Remove(player);
-            MacroUsed(ticket.Key, macro);
-            if (action is { } act)
-                Act(ticket.Key, act);
-        }
+        MacroUsed(ticket.Key, pending.Macro);
+        if (pending.Action is { } action)
+            Act(ticket.Key, action);
     }
 
     public void RequestCard(NetUserId player)
@@ -121,22 +122,19 @@ public sealed class AHelpTicketClientSystem : EntitySystem
 
     private void OnList(AHelpTicketListMessage msg)
     {
-        Log.Debug($"Ticket list of {msg.Tickets.Count}; {_pendingMacros.Count} macros wait");
         _tickets.Clear();
         foreach (var ticket in msg.Tickets)
         {
             _tickets[ticket.Key] = ticket;
         }
 
-        ApplyPendingMacros();
         TicketsChanged?.Invoke(null);
     }
 
     private void OnUpdated(AHelpTicketUpdatedMessage msg)
     {
-        Log.Debug($"Ticket key {msg.Ticket.Key} of {msg.Ticket.Player} is {msg.Ticket.State}; {_pendingMacros.Count} macros wait");
         _tickets[msg.Ticket.Key] = msg.Ticket;
-        ApplyPendingMacros();
+        ApplyPendingMacro(msg.Ticket);
         TicketsChanged?.Invoke(msg.Ticket);
     }
 

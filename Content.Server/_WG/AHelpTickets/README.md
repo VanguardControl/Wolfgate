@@ -82,6 +82,7 @@ Entry points: `AHelpTicketSystem` (server; fed by `BwoinkSystem.WGTicketLine`), 
   - keep the selection on the refreshed record, so its body and name are current
   - a closed or popped-out list stops listening, or it kept sorting forever
 - [`Content.Client/UserInterface/Systems/Bwoink/AHelpUIController.cs`](../../../Content.Client/UserInterface/Systems/Bwoink/AHelpUIController.cs)
+  - systems are rebuilt on reconnect, so a window built on the old ones goes with them
   - staff get the ticket panel unless wg.ahelp.tickets_panel is off
   - the ticket panel pops out on its own
   - the player's ticket number and state

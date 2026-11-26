@@ -496,11 +496,11 @@ public sealed partial class AHelpTicketsControl : Control
         {
             UseMacro(open, macro);
         }
-        else if (macro.Text != null && (!AdminOnly.Pressed || ticket == null))
+        else if (macro.Text != null)
         {
-            // The reply opens a new ticket (an admin-only note does only when the player has none this round); the
-            // macro applies to it once the server says it exists.
-            _tickets.QueueMacro(player, ticket?.Key ?? 0, macro.ID, macro.Action);
+            // No open ticket known here: the reply opens one, or lands on one reopened since. The macro applies to
+            // whichever ticket the server then reports the reply on.
+            _tickets.QueueMacro(player, macro.ID, macro.Action);
         }
 
         if (macro.Command is { } command)

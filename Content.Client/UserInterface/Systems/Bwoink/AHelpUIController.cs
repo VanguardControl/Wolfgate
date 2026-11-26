@@ -111,6 +111,11 @@ public sealed partial class AHelpUIController: UIController, IOnSystemChanged<Bw
         DebugTools.Assert(_bwoinkSystem != null);
         _bwoinkSystem!.OnBwoinkTextMessageRecieved -= ReceivedBwoink;
         _bwoinkSystem = null;
+
+        // WOLFGATE(AHelpTickets) START: systems are rebuilt on reconnect, so a window built on the old ones goes with them
+        UIHelper?.Dispose();
+        UIHelper = null;
+        // WOLFGATE END
     }
 
     private void SetAHelpPressed(bool pressed)
