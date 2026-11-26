@@ -86,6 +86,7 @@ public sealed class AHelpTicketClientSystem : EntitySystem
     public void QueueMacro(NetUserId player, int afterKey, string macro, AHelpTicketAction? action)
     {
         _pendingMacros[player] = (afterKey, macro, action);
+        Log.Debug($"Macro {macro} waits for a ticket of {player} after key {afterKey}");
     }
 
     private void ApplyPendingMacros()
@@ -95,6 +96,7 @@ public sealed class AHelpTicketClientSystem : EntitySystem
             if (LatestFor(player) is not { } ticket || ticket.Key <= afterKey)
                 continue;
 
+            Log.Debug($"Macro {macro} applies to ticket key {ticket.Key} ({ticket.State}) of {player}: {action}");
             _pendingMacros.Remove(player);
             MacroUsed(ticket.Key, macro);
             if (action is { } act)

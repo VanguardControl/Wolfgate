@@ -191,8 +191,12 @@ public sealed class AHelpTicketSystem : EntitySystem
     public void StaffAction(ICommonSession staff, int key, AHelpTicketAction action)
     {
         if (!_tickets.TryGetValue(key, out var ticket) || ticket.Retired || !_bwoink.WGCanAnswer(staff, ticket.Info.Player))
+        {
+            Log.Debug($"{staff.Name} can't {action} ticket key {key} (known: {ticket != null}, retired: {ticket?.Retired})");
             return;
+        }
 
+        Log.Debug($"{staff.Name}: {action} on ticket key {key} ({ticket.Info.State})");
         Act(staff, ticket, action);
     }
 
