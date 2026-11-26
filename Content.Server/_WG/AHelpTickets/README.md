@@ -88,9 +88,12 @@ Entry points: `AHelpTicketSystem` (server; fed by `BwoinkSystem.WGTicketLine`), 
   - ahelp tickets and their messages, kept for good
   - tickets are listed by player and round; messages go with their ticket
   - an ahelp ticket and its transcript, kept for good
-- [`Content.Server/Administration/Systems/BwoinkSystem.cs`](../../Administration/Systems/BwoinkSystem.cs): every line goes to its ticket
+- [`Content.Server/Administration/Systems/BwoinkSystem.cs`](../../Administration/Systems/BwoinkSystem.cs)
+  - a connect notice, not activity
+  - every line goes to its ticket
 - [`Content.Server/Discord/DiscordLink/DiscordChatLink.cs`](../../Discord/DiscordLink/DiscordChatLink.cs)
   - a second message waits for the thread the first is creating, instead of making another
   - names go into markup, so a bracket in one can't break the line in game
+- [`Content.Shared/Administration/SharedBwoinkSystem.cs`](../../../Content.Shared/Administration/SharedBwoinkSystem.cs): system notices (connects, closes, reminders), told apart from Discord replies that share SystemUserId
 
 <!-- WOLFGATE-GENERATED END -->

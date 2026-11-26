@@ -107,12 +107,13 @@ public static class LogReports
                     ("weapon", first.Weapon)),
             }));
 
+            // Grouped by who, not by name: two characters can share a name, and gunners of one ship stay apart.
             var table = pvp
-                .GroupBy(h => (h.Attacker, h.Victim))
+                .GroupBy(h => (Attacker: Identity(h.AttackerPlayer, h.AttackerId), Victim: Identity(h.VictimPlayer, h.VictimId)))
                 .OrderBy(g => g.Min(h => h.At))
                 .Select(g => Loc.GetString("wg-log-report-hit-line",
-                    ("attacker", g.Key.Attacker),
-                    ("victim", g.Key.Victim),
+                    ("attacker", g.First().Attacker),
+                    ("victim", g.First().Victim),
                     ("hits", g.Count()),
                     ("damage", (int) g.Sum(h => h.Damage)),
                     ("weapons", string.Join(", ", g.Select(h => h.Weapon).Distinct().Take(4))),
@@ -126,9 +127,9 @@ public static class LogReports
         if (npc.Count > 0)
         {
             var lines = npc
-                .GroupBy(h => h.Attacker)
+                .GroupBy(h => Identity(h.AttackerPlayer, h.AttackerId))
                 .OrderByDescending(g => g.Count())
-                .Select(g => Loc.GetString("wg-log-report-npc-line", ("attacker", g.Key), ("hits", g.Count()), ("targets", g.Select(h => h.VictimId).Distinct().Count())))
+                .Select(g => Loc.GetString("wg-log-report-npc-line", ("attacker", g.First().Attacker), ("hits", g.Count()), ("targets", g.Select(h => h.VictimId).Distinct().Count())))
                 .Take(20)
                 .ToList();
             sections.Add(new LogReportSection(Loc.GetString("wg-log-report-npc"), lines));
@@ -275,6 +276,12 @@ public static class LogReports
         }
 
         return null;
+    }
+
+    /// <summary>A participant: their player when they have one, otherwise the entity.</summary>
+    private static string Identity(Guid? player, int entity)
+    {
+        return player is { } id ? id.ToString() : $"e{entity}";
     }
 
     private static string Label(LogRef reference)

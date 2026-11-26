@@ -4,6 +4,8 @@
                MinSize="1100 620"
                SetSize="1300 760">
     <SplitContainer Orientation="Horizontal" VerticalExpand="True">
+        <!-- A split holds two panes: query and results inside, the detail pane beside them. -->
+        <SplitContainer Orientation="Horizontal" VerticalExpand="True" HorizontalExpand="True" SizeFlagsStretchRatio="3">
         <BoxContainer Orientation="Vertical" MinWidth="280" SizeFlagsStretchRatio="1">
             <BoxContainer Orientation="Horizontal">
                 <Label Text="{Loc 'wg-log-investigator-round'}" />
@@ -45,6 +47,7 @@
                 <Button Name="CopyButton" Text="{Loc 'wg-log-investigator-copy'}" StyleClasses="OpenLeft" />
             </BoxContainer>
         </BoxContainer>
+        </SplitContainer>
         <BoxContainer Orientation="Vertical" MinWidth="340" SizeFlagsStretchRatio="1">
             <RichTextLabel Name="Detail" />
             <BoxContainer Name="RefActions" Orientation="Vertical" />

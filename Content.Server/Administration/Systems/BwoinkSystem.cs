@@ -272,7 +272,8 @@ namespace Content.Server.Administration.Systems
                 trueSender: SystemUserId,
                 text: inGameMessage,
                 sentAt: DateTime.Now,
-                playSound: false
+                playSound: false,
+                wgSystem: true // WOLFGATE(AHelpTickets): a connect notice, not activity
             );
 
             var admins = GetTargetAdmins(GetAHelpCategory(session.UserId)); // WOLFGATE(EventStaff): gameplay ahelps reach event staff

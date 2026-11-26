@@ -38,6 +38,9 @@ public sealed partial class LogInvestigatorWindow : DefaultWindow
     private readonly List<int> _chosenEntities = new();
 
     private LogInvestigatorEuiState? _state;
+
+    /// <summary>The query the shown results came from, for loading more of them.</summary>
+    private LogQuery? _loadedQuery;
     private bool _hasMore;
     private int? _total;
     private LogRow? _selected;
@@ -159,13 +162,15 @@ public sealed partial class LogInvestigatorWindow : DefaultWindow
 
     private void Search()
     {
-        QueryRequested?.Invoke(BuildQuery(), null);
+        _loadedQuery = BuildQuery();
+        QueryRequested?.Invoke(_loadedQuery, null);
     }
 
+    /// <summary>The next page of the search on screen, whatever the filters say now.</summary>
     private void More()
     {
-        if (_hasMore && _rows.Count > 0)
-            QueryRequested?.Invoke(BuildQuery(), _rows[^1].Id);
+        if (_hasMore && _rows.Count > 0 && _loadedQuery != null)
+            QueryRequested?.Invoke(_loadedQuery, _rows[^1].Id);
     }
 
     private LogQuery BuildQuery()

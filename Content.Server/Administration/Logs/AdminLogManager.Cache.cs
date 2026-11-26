@@ -104,13 +104,22 @@ public sealed partial class AdminLogManager
         // TODO ADMIN LOGS a better heuristic than linq spaghetti
         var query = cache.AsEnumerable();
 
+        // WOLFGATE(LogInvestigator) START: ordered by id, since pages continue from the last id and pre-round logs join the cache late
         query = filter.DateOrder switch
         {
-            DateOrder.Ascending => query,
-            DateOrder.Descending => query.Reverse(),
+            DateOrder.Ascending => query.OrderBy(log => log.Id),
+            DateOrder.Descending => query.OrderByDescending(log => log.Id),
             _ => throw new ArgumentOutOfRangeException(nameof(filter),
                 $"Unknown {nameof(DateOrder)} value {filter.DateOrder}")
         };
+        // query = filter.DateOrder switch
+        // {
+        //     DateOrder.Ascending => query,
+        //     DateOrder.Descending => query.Reverse(),
+        //     _ => throw new ArgumentOutOfRangeException(nameof(filter),
+        //         $"Unknown {nameof(DateOrder)} value {filter.DateOrder}")
+        // };
+        // WOLFGATE END
 
         if (filter.Search != null)
         {

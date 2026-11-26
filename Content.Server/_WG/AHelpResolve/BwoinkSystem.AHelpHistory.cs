@@ -104,6 +104,6 @@ public sealed partial class BwoinkSystem
     private static BwoinkTextMessage Quiet(BwoinkTextMessage message)
     {
         return new BwoinkTextMessage(message.UserId, message.TrueSender, message.Text, message.SentAt, playSound: false,
-            adminOnly: message.AdminOnly, category: message.Category);
+            adminOnly: message.AdminOnly, category: message.Category, wgSystem: message.WGSystem);
     }
 }

@@ -90,13 +90,11 @@ public sealed class AHelpTicketTest
 
     private static async Task Flush(TestPair pair, AHelpTicketSystem tickets)
     {
-        // Twice: the first may find a periodic flush already running.
-        for (var i = 0; i < 2; i++)
-        {
-            Task? flush = null;
-            await pair.Server.WaitPost(() => flush = tickets.FlushAsync());
-            await WaitFor(pair, () => flush!.IsCompleted, "the tickets to be written");
-        }
+        // FlushAsync waits for a periodic flush already running, then writes everything queued before the call.
+        Task? flush = null;
+        await pair.Server.WaitPost(() => flush = tickets.FlushAsync());
+        await WaitFor(pair, () => flush!.IsCompleted, "the tickets to be written");
+        Assert.That(flush!.IsCompletedSuccessfully, "The flush should not throw.");
     }
 
     private static async Task WaitFor(TestPair pair, Func<bool> condition, string what)

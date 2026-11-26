@@ -97,11 +97,15 @@ public sealed class LogInvestigatorEui : BaseEui
         try
         {
             await LoadRound(_prefill is { RoundId: > 0 } prefill ? prefill.RoundId : CurrentRound());
-            if (_prefill != null)
+            if (_prefill != null && !IsShutDown)
             {
                 _prefill.RoundId = _roundId;
                 SendMessage(new LogInvestigatorPrefillMsg(_prefill, _prefillReport));
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // Closed, or another round was picked, before the first load finished.
         }
         catch (Exception e)
         {
@@ -175,12 +179,18 @@ public sealed class LogInvestigatorEui : BaseEui
         return _cancel.Token;
     }
 
+    /// <summary>Switches to a round. A newer load, query or report cancels this one; nothing is written after close.</summary>
     private async Task LoadRound(int roundId)
     {
+        var cancel = Restart();
         _loading = true;
         StateDirty();
 
         var round = await _adminLogs.Round(roundId);
+        cancel.ThrowIfCancellationRequested();
+        if (IsShutDown)
+            return;
+
         _roundId = roundId;
         _roundStart = round.StartDate is { } start ? DateTime.SpecifyKind(start, DateTimeKind.Utc) : null;
 
@@ -213,7 +223,7 @@ public sealed class LogInvestigatorEui : BaseEui
         cancel.ThrowIfCancellationRequested();
 
         _sawmill.Info($"Sent {rows.Count} logs to {Player.Name} in {stopwatch.Elapsed.TotalMilliseconds} ms");
-        if (Player.Status != SessionStatus.Disconnected)
+        if (!IsShutDown && Player.Status != SessionStatus.Disconnected)
             SendMessage(new LogInvestigatorPageMsg(rows, first, hasMore, total));
     }
 
@@ -232,7 +242,7 @@ public sealed class LogInvestigatorEui : BaseEui
         };
 
         cancel.ThrowIfCancellationRequested();
-        if (report != null && Player.Status != SessionStatus.Disconnected)
+        if (report != null && !IsShutDown && Player.Status != SessionStatus.Disconnected)
             SendMessage(new LogInvestigatorReportMsg(report));
     }
 

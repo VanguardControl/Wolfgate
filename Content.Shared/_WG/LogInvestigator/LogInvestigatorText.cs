@@ -48,11 +48,10 @@ public static class LogInvestigatorText
 
     private static bool SameEvent(LogRow a, LogRow b, TimeSpan window)
     {
-        if (a.Type != b.Type || (a.Date - b.Date).Duration() > window || a.Refs.Length != b.Refs.Length)
+        if (a.Type != b.Type || (a.Date - b.Date).Duration() > window)
             return false;
 
-        var ids = a.Refs.Select(r => r.Id).ToHashSet();
-        return b.Refs.All(r => ids.Contains(r.Id));
+        return a.Refs.Select(r => r.Id).ToHashSet().SetEquals(b.Refs.Select(r => r.Id));
     }
 
     /// <summary>Round time as h:mm:ss.</summary>

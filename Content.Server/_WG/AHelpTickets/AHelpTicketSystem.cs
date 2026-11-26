@@ -61,7 +61,7 @@ public sealed class AHelpTicketSystem : EntitySystem
 
     private int _nextKey = 1;
     private TimeSpan _nextFlush;
-    private bool _flushing;
+    private Task? _flushTask;
 
     public override void Initialize()
     {
@@ -95,8 +95,7 @@ public sealed class AHelpTicketSystem : EntitySystem
 
         _nextFlush = _timing.RealTime + FlushInterval;
         RemindStale();
-        if (!_flushing)
-            Flush();
+        Flush();
     }
 
     /// <summary>The player's open ticket, if any.</summary>
@@ -429,8 +428,7 @@ public sealed class AHelpTicketSystem : EntitySystem
             RaiseNetworkEvent(new AHelpTicketListMessage(new List<AHelpTicketInfo>()), staff);
         }
 
-        if (!_flushing)
-            Flush();
+        Flush();
     }
 
     private void OnPlayerStatusChanged(object? sender, SessionStatusEventArgs e)
@@ -479,78 +477,106 @@ public sealed class AHelpTicketSystem : EntitySystem
 
     private void Flush()
     {
-        _ = FlushAsync();
+        if (_flushTask is not { IsCompleted: false })
+            _ = FlushAsync();
     }
 
-    /// <summary>Writes new tickets, their lines and changes, then forgets retired tickets that are fully written.</summary>
+    /// <summary>
+    /// Writes new tickets, their lines and changes, then forgets retired tickets that are fully written. A flush
+    /// already running is waited for first, so the returned task covers everything queued before the call.
+    /// </summary>
     public async Task FlushAsync()
     {
-        if (_flushing)
-            return;
-
-        _flushing = true;
-        try
+        while (_flushTask is { IsCompleted: false } running)
         {
-            foreach (var ticket in _tickets.Values.ToList())
-            {
-                if (ticket.Info.Number != 0)
-                    continue;
+            await running;
+        }
 
-                SyncRow(ticket);
-                var number = await _db.AddAhelpTicketAsync(ticket.Row);
-                ticket.Info.Number = number;
-                ticket.RowDirty = false;
-                if (!ticket.Retired)
-                {
-                    SendUpdate(ticket);
-                    SendPlayerStatus(ticket);
-                }
+        _flushTask = FlushOnce();
+        await _flushTask;
+    }
+
+    /// <summary>One pass. Anything the database refuses stays queued (lines) or dirty (rows) for the next pass.</summary>
+    private async Task FlushOnce()
+    {
+        foreach (var ticket in _tickets.Values.ToList())
+        {
+            if (ticket.Info.Number != 0)
+                continue;
+
+            // Cleared before the insert: changes made while it runs stay flagged for the update below.
+            ticket.RowDirty = false;
+            SyncRow(ticket);
+            try
+            {
+                ticket.Info.Number = await _db.AddAhelpTicketAsync(ticket.Row);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Storing ahelp ticket {ticket.Info.Key} failed: {e}");
+                continue;
             }
 
-            var lines = new List<WolfgateAhelpMessage>();
-            var dirty = new List<WolfgateAhelpTicket>();
-            foreach (var ticket in _tickets.Values)
+            if (!ticket.Retired)
             {
-                // Opened while the inserts above were running; it goes in on the next flush.
-                if (ticket.Info.Number == 0)
-                    continue;
-
-                foreach (var line in ticket.Pending)
-                {
-                    line.TicketId = ticket.Info.Number;
-                    lines.Add(line);
-                }
-
-                ticket.Pending.Clear();
-                if (!ticket.RowDirty)
-                    continue;
-
-                SyncRow(ticket);
-                ticket.RowDirty = false;
-                dirty.Add(ticket.Row);
-            }
-
-            if (lines.Count > 0)
-                await _db.AddAhelpMessagesAsync(lines);
-
-            foreach (var row in dirty)
-            {
-                await _db.UpdateAhelpTicketAsync(row);
-            }
-
-            foreach (var (key, ticket) in _tickets.ToList())
-            {
-                if (ticket.Retired && ticket.Pending.Count == 0 && !ticket.RowDirty && ticket.Info.Number != 0)
-                    _tickets.Remove(key);
+                SendUpdate(ticket);
+                SendPlayerStatus(ticket);
             }
         }
-        catch (Exception e)
+
+        var lines = new List<(Ticket Ticket, WolfgateAhelpMessage Line)>();
+        var dirty = new List<Ticket>();
+        foreach (var ticket in _tickets.Values)
         {
-            Log.Error($"Writing ahelp tickets failed: {e}");
+            // Not stored yet; its lines and changes wait for the insert.
+            if (ticket.Info.Number == 0)
+                continue;
+
+            foreach (var line in ticket.Pending)
+            {
+                line.TicketId = ticket.Info.Number;
+                lines.Add((ticket, line));
+            }
+
+            if (ticket.RowDirty)
+                dirty.Add(ticket);
         }
-        finally
+
+        if (lines.Count > 0)
         {
-            _flushing = false;
+            try
+            {
+                await _db.AddAhelpMessagesAsync(lines.Select(l => l.Line).ToList());
+                foreach (var (ticket, line) in lines)
+                {
+                    ticket.Pending.Remove(line);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Storing {lines.Count} ahelp lines failed; they are retried: {e}");
+            }
+        }
+
+        foreach (var ticket in dirty)
+        {
+            ticket.RowDirty = false;
+            SyncRow(ticket);
+            try
+            {
+                await _db.UpdateAhelpTicketAsync(ticket.Row);
+            }
+            catch (Exception e)
+            {
+                ticket.RowDirty = true;
+                Log.Error($"Updating ahelp ticket #{ticket.Info.Number} failed; it is retried: {e}");
+            }
+        }
+
+        foreach (var (key, ticket) in _tickets.ToList())
+        {
+            if (ticket.Retired && ticket.Pending.Count == 0 && !ticket.RowDirty && ticket.Info.Number != 0)
+                _tickets.Remove(key);
         }
     }
 

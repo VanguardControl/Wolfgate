@@ -80,11 +80,14 @@ search (which never found ids), cursor paging in the cache, the requested order 
   - position samples are read by round and time
   - where each player was every few seconds, pruned with the admin logs
 - [`Content.Server/Administration/Commands/OpenAdminLogsCommand.cs`](../../Administration/Commands/OpenAdminLogsCommand.cs): the investigator replaces the log window while it is on
-- [`Content.Server/Administration/Logs/AdminLogManager.Cache.cs`](../../Administration/Logs/AdminLogManager.Cache.cs): page by the last log sent; new logs at the front made Skip repeat the tail
+- [`Content.Server/Administration/Logs/AdminLogManager.Cache.cs`](../../Administration/Logs/AdminLogManager.Cache.cs)
+  - ordered by id, since pages continue from the last id and pre-round logs join the cache late
+  - page by the last log sent; new logs at the front made Skip repeat the tail
 - [`Content.Server/Administration/Logs/AdminLogManager.cs`](../../Administration/Logs/AdminLogManager.cs): positions of the logged entities, for some types
 - [`Content.Server/Administration/Logs/AdminLogsEui.cs`](../../Administration/Logs/AdminLogsEui.cs)
   - the requested order was dropped
   - a request replaced by a newer one is cancelled, not an error
+  - the next page starts after the last row sent, in either order
 - [`Content.Server/Administration/PlayerPanelEui.cs`](../../Administration/PlayerPanelEui.cs): open on the player, not a text search for their name
 - [`Content.Server/Administration/Systems/AdminVerbSystem.cs`](../../Administration/Systems/AdminVerbSystem.cs): the investigator filters by the entity itself
 - [`Content.Server/Database/ServerDbBase.cs`](../../Database/ServerDbBase.cs): "all players" means the log involves every one of them, as in the cache

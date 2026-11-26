@@ -54,8 +54,9 @@ public sealed class LogInvestigatorTest
         EntityUid attacker = default, victim = default;
         await server.WaitPost(() =>
         {
-            attacker = server.EntMan.SpawnEntity(null, new EntityCoordinates(map.Grid, 1.5f, 2.5f));
-            victim = server.EntMan.SpawnEntity(null, new EntityCoordinates(map.Grid, 3.5f, 2.5f));
+            // On the test map's one tile, so both are on its grid.
+            attacker = server.EntMan.SpawnEntity(null, map.GridCoords);
+            victim = server.EntMan.SpawnEntity(null, map.GridCoords.Offset(new System.Numerics.Vector2(0.25f, 0f)));
             for (var i = 0; i < 3; i++)
             {
                 logs.Add(LogType.MeleeHit, LogImpact.Medium,

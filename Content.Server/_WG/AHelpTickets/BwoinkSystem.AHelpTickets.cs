@@ -53,7 +53,7 @@ public sealed partial class BwoinkSystem
     public void WGStaffLine(NetUserId channel, string text, bool playSound)
     {
         var category = GetAHelpCategory(channel);
-        var line = new BwoinkTextMessage(channel, SystemUserId, $"{CategoryTag(category)} {text}", playSound: playSound, category: category);
+        var line = new BwoinkTextMessage(channel, SystemUserId, $"{CategoryTag(category)} {text}", playSound: playSound, category: category, wgSystem: true);
         foreach (var admin in GetTargetAdmins(category))
         {
             RaiseNetworkEvent(line, admin);
@@ -72,7 +72,7 @@ public sealed partial class BwoinkSystem
             ("staff", FormattedMessage.EscapeText(staffName)),
             ("number", number),
             ("state", state.ToString()));
-        var staffMsg = new BwoinkTextMessage(channel, SystemUserId, $"{CategoryTag(category)} {staffText}", playSound: false, category: category);
+        var staffMsg = new BwoinkTextMessage(channel, SystemUserId, $"{CategoryTag(category)} {staffText}", playSound: false, category: category, wgSystem: true);
         var admins = GetTargetAdmins(category);
         foreach (var admin in admins)
         {
@@ -85,7 +85,7 @@ public sealed partial class BwoinkSystem
             AHelpTicketState.IcIssue => "wg-ahelp-ticket-closed-player-ic",
             _ => "wg-bwoink-resolved-player",
         });
-        var playerMsg = new BwoinkTextMessage(channel, SystemUserId, playerText, playSound: false);
+        var playerMsg = new BwoinkTextMessage(channel, SystemUserId, playerText, playSound: false, wgSystem: true);
         if (_playerManager.TryGetSessionById(channel, out var player) && !admins.Contains(player.Channel))
             RaiseNetworkEvent(playerMsg, player.Channel);
 

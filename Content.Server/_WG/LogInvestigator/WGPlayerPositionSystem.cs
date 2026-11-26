@@ -28,6 +28,9 @@ public sealed class WGPlayerPositionSystem : EntitySystem
     /// <summary>Samples are written after this many have queued up, or a minute at the latest.</summary>
     private const int BatchSize = 500;
 
+    /// <summary>Most samples held while the database refuses them, about an hour of a full server.</summary>
+    private const int MaxQueued = 30_000;
+
     private static readonly TimeSpan MaxBatchAge = TimeSpan.FromMinutes(1);
 
     private readonly List<WolfgatePlayerPosition> _queue = new();
@@ -106,7 +109,18 @@ public sealed class WGPlayerPositionSystem : EntitySystem
         }
         catch (Exception e)
         {
-            Log.Error($"Writing {batch.Count} player positions failed: {e}");
+            // Back in front of newer samples for the next write; oldest dropped past the cap during a long outage.
+            // Rows are fresh objects with no id, so a retry inserts each once more only if this write half-committed.
+            foreach (var row in batch)
+            {
+                row.Id = 0;
+            }
+
+            _queue.InsertRange(0, batch);
+            if (_queue.Count > MaxQueued)
+                _queue.RemoveRange(0, _queue.Count - MaxQueued);
+
+            Log.Error($"Writing {batch.Count} player positions failed; they are retried: {e}");
         }
         finally
         {

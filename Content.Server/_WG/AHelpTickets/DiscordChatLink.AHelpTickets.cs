@@ -12,6 +12,9 @@ public sealed partial class DiscordChatLink
     /// <summary>Threads being created, so messages sent meanwhile wait for them.</summary>
     private readonly Dictionary<NetUserId, Task<ulong?>> _wgPendingThreads = new();
 
+    /// <summary>Creations whose ticket closed before the thread existed: archive the thread once it does.</summary>
+    private readonly Dictionary<Task<ulong?>, (int Number, AHelpTicketState State)> _wgClosedBeforeCreated = new();
+
     /// <summary>
     /// The player's thread: its id, or the creation to wait for. Starts the creation when there is neither, and then
     /// says so with <c>Creating</c>. Messages are sent from the thread pool, so this is locked.
@@ -32,17 +35,28 @@ public sealed partial class DiscordChatLink
         }
     }
 
+    /// <summary>Registers a finished creation for the player, or archives it if its ticket already closed.</summary>
     private void WGThreadCreated(NetUserId userId, Task<ulong?> pending, ulong? threadId)
     {
+        (int Number, AHelpTicketState State) closed;
         lock (_wgThreadLock)
         {
-            // A ticket closed while its thread was being made leaves nothing pending; that thread is not reused.
-            if (!_wgPendingThreads.Remove(userId, out var current) || current != pending)
-                return;
+            if (!_wgClosedBeforeCreated.Remove(pending, out closed))
+            {
+                // A newer creation for the same player keeps its place; only this one's entry is replaced.
+                if (_wgPendingThreads.TryGetValue(userId, out var current) && current == pending)
+                {
+                    _wgPendingThreads.Remove(userId);
+                    if (threadId is { } id)
+                        _ahelpThreads[userId] = id;
+                }
 
-            if (threadId is { } id)
-                _ahelpThreads[userId] = id;
+                return;
+            }
         }
+
+        if (threadId is { } made)
+            WGArchive(made, closed.Number, closed.State);
     }
 
     /// <summary>Renames the player's thread to the closed ticket and archives it; their next ticket gets a new one.</summary>
@@ -51,11 +65,21 @@ public sealed partial class DiscordChatLink
         ulong threadId;
         lock (_wgThreadLock)
         {
-            _wgPendingThreads.Remove(userId);
+            if (_wgPendingThreads.Remove(userId, out var pending))
+            {
+                _wgClosedBeforeCreated[pending] = (number, state);
+                return;
+            }
+
             if (!_ahelpThreads.Remove(userId, out threadId))
                 return;
         }
 
+        WGArchive(threadId, number, state);
+    }
+
+    private void WGArchive(ulong threadId, int number, AHelpTicketState state)
+    {
         _ = Task.Run(async () =>
         {
             try

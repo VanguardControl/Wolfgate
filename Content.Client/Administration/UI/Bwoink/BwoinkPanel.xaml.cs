@@ -56,7 +56,7 @@ namespace Content.Client.Administration.UI.Bwoink
         public void ReceiveLine(SharedBwoinkSystem.BwoinkTextMessage message)
         {
             // WOLFGATE(AHelpTickets) START: connect, resolve and other system lines don't count as new activity
-            var wgSystem = message.TrueSender == SharedBwoinkSystem.SystemUserId;
+            var wgSystem = message.WGSystem;
             if (!Visible && !wgSystem)
                 Unread++;
             // if (!Visible)

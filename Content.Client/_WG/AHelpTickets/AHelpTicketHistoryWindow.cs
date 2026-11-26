@@ -20,6 +20,9 @@ public sealed class AHelpTicketHistoryWindow : DefaultWindow
     private NetUserId? _player;
     private string? _search;
 
+    /// <summary>The ticket whose transcript was last asked for from this list.</summary>
+    private int? _requested;
+
     public AHelpTicketHistoryWindow()
     {
         IoCManager.InjectDependencies(this);
@@ -50,6 +53,7 @@ public sealed class AHelpTicketHistoryWindow : DefaultWindow
     {
         _player = player;
         _search = null;
+        _requested = null;
         _heading.Text = $"{Loc.GetString("wg-ahelp-history-title")}: {username}";
         _transcript.Clear();
         if (_tickets.Card(player) is { } card)
@@ -65,6 +69,7 @@ public sealed class AHelpTicketHistoryWindow : DefaultWindow
     {
         _player = null;
         _search = text;
+        _requested = null;
         _heading.Text = Loc.GetString("wg-ahelp-history-search-title", ("text", text));
         _transcript.Clear();
         ShowEntries(new List<AHelpTicketHistoryEntry>());
@@ -102,13 +107,21 @@ public sealed class AHelpTicketHistoryWindow : DefaultWindow
                 ("state", Loc.GetString($"wg-ahelp-tickets-state-{entry.State}")),
                 ("date", entry.Opened.ToLocalTime().ToString("yyyy-MM-dd HH:mm")));
             var number = entry.Number;
-            button.OnPressed += _ => _tickets.RequestTranscript(number);
+            button.OnPressed += _ =>
+            {
+                _requested = number;
+                _tickets.RequestTranscript(number);
+            };
             _entries.AddChild(button);
         }
     }
 
     private void OnTranscript(AHelpTicketTranscriptMessage msg)
     {
+        // Only the ticket last clicked in this list. A reply with no ticket can't be matched, so it shows nothing.
+        if (msg.Ticket == null || msg.Ticket.Number != _requested)
+            return;
+
         _transcript.Clear();
         foreach (var line in msg.Lines)
         {

@@ -177,14 +177,18 @@ public sealed partial class AdminLogsEui : BaseEui
         {
             _filter.LogsSent += logs.Count;
 
-            var largestId = _filter.DateOrder switch
-            {
-                DateOrder.Ascending => 0,
-                DateOrder.Descending => ^1,
-                _ => throw new ArgumentOutOfRangeException(nameof(_filter.DateOrder), _filter.DateOrder, null)
-            };
-
-            _filter.LastLogId = logs[largestId].Id;
+            // WOLFGATE(LogInvestigator) START: the next page starts after the last row sent, in either order
+            // Index 0 for ascending made every page start one row on from the previous one.
+            _filter.LastLogId = logs[^1].Id;
+            // var largestId = _filter.DateOrder switch
+            // {
+            //     DateOrder.Ascending => 0,
+            //     DateOrder.Descending => ^1,
+            //     _ => throw new ArgumentOutOfRangeException(nameof(_filter.DateOrder), _filter.DateOrder, null)
+            // };
+            //
+            // _filter.LastLogId = logs[largestId].Id;
+            // WOLFGATE END
         }
 
         var message = new NewLogs(logs, replace, logs.Count >= _filter.Limit);

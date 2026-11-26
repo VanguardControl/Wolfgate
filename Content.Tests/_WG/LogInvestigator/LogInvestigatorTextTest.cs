@@ -46,6 +46,10 @@ public sealed class LogInvestigatorTextTest
 
         var runs = LogInvestigatorText.Collapse(rows, TimeSpan.FromSeconds(10));
         Assert.That(runs.Select(r => (r.Start, r.Count)), Is.EqualTo(new[] { (0, 3), (3, 1), (4, 1), (5, 1) }));
+
+        // The same count of ids is not the same entities: [10, 20] and [10, 10] stay apart.
+        var repeated = new[] { Row(1, LogType.BulletHit, 0, 10, 20), Row(2, LogType.BulletHit, 1, 10, 10) };
+        Assert.That(LogInvestigatorText.Collapse(repeated, TimeSpan.FromSeconds(10)), Has.Count.EqualTo(2));
         Assert.That(LogInvestigatorText.Collapse(Array.Empty<LogRow>(), TimeSpan.FromSeconds(10)), Is.Empty);
     }
 

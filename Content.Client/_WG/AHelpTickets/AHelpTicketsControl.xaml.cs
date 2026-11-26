@@ -45,6 +45,9 @@ public sealed partial class AHelpTicketsControl : Control
     private readonly List<WGAHelpMacroPrototype> _macros = new();
 
     private int? _selectedKey;
+
+    /// <summary>A macro sent to a player with no open ticket, waiting for the ticket newer than AfterKey.</summary>
+    private (NetUserId Player, int AfterKey, WGAHelpMacroPrototype Macro)? _pendingMacro;
     private TimeSpan _sinceRefresh;
     private TimeSpan _collisionLeft;
 
@@ -146,6 +149,7 @@ public sealed partial class AHelpTicketsControl : Control
 
     private void OnTicketsChanged(AHelpTicketInfo? ticket)
     {
+        ApplyPendingMacro();
         Repopulate();
         if (ticket == null || ticket.Player == SelectedPlayer)
             UpdateSelection();
@@ -449,7 +453,11 @@ public sealed partial class AHelpTicketsControl : Control
 
     private void SetupMacros()
     {
-        _macros.AddRange(_proto.EnumeratePrototypes<WGAHelpMacroPrototype>().OrderBy(m => m.Order).ThenBy(m => m.ID));
+        // A macro whose command this staffer can't run is left out, so its reply never promises what didn't happen.
+        _macros.AddRange(_proto.EnumeratePrototypes<WGAHelpMacroPrototype>()
+            .Where(CanRun)
+            .OrderBy(m => m.Order)
+            .ThenBy(m => m.ID));
 
         Macros.AddItem(Loc.GetString("wg-ahelp-tickets-macros"), 0);
         for (var i = 0; i < _macros.Count; i++)
@@ -465,24 +473,34 @@ public sealed partial class AHelpTicketsControl : Control
         };
     }
 
+    private bool CanRun(WGAHelpMacroPrototype macro)
+    {
+        return macro.Command is not { } command
+               || _admin.CanCommand(command.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty);
+    }
+
     private void ApplyMacro(WGAHelpMacroPrototype macro)
     {
-        if (SelectedPlayer is not { } player)
+        if (SelectedPlayer is not { } player || !CanRun(macro))
             return;
 
         var info = Info();
         var ticket = CurrentTicket();
+        var open = ticket is { } current && !current.State.IsClosed() ? current : null;
         if (macro.Text is { } text)
         {
             var character = info?.CharacterName ?? ticket?.Character ?? string.Empty;
             _handler.Send(player, Loc.GetString(text, ("player", character)), PlaySound.Pressed && !AdminOnly.Pressed, AdminOnly.Pressed);
         }
 
-        if (ticket != null)
+        if (open != null)
         {
-            _tickets.MacroUsed(ticket.Key, macro.ID);
-            if (macro.Action is { } action)
-                _tickets.Act(ticket.Key, action);
+            UseMacro(open, macro);
+        }
+        else if (macro.Text != null && !AdminOnly.Pressed)
+        {
+            // The reply opens a new ticket; the macro applies to it once the server says it exists.
+            _pendingMacro = (player, ticket?.Key ?? 0, macro);
         }
 
         if (macro.Command is { } command)
@@ -491,6 +509,26 @@ public sealed partial class AHelpTicketsControl : Control
                 .Replace("{username}", info?.Username ?? ticket?.Username ?? string.Empty)
                 .Replace("{entity}", info?.NetEntity?.ToString() ?? string.Empty));
         }
+    }
+
+    private void UseMacro(AHelpTicketInfo ticket, WGAHelpMacroPrototype macro)
+    {
+        _tickets.MacroUsed(ticket.Key, macro.ID);
+        if (macro.Action is { } action)
+            _tickets.Act(ticket.Key, action);
+    }
+
+    /// <summary>Applies a macro waiting on the ticket its reply opened, once that ticket arrives.</summary>
+    private void ApplyPendingMacro()
+    {
+        if (_pendingMacro is not { } pending)
+            return;
+
+        if (_tickets.LatestFor(pending.Player) is not { } ticket || ticket.Key <= pending.AfterKey)
+            return;
+
+        _pendingMacro = null;
+        UseMacro(ticket, pending.Macro);
     }
 
     #endregion

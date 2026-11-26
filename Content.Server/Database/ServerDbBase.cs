@@ -1193,11 +1193,11 @@ INSERT INTO player_round (players_id, rounds_id) VALUES ({players[player]}, {id}
                 if (filter.AllPlayers != null)
                 {
                     // WOLFGATE(LogInvestigator) START: "all players" means the log involves every one of them, as in the cache
-                    foreach (var wgPlayer in filter.AllPlayers)
-                    {
-                        var wgId = wgPlayer;
-                        query = query.Where(log => log.Players.Any(p => p.PlayerUserId == wgId));
-                    }
+                    var wgIds = filter.AllPlayers.Distinct().ToList();
+                    var wgCount = wgIds.Count;
+                    query = query.Where(log =>
+                        log.Players.Count(p => wgIds.Contains(p.PlayerUserId)) == wgCount ||
+                        log.Players.Count == 0 && filter.IncludeNonPlayers);
                     // query = query.Where(log =>
                     //     log.Players.All(p => filter.AllPlayers.Contains(p.PlayerUserId)) ||
                     //     log.Players.Count == 0 && filter.IncludeNonPlayers);
