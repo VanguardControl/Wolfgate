@@ -45,9 +45,6 @@ public sealed partial class AHelpTicketsControl : Control
     private readonly List<WGAHelpMacroPrototype> _macros = new();
 
     private int? _selectedKey;
-
-    /// <summary>A macro sent to a player with no open ticket, waiting for the ticket newer than AfterKey.</summary>
-    private (NetUserId Player, int AfterKey, WGAHelpMacroPrototype Macro)? _pendingMacro;
     private TimeSpan _sinceRefresh;
     private TimeSpan _collisionLeft;
 
@@ -149,7 +146,6 @@ public sealed partial class AHelpTicketsControl : Control
 
     private void OnTicketsChanged(AHelpTicketInfo? ticket)
     {
-        ApplyPendingMacro();
         Repopulate();
         if (ticket == null || ticket.Player == SelectedPlayer)
             UpdateSelection();
@@ -502,7 +498,7 @@ public sealed partial class AHelpTicketsControl : Control
         {
             // The reply opens a new ticket (an admin-only note does only when the player has none this round); the
             // macro applies to it once the server says it exists.
-            _pendingMacro = (player, ticket?.Key ?? 0, macro);
+            _tickets.QueueMacro(player, ticket?.Key ?? 0, macro.ID, macro.Action);
         }
 
         if (macro.Command is { } command)
@@ -518,19 +514,6 @@ public sealed partial class AHelpTicketsControl : Control
         _tickets.MacroUsed(ticket.Key, macro.ID);
         if (macro.Action is { } action)
             _tickets.Act(ticket.Key, action);
-    }
-
-    /// <summary>Applies a macro waiting on the ticket its reply opened, once that ticket arrives.</summary>
-    private void ApplyPendingMacro()
-    {
-        if (_pendingMacro is not { } pending)
-            return;
-
-        if (_tickets.LatestFor(pending.Player) is not { } ticket || ticket.Key <= pending.AfterKey)
-            return;
-
-        _pendingMacro = null;
-        UseMacro(ticket, pending.Macro);
     }
 
     #endregion

@@ -1,3 +1,4 @@
+using System.Linq;
 using Content.Shared._WG.AHelpTickets;
 using Robust.Shared.Network;
 
@@ -8,6 +9,7 @@ public sealed class AHelpTicketClientSystem : EntitySystem
 {
     private readonly Dictionary<int, AHelpTicketInfo> _tickets = new();
     private readonly Dictionary<NetUserId, AHelpTicketPlayerCardMessage> _cards = new();
+    private readonly Dictionary<NetUserId, (int AfterKey, string Macro, AHelpTicketAction? Action)> _pendingMacros = new();
 
     /// <summary>This round's tickets, by key.</summary>
     public IReadOnlyDictionary<int, AHelpTicketInfo> Tickets => _tickets;
@@ -64,6 +66,29 @@ public sealed class AHelpTicketClientSystem : EntitySystem
         RaiseNetworkEvent(new AHelpTicketMacroUsedMessage(key, macro));
     }
 
+    /// <summary>
+    /// Records the macro and applies its action to the player's next ticket newer than <paramref name="afterKey"/>,
+    /// the one its reply opens. Kept here rather than in the panel, so a rebuilt panel doesn't drop it.
+    /// </summary>
+    public void QueueMacro(NetUserId player, int afterKey, string macro, AHelpTicketAction? action)
+    {
+        _pendingMacros[player] = (afterKey, macro, action);
+    }
+
+    private void ApplyPendingMacros()
+    {
+        foreach (var (player, (afterKey, macro, action)) in _pendingMacros.ToList())
+        {
+            if (LatestFor(player) is not { } ticket || ticket.Key <= afterKey)
+                continue;
+
+            _pendingMacros.Remove(player);
+            MacroUsed(ticket.Key, macro);
+            if (action is { } act)
+                Act(ticket.Key, act);
+        }
+    }
+
     public void RequestCard(NetUserId player)
     {
         RaiseNetworkEvent(new AHelpTicketPlayerCardRequest(player));
@@ -87,12 +112,14 @@ public sealed class AHelpTicketClientSystem : EntitySystem
             _tickets[ticket.Key] = ticket;
         }
 
+        ApplyPendingMacros();
         TicketsChanged?.Invoke(null);
     }
 
     private void OnUpdated(AHelpTicketUpdatedMessage msg)
     {
         _tickets[msg.Ticket.Key] = msg.Ticket;
+        ApplyPendingMacros();
         TicketsChanged?.Invoke(msg.Ticket);
     }
 
