@@ -16,13 +16,17 @@ public enum WGCompanyPermissions
     Launch = 1 << 6,
     Design = 1 << 7,
     EditDetails = 1 << 8,
-    All = Invite | Kick | SetRanks | EditRanks | Withdraw | FieldCrew | Launch | Design | EditDetails,
+    // WOLFGATE(StockExchange): take materials out of the persistent company silo
+    SiloWithdraw = 1 << 9,
+    All = Invite | Kick | SetRanks | EditRanks | Withdraw | FieldCrew | Launch | Design | EditDetails | SiloWithdraw,
 }
 
 /// <summary>Kinds of credit movement recorded in a company's ledger.</summary>
 public enum WGCompanyLedgerKind : byte
 {
     Deposit, Withdraw, Wage, Cut, LicenceBuy, LicenceUpkeep, RegistryFee, LaunchFee, AdminAdjust, AdminRefund, Payment, Loadout,
+    // WOLFGATE(StockExchange): persistent silo space and exchange trades
+    SiloSlot, SiloWithdraw, MarketTrade,
 }
 
 /// <summary>Limits and validation shared by the company server and window.</summary>
@@ -104,7 +108,7 @@ public static class WGCompanyPolicy
     public static readonly (string Title, WGCompanyPermissions Permissions, string BaseJob)[] DefaultRanks =
     {
         ("Officer", WGCompanyPermissions.Invite | WGCompanyPermissions.Kick | WGCompanyPermissions.SetRanks |
-                    WGCompanyPermissions.FieldCrew | WGCompanyPermissions.Launch, "Contractor"),
+                    WGCompanyPermissions.FieldCrew | WGCompanyPermissions.Launch | WGCompanyPermissions.SiloWithdraw, "Contractor"),
         ("Member", WGCompanyPermissions.FieldCrew, "Contractor"),
         ("Recruit", WGCompanyPermissions.None, "Contractor"),
     };

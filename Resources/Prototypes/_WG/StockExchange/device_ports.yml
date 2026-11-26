@@ -1,0 +1,19 @@
+- type: sourcePort
+  id: WGStockSellConsole
+  name: signal-port-name-wg-stock-sell-console
+  description: signal-port-description-wg-stock-sell-console
+
+- type: sinkPort
+  id: WGStockSellPad
+  name: signal-port-name-wg-stock-sell-pad
+  description: signal-port-description-wg-stock-sell-pad
+
+- type: sourcePort
+  id: WGStockExchangeConsole
+  name: signal-port-name-wg-stock-exchange-console
+  description: signal-port-description-wg-stock-exchange-console
+
+- type: sinkPort
+  id: WGStockDeliveryPad
+  name: signal-port-name-wg-stock-delivery-pad
+  description: signal-port-description-wg-stock-delivery-pad

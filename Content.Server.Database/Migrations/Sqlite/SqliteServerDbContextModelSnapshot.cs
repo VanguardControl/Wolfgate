@@ -1951,6 +1951,16 @@ namespace Content.Server.Database.Migrations.Sqlite
                         .HasColumnType("INTEGER")
                         .HasColumnName("recruiting");
 
+                    b.Property<string>("SiloMaterials")
+                        .IsRequired()
+                        .HasMaxLength(4096)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("silo_materials");
+
+                    b.Property<int>("SiloSlots")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("silo_slots");
+
                     b.Property<string>("Tag")
                         .IsRequired()
                         .HasMaxLength(5)

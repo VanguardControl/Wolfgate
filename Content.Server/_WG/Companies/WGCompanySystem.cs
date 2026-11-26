@@ -65,6 +65,12 @@ public sealed partial class WGCompanySystem : EntitySystem
         public byte[]? Logo;
         public int LogoVersion;
         public int LaunchFee;
+        // WOLFGATE(StockExchange) START: persistent material silo
+        /// <summary>Persistent silo capacity in sheets; zero until bought.</summary>
+        public int SiloSlots;
+        /// <summary>Sheets of each material kept between rounds.</summary>
+        public readonly Dictionary<string, int> SiloMaterials = new();
+        // WOLFGATE END
         /// <summary>The rank anyone may join at without applying.</summary>
         public int? OpenRank;
         public bool Private;
@@ -183,7 +189,13 @@ public sealed partial class WGCompanySystem : EntitySystem
                 Cut = row.Cut, Recruiting = row.Recruiting, Frozen = row.Frozen, ArtLocked = row.ArtLocked,
                 Logo = row.Logo?.Length == WGCompanyPolicy.LogoBytes ? row.Logo : null, LogoVersion = row.LogoVersion, LaunchFee = row.LaunchFee,
                 OpenRank = row.OpenRankId, Private = row.Private,
+                // WOLFGATE(StockExchange): persistent material silo
+                SiloSlots = row.SiloSlots,
             };
+            // WOLFGATE(StockExchange) START: persistent material silo
+            foreach (var pair in ParseSilo(row.SiloMaterials))
+                company.SiloMaterials[pair.Key] = pair.Value;
+            // WOLFGATE END
             company.OwnerRank = new Rank
             {
                 Id = -row.Id, Title = row.OwnerTitle.Length > 0 ? row.OwnerTitle : Loc.GetString("wg-company-owner"),

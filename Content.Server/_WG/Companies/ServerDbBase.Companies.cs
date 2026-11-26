@@ -200,6 +200,20 @@ public abstract partial class ServerDbBase
         await db.DbContext.SaveChangesAsync(cancel);
     }
 
+    // WOLFGATE(StockExchange) START: persistent company material silo
+    /// <summary>Writes a company's persistent silo capacity and material stock.</summary>
+    public async Task SetCompanySiloAsync(int id, int slots, string materials, CancellationToken cancel = default)
+    {
+        await using var db = await GetDb(cancel);
+        var company = await db.DbContext.WolfgateCompany.SingleOrDefaultAsync(c => c.Id == id, cancel);
+        if (company == null)
+            return;
+        company.SiloSlots = slots;
+        company.SiloMaterials = materials;
+        await db.DbContext.SaveChangesAsync(cancel);
+    }
+    // WOLFGATE END
+
     public async Task SetCompanyLaunchFeeAsync(int id, int fee, CancellationToken cancel = default)
     {
         await using var db = await GetDb(cancel);

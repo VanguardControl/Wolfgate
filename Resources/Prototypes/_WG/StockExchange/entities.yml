@@ -1,0 +1,119 @@
+- type: entity
+  id: WGStockExchangeConsole
+  parent: BaseComputer
+  name: exchange console
+  description: Places buy and sell orders for materials on the grid's market, and shows the company or faction's holdings.
+  components:
+  - type: WGStockTerminal
+    mode: Market
+  - type: DeviceLinkSource
+    ports:
+    - WGStockExchangeConsole
+  - type: ActivatableUI
+    key: enum.WGStockUiKey.Key
+  - type: UserInterface
+    interfaces:
+      enum.WGStockUiKey.Key:
+        type: WGStockBoundUserInterface
+
+- type: entity
+  id: WGStockMaterialSilo
+  parent: BaseMachinePowered
+  name: material silo
+  description: Shows and stores a faction's or company's materials. A company's bought persistent silo keeps its stock between rounds.
+  components:
+  - type: Sprite
+    sprite: Structures/Machines/silo.rsi
+    snapCardinals: true
+    layers:
+    - state: silo
+      map: [ "base" ]
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.PowerDeviceVisuals.Powered:
+        base:
+          True: { state: silo_active }
+          False: { state: silo }
+  - type: WGStockTerminal
+    mode: MaterialSilo
+  - type: ActivatableUI
+    key: enum.WGStockUiKey.Key
+  - type: ActivatableUIRequiresPower
+  - type: UserInterface
+    interfaces:
+      enum.WGStockUiKey.Key:
+        type: WGStockBoundUserInterface
+  - type: WiresVisuals
+  - type: WiresPanel
+  - type: StaticPrice
+    price: 1500
+
+- type: entity
+  id: WGStockSellSpot
+  parent: CargoPallet
+  name: exchange sell pad
+  description: A pad a linked exchange sale computer reads. It sells only the materials on it that have buy orders; crates and unsellable goods stay.
+  components:
+  - type: WGStockSellSpot
+  - type: DeviceLinkSink
+    ports:
+    - WGStockSellPad
+  - type: Sprite
+    drawdepth: FloorTiles
+    sprite: Structures/cargo_pallets.rsi
+    state: cargo_pallet_sell
+
+# Exchange Market Remote: a read-only PDA app for market quotes and holdings.
+- type: entity
+  parent: NFBasePDACartridge
+  id: WGStockRemoteCartridge
+  name: exchange market remote cartridge
+  description: A PDA program showing every exchange market's quotes and your faction or company's material stores. It cannot trade.
+  components:
+  - type: Sprite
+    sprite: Objects/Devices/cartridge.rsi
+    state: cart-q
+  - type: Icon
+    sprite: Objects/Devices/cartridge.rsi
+    state: cart-q
+  - type: UIFragment
+    ui: !type:WGStockRemoteUi
+  - type: Cartridge
+    programName: wg-stock-remote-program-name
+    icon: { sprite: Objects/Misc/clipboard.rsi, state: clipboard_paper }
+    readonly: true
+  - type: WGStockRemoteCartridge
+  - type: StaticPrice
+    price: 50
+    vendPrice: 500
+
+# Mapping/admin-linked computer for a sell pad.
+- type: entity
+  id: WGStockSellConsole
+  parent: BaseComputer
+  name: exchange sale computer
+  description: Shows every material on a linked sell pad and what each buy order will pay for it. Link a pad with the mapping tools.
+  components:
+  - type: WGStockSellConsole
+  - type: DeviceLinkSource
+    ports:
+    - WGStockSellConsole
+  - type: ActivatableUI
+    key: enum.WGStockSellUiKey.Key
+  - type: UserInterface
+    interfaces:
+      enum.WGStockSellUiKey.Key:
+        type: WGStockSellConsoleBoundUserInterface
+
+# Receives quick buys made by characters with no faction or company.
+- type: entity
+  id: WGStockDeliveryPad
+  parent: CargoTelepad
+  name: exchange delivery pad
+  description: Materials bought by a character with no faction or company appear here. Link it to an exchange console with the mapping tools.
+  components:
+  - type: WGStockDeliveryPad
+  - type: DeviceLinkSink
+    ports:
+    - WGStockDeliveryPad
