@@ -111,6 +111,12 @@ public sealed class AHelpTicketSystem : EntitySystem
     /// <summary>Every ticket of this round.</summary>
     public IEnumerable<AHelpTicketInfo> Tickets => _tickets.Values.Where(t => !t.Retired).Select(t => t.Info);
 
+    /// <summary>The macros used on a ticket of this round, comma separated, as they will be stored.</summary>
+    public string? MacrosOf(int key)
+    {
+        return _tickets.TryGetValue(key, out var ticket) ? ticket.Row.Macros : null;
+    }
+
     /// <summary>A ticket of this round by key, with what the player wrote in it and when it closed.</summary>
     public bool TryGetTicket(int key, [NotNullWhen(true)] out AHelpTicketInfo? info, out IReadOnlyList<string> playerText, out DateTime? closed)
     {

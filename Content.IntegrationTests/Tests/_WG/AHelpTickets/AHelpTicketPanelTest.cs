@@ -129,11 +129,24 @@ public sealed class AHelpTicketPanelTest
         await client.WaitPost(() => clientTickets.Act(older.Key, AHelpTicketAction.Resolve));
         await WaitFor(pair, () => older.State == AHelpTicketState.Resolved, "the first ticket to close");
 
-        await client.WaitPost(() => clientTickets.SendMacroReply(player, "macro reply", false, false, ResolveMacro, AHelpTicketAction.Resolve));
+        // An unrelated update for the older ticket goes first: a staff note lands on it, as the latest ticket.
+        await client.WaitPost(() =>
+        {
+            clientBwoink.Send(player, "note on the old one", false, true);
+            clientTickets.SendMacroReply(player, "macro reply", false, false, ResolveMacro, AHelpTicketAction.Resolve);
+        });
+        await WaitFor(pair, () => older.HasNotes, "the note on the older ticket");
         await WaitFor(pair, () => tickets.Tickets.Count(t => t.Player == player) == 2
                                   && tickets.Tickets.Single(t => t.Player == player && t.Key != older.Key).State == AHelpTicketState.Resolved,
             "the macro to resolve the ticket its reply opened");
-        Assert.That(older.State, Is.EqualTo(AHelpTicketState.Resolved), "The older ticket is untouched.");
+
+        var newer = tickets.Tickets.Single(t => t.Player == player && t.Key != older.Key);
+        Assert.Multiple(() =>
+        {
+            Assert.That(older.State, Is.EqualTo(AHelpTicketState.Resolved), "The older ticket is untouched.");
+            Assert.That(tickets.MacrosOf(older.Key), Is.Null, "The macro is not recorded on the older ticket.");
+            Assert.That(tickets.MacrosOf(newer.Key), Is.EqualTo(ResolveMacro), "The macro is recorded on the ticket its reply opened.");
+        });
 
         await pair.CleanReturnAsync();
     }
