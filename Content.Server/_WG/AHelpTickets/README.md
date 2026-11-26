@@ -54,6 +54,7 @@ Entry points: `AHelpTicketSystem` (server; fed by `BwoinkSystem.WGTicketLine`), 
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WG/AHelpTickets/AHelpTicketPanelTest.cs`](../../../Content.IntegrationTests/Tests/_WG/AHelpTickets/AHelpTicketPanelTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/AHelpTickets/AHelpTicketTest.cs`](../../../Content.IntegrationTests/Tests/_WG/AHelpTickets/AHelpTicketTest.cs)
 
 ### Prototypes

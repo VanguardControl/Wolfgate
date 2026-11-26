@@ -479,7 +479,8 @@ public sealed partial class AHelpTicketsControl : Control
                || _admin.CanCommand(command.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty);
     }
 
-    private void ApplyMacro(WGAHelpMacroPrototype macro)
+    /// <summary>Sends a macro's reply to the selected player, then applies its action and command.</summary>
+    public void ApplyMacro(WGAHelpMacroPrototype macro)
     {
         if (SelectedPlayer is not { } player || !CanRun(macro))
             return;
