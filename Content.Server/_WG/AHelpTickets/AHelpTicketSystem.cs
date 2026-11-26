@@ -63,12 +63,16 @@ public sealed class AHelpTicketSystem : EntitySystem
     private TimeSpan _nextFlush;
     private Task? _flushTask;
 
+    /// <summary>The ticket the last ahelp line went to, for tying a macro to its reply.</summary>
+    private Ticket? _lastLineTicket;
+
     public override void Initialize()
     {
         base.Initialize();
 
         SubscribeNetworkEvent<AHelpTicketActionMessage>(OnAction);
         SubscribeNetworkEvent<AHelpTicketMacroUsedMessage>(OnMacroUsed);
+        SubscribeNetworkEvent<AHelpTicketMacroReplyMessage>(OnMacroReply);
         SubscribeNetworkEvent<AHelpTicketPlayerCardRequest>(OnPlayerCard);
         SubscribeNetworkEvent<AHelpTicketTranscriptRequest>(OnTranscript);
         SubscribeNetworkEvent<AHelpTicketSearchRequest>(OnSearch);
@@ -184,6 +188,7 @@ public sealed class AHelpTicketSystem : EntitySystem
         });
 
         ticket.RowDirty = true;
+        _lastLineTicket = ticket;
         SendUpdate(ticket);
     }
 
@@ -333,12 +338,38 @@ public sealed class AHelpTicketSystem : EntitySystem
         if (!_tickets.TryGetValue(msg.Key, out var ticket) || !_bwoink.WGCanAnswer(args.SenderSession, ticket.Info.Player))
             return;
 
-        var macros = ticket.Row.Macros is { Length: > 0 } existing ? $"{existing},{msg.Macro}" : msg.Macro;
-        if (macros.Length <= 512)
-        {
-            ticket.Row.Macros = macros;
-            ticket.RowDirty = true;
-        }
+        RecordMacro(ticket, msg.Macro);
+    }
+
+    /// <summary>Sends a macro's reply as the staffer, then records the macro and applies its action on the ticket that took it.</summary>
+    private void OnMacroReply(AHelpTicketMacroReplyMessage msg, EntitySessionEventArgs args)
+    {
+        var staff = args.SenderSession;
+        if (!_bwoink.WGCanAnswer(staff, msg.Player))
+            return;
+
+        _lastLineTicket = null;
+        _bwoink.WGSendAsStaff(staff, new BwoinkSystem.BwoinkTextMessage(msg.Player, staff.UserId, msg.Text,
+            playSound: msg.PlaySound, adminOnly: msg.AdminOnly));
+
+        // Set by OnLine for this very line; anything else means the reply was refused (rate limit, permissions).
+        if (_lastLineTicket is not { } ticket || ticket.Info.Player != msg.Player)
+            return;
+
+        _lastLineTicket = null;
+        RecordMacro(ticket, msg.Macro);
+        if (msg.Action is { } action)
+            Act(staff, ticket, action);
+    }
+
+    private static void RecordMacro(Ticket ticket, string macro)
+    {
+        var macros = ticket.Row.Macros is { Length: > 0 } existing ? $"{existing},{macro}" : macro;
+        if (macros.Length > 512)
+            return;
+
+        ticket.Row.Macros = macros;
+        ticket.RowDirty = true;
     }
 
     private async void OnPlayerCard(AHelpTicketPlayerCardRequest msg, EntitySessionEventArgs args)

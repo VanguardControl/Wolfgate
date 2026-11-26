@@ -120,6 +120,21 @@ public sealed class AHelpTicketMacroUsedMessage(int key, string macro) : EntityE
     public readonly string Macro = macro;
 }
 
+/// <summary>
+/// Staff to server: a macro's reply. The server sends it as the staffer and applies the macro to the ticket the
+/// reply lands on, new or existing, so the action can't reach any other ticket.
+/// </summary>
+[Serializable, NetSerializable]
+public sealed class AHelpTicketMacroReplyMessage(NetUserId player, string text, bool playSound, bool adminOnly, string macro, AHelpTicketAction? action) : EntityEventArgs
+{
+    public readonly NetUserId Player = player;
+    public readonly string Text = text;
+    public readonly bool PlaySound = playSound;
+    public readonly bool AdminOnly = adminOnly;
+    public readonly string Macro = macro;
+    public readonly AHelpTicketAction? Action = action;
+}
+
 /// <summary>Staff to server: what the player card needs that the client doesn't have.</summary>
 [Serializable, NetSerializable]
 public sealed class AHelpTicketPlayerCardRequest(NetUserId player) : EntityEventArgs

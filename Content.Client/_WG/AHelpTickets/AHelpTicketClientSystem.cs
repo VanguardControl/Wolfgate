@@ -1,6 +1,5 @@
 using Content.Shared._WG.AHelpTickets;
 using Robust.Shared.Network;
-using Robust.Shared.Timing;
 
 namespace Content.Client._WG.AHelpTickets;
 
@@ -9,12 +8,6 @@ public sealed class AHelpTicketClientSystem : EntitySystem
 {
     private readonly Dictionary<int, AHelpTicketInfo> _tickets = new();
     private readonly Dictionary<NetUserId, AHelpTicketPlayerCardMessage> _cards = new();
-    private readonly Dictionary<NetUserId, (TimeSpan Until, string Macro, AHelpTicketAction? Action)> _pendingMacros = new();
-
-    [Dependency] private IGameTiming _timing = default!;
-
-    /// <summary>How long a macro waits for the ticket its reply lands on.</summary>
-    private static readonly TimeSpan MacroWait = TimeSpan.FromSeconds(15);
 
     /// <summary>This round's tickets, by key.</summary>
     public IReadOnlyDictionary<int, AHelpTicketInfo> Tickets => _tickets;
@@ -85,24 +78,12 @@ public sealed class AHelpTicketClientSystem : EntitySystem
     }
 
     /// <summary>
-    /// For a macro whose reply went to a player with no open ticket the client knows of: records the macro and
-    /// applies its action to the ticket the reply lands on, which is the player's next ticket update. A reply that
-    /// lands nowhere within <see cref="MacroWait"/> is dropped, so the action can't reach a later, unrelated ticket.
+    /// Sends a macro's reply. The server sends it on the staffer's behalf and applies the macro to the ticket the
+    /// reply lands on, whether it opens one or joins one, so nothing here has to guess which ticket that is.
     /// </summary>
-    public void QueueMacro(NetUserId player, string macro, AHelpTicketAction? action)
+    public void SendMacroReply(NetUserId player, string text, bool playSound, bool adminOnly, string macro, AHelpTicketAction? action)
     {
-        _pendingMacros[player] = (_timing.RealTime + MacroWait, macro, action);
-    }
-
-    /// <summary>Applies a waiting macro to the ticket that just changed, if it is that player's and still in time.</summary>
-    private void ApplyPendingMacro(AHelpTicketInfo ticket)
-    {
-        if (!_pendingMacros.Remove(ticket.Player, out var pending) || _timing.RealTime > pending.Until)
-            return;
-
-        MacroUsed(ticket.Key, pending.Macro);
-        if (pending.Action is { } action)
-            Act(ticket.Key, action);
+        RaiseNetworkEvent(new AHelpTicketMacroReplyMessage(player, text, playSound, adminOnly, macro, action));
     }
 
     public void RequestCard(NetUserId player)
@@ -134,7 +115,6 @@ public sealed class AHelpTicketClientSystem : EntitySystem
     private void OnUpdated(AHelpTicketUpdatedMessage msg)
     {
         _tickets[msg.Ticket.Key] = msg.Ticket;
-        ApplyPendingMacro(msg.Ticket);
         TicketsChanged?.Invoke(msg.Ticket);
     }
 

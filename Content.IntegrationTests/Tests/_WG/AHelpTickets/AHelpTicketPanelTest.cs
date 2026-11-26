@@ -108,6 +108,36 @@ public sealed class AHelpTicketPanelTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>
+    /// A macro reply is tied to its ticket on the server: with an older closed ticket about (whose updates the client
+    /// may still be getting), the macro resolves only the ticket its reply opens.
+    /// </summary>
+    [Test]
+    public async Task MacroReplyTouchesOnlyItsOwnTicket()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var client = pair.Client;
+        var tickets = pair.Server.System<AHelpTicketSystem>();
+        var clientTickets = client.System<AHelpTicketClientSystem>();
+        var clientBwoink = client.System<ClientBwoinkSystem>();
+        var player = new NetUserId(Guid.NewGuid());
+
+        await client.WaitPost(() => clientBwoink.Send(player, "first", false, false));
+        await WaitFor(pair, () => tickets.Tickets.Any(t => t.Player == player), "the first ticket");
+        var older = tickets.Tickets.Single(t => t.Player == player);
+        await WaitFor(pair, () => clientTickets.LatestFor(player) != null, "the client to hear of it");
+        await client.WaitPost(() => clientTickets.Act(older.Key, AHelpTicketAction.Resolve));
+        await WaitFor(pair, () => older.State == AHelpTicketState.Resolved, "the first ticket to close");
+
+        await client.WaitPost(() => clientTickets.SendMacroReply(player, "macro reply", false, false, ResolveMacro, AHelpTicketAction.Resolve));
+        await WaitFor(pair, () => tickets.Tickets.Count(t => t.Player == player) == 2
+                                  && tickets.Tickets.Single(t => t.Player == player && t.Key != older.Key).State == AHelpTicketState.Resolved,
+            "the macro to resolve the ticket its reply opened");
+        Assert.That(older.State, Is.EqualTo(AHelpTicketState.Resolved), "The older ticket is untouched.");
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>With no staff online and no webhook, the "nobody heard you" notice is a system line, not activity.</summary>
     [Test]
     public async Task NoStaffNoticeIsASystemLine()

@@ -485,22 +485,16 @@ public sealed partial class AHelpTicketsControl : Control
         // the list for reading must not swallow a macro meant for the open one, which may be older if it was reopened.
         var info = Info();
         var ticket = _tickets.LatestFor(player);
-        var open = _tickets.OpenFor(player);
         if (macro.Text is { } text)
         {
+            // The server sends the reply and applies the macro to the ticket that reply lands on.
             var character = info?.CharacterName ?? ticket?.Character ?? string.Empty;
-            _handler.Send(player, Loc.GetString(text, ("player", character)), PlaySound.Pressed && !AdminOnly.Pressed, AdminOnly.Pressed);
+            _tickets.SendMacroReply(player, Loc.GetString(text, ("player", character)),
+                PlaySound.Pressed && !AdminOnly.Pressed, AdminOnly.Pressed, macro.ID, macro.Action);
         }
-
-        if (open != null)
+        else if (_tickets.OpenFor(player) is { } open)
         {
             UseMacro(open, macro);
-        }
-        else if (macro.Text != null)
-        {
-            // No open ticket known here: the reply opens one, or lands on one reopened since. The macro applies to
-            // whichever ticket the server then reports the reply on.
-            _tickets.QueueMacro(player, macro.ID, macro.Action);
         }
 
         if (macro.Command is { } command)

@@ -27,6 +27,12 @@ public sealed partial class BwoinkSystem
         _wgTickets.OnLine(message.UserId, source, senderId, senderName, message.Text, message.AdminOnly);
     }
 
+    /// <summary>Sends an ahelp line as if the staffer had typed it, with the usual permission and rate checks.</summary>
+    public void WGSendAsStaff(ICommonSession staff, BwoinkTextMessage message)
+    {
+        OnBwoinkTextMessage(message, new EntitySessionEventArgs(staff));
+    }
+
     /// <summary>Staff who receive ahelps of this category.</summary>
     public IList<INetChannel> WGTargetAdmins(AHelpCategory category)
     {
