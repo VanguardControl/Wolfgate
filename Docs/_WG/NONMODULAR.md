@@ -168,8 +168,10 @@ Standalone edits outside `_WG` that serve no module: files with an untagged `WOL
   - nothing advanced the timer, so the member cache never expired
   - NPC crew that no player controls don't crowd the console
 - [`Content.Server/_RMC14/Weapons/Ranged/Prediction/GunPredictionSystem.cs`](../../Content.Server/_RMC14/Weapons/Ranged/Prediction/GunPredictionSystem.cs): restore the licence header removed by Kill Spdx
+- [`Content.Server/Administration/Systems/AdminSystem.cs`](../../Content.Server/Administration/Systems/AdminSystem.cs): one missing player stopped the rest of the list being sent at round restart
 - [`Content.Server/Administration/Systems/AdminVerbSystem.Smites.cs`](../../Content.Server/Administration/Systems/AdminVerbSystem.Smites.cs): OwO accent removed
 - [`Content.Server/Administration/Systems/BwoinkSystem.cs`](../../Content.Server/Administration/Systems/BwoinkSystem.cs)
+  - one embed without an id stopped the rest being kept
   - a mention in an embed never pings; it goes in the content below
   - only message content pings, and the payload suppresses every mention unless roles are allowed
   - admins aren't rate limited in ahelps

@@ -2,8 +2,8 @@
 
 Quieter ahelps for staff. A player's ahelp bwoinks staff until a staffer answers it (any staff message in the
 channel, Discord replies included); after that the player's messages arrive silently. Staff replies never bwoink
-other staff. The **Resolve** button in the admin help panel marks the ahelp resolved, tells the player and the other
-staff, and lets the player's next message bwoink again. Claims reset at round restart.
+other staff. The **Resolve** button in the admin help panel closes the player's ticket (AHelpTickets announces it to
+the player and staff) and lets the player's next message bwoink again. Claims reset at round restart.
 
 Also fixes the panel's **Play sound** and **Admin only** boxes being ignored while the panel is popped out, and the
 Play sound box being ignored for event staff.
