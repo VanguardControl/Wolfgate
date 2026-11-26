@@ -1,4 +1,5 @@
 #nullable enable
+using System.Collections.Generic;
 using System.Linq;
 using Content.IntegrationTests.Pair;
 using Content.Server._WG.AHelpTickets;
@@ -29,6 +30,11 @@ public sealed class AHelpTicketTest
         var serverBwoink = server.System<ServerBwoinkSystem>();
         var clientBwoink = client.System<ClientBwoinkSystem>();
 
+        // The test client is host, so it gets the staff copy of every line.
+        var received = new List<ClientBwoinkSystem.BwoinkTextMessage>();
+        EventHandler<ClientBwoinkSystem.BwoinkTextMessage> onReceived = (_, msg) => received.Add(msg);
+        clientBwoink.OnBwoinkTextMessageRecieved += onReceived;
+
         await client.WaitPost(() => clientBwoink.Send(userId, "my ship is stuck", true, false));
         await WaitFor(pair, () => tickets.GetOpenTicket(userId) != null, "a ticket to open");
 
@@ -49,11 +55,22 @@ public sealed class AHelpTicketTest
         // The upstream Resolve button closes it too.
         await client.WaitPost(() => clientBwoink.SendResolve(userId));
         await WaitFor(pair, () => tickets.GetOpenTicket(userId) == null, "the ticket to close");
+        await WaitFor(pair, () => received.Any(m => m.WGSystem), "the close notice");
         Assert.Multiple(() =>
         {
             Assert.That(first.State, Is.EqualTo(AHelpTicketState.Resolved));
             Assert.That(serverBwoink.IsAHelpClaimed(userId), Is.False);
+            // A Discord reply shares SystemUserId with notices, but only notices are flagged as system lines.
+            Assert.That(received.First(m => m.Text.EndsWith(": on it")).WGSystem, Is.False, "A Discord staff reply counts as activity.");
+            Assert.That(received.Last(m => m.WGSystem).Text, Does.Contain("closed"), "The close notice is a system line.");
         });
+
+        // A staff note after the close belongs to that ticket; it opens nothing.
+        await server.WaitPost(() => serverBwoink.OnWebhookBwoinkTextMessage(
+            new ClientBwoinkSystem.BwoinkTextMessage(userId, ClientBwoinkSystem.SystemUserId, "note to self", adminOnly: true),
+            new ServerApi.BwoinkActionBody { Text = "note to self", Username = "Staff", Guid = userId.UserId, WebhookUpdate = false }));
+        await WaitFor(pair, () => first.HasNotes, "the note on the closed ticket");
+        Assert.That(tickets.GetOpenTicket(userId), Is.Null, "An admin-only note doesn't reopen or open a ticket.");
 
         await client.WaitPost(() => clientBwoink.Send(userId, "one more thing", true, false));
         await WaitFor(pair, () => tickets.GetOpenTicket(userId) != null, "a second ticket");
@@ -85,6 +102,7 @@ public sealed class AHelpTicketTest
             Assert.That(tickets.GetOpenTicket(userId), Is.Null);
         });
 
+        clientBwoink.OnBwoinkTextMessageRecieved -= onReceived;
         await pair.CleanReturnAsync();
     }
 

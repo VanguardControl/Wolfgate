@@ -100,6 +100,33 @@ public sealed class LogInvestigatorTest
     }
 
     [Test]
+    public async Task RetriedPositionBatchIsStoredOnce()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var db = pair.Server.ResolveDependency<IServerDbManager>();
+        var at = new DateTime(2026, 11, 26, 12, 0, 0, 123, DateTimeKind.Utc);
+        var round = 987_654;
+        var players = new[] { Guid.NewGuid(), Guid.NewGuid() };
+
+        List<WolfgatePlayerPosition> Batch()
+        {
+            return players.Select(p => new WolfgatePlayerPosition
+            {
+                RoundId = round, SampledAt = at, PlayerUserId = p, MapId = 1, X = 1, Y = 2, Alive = true, EntityName = "x",
+            }).ToList();
+        }
+
+        // The second write stands in for a retry after a commit whose acknowledgement was lost.
+        await db.AddPlayerPositionsAsync(Batch());
+        await db.AddPlayerPositionsAsync(Batch());
+
+        var stored = await db.GetPlayerPositionsAsync(round, at.AddSeconds(-1), at.AddSeconds(1));
+        Assert.That(stored.Select(p => p.PlayerUserId), Is.EquivalentTo(players), "Each sample should be stored once.");
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
     public async Task ReportsLineUpWhatTheLogsSay()
     {
         await using var pair = await PoolManager.GetServerClient();

@@ -43,11 +43,29 @@ public abstract partial class ServerDbBase
         return (result, hasMore, total);
     }
 
+    /// <summary>
+    /// Stores samples, skipping any already stored for the same player, round and moment, so a batch retried after a
+    /// write whose outcome was unknown is not stored twice.
+    /// </summary>
     public async Task AddPlayerPositionsAsync(List<WolfgatePlayerPosition> positions, CancellationToken cancel = default)
     {
         await using var db = await GetDb(cancel);
 
-        db.DbContext.WolfgatePlayerPosition.AddRange(positions);
+        var fresh = new List<WolfgatePlayerPosition>();
+        foreach (var round in positions.GroupBy(p => p.RoundId))
+        {
+            var times = round.Select(p => p.SampledAt).Distinct().ToList();
+            var stored = (await db.DbContext.WolfgatePlayerPosition
+                    .Where(p => p.RoundId == round.Key && times.Contains(p.SampledAt))
+                    .Select(p => new { p.PlayerUserId, p.SampledAt })
+                    .ToListAsync(cancel))
+                .Select(p => (p.PlayerUserId, NormalizeDatabaseTime(p.SampledAt)))
+                .ToHashSet();
+
+            fresh.AddRange(round.Where(p => !stored.Contains((p.PlayerUserId, p.SampledAt))));
+        }
+
+        db.DbContext.WolfgatePlayerPosition.AddRange(fresh);
         await db.DbContext.SaveChangesAsync(cancel);
     }
 

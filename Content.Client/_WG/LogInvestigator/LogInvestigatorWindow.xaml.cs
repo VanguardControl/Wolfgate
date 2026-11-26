@@ -160,17 +160,24 @@ public sealed partial class LogInvestigatorWindow : DefaultWindow
         }
     }
 
+    /// <summary>Starts a new search. Load more waits for its first page, so it never mixes it with the rows shown.</summary>
     private void Search()
     {
         _loadedQuery = BuildQuery();
+        _hasMore = false;
+        MoreButton.Disabled = true;
         QueryRequested?.Invoke(_loadedQuery, null);
     }
 
-    /// <summary>The next page of the search on screen, whatever the filters say now.</summary>
+    /// <summary>The next page of the search on screen, whatever the filters say now; disabled until that page comes.</summary>
     private void More()
     {
-        if (_hasMore && _rows.Count > 0 && _loadedQuery != null)
-            QueryRequested?.Invoke(_loadedQuery, _rows[^1].Id);
+        if (!_hasMore || _rows.Count == 0 || _loadedQuery == null)
+            return;
+
+        _hasMore = false;
+        MoreButton.Disabled = true;
+        QueryRequested?.Invoke(_loadedQuery, _rows[^1].Id);
     }
 
     private LogQuery BuildQuery()

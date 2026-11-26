@@ -933,7 +933,7 @@ namespace Content.Server.Administration.Systems
             if (senderChannel != null)
             {
                 var systemText = Loc.GetString("bwoink-system-starmute-message-no-other-users");
-                var starMuteMsg = new BwoinkTextMessage(message.UserId, SystemUserId, systemText);
+                var starMuteMsg = new BwoinkTextMessage(message.UserId, SystemUserId, systemText, wgSystem: true); // WOLFGATE(AHelpTickets): a notice, not activity
                 RaiseNetworkEvent(starMuteMsg, senderChannel);
             }
         }

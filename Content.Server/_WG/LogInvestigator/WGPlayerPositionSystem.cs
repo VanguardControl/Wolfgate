@@ -66,7 +66,9 @@ public sealed class WGPlayerPositionSystem : EntitySystem
         if (_ticker.RunLevel != GameRunLevel.InRound)
             return;
 
+        // Whole milliseconds, which the database stores exactly, so a retried batch can be matched against it.
         var now = DateTime.UtcNow;
+        now = new DateTime(now.Ticks - now.Ticks % TimeSpan.TicksPerMillisecond, DateTimeKind.Utc);
         var round = _ticker.RoundId;
         foreach (var session in _players.Sessions)
         {
@@ -110,7 +112,7 @@ public sealed class WGPlayerPositionSystem : EntitySystem
         catch (Exception e)
         {
             // Back in front of newer samples for the next write; oldest dropped past the cap during a long outage.
-            // Rows are fresh objects with no id, so a retry inserts each once more only if this write half-committed.
+            // If this write did commit after all, the retry skips the samples already stored (AddPlayerPositionsAsync).
             foreach (var row in batch)
             {
                 row.Id = 0;

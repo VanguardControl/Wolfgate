@@ -49,6 +49,9 @@ public sealed class LogInvestigatorEui : BaseEui
     private readonly LogReportKind? _prefillReport;
     private CancellationTokenSource _cancel = new();
 
+    /// <summary>The round load in progress, if any; queries and reports wait for it.</summary>
+    private Task? _roundLoad;
+
     private int _roundId;
     private DateTime? _roundStart;
     private List<LogPlayer> _roundPlayers = new();
@@ -96,7 +99,7 @@ public sealed class LogInvestigatorEui : BaseEui
 
         try
         {
-            await LoadRound(_prefill is { RoundId: > 0 } prefill ? prefill.RoundId : CurrentRound());
+            await (_roundLoad = LoadRound(_prefill is { RoundId: > 0 } prefill ? prefill.RoundId : CurrentRound()));
             if (_prefill != null && !IsShutDown)
             {
                 _prefill.RoundId = _roundId;
@@ -151,7 +154,7 @@ public sealed class LogInvestigatorEui : BaseEui
             switch (msg)
             {
                 case LogInvestigatorRoundMsg round:
-                    await LoadRound(round.RoundId);
+                    await (_roundLoad = LoadRound(round.RoundId));
                     break;
                 case LogInvestigatorQueryMsg query:
                     await RunQuery(query);
@@ -207,8 +210,25 @@ public sealed class LogInvestigatorEui : BaseEui
         StateDirty();
     }
 
+    /// <summary>Waits out a round load in progress, so a query or report neither cancels it nor reads the old round.</summary>
+    private async Task WaitForRound()
+    {
+        while (_roundLoad is { IsCompleted: false } loading)
+        {
+            try
+            {
+                await loading;
+            }
+            catch (OperationCanceledException)
+            {
+                // Replaced by a newer load, which the loop waits for next.
+            }
+        }
+    }
+
     private async Task RunQuery(LogInvestigatorQueryMsg msg)
     {
+        await WaitForRound();
         var cancel = Restart();
         var query = msg.Query;
         query.RoundId = _roundId;
@@ -229,6 +249,7 @@ public sealed class LogInvestigatorEui : BaseEui
 
     private async Task BuildReport(LogInvestigatorReportRequest request)
     {
+        await WaitForRound();
         var cancel = Restart();
         var query = request.Query;
         query.RoundId = _roundId;
