@@ -1,0 +1,369 @@
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Content.Server.Administration;
+using Content.Server.Administration.Logs;
+using Content.Server.Administration.Managers;
+using Content.Server.Database;
+using Content.Server.EUI;
+using Content.Server.GameTicking;
+using Content.Shared._WG.LogInvestigator;
+using Content.Shared.Administration;
+using Content.Shared.Database;
+using Content.Shared.Eui;
+using Content.Shared.Mind;
+using Robust.Server.Player;
+using Robust.Shared.Configuration;
+using Robust.Shared.Enums;
+using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
+
+namespace Content.Server._WG.LogInvestigator;
+
+/// <summary>
+/// The log investigator: pages through a round's logs by players, entities, categories, impact, text and round time,
+/// and builds the encounter, timeline and nearby reports.
+/// </summary>
+public sealed class LogInvestigatorEui : BaseEui
+{
+    [Dependency] private IAdminLogManager _adminLogs = default!;
+    [Dependency] private IAdminManager _admins = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IEntityManager _entities = default!;
+    [Dependency] private IPlayerManager _players = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private IServerDbManager _db = default!;
+    [Dependency] private ILogManager _log = default!;
+
+    /// <summary>The most rows a report reads of each kind.</summary>
+    private const int ReportRows = 5000;
+
+    /// <summary>The window around a moment that "who was nearby" looks at.</summary>
+    private static readonly TimeSpan NearbyWindow = TimeSpan.FromSeconds(60);
+
+    /// <summary>Radius the encounter report's nearby list uses.</summary>
+    private const int EncounterRadius = 15;
+
+    private readonly ISawmill _sawmill;
+    private readonly LogQuery? _prefill;
+    private readonly LogReportKind? _prefillReport;
+    private CancellationTokenSource _cancel = new();
+
+    private int _roundId;
+    private DateTime? _roundStart;
+    private List<LogPlayer> _roundPlayers = new();
+    private bool _loading = true;
+
+    private LogInvestigatorEui(LogQuery? prefill, LogReportKind? report)
+    {
+        IoCManager.InjectDependencies(this);
+        _sawmill = _log.GetSawmill(AdminLogManager.SawmillId);
+        _prefill = prefill;
+        _prefillReport = report;
+    }
+
+    /// <summary>Opens the investigator for an admin, filled in with the query, if the investigator is on.</summary>
+    public static bool TryOpen(ICommonSession admin, LogQuery? prefill, LogReportKind? report = null)
+    {
+        if (!IoCManager.Resolve<IConfigurationManager>().GetCVar(LogInvestigatorCVars.Investigator))
+            return false;
+
+        IoCManager.Resolve<EuiManager>().OpenEui(new LogInvestigatorEui(prefill, report), admin);
+        return true;
+    }
+
+    /// <summary>Opens the investigator on one player's logs this round.</summary>
+    public static bool TryOpenForPlayer(ICommonSession admin, Guid player)
+    {
+        return TryOpen(admin, new LogQuery { RoundId = CurrentRound(), Players = new[] { player } });
+    }
+
+    /// <summary>Opens the investigator on the logs that name an entity this round.</summary>
+    public static bool TryOpenForEntity(ICommonSession admin, EntityUid entity)
+    {
+        return TryOpen(admin, new LogQuery { RoundId = CurrentRound(), Entities = new[] { (int) entity } });
+    }
+
+    private static int CurrentRound()
+    {
+        return IoCManager.Resolve<IEntityManager>().System<GameTicker>().RoundId;
+    }
+
+    public override async void Opened()
+    {
+        base.Opened();
+        _admins.OnPermsChanged += OnPermsChanged;
+
+        try
+        {
+            await LoadRound(_prefill is { RoundId: > 0 } prefill ? prefill.RoundId : CurrentRound());
+            if (_prefill != null)
+            {
+                _prefill.RoundId = _roundId;
+                SendMessage(new LogInvestigatorPrefillMsg(_prefill, _prefillReport));
+            }
+        }
+        catch (Exception e)
+        {
+            _sawmill.Error($"Log investigator failed to open: {e}");
+        }
+    }
+
+    public override void Closed()
+    {
+        base.Closed();
+        _admins.OnPermsChanged -= OnPermsChanged;
+        _cancel.Cancel();
+        _cancel.Dispose();
+    }
+
+    private void OnPermsChanged(AdminPermsChangedEventArgs args)
+    {
+        if (args.Player == Player && !_admins.HasAdminFlag(Player, AdminFlags.Logs))
+            Close();
+    }
+
+    public override EuiStateBase GetNewState()
+    {
+        return new LogInvestigatorEuiState
+        {
+            RoundId = _roundId,
+            CurrentRound = CurrentRound(),
+            RoundStart = _roundStart,
+            Players = _roundPlayers,
+            Loading = _loading,
+        };
+    }
+
+    public override async void HandleMessage(EuiMessageBase msg)
+    {
+        base.HandleMessage(msg);
+
+        if (!_admins.HasAdminFlag(Player, AdminFlags.Logs))
+            return;
+
+        try
+        {
+            switch (msg)
+            {
+                case LogInvestigatorRoundMsg round:
+                    await LoadRound(round.RoundId);
+                    break;
+                case LogInvestigatorQueryMsg query:
+                    await RunQuery(query);
+                    break;
+                case LogInvestigatorReportRequest report:
+                    await BuildReport(report);
+                    break;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Replaced by a newer request.
+        }
+        catch (Exception e)
+        {
+            _sawmill.Error($"Log investigator request from {Player.Name} failed: {e}");
+        }
+    }
+
+    private CancellationToken Restart()
+    {
+        _cancel.Cancel();
+        _cancel.Dispose();
+        _cancel = new CancellationTokenSource();
+        return _cancel.Token;
+    }
+
+    private async Task LoadRound(int roundId)
+    {
+        _loading = true;
+        StateDirty();
+
+        var round = await _adminLogs.Round(roundId);
+        _roundId = roundId;
+        _roundStart = round.StartDate is { } start ? DateTime.SpecifyKind(start, DateTimeKind.Utc) : null;
+
+        // Character names are only known for players still here; past rounds list accounts.
+        var minds = _entities.System<SharedMindSystem>();
+        var current = roundId == CurrentRound();
+        _roundPlayers = round.Players
+            .Select(p => new LogPlayer(p.UserId, p.LastSeenUserName,
+                current ? minds.GetCharacterName(new Robust.Shared.Network.NetUserId(p.UserId)) : null))
+            .OrderBy(p => p.Username, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        _loading = false;
+        StateDirty();
+    }
+
+    private async Task RunQuery(LogInvestigatorQueryMsg msg)
+    {
+        var cancel = Restart();
+        var query = msg.Query;
+        query.RoundId = _roundId;
+        var first = msg.AfterId == null;
+
+        _sawmill.Info($"Log investigator query from {Player.Name}: round {query.RoundId}, {query.Players.Length} players, {query.Entities.Length} entities, {query.Types?.Count.ToString() ?? "all"} types, text \"{query.Text}\"");
+        var stopwatch = new Robust.Shared.Timing.Stopwatch();
+        stopwatch.Start();
+
+        var page = _cfg.GetCVar(LogInvestigatorCVars.PageSize);
+        var (rows, hasMore, total) = await _db.GetInvestigatorLogsAsync(query, _roundStart, msg.AfterId, page, first, cancel);
+        cancel.ThrowIfCancellationRequested();
+
+        _sawmill.Info($"Sent {rows.Count} logs to {Player.Name} in {stopwatch.Elapsed.TotalMilliseconds} ms");
+        if (Player.Status != SessionStatus.Disconnected)
+            SendMessage(new LogInvestigatorPageMsg(rows, first, hasMore, total));
+    }
+
+    private async Task BuildReport(LogInvestigatorReportRequest request)
+    {
+        var cancel = Restart();
+        var query = request.Query;
+        query.RoundId = _roundId;
+
+        var report = request.Kind switch
+        {
+            LogReportKind.Encounter => await Encounter(query, cancel),
+            LogReportKind.Timeline => await Timeline(query, cancel),
+            LogReportKind.Nearby when request.Point is { } point => await Nearby(point, Math.Clamp(request.Radius, 1, 200), cancel),
+            _ => null,
+        };
+
+        cancel.ThrowIfCancellationRequested();
+        if (report != null && Player.Status != SessionStatus.Disconnected)
+            SendMessage(new LogInvestigatorReportMsg(report));
+    }
+
+    private async Task<LogReport> Encounter(LogQuery query, CancellationToken cancel)
+    {
+        var combat = await Rows(Narrow(query, LogReports.CombatTypes), cancel);
+
+        var guns = Narrow(query, new HashSet<LogType> { LogType.ShipgunFired }, players: false);
+        guns.FromSeconds -= LogReports.GunnerWindow.TotalSeconds;
+        guns.ToSeconds += LogReports.GunnerWindow.TotalSeconds;
+        var hits = LogReports.Hits(combat, await Rows(guns, cancel));
+
+        var deathQuery = Narrow(query, new HashSet<LogType> { LogType.Damaged });
+        deathQuery.Text = " to Dead";
+        var deaths = await Rows(deathQuery, cancel);
+
+        var chat = new List<LogRow>();
+        List<LogReports.LogPlayerNearby>? nearby = null;
+        var parties = query.Players.ToHashSet();
+        var firstHit = hits
+            .Where(h => h.VictimPlayer != null && (parties.Count == 0 || parties.Contains(h.VictimPlayer.Value) || (h.AttackerPlayer is { } a && parties.Contains(a))))
+            .MinBy(h => h.At);
+
+        if (firstHit != null)
+        {
+            var from = Seconds(firstHit.At - LogReports.ChatLookBack);
+            var to = Seconds(firstHit.At);
+
+            // What the parties said, and hails to or from the grids they were on.
+            var said = new LogQuery { RoundId = query.RoundId, Players = query.Players, FromSeconds = from, ToSeconds = to, Types = new HashSet<LogType> { LogType.Chat }, Ascending = true };
+            chat.AddRange(await Rows(said, cancel));
+
+            var grids = combat.SelectMany(r => r.Refs)
+                .Where(r => r.Grid != null && r.Player is { } p && (parties.Count == 0 || parties.Contains(p)))
+                .Select(r => r.Grid!.Value)
+                .ToHashSet();
+            if (grids.Count > 0)
+            {
+                var hails = new LogQuery { RoundId = query.RoundId, FromSeconds = from, ToSeconds = to, Types = new HashSet<LogType> { LogType.Chat }, Text = "Hail from", Ascending = true };
+                chat.AddRange((await Rows(hails, cancel)).Where(r => r.Refs.Any(x => x.Key.StartsWith("grid") && grids.Contains(x.Id))));
+            }
+
+            chat = chat.DistinctBy(r => r.Id).ToList();
+
+            if (firstHit.VictimRef is { Map: { } map, X: { } x, Y: { } y } victim)
+                nearby = await NearbyList(new LogPoint(map, victim.Grid, x, y, firstHit.At), EncounterRadius, cancel);
+        }
+
+        return LogReports.Encounter(hits, deaths, chat, _roundStart, nearby);
+    }
+
+    private async Task<LogReport> Timeline(LogQuery query, CancellationToken cancel)
+    {
+        if (query.Players.Length == 0)
+        {
+            return new LogReport(LogReportKind.Timeline, Loc.GetString("wg-log-report-timeline-title", ("player", "?")),
+                new List<LogReportSection> { new(Loc.GetString("wg-log-report-phases"), new List<string> { Loc.GetString("wg-log-report-pick-player") }) });
+        }
+
+        var player = query.Players[0];
+        var one = new LogQuery
+        {
+            RoundId = query.RoundId,
+            Players = new[] { player },
+            FromSeconds = query.FromSeconds,
+            ToSeconds = query.ToSeconds,
+            Types = query.Types,
+            Ascending = true,
+        };
+
+        var categories = new Dictionary<LogType, string>();
+        foreach (var category in _proto.EnumeratePrototypes<WGLogCategoryPrototype>())
+        {
+            foreach (var type in category.Types)
+            {
+                categories[type] = Loc.GetString(category.Name);
+            }
+        }
+
+        var name = _roundPlayers.FirstOrDefault(p => p.Id == player) is { } known
+            ? known.Character != null ? $"{known.Character} ({known.Username})" : known.Username
+            : player.ToString();
+        return LogReports.Timeline(name, await Rows(one, cancel), categories, _roundStart);
+    }
+
+    private async Task<LogReport> Nearby(LogPoint point, int radius, CancellationToken cancel)
+    {
+        return LogReports.NearbyReport(point, radius, await NearbyList(point, radius, cancel), _roundStart);
+    }
+
+    private async Task<List<LogReports.LogPlayerNearby>> NearbyList(LogPoint point, int radius, CancellationToken cancel)
+    {
+        var from = point.At - NearbyWindow;
+        var to = point.At + NearbyWindow;
+        var positions = await _db.GetPlayerPositionsAsync(_roundId, from, to, cancel);
+
+        var spokeQuery = new LogQuery { RoundId = _roundId, FromSeconds = Seconds(from), ToSeconds = Seconds(to), Types = new HashSet<LogType> { LogType.Chat }, Ascending = true };
+        var spoke = (await Rows(spokeQuery, cancel))
+            .SelectMany(r => r.Refs)
+            .Where(r => r.Player != null)
+            .Select(r => r.Player!.Value)
+            .ToHashSet();
+
+        var names = _roundPlayers.ToDictionary(p => p.Id, p => p.Username);
+        return LogReports.Nearby(point, radius, positions, names, spoke);
+    }
+
+    /// <summary>The query limited to these types, oldest first; without players when <paramref name="players"/> is false.</summary>
+    private static LogQuery Narrow(LogQuery query, HashSet<LogType> types, bool players = true)
+    {
+        return new LogQuery
+        {
+            RoundId = query.RoundId,
+            FromSeconds = query.FromSeconds,
+            ToSeconds = query.ToSeconds,
+            Players = players ? query.Players : Array.Empty<Guid>(),
+            Entities = players ? query.Entities : Array.Empty<int>(),
+            Types = types,
+            Ascending = true,
+        };
+    }
+
+    private async Task<List<LogRow>> Rows(LogQuery query, CancellationToken cancel)
+    {
+        var (rows, _, _) = await _db.GetInvestigatorLogsAsync(query, _roundStart, null, ReportRows, false, cancel);
+        return rows;
+    }
+
+    /// <summary>Seconds since the round started, or null when the start isn't known.</summary>
+    private double? Seconds(DateTime at)
+    {
+        return _roundStart is { } start ? (at - start).TotalSeconds : null;
+    }
+}

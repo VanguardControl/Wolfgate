@@ -1,0 +1,183 @@
+# Log type groups in the log investigator. Every LogType belongs to exactly one (LogCategoryTest checks).
+
+- type: wgLogCategory
+  id: WGLogCombat
+  name: wg-log-category-combat
+  order: 0
+  types:
+  - Damaged
+  - Healed
+  - DisarmedAction
+  - DisarmedKnockdown
+  - AttackArmedClick
+  - AttackArmedWide
+  - AttackUnarmedClick
+  - AttackUnarmedWide
+  - BulletHit
+  - MeleeHit
+  - HitScanHit
+  - ThrowHit
+  - ExplosionHit
+  - Stamina
+  - Gib
+  - Mind
+
+- type: wgLogCategory
+  id: WGLogChat
+  name: wg-log-category-chat
+  order: 10
+  types:
+  - Chat
+  - ChatRateLimited
+  - RateLimited
+  - Vote
+  - Instrument
+  - HeadsetExploded
+
+- type: wgLogCategory
+  id: WGLogInteraction
+  name: wg-log-category-interaction
+  order: 20
+  types:
+  - Verb
+  - InteractHand
+  - InteractActivate
+  - InteractUsing
+  - Throw
+  - Landed
+  - Pickup
+  - Drop
+  - ForceFeed
+  - Ingestion
+  - Stripping
+  - Storage
+  - ItemConfigure
+  - PdaInteract
+  - Emag
+  - Slip
+  - CrayonDraw
+  - Consent
+
+- type: wgLogCategory
+  id: WGLogShips
+  name: wg-log-category-ships
+  order: 30
+  types:
+  - ShuttleCalled
+  - ShuttleRecalled
+  - EmergencyShuttle
+  - ShipYardUsage
+  - ShuttleRecordsUsage
+  - ShuttleInfoChanged
+  - ShuttleImpact
+  - ShipgunFired
+  - WGShipService
+  - WGShipServiceRules
+  - WGShipAdmin
+
+- type: wgLogCategory
+  id: WGLogEconomy
+  name: wg-log-category-economy
+  order: 40
+  types:
+  - StorePurchase
+  - StoreRefund
+  - ATMUsage
+  - BountyContractCreated
+  - BountyContractRemoved
+  - AdminRefund
+
+- type: wgLogCategory
+  id: WGLogMedical
+  name: wg-log-category-medical
+  order: 50
+  types:
+  - ChemicalReaction
+  - ReagentEffect
+  - Radiation
+  - Barotrauma
+  - Asphyxiation
+  - Temperature
+  - Hunger
+  - Thirst
+  - Electrocution
+  - Flammable
+  - WGAnatomy
+
+- type: wgLogCategory
+  id: WGLogAtmos
+  name: wg-log-category-atmos
+  order: 60
+  types:
+  - CanisterValve
+  - CanisterPressure
+  - CanisterPurged
+  - CanisterTankEjected
+  - CanisterTankInserted
+  - ExplosiveDepressurization
+  - AtmosPressureChanged
+  - AtmosPowerChanged
+  - AtmosVolumeChanged
+  - AtmosFilterChanged
+  - AtmosRatioChanged
+  - AtmosTemperatureChanged
+  - AtmosDeviceSetting
+  - AtmosDirectionChanged
+
+- type: wgLogCategory
+  id: WGLogWorld
+  name: wg-log-category-world
+  order: 70
+  types:
+  - Explosion
+  - Construction
+  - RCD
+  - Trigger
+  - Anchor
+  - Unanchor
+  - CableCut
+  - LatticeCut
+  - Tile
+  - WireHacking
+  - DeviceLinking
+  - DeviceNetwork
+  - FieldGeneration
+  - Anomaly
+  - ArtifactNode
+  - EntitySpawn
+  - EntityDelete
+  - Teleport
+  - Identity
+  - WGPhoto
+  - WGPainting
+
+- type: wgLogCategory
+  id: WGLogRound
+  name: wg-log-category-round
+  order: 80
+  types:
+  - Unknown
+  - EventAnnounced
+  - EventStarted
+  - EventRan
+  - EventStopped
+  - Respawn
+  - RoundStartJoin
+  - LateJoin
+  - GhostRoleTaken
+  - GhostWarp
+
+- type: wgLogCategory
+  id: WGLogAdmin
+  name: wg-log-category-admin
+  order: 90
+  types:
+  - AdminMessage
+  - AdminCommands
+
+- type: wgLogCategory
+  id: WGLogWolfgate
+  name: wg-log-category-wolfgate
+  order: 100
+  types:
+  - Action

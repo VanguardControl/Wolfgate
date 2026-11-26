@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Content.Server._NF.Bank;
@@ -50,6 +51,7 @@ public sealed class AHelpTicketSystem : EntitySystem
 
     private static readonly TimeSpan FlushInterval = TimeSpan.FromSeconds(5);
     private const int SearchLimit = 50;
+    private const int PlayerTextLimit = 50;
 
     /// <summary>This round's tickets by key, plus closed ones still waiting to be written.</summary>
     private readonly Dictionary<int, Ticket> _tickets = new();
@@ -106,6 +108,23 @@ public sealed class AHelpTicketSystem : EntitySystem
     /// <summary>Every ticket of this round.</summary>
     public IEnumerable<AHelpTicketInfo> Tickets => _tickets.Values.Where(t => !t.Retired).Select(t => t.Info);
 
+    /// <summary>A ticket of this round by key, with what the player wrote in it and when it closed.</summary>
+    public bool TryGetTicket(int key, [NotNullWhen(true)] out AHelpTicketInfo? info, out IReadOnlyList<string> playerText, out DateTime? closed)
+    {
+        if (_tickets.TryGetValue(key, out var ticket) && !ticket.Retired)
+        {
+            info = ticket.Info;
+            playerText = ticket.PlayerText;
+            closed = ticket.Row.ClosedAt;
+            return true;
+        }
+
+        info = null;
+        playerText = Array.Empty<string>();
+        closed = null;
+        return false;
+    }
+
     /// <summary>Takes a line of an ahelp, opening, claiming or extending the player's ticket.</summary>
     public void OnLine(NetUserId player, AHelpLineSource source, NetUserId sender, string senderName, string text, bool adminOnly)
     {
@@ -138,6 +157,8 @@ public sealed class AHelpTicketSystem : EntitySystem
             case AHelpLineSource.Player:
                 info.LastPlayerMessage = now;
                 ticket.LastReminder = now;
+                if (ticket.PlayerText.Count < PlayerTextLimit)
+                    ticket.PlayerText.Add(text);
                 break;
             case AHelpLineSource.Staff or AHelpLineSource.Discord:
                 if (adminOnly)
@@ -599,6 +620,10 @@ public sealed class AHelpTicketSystem : EntitySystem
         public AHelpTicketInfo Info = default!;
         public WolfgateAhelpTicket Row = default!;
         public readonly List<WolfgateAhelpMessage> Pending = new();
+
+        /// <summary>What the player wrote, for finding the names they mention.</summary>
+        public readonly List<string> PlayerText = new();
+
         public bool RowDirty;
         public DateTime LastReminder;
 

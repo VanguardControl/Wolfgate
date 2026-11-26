@@ -1,0 +1,62 @@
+<DefaultWindow xmlns="https://spacestation14.io"
+               xmlns:ui="clr-namespace:Content.Client.UserInterface.Controls"
+               Title="{Loc 'wg-log-investigator-title'}"
+               MinSize="1100 620"
+               SetSize="1300 760">
+    <SplitContainer Orientation="Horizontal" VerticalExpand="True">
+        <BoxContainer Orientation="Vertical" MinWidth="280" SizeFlagsStretchRatio="1">
+            <BoxContainer Orientation="Horizontal">
+                <Label Text="{Loc 'wg-log-investigator-round'}" />
+                <SpinBox Name="RoundBox" MinWidth="130" />
+                <Button Name="CurrentRoundButton" Text="{Loc 'wg-log-investigator-current'}" StyleClasses="OpenLeft" />
+            </BoxContainer>
+            <BoxContainer Orientation="Horizontal">
+                <Label Text="{Loc 'wg-log-investigator-from'}" />
+                <LineEdit Name="FromEdit" HorizontalExpand="True" PlaceHolder="0:00:00" />
+                <Label Text="{Loc 'wg-log-investigator-to'}" />
+                <LineEdit Name="ToEdit" HorizontalExpand="True" PlaceHolder="{Loc 'wg-log-investigator-end'}" />
+            </BoxContainer>
+            <Label Text="{Loc 'wg-log-investigator-players'}" StyleClasses="LabelSubText" />
+            <BoxContainer Name="PlayerChips" Orientation="Vertical" />
+            <LineEdit Name="PlayerSearch" PlaceHolder="{Loc 'wg-log-investigator-player-search'}" />
+            <ScrollContainer MinHeight="90" MaxHeight="150" HScrollEnabled="False">
+                <BoxContainer Name="PlayerMatches" Orientation="Vertical" />
+            </ScrollContainer>
+            <CheckBox Name="AllPlayersBox" Text="{Loc 'wg-log-investigator-all-players'}" />
+            <BoxContainer Name="EntityChips" Orientation="Vertical" />
+            <LineEdit Name="TextBox" PlaceHolder="{Loc 'wg-log-investigator-text'}" />
+            <BoxContainer Name="ImpactButtons" Orientation="Horizontal" />
+            <CheckBox Name="NonPlayersBox" Text="{Loc 'wg-log-investigator-non-players'}" Pressed="True" />
+            <CheckBox Name="OldestFirstBox" Text="{Loc 'wg-log-investigator-oldest-first'}" />
+            <Label Text="{Loc 'wg-log-investigator-categories'}" StyleClasses="LabelSubText" />
+            <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
+                <BoxContainer Name="CategoryTree" Orientation="Vertical" />
+            </ScrollContainer>
+            <GridContainer Name="Presets" Columns="2" />
+            <Button Name="SearchButton" Text="{Loc 'wg-log-investigator-search'}" StyleClasses="Caution" />
+        </BoxContainer>
+        <BoxContainer Orientation="Vertical" HorizontalExpand="True" SizeFlagsStretchRatio="2" Margin="4 0">
+            <ui:ListContainer Name="Results" Toggle="True" Group="True" VerticalExpand="True" />
+            <BoxContainer Orientation="Horizontal">
+                <Label Name="CountLabel" />
+                <Control HorizontalExpand="True" />
+                <CheckBox Name="CollapseBox" Text="{Loc 'wg-log-investigator-collapse'}" Pressed="True" />
+                <Button Name="MoreButton" Text="{Loc 'wg-log-investigator-more'}" Disabled="True" StyleClasses="OpenRight" />
+                <Button Name="CopyButton" Text="{Loc 'wg-log-investigator-copy'}" StyleClasses="OpenLeft" />
+            </BoxContainer>
+        </BoxContainer>
+        <BoxContainer Orientation="Vertical" MinWidth="340" SizeFlagsStretchRatio="1">
+            <RichTextLabel Name="Detail" />
+            <BoxContainer Name="RefActions" Orientation="Vertical" />
+            <BoxContainer Orientation="Horizontal">
+                <Button Name="EncounterButton" Text="{Loc 'wg-log-investigator-encounter'}" StyleClasses="OpenRight" />
+                <Button Name="TimelineButton" Text="{Loc 'wg-log-investigator-timeline'}" StyleClasses="OpenLeft" />
+                <Control HorizontalExpand="True" />
+                <Label Text="{Loc 'wg-log-investigator-radius'}" />
+                <LineEdit Name="RadiusEdit" Text="15" MinWidth="40" />
+            </BoxContainer>
+            <Label Name="ReportTitle" StyleClasses="LabelHeading" />
+            <OutputPanel Name="Report" VerticalExpand="True" />
+        </BoxContainer>
+    </SplitContainer>
+</DefaultWindow>

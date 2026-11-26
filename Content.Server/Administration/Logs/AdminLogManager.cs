@@ -330,7 +330,10 @@ public sealed partial class AdminLogManager : SharedAdminLogManager, IAdminLogMa
             return;
         }
 
-        var (json, players) = ToJson(handler.Values);
+        // WOLFGATE(LogInvestigator) START: positions of the logged entities, for some types
+        var (json, players) = WGToJson(type, handler.Values);
+        // var (json, players) = ToJson(handler.Values);
+        // WOLFGATE END
         var message = handler.ToStringAndClear();
 
         Add(type, impact, message, json, players);

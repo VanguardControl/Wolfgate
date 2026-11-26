@@ -323,6 +323,10 @@ namespace Content.Server.Administration.Systems
                         Category = VerbCategory.Admin,
                         Act = () =>
                         {
+                            // WOLFGATE(LogInvestigator) START: the investigator filters by the entity itself
+                            if (Content.Server._WG.LogInvestigator.LogInvestigatorEui.TryOpenForEntity(player, args.Target))
+                                return;
+                            // WOLFGATE END
                             var ui = new AdminLogsEui();
                             _euiManager.OpenEui(ui, player);
                             ui.SetLogFilter(search:args.Target.Id.ToString());

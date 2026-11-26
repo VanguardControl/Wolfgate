@@ -2569,16 +2569,16 @@ namespace Content.Server.Database
 
         public Guid PlayerUserId { get; set; }
 
-        /// <summary>The body's NetEntity id.</summary>
+        /// <summary>The body's entity id, as admin logs write ids.</summary>
         public int EntityId { get; set; }
 
-        /// <summary>The body's NetEntity name, as admin logs show it.</summary>
+        /// <summary>The body's name, as admin logs show it.</summary>
         [MaxLength(128)]
         public string? EntityName { get; set; }
 
         public int MapId { get; set; }
 
-        /// <summary>The grid's NetEntity id, or null off grid.</summary>
+        /// <summary>The grid's entity id, or null off grid.</summary>
         public int? GridId { get; set; }
 
         /// <summary>World position.</summary>
