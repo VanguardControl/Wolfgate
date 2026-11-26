@@ -50,6 +50,19 @@ public sealed class AHelpTicketClientSystem : EntitySystem
         return latest;
     }
 
+    /// <summary>The player's open ticket this round, whatever its age (an older one may have been reopened).</summary>
+    public AHelpTicketInfo? OpenFor(NetUserId player)
+    {
+        AHelpTicketInfo? open = null;
+        foreach (var ticket in _tickets.Values)
+        {
+            if (ticket.Player == player && !ticket.State.IsClosed() && (open == null || ticket.Key > open.Key))
+                open = ticket;
+        }
+
+        return open;
+    }
+
     /// <summary>The player card last received, if any.</summary>
     public AHelpTicketPlayerCardMessage? Card(NetUserId player)
     {

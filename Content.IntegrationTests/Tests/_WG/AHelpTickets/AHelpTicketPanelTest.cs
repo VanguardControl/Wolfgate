@@ -61,6 +61,53 @@ public sealed class AHelpTicketPanelTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>A macro goes to the player's open ticket even when it is an older one reopened after a newer one closed.</summary>
+    [Test]
+    public async Task MacroFindsAReopenedOlderTicket()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var client = pair.Client;
+        var tickets = pair.Server.System<AHelpTicketSystem>();
+        var clientTickets = client.System<AHelpTicketClientSystem>();
+        var clientBwoink = client.System<ClientBwoinkSystem>();
+        var player = new NetUserId(Guid.NewGuid());
+        var ui = client.ResolveDependency<IUserInterfaceManager>();
+        var macro = client.ResolveDependency<IPrototypeManager>().Index<WGAHelpMacroPrototype>(ResolveMacro);
+
+        AHelpTicketInfo Ticket(int nth) => tickets.Tickets.Where(t => t.Player == player).OrderBy(t => t.Key).ElementAt(nth);
+
+        // Ticket A, then B: each opened by a staff message and resolved.
+        for (var n = 0; n < 2; n++)
+        {
+            var nth = n;
+            await client.WaitPost(() => clientBwoink.Send(player, $"staff message {nth}", false, false));
+            await WaitFor(pair, () => tickets.Tickets.Count(t => t.Player == player) == nth + 1, $"ticket {nth} to open");
+            await WaitFor(pair, () => clientTickets.LatestFor(player)?.Key == Ticket(nth).Key, $"the client to hear of ticket {nth}");
+            await client.WaitPost(() => clientTickets.Act(Ticket(nth).Key, AHelpTicketAction.Resolve));
+            await WaitFor(pair, () => Ticket(nth).State == AHelpTicketState.Resolved, $"ticket {nth} to close");
+        }
+
+        // Reopen A; B stays the newest, closed.
+        await client.WaitPost(() => clientTickets.Act(Ticket(0).Key, AHelpTicketAction.Reopen));
+        await WaitFor(pair, () => clientTickets.OpenFor(player)?.Key == Ticket(0).Key, "ticket A to reopen");
+
+        await client.WaitPost(() =>
+        {
+            var controller = ui.GetUIController<AHelpUIController>();
+            controller.EnsureUIHelper();
+            controller.Open(player);
+            var control = ((WGTicketAHelpUIHandler) controller.UIHelper!).Control!;
+            control.AdminOnly.Pressed = true;
+            control.ApplyMacro(macro);
+        });
+
+        await WaitFor(pair, () => Ticket(0).State == AHelpTicketState.Resolved, "the macro to resolve the reopened ticket");
+        Assert.That(Ticket(1).State, Is.EqualTo(AHelpTicketState.Resolved), "The newer ticket stays as it was.");
+
+        await client.WaitPost(() => ui.GetUIController<AHelpUIController>().UIHelper?.Close());
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>With no staff online and no webhook, the "nobody heard you" notice is a system line, not activity.</summary>
     [Test]
     public async Task NoStaffNoticeIsASystemLine()
