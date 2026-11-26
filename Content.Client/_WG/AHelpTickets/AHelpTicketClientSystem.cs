@@ -121,6 +121,7 @@ public sealed class AHelpTicketClientSystem : EntitySystem
 
     private void OnList(AHelpTicketListMessage msg)
     {
+        Log.Debug($"Ticket list of {msg.Tickets.Count}; {_pendingMacros.Count} macros wait");
         _tickets.Clear();
         foreach (var ticket in msg.Tickets)
         {
@@ -133,6 +134,7 @@ public sealed class AHelpTicketClientSystem : EntitySystem
 
     private void OnUpdated(AHelpTicketUpdatedMessage msg)
     {
+        Log.Debug($"Ticket key {msg.Ticket.Key} of {msg.Ticket.Player} is {msg.Ticket.State}; {_pendingMacros.Count} macros wait");
         _tickets[msg.Ticket.Key] = msg.Ticket;
         ApplyPendingMacros();
         TicketsChanged?.Invoke(msg.Ticket);
