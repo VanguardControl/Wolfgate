@@ -303,15 +303,18 @@ namespace Content.Server.Administration.Systems
 
             // Send to Discord chat link (thread-based integration)
             // Fire and forget - don't block the main thread
-            _ = Task.Run(async () =>
-            {
-                var lookup = await _playerLocator.LookupIdAsync(session.UserId);
-                var playerName = lookup?.Username ?? "Unknown";
-                var roundId = _gameTicker.RoundId;
-                var characterName = _minds.GetCharacterName(session.UserId);
-                var discordMessage = $"{session.Name} {message}";
-                _discordChatLink.SendAhelpMessage(session.UserId, playerName, "System", discordMessage, true, roundId, characterName);
-            });
+            // WOLFGATE(AHelpTickets) START: awaited on the main thread; Task.Run read minds, the round id and the database off it
+            _ = WGRelayToThread(session.UserId, "System", $"{session.Name} {message}", true);
+            // _ = Task.Run(async () =>
+            // {
+            //     var lookup = await _playerLocator.LookupIdAsync(session.UserId);
+            //     var playerName = lookup?.Username ?? "Unknown";
+            //     var roundId = _gameTicker.RoundId;
+            //     var characterName = _minds.GetCharacterName(session.UserId);
+            //     var discordMessage = $"{session.Name} {message}";
+            //     _discordChatLink.SendAhelpMessage(session.UserId, playerName, "System", discordMessage, true, roundId, characterName);
+            // });
+            // WOLFGATE END
         }
 
         private void OnGameRunLevelChanged(GameRunLevelChangedEvent args)
@@ -916,14 +919,17 @@ namespace Content.Server.Administration.Systems
             if (sendWebhook && !fromWebhook)
             {
                 // Fire and forget - don't block the main thread
-                _ = Task.Run(async () =>
-                {
-                    var lookup = await _playerLocator.LookupIdAsync(message.UserId);
-                    var playerName = lookup?.Username ?? "Unknown";
-                    var roundId = _gameTicker.RoundId;
-                    var characterName = _minds.GetCharacterName(message.UserId);
-                    _discordChatLink.SendAhelpMessage(message.UserId, playerName, senderName, $"{CategoryTag(category)} {message.Text}", message.AdminOnly, roundId, characterName); // WOLFGATE(EventStaff): tag the category
-                });
+                // WOLFGATE(AHelpTickets) START: awaited on the main thread; Task.Run read minds, the round id and the database off it
+                _ = WGRelayToThread(message.UserId, senderName, $"{CategoryTag(category)} {message.Text}", message.AdminOnly);
+                // _ = Task.Run(async () =>
+                // {
+                //     var lookup = await _playerLocator.LookupIdAsync(message.UserId);
+                //     var playerName = lookup?.Username ?? "Unknown";
+                //     var roundId = _gameTicker.RoundId;
+                //     var characterName = _minds.GetCharacterName(message.UserId);
+                //     _discordChatLink.SendAhelpMessage(message.UserId, playerName, senderName, $"{CategoryTag(category)} {message.Text}", message.AdminOnly, roundId, characterName); // WOLFGATE(EventStaff): tag the category
+                // });
+                // WOLFGATE END
             }
 
             if (admins.Count != 0 || sendsWebhook)

@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Content.Server._WG.AHelpTickets;
 using Content.Shared._WG.AHelpTickets;
 using Content.Shared._WG.EventStaff;
@@ -25,6 +26,24 @@ public sealed partial class BwoinkSystem
                     : AHelpLineSource.Staff;
 
         _wgTickets.OnLine(message.UserId, source, senderId, senderName, message.Text, message.AdminOnly);
+    }
+
+    /// <summary>
+    /// Sends a line to the player's Discord ahelp thread. Awaited on the main thread: the player lookup reads the
+    /// database, and the round id and character name aren't safe to read from another thread.
+    /// </summary>
+    private async Task WGRelayToThread(NetUserId user, string author, string text, bool adminOnly)
+    {
+        try
+        {
+            var lookup = await _playerLocator.LookupIdAsync(user);
+            _discordChatLink.SendAhelpMessage(user, lookup?.Username ?? "Unknown", author, text, adminOnly,
+                _gameTicker.RoundId, _minds.GetCharacterName(user));
+        }
+        catch (Exception e)
+        {
+            _sawmill.Error($"Relaying an ahelp line to Discord failed: {e}");
+        }
     }
 
     /// <summary>Sends an ahelp line as if the staffer had typed it, with the usual permission and rate checks.</summary>

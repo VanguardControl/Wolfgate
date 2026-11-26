@@ -92,6 +92,7 @@ Entry points: `AHelpTicketSystem` (server; fed by `BwoinkSystem.WGTicketLine`), 
   - an ahelp ticket and its transcript, kept for good
 - [`Content.Server/Administration/Systems/BwoinkSystem.cs`](../../Administration/Systems/BwoinkSystem.cs)
   - a connect notice, not activity
+  - awaited on the main thread; Task.Run read minds, the round id and the database off it
   - every line goes to its ticket
   - a notice, not activity
 - [`Content.Server/Discord/DiscordLink/DiscordChatLink.cs`](../../Discord/DiscordLink/DiscordChatLink.cs)
