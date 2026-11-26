@@ -4,7 +4,7 @@
   engineVersion: 291.0.4
   forkId: ""
   forkVersion: ""
-  time: 11/26/2026 22:40:23
+  time: 11/26/2026 23:19:21
   entityCount: 439
 maps: []
 grids:
@@ -837,6 +837,11 @@ entities:
             182: 1,0
         - node:
             id: WarnLineGreyscaleW
+            color: '#FED83D4C'
+          decals:
+            459: -2,-3
+        - node:
+            id: WarnLineGreyscaleW
             color: '#FFFF004C'
           decals:
             48: -3,1
@@ -1066,7 +1071,7 @@ entities:
       pos: 5.5,1.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -1212.4506
+      secondsUntilStateChange: -1357.8612
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -1078,7 +1083,7 @@ entities:
       pos: 5.5,2.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -1212.3173
+      secondsUntilStateChange: -1357.7279
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -3791,105 +3796,105 @@ entities:
     - type: Transform
       parent: 1
       pos: -3.5,3.5
-  - uid: 391
+  - uid: 389
     components:
     - type: Transform
       parent: 1
       pos: 3.5,3.5
-  - uid: 392
+  - uid: 390
     components:
     - type: Transform
       parent: 1
       pos: 4.5,3.5
-  - uid: 393
+  - uid: 391
     components:
     - type: Transform
       parent: 1
       pos: 2.5,0.5
-  - uid: 395
+  - uid: 392
     components:
     - type: Transform
       parent: 1
       pos: 3.5,0.5
-  - uid: 396
+  - uid: 393
     components:
     - type: Transform
       parent: 1
       pos: -1.5,0.5
-  - uid: 398
+  - uid: 394
     components:
     - type: Transform
       parent: 1
       pos: -3.5,0.5
-  - uid: 399
+  - uid: 395
     components:
     - type: Transform
       parent: 1
       pos: -4.5,0.5
-  - uid: 400
+  - uid: 396
     components:
     - type: Transform
       parent: 1
       pos: 5.5,0.5
-  - uid: 402
+  - uid: 397
     components:
     - type: Transform
       parent: 1
       pos: -2.5,-0.5
-  - uid: 403
+  - uid: 398
     components:
     - type: Transform
       parent: 1
       pos: 3.5,-4.5
-  - uid: 404
+  - uid: 399
     components:
     - type: Transform
       parent: 1
       pos: 3.5,-5.5
-  - uid: 406
+  - uid: 400
     components:
     - type: Transform
       parent: 1
       pos: 2.5,-6.5
-  - uid: 407
+  - uid: 401
     components:
     - type: Transform
       parent: 1
       pos: 2.5,-7.5
-  - uid: 409
+  - uid: 402
     components:
     - type: Transform
       parent: 1
       pos: -1.5,-5.5
-  - uid: 410
+  - uid: 403
     components:
     - type: Transform
       parent: 1
       pos: -1.5,-6.5
-  - uid: 414
+  - uid: 404
     components:
     - type: Transform
       parent: 1
       pos: -1.5,-9.5
 - proto: WallReinforcedDiagonal
   entities:
-  - uid: 415
+  - uid: 405
     components:
     - type: Transform
       parent: 1
       pos: -1.5,6.5
-  - uid: 416
+  - uid: 406
     components:
     - type: Transform
       parent: 1
       rot: -1.5707963267948966 rad
       pos: 2.5,6.5
-  - uid: 417
+  - uid: 407
     components:
     - type: Transform
       parent: 1
       pos: -4.5,3.5
-  - uid: 418
+  - uid: 408
     components:
     - type: Transform
       parent: 1
@@ -3897,52 +3902,52 @@ entities:
       pos: 5.5,3.5
 - proto: WallReinforcedRust
   entities:
-  - uid: 389
+  - uid: 409
     components:
     - type: Transform
       parent: 1
       pos: 2.5,4.5
-  - uid: 390
+  - uid: 410
     components:
     - type: Transform
       parent: 1
       pos: 2.5,3.5
-  - uid: 394
-    components:
-    - type: Transform
-      parent: 1
-      pos: 4.5,0.5
-  - uid: 397
-    components:
-    - type: Transform
-      parent: 1
-      pos: -2.5,0.5
-  - uid: 401
-    components:
-    - type: Transform
-      parent: 1
-      pos: 3.5,-0.5
-  - uid: 405
-    components:
-    - type: Transform
-      parent: 1
-      pos: 2.5,-5.5
-  - uid: 408
-    components:
-    - type: Transform
-      parent: 1
-      pos: -1.5,-7.5
   - uid: 411
     components:
     - type: Transform
       parent: 1
-      pos: -2.5,-5.5
+      pos: 4.5,0.5
   - uid: 412
     components:
     - type: Transform
       parent: 1
-      pos: -2.5,-4.5
+      pos: -2.5,0.5
   - uid: 413
+    components:
+    - type: Transform
+      parent: 1
+      pos: 3.5,-0.5
+  - uid: 414
+    components:
+    - type: Transform
+      parent: 1
+      pos: 2.5,-5.5
+  - uid: 415
+    components:
+    - type: Transform
+      parent: 1
+      pos: -1.5,-7.5
+  - uid: 416
+    components:
+    - type: Transform
+      parent: 1
+      pos: -2.5,-5.5
+  - uid: 417
+    components:
+    - type: Transform
+      parent: 1
+      pos: -2.5,-4.5
+  - uid: 418
     components:
     - type: Transform
       parent: 1
