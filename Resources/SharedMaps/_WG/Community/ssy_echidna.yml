@@ -53,7 +53,6 @@ entities:
     - type: MetaData
       name: grid
     - type: Transform
-      parent: invalid
       pos: -5,-6
     - type: MapGrid
       chunks:
@@ -5703,7 +5702,6 @@ entities:
       pos: 2.5,10.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
   - uid: 644
     components:
     - type: Transform
@@ -5711,7 +5709,6 @@ entities:
       pos: 4.5,10.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
   - uid: 646
     components:
     - type: Transform
@@ -5720,7 +5717,6 @@ entities:
       pos: 1.5,12.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
   - uid: 661
     components:
     - type: Transform
