@@ -1,10 +1,16 @@
 #nullable enable
 using System.Linq;
 using System.Collections.Generic;
+using System.Numerics;
+using Content.IntegrationTests.Tests._WG.TradeGoods;
 using Content.Server._Mono.PDV.Components;
+using Content.Server._NF.SectorServices;
 using Content.Server._WG.CargoSales;
+using Content.Server._WG.TradeGoods.Systems;
 using Content.Server._WG.Underground;
+using Content.Server._WG.WolfChem.Narcotics;
 using Content.Server.Access.Components;
+using Content.Server.Radio;
 using Content.Server.Power.EntitySystems;
 using Content.Server.Shuttles.Systems;
 using Content.Server.Storage.EntitySystems;
@@ -21,6 +27,7 @@ using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Preferences.Loadouts;
+using Content.Shared.Radio;
 using Content.Shared.Roles;
 using Content.Shared.Shuttles.Components;
 using Content.Shared.Stacks;
@@ -43,8 +50,9 @@ namespace Content.IntegrationTests.Tests._WG.Underground;
 public sealed class WGUndergroundTest
 {
     private const string Fixer = "WGUndergroundFixer";
+    private const string Smuggling = "WGTradeGoodContraband";
 
-    /// <summary>Heat climbs through the levels, cools when quiet, opens a raid window at the top and can't reopen one straight after.</summary>
+    /// <summary>Heat climbs through the levels, cools all the time, opens a raid window at the top and can't reopen one straight after.</summary>
     [Test]
     public async Task HeatRisesCoolsAndRaids()
     {
@@ -61,17 +69,18 @@ public sealed class WGUndergroundTest
             Assert.That(heat.Level, Is.EqualTo(0));
             Assert.That(heat.PdaLine(), Is.Null, "A round with no Underground station shows no Heat line.");
 
-            heat.Add(3);
+            heat.Add(6);
             Assert.That(heat.Level, Is.EqualTo(1));
-            heat.Add(3);
+            heat.Add(6);
             Assert.That(heat.Level, Is.EqualTo(2));
+            Assert.That(heat.Percent(), Is.EqualTo(60));
 
-            // Five quiet minutes, then 0.2 a minute: 14 minutes of cooling takes 2.8 off.
-            heat.Tick(now + TimeSpan.FromMinutes(19));
+            // No quiet spell first: 0.2 a minute from the start, so 14 minutes take 2.8 off.
+            heat.Tick(now + TimeSpan.FromMinutes(14));
             Assert.That(heat.Level, Is.EqualTo(1));
-            Assert.That(heat.Heat, Is.EqualTo(3.2).Within(0.05));
+            Assert.That(heat.Heat, Is.EqualTo(9.2).Within(0.05));
 
-            heat.Add(7);
+            heat.Add(11);
             Assert.That(heat.Level, Is.EqualTo(WGUndergroundHeatSystem.Raid));
             Assert.That(heat.RaidEnds, Is.Not.Null);
             var peak = heat.Heat;
@@ -149,6 +158,117 @@ public sealed class WGUndergroundTest
             entMan.DeleteEntity(member);
             entMan.DeleteEntity(courier);
             entMan.DeleteEntity(marine);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// A member's smuggling crate fetches more the hotter the Underground runs and isn't tipped to security; a courier's
+    /// fetches the street price. Nothing extra is paid while a raid window is open.
+    /// </summary>
+    [Test]
+    public async Task HeatEarnsMembersAPremium()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true, Connected = false });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var heat = server.System<WGUndergroundHeatSystem>();
+        var market = server.System<WGTradeMarketSystem>();
+        var cfg = server.ResolveDependency<IConfigurationManager>();
+
+        await server.WaitAssertion(() =>
+        {
+            var chute = TradeTestWorld.MarketChute(entMan, map);
+            if (!entMan.EntityExists(entMan.System<SectorServiceSystem>().GetServiceEntity()))
+                entMan.AddComponent<StationSectorServiceHostComponent>(map.MapUid);
+            var far = TradeTestWorld.Grid(entMan, map, new Vector2(5000f, 0f), "WG test far yard");
+            var member = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            entMan.AddComponent<WGUndergroundMemberComponent>(member);
+            var courier = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            var crate = TradeTestWorld.Hauled(entMan, far, map.GridCoords, Smuggling);
+
+            heat.Reset();
+            var street = market.Quote(chute, Smuggling)!.Value.Amount;
+            Assert.That(market.Quote(chute, Smuggling, crate, member)!.Value.Amount, Is.EqualTo(street), "A member was paid a premium with no Heat.");
+
+            // Halfway to RAID the premium is halfway to its top.
+            heat.Add(cfg.GetCVar(WGUndergroundCVars.HeatRaid) / 2);
+            var half = 1f + (cfg.GetCVar(WGUndergroundCVars.PremiumMax) - 1f) / 2;
+            Assert.That(heat.Premium(), Is.EqualTo(half).Within(0.01));
+            var quote = market.Quote(chute, Smuggling, crate, member)!.Value;
+            Assert.Multiple(() =>
+            {
+                Assert.That(quote.Amount, Is.EqualTo((int) MathF.Round(street * half)).Within(1));
+                Assert.That(quote.Reason, Is.EqualTo((LocId) "wg-underground-reason-premium"));
+                Assert.That(market.Quote(chute, Smuggling, crate, courier)!.Value.Amount, Is.EqualTo(street), "A courier was paid the Underground's premium.");
+                Assert.That(heat.PremiumShare(), Is.LessThan(cfg.GetCVar(WGUndergroundCVars.PremiumTelecrystals)), "Telecrystals were multiplied below their line.");
+            });
+
+            // Customs keeps a member's crates to itself, but not their narcotics or a courier's crates.
+            var tip = new WGNarcoticTipAttemptEvent(member, "wg-trade-contraband-tip-goods");
+            entMan.EventBus.RaiseEvent(EventSource.Local, ref tip);
+            var drugs = new WGNarcoticTipAttemptEvent(member, WGNarcoticHeatSystem.Narcotics);
+            entMan.EventBus.RaiseEvent(EventSource.Local, ref drugs);
+            var courierTip = new WGNarcoticTipAttemptEvent(courier, "wg-trade-contraband-tip-goods");
+            entMan.EventBus.RaiseEvent(EventSource.Local, ref courierTip);
+            Assert.Multiple(() =>
+            {
+                Assert.That(tip.Cancelled, Is.True, "A member's crate was tipped to security.");
+                Assert.That(drugs.Cancelled, Is.False, "A member's narcotics went untipped.");
+                Assert.That(courierTip.Cancelled, Is.False, "A courier's crate went untipped.");
+            });
+
+            heat.Add(cfg.GetCVar(WGUndergroundCVars.HeatRaid));
+            Assert.That(heat.RaidEnds, Is.Not.Null);
+            Assert.That(heat.Premium(), Is.EqualTo(1f), "A premium was paid during a raid window.");
+            heat.Reset();
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A switched-on ship jammer stops radio sent from its own grid and nowhere else.</summary>
+    [Test]
+    public async Task ShipJammerSilencesItsGrid()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = false });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var timing = server.ResolveDependency<IGameTiming>();
+        var protos = server.ResolveDependency<IPrototypeManager>();
+
+        await server.WaitAssertion(() =>
+        {
+            var jammers = entMan.System<WGShipJammerSystem>();
+            var ship = map.Grid.Owner;
+            var other = TradeTestWorld.Grid(entMan, map, new Vector2(500f, 0f), "WG test other ship");
+            var aboard = entMan.SpawnEntity(null, map.GridCoords);
+            var jammerUid = entMan.SpawnEntity("WGShipJammer", map.GridCoords);
+            var jammer = entMan.GetComponent<WGShipJammerComponent>(jammerUid);
+            var common = protos.Index<RadioChannelPrototype>("Common");
+
+            Assert.That(jammers.Jammed(ship), Is.False, "A jammer that was never switched on jammed.");
+            jammer.Until = timing.CurTime + TimeSpan.FromMinutes(10);
+            var ev = new RadioSendAttemptEvent(common, aboard, common.Frequency);
+            entMan.EventBus.RaiseEvent(EventSource.Local, ref ev);
+            Assert.Multiple(() =>
+            {
+                Assert.That(jammers.Jammed(ship), Is.True);
+                Assert.That(ev.Cancelled, Is.True, "The jammer let radio off its own ship.");
+                Assert.That(jammers.Jammed(other), Is.False, "The jammer silenced another ship.");
+            });
+
+            jammer.Until = timing.CurTime;
+        });
+
+        await server.WaitRunTicks(2);
+        await server.WaitAssertion(() =>
+        {
+            var left = entMan.EntityQuery<WGShipJammerComponent>().Count();
+            Assert.That(left, Is.Zero, "A spent jammer didn't burn out.");
         });
 
         await pair.CleanReturnAsync();

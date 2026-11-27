@@ -7,11 +7,18 @@ a Heat level that decides when it is hunted and when its station can be struck, 
 WATCHED, WANTED and RAID. It rises when a member sells smuggling crates at the drop, sealed freight to the fence or
 supply crates at a cargo pallet, or kills a TSF or PDV player. A sale by anyone else pays the treasury and adds no
 Heat (`wg.underground.heat_outsider`, never above zero for the TSF and PDV), so a courier keeps the faction quiet and
-its hunters can't run the Heat up. It cools after five quiet minutes, twice as fast while the Godfather has the
-market closed. WATCHED and WANTED tell TSF security over the radio, WANTED with a bearing
-every ten minutes. RAID announces the station's position to the sector and opens a 20 minute window in which it may
-be struck; afterwards Heat drops to WATCHED and can't reach RAID again for 45 minutes. The same system keeps the
-faction's treasury (5,000 thalers a job sold) and the round-end tally.
+its hunters can't run the Heat up. It cools all the time outside a raid window, twice as fast while the Godfather has
+the market closed. WATCHED (6) and WANTED (12) tell TSF security over the radio, WANTED with a bearing
+every ten minutes. RAID (20) announces the station's position to the sector and opens a 20 minute window in which it may
+be struck; afterwards Heat drops to WATCHED and can't reach RAID again for 45 minutes. A supply crate only counts when
+sold at its destination. The same system keeps the faction's treasury (5,000 thalers a job sold) and the round-end tally.
+
+**Risk premium:** a member's smuggling crate is quoted at the street price times `Premium()`, which climbs from 1 at no
+Heat to `wg.underground.premium_max` (3) at RAID, through `WGTradeQuoteEvent.Premium`. From
+`wg.underground.premium_telecrystals` (65%) of the way to RAID the premium multiplies the crate's telecrystals too. It is
+1 while a raid window is open and stops at WANTED in the 45 minutes after one, so nobody sells at the top with no raid
+to fear. Customs doesn't tip security off about a member's crate (`WGNarcoticTipAttemptEvent`); their narcotics heat,
+pay cut and warrant still apply, and their narcotics are tipped off as before.
 
 **Warrants** (`WGUndergroundWarrantSystem`, `WGUndergroundMemberComponent` on the jobs) replace the fixed bounty.
 A member starts at a base warrant that grows by 25 military credits for each job they sell themself, up to the old
@@ -44,8 +51,10 @@ anyone with Underground access reads the faction's status; the Godfather and Fix
 to the station that lasts 30 minutes) and pay bail; the Godfather opens and closes the market, arms the turrets, pays
 the crew from the treasury, jumps the station and declares a vendetta on a ship within 1.5 km.
 
-Content: the Fixer job, the Underground's contracts board and contractor, the contact on Caelestinus Central who
-sells market passes, and the guidebook pages. Settings are the `wg.underground.*` cvars in `WGUndergroundCVars`.
+Content: the Fixer job, the Underground's contracts board and contractor (thalers and telecrystals), the contact on
+Caelestinus Central who sells market passes, and the guidebook pages. The UndergroundVend also sells the C-20r bundle
+(55 TC) and the ship jammer (25 TC, `WGShipJammerSystem`): used in hand aboard a ship, it stops every jammable radio
+message and NanoChat sent from that grid for ten minutes, then is gone. It can be smashed. Settings are the `wg.underground.*` cvars in `WGUndergroundCVars`.
 
 Not done here: the treasury is the module's own counter, not a sector bank account, and the roles draw no salary;
 pay is the Godfather's payroll verb.
@@ -60,6 +69,7 @@ pay is the Godfather's payroll verb.
 - [`Content.Server/_WG/Underground/ContrabandTurnInSystem.Underground.cs`](ContrabandTurnInSystem.Underground.cs)
 - [`Content.Server/_WG/Underground/PdaSystem.Underground.cs`](PdaSystem.Underground.cs)
 - [`Content.Server/_WG/Underground/WGHereticMarkSystem.cs`](WGHereticMarkSystem.cs)
+- [`Content.Server/_WG/Underground/WGShipJammerSystem.cs`](WGShipJammerSystem.cs)
 - [`Content.Server/_WG/Underground/WGUndergroundBaseSystem.cs`](WGUndergroundBaseSystem.cs)
 - [`Content.Server/_WG/Underground/WGUndergroundComponents.cs`](WGUndergroundComponents.cs)
 - [`Content.Server/_WG/Underground/WGUndergroundEvents.cs`](WGUndergroundEvents.cs)
@@ -82,6 +92,7 @@ pay is the Godfather's payroll verb.
 - [`Resources/Prototypes/_WG/Underground/fixer.yml`](../../../Resources/Prototypes/_WG/Underground/fixer.yml)
 - [`Resources/Prototypes/_WG/Underground/front.yml`](../../../Resources/Prototypes/_WG/Underground/front.yml)
 - [`Resources/Prototypes/_WG/Underground/guidebook.yml`](../../../Resources/Prototypes/_WG/Underground/guidebook.yml)
+- [`Resources/Prototypes/_WG/Underground/uplink.yml`](../../../Resources/Prototypes/_WG/Underground/uplink.yml)
 
 ### Localization
 
@@ -113,6 +124,7 @@ pay is the Godfather's payroll verb.
 - [`Resources/Maps/_Mono/Outpost/caelestinus_central.yml`](../../../Resources/Maps/_Mono/Outpost/caelestinus_central.yml): The Underground's contact, who sells market passes, placed on the Central Command map.
 - [`Resources/Maps/_Mono/POI/underground.yml`](../../../Resources/Maps/_Mono/POI/underground.yml): Point-defence turrets, the Fixers' spawn markers and the Underground's contracts board with its pad.
 - [`Resources/Prototypes/_Mono/Entities/Structures/Machines/Computers/underground_computers.yml`](../../../Resources/Prototypes/_Mono/Entities/Structures/Machines/Computers/underground_computers.yml): ordering a crate is quiet, selling one adds Heat; the console also runs the faction's business
+- [`Resources/Prototypes/_Mono/Entities/Structures/Specific/TradingCrates/base.yml`](../../../Resources/Prototypes/_Mono/Entities/Structures/Specific/TradingCrates/base.yml): a supply crate is worth the Heat it draws; was 10
 - [`Resources/Prototypes/_Mono/Guidebook/factions.yml`](../../../Resources/Prototypes/_Mono/Guidebook/factions.yml): the faction page is rewritten; was /ServerInfo/_Mono/Guidebook/Factions/underground.xml
 - [`Resources/Prototypes/_Mono/Guidebook/rules.yml`](../../../Resources/Prototypes/_Mono/Guidebook/rules.yml)
 - [`Resources/Prototypes/_Mono/PointsOfInterest/underground.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/underground.yml)

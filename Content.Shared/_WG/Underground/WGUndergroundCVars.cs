@@ -8,21 +8,17 @@ public sealed class WGUndergroundCVars
 {
     /// <summary>Heat at which the Underground is WATCHED.</summary>
     public static readonly CVarDef<float> HeatWatched =
-        CVarDef.Create("wg.underground.heat_watched", 3f, CVar.SERVERONLY);
+        CVarDef.Create("wg.underground.heat_watched", 6f, CVar.SERVERONLY);
 
     /// <summary>Heat at which the Underground is WANTED.</summary>
     public static readonly CVarDef<float> HeatWanted =
-        CVarDef.Create("wg.underground.heat_wanted", 6f, CVar.SERVERONLY);
+        CVarDef.Create("wg.underground.heat_wanted", 12f, CVar.SERVERONLY);
 
     /// <summary>Heat at which a RAID window opens.</summary>
     public static readonly CVarDef<float> HeatRaid =
-        CVarDef.Create("wg.underground.heat_raid", 10f, CVar.SERVERONLY);
+        CVarDef.Create("wg.underground.heat_raid", 20f, CVar.SERVERONLY);
 
-    /// <summary>Seconds after the last job before Heat starts to cool.</summary>
-    public static readonly CVarDef<float> HeatGrace =
-        CVarDef.Create("wg.underground.heat_grace", 300f, CVar.SERVERONLY);
-
-    /// <summary>Heat lost a minute while cooling.</summary>
+    /// <summary>Heat lost a minute, all the time outside a raid window.</summary>
     public static readonly CVarDef<float> HeatCooling =
         CVarDef.Create("wg.underground.heat_cooling", 0.2f, CVar.SERVERONLY);
 
@@ -45,6 +41,14 @@ public sealed class WGUndergroundCVars
     /// <summary>Share of a job's Heat that lands when someone outside the Underground makes the sale, from 0 to 1.</summary>
     public static readonly CVarDef<float> HeatOutsider =
         CVarDef.Create("wg.underground.heat_outsider", 0f, CVar.SERVERONLY);
+
+    /// <summary>What a member's smuggling crate pays at RAID Heat, as a multiple of its price; it climbs from 1 at no Heat.</summary>
+    public static readonly CVarDef<float> PremiumMax =
+        CVarDef.Create("wg.underground.premium_max", 3f, CVar.SERVERONLY);
+
+    /// <summary>Share of RAID Heat from which the premium also multiplies a smuggling crate's telecrystals, from 0 to 1.</summary>
+    public static readonly CVarDef<float> PremiumTelecrystals =
+        CVarDef.Create("wg.underground.premium_telecrystals", 0.65f, CVar.SERVERONLY);
 
     /// <summary>Heat a TSF or PDV player killed by an Underground member adds.</summary>
     public static readonly CVarDef<float> HeatKill =

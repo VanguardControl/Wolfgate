@@ -48,6 +48,19 @@ public sealed partial class WGUndergroundTurretComponent : Component
 {
 }
 
+/// <summary>A one-use jammer: switched on, it silences all radio sent from the grid it is on until it burns out.</summary>
+[RegisterComponent]
+public sealed partial class WGShipJammerComponent : Component
+{
+    /// <summary>Seconds it runs before it burns out.</summary>
+    [DataField]
+    public float Seconds = 600f;
+
+    /// <summary>When it burns out, once it is on.</summary>
+    [ViewVariables]
+    public TimeSpan? Until;
+}
+
 /// <summary>A console the Underground runs its faction business from, through its verbs.</summary>
 [RegisterComponent]
 public sealed partial class WGUndergroundTerminalComponent : Component

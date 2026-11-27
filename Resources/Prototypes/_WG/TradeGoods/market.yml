@@ -121,7 +121,7 @@
   # Smuggling crates from the Underground: open chutes pay a fixed price that sales never glut, plus telecrystals, but
   # each sale heats its seller as narcotics do (wg.narcotics.* cvars).
   contrabandGoods: [ WGTradeGoodContraband ]
-  contrabandTelecrystals: 2
+  contrabandTelecrystals: 4
   contrabandAlertChannel: Nfsd
   # Only one open station buys it at a time. The Underground hears where at once, security ten minutes later.
   contrabandDropInterval: 1800

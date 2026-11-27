@@ -29,12 +29,12 @@ Your PDA shows the Underground's Heat under the war level. Heat goes up with wha
 - A TSF or PDV player killed by one of you adds [bold]3[/bold].
 - A member handed in to the TSF takes [bold]2[/bold] off.
 
-The Heat starts to cool once you have lain low for five minutes, and loses 1 every five minutes after that.
+The Heat cools all the time, losing 1 every five minutes.
 
 - [color=#2e9e4f][bold]QUIET[/bold][/color]: nobody is looking for you.
-- [bold]WATCHED[/bold] (Heat 3): the TSF knows goods are moving.
-- [color=#b8860b][bold]WANTED[/bold][/color] (Heat 6): the TSF gets a bearing to the station every ten minutes. The bearing gives a direction but no distance.
-- [color=#d93c3c][bold]RAID[/bold][/color] (Heat 10): the station's position goes out to the whole sector, and it can be raided for 20 minutes. Its turrets come up after a 30 second warning to everyone aboard, and Safe Zones stop protecting you from capture until the window closes. Afterwards the Heat drops to WATCHED and can't reach RAID again for 45 minutes.
+- [bold]WATCHED[/bold] (Heat 6): the TSF knows goods are moving.
+- [color=#b8860b][bold]WANTED[/bold][/color] (Heat 12): the TSF gets a bearing to the station every ten minutes. The bearing gives a direction but no distance.
+- [color=#d93c3c][bold]RAID[/bold][/color] (Heat 20): the station's position goes out to the whole sector, and it can be raided for 20 minutes. Its turrets come up after a 30 second warning to everyone aboard, and Safe Zones stop protecting you from capture until the window closes. Afterwards the Heat drops to WATCHED and can't reach RAID again for 45 minutes.
 
 A sale made by someone outside the UBM adds no Heat and still pays the treasury. A hired courier keeps you quiet, and the price is the courier's cut.
 
@@ -48,11 +48,11 @@ The Godfather can close the market to cool off twice as fast. While it is closed
 <GuideEntityEmbed Entity="Telecrystal"/>
 </Box>
 
-The Underground runs on [color=red]telecrystals[/color], which ship in illegal items from the greater Perseus Arm. The UndergroundVend in the armory holds the TC and sells those restricted items.
+The Underground runs on [color=red]telecrystals[/color], which ship in illegal items from the greater Perseus Arm. The UndergroundVend in the armory holds the TC and sells those restricted items, among them the C-20r and the [bold]ship jammer[/bold]: switch it on aboard a ship and nobody on that ship can radio for help for ten minutes. It works once, and it can be found and smashed. Jobs on the Underground's contracts board pay telecrystals as well as thalers.
 
 [color=crimson]Underground supply crates[/color] full of deactivated telecrystals are ordered from the station's cargo request console for 20,000 each. Ordering one is quiet. Deactivated telecrystals give off a thermal signature, so don't carry too many.
 
-A crate sold at its destination pays the courier 30,000 and sends ten telecrystals to the UndergroundVend. The TSFMC is informed about the sale as well, so get out quick. Each one a member sells adds Heat.
+A crate sold at its destination pays the courier 30,000 and sends twenty telecrystals to the UndergroundVend. The TSFMC is informed about the sale as well, so get out quick. Each one a member sells adds Heat.
 
 ## The Fence and the Drop
 
@@ -66,6 +66,8 @@ The fence vendor sells [color=crimson]smuggling crates[/color]. Only one station
 The fence chute buys freight that still has its manifest seal, such as cargo taken off NPC haulers, at full price and off the books.
 
 Every crate sold at the Drop and every load sold to the fence pays 5,000 thalers into the Underground's treasury, and adds Heat when one of you makes the sale.
+
+A smuggling crate pays 35,000 and four telecrystals at the Drop. When one of you sells it, the buyer pays more the hotter the Underground runs: nothing extra at no Heat, rising to three times the price just short of RAID, and the telecrystals are multiplied the same way from 65% of the way to RAID. Nothing extra is paid while a raid window is open, and in the 45 minutes after one the price stops rising at WANTED. Customs doesn't tip off security about your crates, though selling too many at once still lowers what you are paid and can get you a warrant. The cargo console's status shows how far the Heat is from RAID and what your crates fetch.
 
 ## The Cargo Console
 

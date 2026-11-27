@@ -250,6 +250,8 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
     {
         return Loc.GetString("wg-underground-status",
             ("level", Loc.GetString(WGUndergroundHeatSystem.LevelName(_heat.Level))),
+            ("percent", _heat.Percent()),
+            ("premium", Math.Round(_heat.Premium(), 2)),
             ("treasury", _heat.Treasury),
             ("market", Loc.GetString(_heat.Closed ? "wg-underground-status-closed" : "wg-underground-status-open")));
     }

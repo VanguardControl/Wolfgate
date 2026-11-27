@@ -63,7 +63,8 @@ wg-underground-verb-payroll = Pay the crew ({$amount} thalers each)
 wg-underground-verb-hop = Jump the station
 wg-underground-verb-vendetta = Declare a vendetta on {$ship}
 
-wg-underground-status = Heat: {$level}. Treasury: {$treasury} thalers. The market is {$market}.
+wg-underground-status = Heat: {$level}, {$percent}% of the way to a raid. Our smuggling crates fetch {$premium} times their price. Treasury: {$treasury} thalers. The market is {$market}.
+wg-underground-reason-premium = risk premium
 wg-underground-status-open = open
 wg-underground-status-closed = closed
 wg-underground-pass-issued = A market pass is ready. It lasts 30 minutes.
@@ -72,6 +73,17 @@ wg-underground-pass-closed = The market is closed. Open it to issue passes.
 wg-underground-payroll-paid = The Godfather has paid {$count} of us {$amount} thalers each.
 wg-underground-payroll-failed = The crew can't be paid. Nobody is awake, or the treasury is short.
 wg-underground-vendetta-declared = The Underground has declared a vendetta on {$ship} for {$minutes} minutes.
+
+# Ship jammer
+wg-ship-jammer-on = The jammer is on. No radio leaves this ship for {$minutes} minutes.
+wg-ship-jammer-already = The jammer is already on.
+wg-ship-jammer-no-grid = It needs a ship or a station under it to jam.
+wg-ship-jammer-examine = It is jamming. It burns out in {$minutes} minutes.
+wg-ship-jammer-spent = The jammer burns out.
+
+# Uplink
+wg-uplink-ship-jammer-name = Ship Jammer
+wg-uplink-ship-jammer-desc = Switch it on aboard a ship and nobody on it can radio for help for ten minutes. It works once.
 
 # Round end
 wg-underground-round-end-header = [color=#991111][bold]The Underground[/bold][/color]

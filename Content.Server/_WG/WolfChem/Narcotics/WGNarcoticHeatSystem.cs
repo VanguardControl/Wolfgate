@@ -213,9 +213,17 @@ public sealed partial class WGNarcoticHeatSystem : EntitySystem
             : Loc.GetString("wg-narcotics-tip-warm", ("goods", sold), ("place", place), ("ship", ship));
     }
 
-    /// <summary>Tells security of a sale, unless they heard of this seller within the cooldown and the seller is no hotter.</summary>
+    /// <summary>
+    /// Tells security of a sale, unless they heard of this seller within the cooldown and the seller is no hotter, or a
+    /// <see cref="WGNarcoticTipAttemptEvent"/> handler keeps it back.
+    /// </summary>
     private void Tip(EntityUid seller, EntityUid console, EntityUid grid, Seller record, WGNarcoticHeatTier tier, LocId? goods)
     {
+        var attempt = new WGNarcoticTipAttemptEvent(seller, goods ?? Narcotics);
+        RaiseLocalEvent(ref attempt);
+        if (attempt.Cancelled)
+            return;
+
         var now = _timing.CurTime;
         var cooldown = TimeSpan.FromSeconds(_cfg.GetCVar(WGNarcoticsCVars.TipCooldown));
         if (record.Told is { } told && now < told + cooldown && tier <= record.ToldTier)

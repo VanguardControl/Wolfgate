@@ -69,7 +69,7 @@ public sealed class TradeContrabandTest
             var seller = entMan.SpawnEntity(null, map.GridCoords);
 
             var before = market.Quote(chute, Contraband)!.Value;
-            Assert.That(before.Amount, Is.EqualTo(30000));
+            Assert.That(before.Amount, Is.EqualTo(35000));
             const int sales = 5;
             for (var i = 0; i < sales; i++)
             {

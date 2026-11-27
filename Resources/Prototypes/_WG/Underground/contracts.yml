@@ -1,4 +1,4 @@
-# The Underground's own board: members only, no standing lost with anyone.
+# The Underground's own board: members only, no standing lost with anyone. Each pays telecrystals to its holder on top.
 # Open-space encounters keep wg.encounters.hidden_clearance (6 km) from a hidden station, so targets start past it.
 
 - type: wgContractor
@@ -20,11 +20,13 @@
   tier: 2
   title: wg-contract-ug-hauler-lift
   briefing: wg-contract-ug-hauler-lift-brief
-  reward: 22500, 28000
+  reward: 45000, 56000
   deposit: 1000
   minutes: 55
   weight: 1.5
   crewBonus: 0.25
+  credits: 6
+  creditEntity: Telecrystal
   objective: !type:WGContractBounty
     encounters: [ WGContractTargetRepossession ]
     minDistance: 6500
@@ -37,11 +39,13 @@
   tier: 2
   title: wg-contract-ug-undercut
   briefing: wg-contract-ug-undercut-brief
-  reward: 27500, 35000
+  reward: 55000, 70000
   deposit: 1000
   minutes: 55
   weight: 1.0
   crewBonus: 0.25
+  credits: 6
+  creditEntity: Telecrystal
   objective: !type:WGContractBounty
     encounters: [ WGContractTargetSmuggler ]
     minDistance: 6500
@@ -54,11 +58,13 @@
   tier: 3
   title: wg-contract-ug-hunter
   briefing: wg-contract-ug-hunter-brief
-  reward: 45000, 55000
+  reward: 90000, 110000
   deposit: 2500
   minutes: 60
   weight: 0.8
   crewBonus: 0.25
+  credits: 12
+  creditEntity: Telecrystal
   objective: !type:WGContractBounty
     encounters: [ WGContractTargetMercHunter ]
     minDistance: 6500
@@ -71,18 +77,20 @@
   tier: 2
   title: wg-contract-ug-contraband
   briefing: wg-contract-ug-contraband-brief
-  reward: 14000, 18000
+  reward: 28000, 36000
   deposit: 2000
   minutes: 75
   weight: 2.0
+  credits: 6
+  creditEntity: Telecrystal
   objective: !type:WGContractCourier
     package: WGContractFreightContraband
     count: 2, 4
     from: Other
     to: Contractor
     destinations: [ WGContractorCamelot ]
-    perPackage: 2000
-    perKilometre: 1500
+    perPackage: 4000
+    perKilometre: 3000
 
 - type: wgContract
   id: WGContractUGTakings
@@ -91,15 +99,17 @@
   tier: 1
   title: wg-contract-ug-takings
   briefing: wg-contract-ug-takings-brief
-  reward: 7000, 9000
+  reward: 14000, 18000
   minutes: 75
   weight: 1.5
+  credits: 3
+  creditEntity: Telecrystal
   objective: !type:WGContractCourier
     package: WGContractStrongbox
     from: Other
     to: Contractor
     destinations: [ WGContractorCaelPort ]
-    perKilometre: 1250
+    perKilometre: 2500
 
 - type: wgContract
   id: WGContractUGStock
@@ -108,9 +118,11 @@
   tier: 2
   title: wg-contract-ug-stock
   briefing: wg-contract-ug-stock-brief
-  reward: 26250, 35000
+  reward: 52500, 70000
   minutes: 60
   weight: 2.0
+  credits: 6
+  creditEntity: Telecrystal
   objective: !type:WGContractSupply
     premium: 1.25
     goods:

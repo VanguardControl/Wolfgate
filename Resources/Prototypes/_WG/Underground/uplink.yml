@@ -1,0 +1,22 @@
+# What the UndergroundVend sells beyond the stock uplink.
+
+- type: listing
+  id: WGUplinkC20RBundle
+  name: uplink-c20r-bundle-name
+  description: uplink-c20r-bundle-desc
+  icon: { sprite: /Textures/Objects/Weapons/Guns/SMGs/c20r.rsi, state: icon }
+  productEntity: ClothingBackpackDuffelPDVFilledSMG
+  cost:
+    Telecrystal: 55
+  categories:
+  - UplinkWeaponry
+
+- type: listing
+  id: WGUplinkShipJammer
+  name: wg-uplink-ship-jammer-name
+  description: wg-uplink-ship-jammer-desc
+  productEntity: WGShipJammer
+  cost:
+    Telecrystal: 25
+  categories:
+  - UplinkDisruption

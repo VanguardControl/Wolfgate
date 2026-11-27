@@ -29,6 +29,31 @@
     currentFireMode: 1
   - type: WGUndergroundTurret
 
+# A one-use jammer for boarding: it silences every radio on the ship it is switched on aboard, then burns out.
+- type: entity
+  parent: [ BaseItem, BaseC3SyndicateContraband ]
+  id: WGShipJammer
+  components:
+  - type: Sprite
+    sprite: Objects/Devices/jammer.rsi
+    layers:
+    - state: jammer
+    - state: jammer_high_charge
+      shader: unshaded
+  - type: Item
+    size: Small
+  - type: WGShipJammer
+    seconds: 600
+  - type: Damageable
+    damageContainer: Inorganic
+  - type: Destructible
+    thresholds:
+    - trigger: !type:DamageTrigger
+        damage: 20
+      behaviors:
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+
 - type: entity
   parent: WGContractBoard
   id: WGContractBoardUG

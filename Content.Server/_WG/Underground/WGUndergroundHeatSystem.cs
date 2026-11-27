@@ -1,10 +1,14 @@
 using Content.Server._WG.CargoSales;
 using Content.Server._WG.TradeGoods;
 using Content.Server._WG.TradeGoods.Systems;
+using Content.Server._WG.WolfChem.Narcotics;
 using Content.Server.Chat.Systems;
 using Content.Server.GameTicking;
 using Content.Server.Radio.EntitySystems;
+using Content.Server.Stack;
+using Content.Server.Station.Systems;
 using Content.Shared._Mono.Company;
+using Content.Shared._NF.Trade;
 using Content.Shared._WG.NpcCrew;
 using Content.Shared._WG.Underground;
 using Content.Shared.GameTicking;
@@ -33,6 +37,8 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
     [Dependency] private MetaDataSystem _meta = default!;
     [Dependency] private RadioSystem _radio = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private StackSystem _stack = default!;
+    [Dependency] private StationSystem _station = default!;
     [Dependency] private WGTradeMarketSystem _market = default!;
     [Dependency] private WGUndergroundWarrantSystem _warrants = default!;
 
@@ -43,6 +49,7 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
     public const int Raid = 3;
 
     private const string SupplyCrate = "CrateTradeContrabandSecureUnderground";
+    private static readonly EntProtoId Telecrystal = "Telecrystal";
     private static readonly ProtoId<RadioChannelPrototype> SecurityChannel = "Nfsd";
     private static readonly Color FactionColor = Color.FromHex("#991111");
     private static readonly string[] LevelColors = { "#63c183", "#a3adba", "#d9ad3c", "#e0483a" };
@@ -78,7 +85,6 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
     /// <summary>Thalers the treasury took in this round.</summary>
     public int Earned { get; private set; }
 
-    private TimeSpan _lastJob;
     private TimeSpan _cooled;
     private TimeSpan _raidLockedUntil;
     private TimeSpan _nextStep;
@@ -89,6 +95,8 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<WGTradeSaleEvent>(OnTradeSale);
         SubscribeLocalEvent<WGPalletSaleEvent>(OnPalletSale);
+        SubscribeLocalEvent<WGTradeQuoteEvent>(OnQuote);
+        SubscribeLocalEvent<WGNarcoticTipAttemptEvent>(OnTipAttempt);
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobState);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnCleanup);
         SubscribeLocalEvent<RoundEndTextAppendEvent>(OnRoundEnd);
@@ -116,9 +124,7 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
             return;
         }
 
-        var from = _lastJob + TimeSpan.FromSeconds(_cfg.GetCVar(WGUndergroundCVars.HeatGrace));
-        if (from < _cooled)
-            from = _cooled;
+        var from = _cooled;
         _cooled = now;
         if (Heat > 0 && now > from)
         {
@@ -140,10 +146,38 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
         if (points == 0 || RaidEnds != null)
             return;
 
-        var now = _timing.CurTime;
-        if (points > 0)
-            _lastJob = now;
-        SetHeat(Math.Max(0, Heat + points), now);
+        SetHeat(Math.Max(0, Heat + points), _timing.CurTime);
+    }
+
+    /// <summary>
+    /// What a member's smuggling crate pays now, as a multiple of its price: 1 at no Heat, climbing to
+    /// <c>premium_max</c> at RAID. Nothing extra while a raid window is open, and while no raid can follow one the
+    /// premium stops at WANTED.
+    /// </summary>
+    public float Premium()
+    {
+        return 1f + (float) PremiumShare() * (Math.Max(1f, _cfg.GetCVar(WGUndergroundCVars.PremiumMax)) - 1f);
+    }
+
+    /// <summary>The share of RAID Heat the premium goes by, from 0 to 1.</summary>
+    public double PremiumShare()
+    {
+        if (RaidEnds != null)
+            return 0;
+
+        var heat = Heat;
+        if (_timing.CurTime < _raidLockedUntil)
+            heat = Math.Min(heat, _cfg.GetCVar(WGUndergroundCVars.HeatWanted));
+
+        var raid = _cfg.GetCVar(WGUndergroundCVars.HeatRaid);
+        return raid <= 0 ? 0 : Math.Clamp(heat / raid, 0, 1);
+    }
+
+    /// <summary>Heat as a whole percentage of the way to RAID.</summary>
+    public int Percent()
+    {
+        var raid = _cfg.GetCVar(WGUndergroundCVars.HeatRaid);
+        return raid <= 0 ? 0 : (int) Math.Clamp(Math.Floor(Heat * 100 / raid), 0, 100);
     }
 
     /// <summary>Opens or closes the market. Closed, the Heat cools faster.</summary>
@@ -292,7 +326,6 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
     {
         RaidEnds = null;
         _raidLockedUntil = now + TimeSpan.FromMinutes(_cfg.GetCVar(WGUndergroundCVars.RaidLockMinutes));
-        _lastJob = now;
         _cooled = now;
         Heat = _cfg.GetCVar(WGUndergroundCVars.HeatWatched);
         Level = LevelOf(Heat);
@@ -356,6 +389,7 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
             if (_market.IsHiddenMarket(args.Grid))
                 return;
             points = _cfg.GetCVar(WGUndergroundCVars.HeatCrate);
+            PayPremiumTelecrystals(args, profile.ContrabandTelecrystals);
         }
         else if (_market.IsSealedOnly(args.Chute))
         {
@@ -369,12 +403,53 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
         Sold(1, points, args.Seller);
     }
 
+    /// <summary>A member selling a smuggling crate near RAID: the premium multiplies the telecrystals the chute pays too.</summary>
+    private void PayPremiumTelecrystals(WGTradeSaleEvent args, int telecrystals)
+    {
+        if (telecrystals <= 0
+            || !HasComp<WGUndergroundMemberComponent>(args.Seller)
+            || PremiumShare() < _cfg.GetCVar(WGUndergroundCVars.PremiumTelecrystals))
+            return;
+
+        var extra = (int) MathF.Round(telecrystals * Premium()) - telecrystals;
+        if (extra > 0)
+            _stack.SpawnMultiple(Telecrystal, extra, Transform(args.Chute).Coordinates);
+    }
+
+    /// <summary>Quotes a member's smuggling crate with the premium their Heat earns.</summary>
+    private void OnQuote(WGTradeQuoteEvent args)
+    {
+        if (args.Seller is not { } seller
+            || !HasComp<WGUndergroundMemberComponent>(seller)
+            || !_market.Profile(args.Grid).ContrabandGoods.Contains(args.Good)
+            || _market.IsHiddenMarket(args.Grid))
+            return;
+
+        var premium = Premium();
+        if (premium <= 1f)
+            return;
+
+        args.Premium *= premium;
+        args.PremiumReason = "wg-underground-reason-premium";
+    }
+
+    /// <summary>A member's smuggling crate isn't tipped to security; their narcotics still are.</summary>
+    private void OnTipAttempt(ref WGNarcoticTipAttemptEvent args)
+    {
+        if (args.Goods != WGNarcoticHeatSystem.Narcotics && HasComp<WGUndergroundMemberComponent>(args.Seller))
+            args.Cancelled = true;
+    }
+
     private void OnPalletSale(ref WGPalletSaleEvent args)
     {
         var crates = 0;
         foreach (var good in args.Goods)
         {
-            if (MetaData(good).EntityPrototype?.ID == SupplyCrate)
+            // Sold anywhere but where it was bound, it pays nothing to speak of and draws no notice.
+            if (MetaData(good).EntityPrototype?.ID == SupplyCrate
+                && (!TryComp<TradeCrateComponent>(good, out var trade)
+                    || !trade.DestinationStation.IsValid()
+                    || _station.GetOwningStation(good) == trade.DestinationStation))
                 crates++;
         }
 
@@ -435,8 +510,7 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
         Captures = 0;
         BailPaid = 0;
         Earned = 0;
-        _lastJob = TimeSpan.Zero;
-        _cooled = TimeSpan.Zero;
+        _cooled = _timing.CurTime;
         _raidLockedUntil = TimeSpan.Zero;
         _nextStep = TimeSpan.Zero;
         _nextBearing = TimeSpan.Zero;
