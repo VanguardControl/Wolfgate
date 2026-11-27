@@ -28,6 +28,7 @@
   id: WGSSYEchidna
   mapName: 'SSY Echidna'
   mapPath: /SharedMaps/_WG/Community/ssy_echidna.yml
+  isGrid: true
   minPlayers: 0
   stations:
     WGSSYEchidna:
