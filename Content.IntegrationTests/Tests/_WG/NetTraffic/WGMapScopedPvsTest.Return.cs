@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Numerics;
 using Content.Shared._WG.NetTraffic;
 using Robust.Shared;
@@ -34,40 +35,38 @@ public sealed partial class WGMapScopedPvsTest
         NetEntity grid = default, wall = default, item = default;
         await server.WaitPost(() =>
         {
+            // The middle of the test map's one tile.
+            var onTile = home.GridCoords.Offset(new Vector2(0.5f, 0.5f));
             grid = em.GetNetEntity(home.Grid.Owner);
-            wall = em.GetNetEntity(em.SpawnEntity("WallSolid", home.GridCoords));
-            item = em.GetNetEntity(em.SpawnEntity("Crowbar", home.GridCoords));
+            wall = em.GetNetEntity(em.SpawnEntity("WallSolid", onTile));
+            item = em.GetNetEntity(em.SpawnEntity("Crowbar", onTile));
             server.PlayerMan.SetAttachedEntity(pair.Player!, em.SpawnEntity(null, new MapCoordinates(Vector2.Zero, home.MapId)));
         });
         await pair.RunTicksSync(30);
 
         try
         {
-            Assert.That(cEm.TryGetEntity(wall, out _), "the client never received the wall");
-            Assert.That(cEm.TryGetEntity(item, out _), "the client never received the crowbar");
+            await AssertWhereTheServerHasThem(pair, wall, item, "before leaving");
 
             await server.WaitPost(() =>
                 server.PlayerMan.SetAttachedEntity(pair.Player!, em.SpawnEntity(null, new MapCoordinates(Vector2.Zero, away.MapId))));
             await pair.RunTicksSync(30);
-            Assert.That(cEm.TryGetEntity(grid, out _), Is.False, "the home grid stayed on the client, so its return isn't tested");
+            Assert.Multiple(() =>
+            {
+                Assert.That(cEm.TryGetEntity(grid, out _), Is.False, "the home grid stayed on the client, so its return isn't tested");
+                Assert.That(cEm.TryGetEntity(wall, out _), Is.False, "the client kept the wall after its grid was deleted");
+                Assert.That(cEm.TryGetEntity(item, out _), Is.False, "the client kept the crowbar after its grid was deleted");
+            });
 
             await server.WaitPost(() =>
                 server.PlayerMan.SetAttachedEntity(pair.Player!, em.SpawnEntity(null, new MapCoordinates(Vector2.Zero, home.MapId))));
             await pair.RunTicksSync(30);
 
+            Assert.That(cEm.TryGetEntity(grid, out _), "the home grid didn't come back");
+            await AssertWhereTheServerHasThem(pair, wall, item, "after coming back");
             await pair.Client.WaitAssertion(() =>
-            {
-                Assert.That(cEm.TryGetEntity(grid, out var cGrid), "the home grid didn't come back");
-                foreach (var (net, what) in new[] { (wall, "wall"), (item, "crowbar") })
-                {
-                    Assert.That(cEm.TryGetEntity(net, out var uid), $"the client lost the {what}");
-                    Assert.That(cEm.GetComponent<TransformComponent>(uid!.Value).ParentUid, Is.EqualTo(cGrid),
-                        $"the {what} isn't on the home grid for the returning client");
-                }
-
                 Assert.That(cEm.GetComponent<TransformComponent>(cEm.GetEntity(wall)).Anchored,
-                    "the wall isn't anchored for the returning client");
-            });
+                    "the wall isn't anchored for the returning client"));
         }
         finally
         {
@@ -82,5 +81,33 @@ public sealed partial class WGMapScopedPvsTest
         }
 
         await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Checks the client has each entity under the same parent as the server, compared by net entity.</summary>
+    private static async Task AssertWhereTheServerHasThem(Pair.TestPair pair, NetEntity wall, NetEntity item, string when)
+    {
+        var em = pair.Server.EntMan;
+        var cEm = pair.Client.EntMan;
+        var expected = new Dictionary<NetEntity, NetEntity>();
+
+        await pair.Server.WaitPost(() =>
+        {
+            foreach (var net in new[] { wall, item })
+            {
+                expected[net] = em.GetNetEntity(em.GetComponent<TransformComponent>(em.GetEntity(net)).ParentUid);
+            }
+        });
+
+        await pair.Client.WaitAssertion(() =>
+        {
+            foreach (var (net, what) in new[] { (wall, "wall"), (item, "crowbar") })
+            {
+                Assert.That(cEm.TryGetEntity(net, out var uid), $"the client has no {what} {when}");
+                var parent = cEm.GetComponent<TransformComponent>(uid!.Value).ParentUid;
+                var parentNet = parent.IsValid() ? cEm.GetNetEntity(parent) : NetEntity.Invalid;
+                Assert.That(parentNet, Is.EqualTo(expected[net]),
+                    $"the client has the {what} under {cEm.ToPrettyString(parent)} {when}, the server under {expected[net]}");
+            }
+        });
     }
 }
