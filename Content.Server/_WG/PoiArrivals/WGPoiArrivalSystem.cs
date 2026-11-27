@@ -1,3 +1,4 @@
+using System.Linq;
 using Content.Server._NF.GameRule;
 using Content.Server._NF.Smuggling;
 using Content.Server._NF.Smuggling.Components;
@@ -66,6 +67,12 @@ public sealed partial class WGPoiArrivalSystem : EntitySystem
     public TimeSpan? Due(string poi)
     {
         return _pending.TryGetValue(poi, out var entry) ? entry.Due : null;
+    }
+
+    /// <summary>The held-back points of interest still to come, soonest first.</summary>
+    public List<(string Id, TimeSpan Due)> Pending()
+    {
+        return _pending.Select(pair => (pair.Key, pair.Value.Due)).OrderBy(entry => entry.Due).ToList();
     }
 
     public override void Update(float frameTime)

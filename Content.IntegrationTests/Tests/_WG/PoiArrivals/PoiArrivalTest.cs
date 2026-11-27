@@ -1,14 +1,20 @@
 #nullable enable
+using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Content.Server._NF.GameRule;
+using Content.Server._WG.Contracts;
 using Content.Server._WG.PoiArrivals;
 using Content.Server.GameTicking;
 using Content.Server.Station.Systems;
 using Content.Shared.Maps;
 using Content.Shared.Shuttles.Components;
+using Robust.Server.Console;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
+using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
+using Robust.UnitTesting;
 
 namespace Content.IntegrationTests.Tests._WG.PoiArrivals;
 
@@ -21,6 +27,9 @@ namespace Content.IntegrationTests.Tests._WG.PoiArrivals;
 public sealed class PoiArrivalTest
 {
     private const string Poi = "Sevastopol";
+    private const string Contractor = "WGContractorSevastopol";
+    private const string InboundContract = "WGContractSevDataInbound";
+    private const string Board = "WGContractBoard";
     private const int MaxSeconds = 60;
 
     [Test]
@@ -59,6 +68,8 @@ public sealed class PoiArrivalTest
         var ticker = entMan.System<GameTicker>();
         var stations = entMan.System<StationSystem>();
         var xforms = entMan.System<SharedTransformSystem>();
+        var contracts = entMan.System<WGContractSystem>();
+        var console = server.ResolveDependency<IServerConsoleHost>();
 
         EntityUid grid = default;
         EntityUid holding = default;
@@ -67,6 +78,12 @@ public sealed class PoiArrivalTest
         {
             Assert.That(ticker.DefaultMap, Is.Not.EqualTo(MapId.Nullspace), "No sector map to arrive on.");
 
+            // A contract board, so the only thing between Sevastopol and its contracts is the station being there.
+            BoardStation(server, ticker.DefaultMap);
+            Assert.That(contracts.ContractorHomes().ContainsKey(Contractor), Is.False,
+                "Sevastopol's contractor has a home before Sevastopol arrived.");
+            Assert.That(contracts.PostOffer(InboundContract), Is.Null, "Sevastopol posted before it arrived.");
+
             Assert.That(arrivals.Defer(protos.Index<PointOfInterestPrototype>(Poi)));
             Assert.That(arrivals.Defer(protos.Index<PointOfInterestPrototype>("Lancelot")), Is.False,
                 "A POI without an arrival was held back.");
@@ -74,9 +91,11 @@ public sealed class PoiArrivalTest
             var due = arrivals.Due(Poi);
             Assert.That(due, Is.Not.Null);
             Assert.That(due!.Value, Is.InRange(TimeSpan.FromMinutes(30), TimeSpan.FromMinutes(90)));
+            Assert.That(arrivals.Pending().Select(entry => entry.Id), Does.Contain(Poi));
 
-            Assert.That(arrivals.WarpIn(Poi));
-            Assert.That(arrivals.Due(Poi), Is.Null, "The POI is still pending after warping in.");
+            // Admins force it in ahead of schedule.
+            console.ExecuteCommand("wg_poiarrivals sevastopol");
+            Assert.That(arrivals.Due(Poi), Is.Null, "The POI is still pending after being forced in.");
             Assert.That(arrivals.WarpIn(Poi), Is.False, "The POI warped in twice.");
 
             var query = entMan.EntityQueryEnumerator<WGPoiArrivalComponent>();
@@ -109,6 +128,32 @@ public sealed class PoiArrivalTest
             Assert.That(station, Is.Not.Null);
             Assert.That(entMan.GetComponent<MetaDataComponent>(station!.Value).EntityName,
                 Is.EqualTo(protos.Index<PointOfInterestPrototype>(Poi).Name));
+
+            Assert.That(contracts.ContractorHomes().GetValueOrDefault(Contractor), Is.EqualTo(station.Value),
+                "Sevastopol's contractor did not find its station after it arrived.");
+            var offer = contracts.PostOffer(InboundContract);
+            Assert.That(offer, Is.Not.Null, "Sevastopol posted nothing after it arrived.");
+            Assert.That(offer!.Destination, Is.EqualTo(station.Value), "Sevastopol's inbound run isn't bound for Sevastopol.");
         });
+    }
+
+    /// <summary>A station with the public contract board on it, near the sector core.</summary>
+    private static void BoardStation(RobustIntegrationTest.ServerIntegrationInstance server, MapId map)
+    {
+        var entMan = server.EntMan;
+        var maps = entMan.System<SharedMapSystem>();
+        var grid = maps.CreateGridEntity(map);
+        for (var x = 0; x < 6; x++)
+        {
+            for (var y = 0; y < 6; y++)
+            {
+                maps.SetTile(grid.Owner, grid.Comp, new Vector2i(x, y), new Tile(1));
+            }
+        }
+
+        entMan.System<SharedTransformSystem>().SetLocalPosition(grid.Owner, new Vector2(0f, 300f));
+        var proto = server.ProtoMan.Index<GameMapPrototype>("Frontier");
+        entMan.System<StationSystem>().InitializeNewStation(proto.Stations.Values.First(), new[] { grid.Owner }, proto.MapName);
+        entMan.SpawnEntity(Board, new EntityCoordinates(grid.Owner, 2.5f, 2.5f));
     }
 }
