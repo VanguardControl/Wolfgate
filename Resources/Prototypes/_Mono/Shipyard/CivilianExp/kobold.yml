@@ -6,7 +6,7 @@
   id: Kobold
   parent: BaseVessel
   name: DIRE Kobold
-  description: An old cult classic built by D.I.R.E. as a proof of concept for their capabilities in ship making, beloved to a select few for its industrial charm and affordability. Comes with all the basics needed to begin your own Expedition travels, and not a damn thing more. Shadekin friend, featuring Lightswitches for the whole ship.
+  description: An old cult classic built by D.I.R.E. as a proof of concept for their capabilities in ship making, beloved to a select few for its industrial charm and affordability. Comes with all the basics needed to begin your own Expedition travels, and not a damn thing more. Shadekin friendly, featuring Lightswitches for the whole ship.
   price: 60000
   category: Small
   group: Expedition
