@@ -4,6 +4,7 @@ using Content.Shared._WG.NetTraffic;
 using Robust.Shared;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
+using Robust.Shared.Maths;
 
 namespace Content.IntegrationTests.Tests._WG.NetTraffic;
 
@@ -35,17 +36,26 @@ public sealed partial class WGMapScopedPvsTest
         NetEntity grid = default, wall = default, item = default;
         await server.WaitPost(() =>
         {
-            // The middle of the test map's one tile.
-            var onTile = home.GridCoords.Offset(new Vector2(0.5f, 0.5f));
+            // A tile each, so the wall doesn't push the crowbar off the grid.
+            var maps = server.System<SharedMapSystem>();
+            maps.SetTile(home.Grid.Owner, home.Grid.Comp, new Vector2i(1, 0), home.Tile.Tile);
             grid = em.GetNetEntity(home.Grid.Owner);
-            wall = em.GetNetEntity(em.SpawnEntity("WallSolid", onTile));
-            item = em.GetNetEntity(em.SpawnEntity("Crowbar", onTile));
+            wall = em.GetNetEntity(em.SpawnEntity("WallSolid", home.GridCoords.Offset(new Vector2(0.5f, 0.5f))));
+            item = em.GetNetEntity(em.SpawnEntity("Crowbar", home.GridCoords.Offset(new Vector2(1.5f, 0.5f))));
             server.PlayerMan.SetAttachedEntity(pair.Player!, em.SpawnEntity(null, new MapCoordinates(Vector2.Zero, home.MapId)));
         });
         await pair.RunTicksSync(30);
 
         try
         {
+            await server.WaitAssertion(() =>
+            {
+                foreach (var (net, what) in new[] { (wall, "wall"), (item, "crowbar") })
+                {
+                    Assert.That(em.GetComponent<TransformComponent>(em.GetEntity(net)).ParentUid, Is.EqualTo(home.Grid.Owner),
+                        $"the {what} isn't on the home grid, so leaving with the grid isn't tested");
+                }
+            });
             await AssertWhereTheServerHasThem(pair, wall, item, "before leaving");
 
             await server.WaitPost(() =>
