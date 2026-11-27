@@ -4,8 +4,8 @@ meta:
   engineVersion: 291.0.4
   forkId: wolfgate-mapping
   forkVersion: 20261124-142757-5bcd597-tm740-b8438d08
-  time: 11/27/2026 22:25:08
-  entityCount: 1715
+  time: 11/27/2026 22:30:34
+  entityCount: 1719
 maps: []
 grids:
 - 2
@@ -518,8 +518,8 @@ entities:
           1,4:
             0: 63726
           2,0:
-            1: 2055
-            0: 12336
+            1: 2103
+            0: 12288
             2: 128
           2,1:
             0: 65527
@@ -534,8 +534,7 @@ entities:
             2: 32776
           3,0:
             2: 56
-            1: 13056
-            0: 128
+            1: 13184
           3,1:
             0: 4368
             1: 17612
@@ -630,9 +629,8 @@ entities:
             1: 8
             2: 128
           0,8:
-            1: 78
+            1: 206
             2: 4096
-            0: 128
           1,5:
             0: 61198
           1,6:
@@ -1146,7 +1144,7 @@ entities:
     components:
     - type: Transform
       parent: 2
-      pos: -4.5,7.5
+      pos: 9.5,1.5
   - uid: 126
     components:
     - type: Transform
@@ -1281,7 +1279,7 @@ entities:
     components:
     - type: Transform
       parent: 2
-      pos: -5.5,8.5
+      pos: -4.5,7.5
   - uid: 1312
     components:
     - type: Transform
@@ -1291,8 +1289,13 @@ entities:
     components:
     - type: Transform
       parent: 2
-      pos: -5.5,9.5
+      pos: -5.5,8.5
   - uid: 1322
+    components:
+    - type: Transform
+      parent: 2
+      pos: -5.5,9.5
+  - uid: 1324
     components:
     - type: Transform
       parent: 2
@@ -1307,11 +1310,26 @@ entities:
     - type: Transform
       parent: 2
       pos: -4.5,12.5
+  - uid: 1330
+    components:
+    - type: Transform
+      parent: 2
+      pos: 8.5,1.5
+  - uid: 1332
+    components:
+    - type: Transform
+      parent: 2
+      pos: 15.5,1.5
   - uid: 1335
     components:
     - type: Transform
       parent: 2
       pos: -7.5,8.5
+  - uid: 1346
+    components:
+    - type: Transform
+      parent: 2
+      pos: 3.5,33.5
   - uid: 1388
     components:
     - type: Transform
