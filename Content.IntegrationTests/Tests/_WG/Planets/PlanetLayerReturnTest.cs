@@ -18,10 +18,10 @@ namespace Content.IntegrationTests.Tests._WG.Planets;
 [TestOf(typeof(WGPlanetPvsSystem))]
 public sealed class PlanetLayerReturnTest
 {
-    // Range-limited, the returning client keeps the layer's entities in nullspace: the engine deletes the layer there
-    // and detaches its children, then never re-attaches them. Engine fix pending; wg.planet_pvs_range_limited is off.
-    [TestCase(true, 30, Ignore = "Lupine engine: an evicted range-limited layer's children stay detached on the client")]
-    [TestCase(true, 3, Ignore = "Lupine engine: an evicted range-limited layer's children stay detached on the client")]
+    // Range-limited, the engine deletes the layer on the client and evicts what the client held on it along with it,
+    // so its entities come back as new (Lupine#4). Before that they stayed in nullspace.
+    [TestCase(true, 30)]
+    [TestCase(true, 3)]
     [TestCase(false, 30)]
     public async Task ReturningClientGetsTheLayersEntitiesBack(bool rangeLimited, int awayTicks)
     {

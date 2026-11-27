@@ -80,6 +80,7 @@ sent bytes down by message, network event, component and prototype.
 
 - [`Content.IntegrationTests/Tests/_WG/NetTraffic/WGGeneratorFuelNetTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NetTraffic/WGGeneratorFuelNetTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/NetTraffic/WGMapScopedPvsTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NetTraffic/WGMapScopedPvsTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/NetTraffic/WGMapScopedPvsTest.Return.cs`](../../../Content.IntegrationTests/Tests/_WG/NetTraffic/WGMapScopedPvsTest.Return.cs)
 - [`Content.IntegrationTests/Tests/_WG/NetTraffic/WGMapScopedPvsTest.Size.cs`](../../../Content.IntegrationTests/Tests/_WG/NetTraffic/WGMapScopedPvsTest.Size.cs)
 - [`Content.IntegrationTests/Tests/_WG/NetTraffic/WGNetBroadcastTrimTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NetTraffic/WGNetBroadcastTrimTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/NetTraffic/WGNetTrafficTest.cs`](../../../Content.IntegrationTests/Tests/_WG/NetTraffic/WGNetTrafficTest.cs)
