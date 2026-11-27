@@ -12,6 +12,7 @@ public enum WgMusicPauseReason : byte
     SoundtrackMute = 1 << 1,
     CombatMusicPreview = 1 << 2,
     CodaSong = 1 << 3,
+    Hymn = 1 << 4,
 }
 
 /// <summary>
@@ -35,6 +36,12 @@ public sealed partial class ContentAudioSystem
     /// <summary>Whether something other than the Coda's song is holding music paused, such as an internet sound or the
     /// soundtrack mute; the song falls silent with it.</summary>
     public bool WgMusicHeldElsewhere => (_wgMusicPauseReasons & ~WgMusicPauseReason.CodaSong) != 0;
+
+    /// <summary>Whether anything but the given reasons is holding music paused.</summary>
+    public bool WgMusicHeldExcept(WgMusicPauseReason allowed) => (_wgMusicPauseReasons & ~allowed) != 0;
+
+    /// <summary>Whether a hymn has the listener, fading in or between pieces; a Lattice band's own piece waits for it.</summary>
+    public bool WgHymnHolding { get; set; }
 
     /// <summary>
     /// Whether the Coda's song has the listener, fading in or between pieces; a Lattice band's own piece waits for it.

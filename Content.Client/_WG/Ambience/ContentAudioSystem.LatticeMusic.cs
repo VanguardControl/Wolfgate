@@ -61,11 +61,11 @@ public sealed partial class ContentAudioSystem
         }
 
         _wgBandHolding = true;
-        // The Coda's song comes first: the band's piece waits, unplayed, until the song lets the listener go. One the
-        // song cut short plays again then.
-        if (WgCodaSongHolding && _wgBandStream is { } cut && _ambientMusicStream == cut)
+        // The Coda's song and a hymn come first: the band's piece waits, unplayed, until they let the listener go.
+        // One they cut short plays again then.
+        if ((WgCodaSongHolding || WgHymnHolding) && _wgBandStream is { } cut && _ambientMusicStream == cut)
             _wgBandMusicPlayed.Remove(_wgBand);
-        if (_isCombatMusicPlaying || WgCodaSongHolding || _state.CurrentState is not GameplayState)
+        if (_isCombatMusicPlaying || WgCodaSongHolding || WgHymnHolding || _state.CurrentState is not GameplayState)
             return;
 
         if (!_wgBandMusicPlayed.Contains(_wgBand) &&
