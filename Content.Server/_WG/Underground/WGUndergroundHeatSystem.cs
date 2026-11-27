@@ -448,7 +448,7 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
             // Sold anywhere but where it was bound, it pays nothing to speak of and draws no notice.
             if (MetaData(good).EntityPrototype?.ID == SupplyCrate
                 && (!TryComp<TradeCrateComponent>(good, out var trade)
-                    || !trade.DestinationStation.IsValid()
+                    || trade.DestinationStation == EntityUid.Invalid
                     || _station.GetOwningStation(good) == trade.DestinationStation))
                 crates++;
         }
