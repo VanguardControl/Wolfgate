@@ -58,6 +58,8 @@ public sealed class PoiArrivalTest
                 Assert.That(arrival.MaxDelay, Is.EqualTo(TimeSpan.FromMinutes(45)));
             }
         });
+
+        await pair.CleanReturnAsync();
     }
 
     [Test]
@@ -143,6 +145,8 @@ public sealed class PoiArrivalTest
             Assert.That(offer, Is.Not.Null, "Sevastopol posted nothing after it arrived.");
             Assert.That(offer!.Destination, Is.EqualTo(station.Value), "Sevastopol's inbound run isn't bound for Sevastopol.");
         });
+
+        await pair.CleanReturnAsync();
     }
 
     /// <summary>A station with the public contract board on it, near the sector core.</summary>
