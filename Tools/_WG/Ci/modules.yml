@@ -139,6 +139,12 @@ unmarked:
   - path: Resources/Maps/_Mono/POI/pdvhelios_hw.yml
     module: PdvArtificer
     reason: Mapped two Artificer spawn markers beside the Jarrah's.
+  - path: Resources/Maps/_Mono/POI/camelot.yml
+    module: Cyborgs
+    reason: Mapped Viper Group cyborg spawns beside the other Viper spawns.
+  - path: Resources/Maps/_Mono/Test/dev_map.yml
+    module: Cyborgs
+    reason: Added a VG cyborg spawn point to the MonoDev test map.
   - path: Resources/Maps/_Mono/POI/pdvhelios.yml
     module: SpecialistKits
     reason: Mapped the Vanguard specialist rack against the east wall of the spawn hall.
@@ -3169,3 +3175,9 @@ unmarked:
   - path: Resources/Maps/_Mono/POI/Dungeons/lancelot.yml
     module: null
     reason: The plasma miner trickles 2 mol/s, down from 400, and refills its chamber to the 6,500 kPa it starts at.
+  - path: Resources/Maps/_Mono/POI/pdvhelios.yml
+    module: LoreBook
+    reason: The Vanguard oath papers name the Sultan as a woman and the Choir as heresy.
+  - path: Resources/Maps/_Mono/POI/pdvhelios.yml
+    module: Hope
+    reason: The altar of the Blessed Figure is the Sultan's altar, which sings her hymns.
