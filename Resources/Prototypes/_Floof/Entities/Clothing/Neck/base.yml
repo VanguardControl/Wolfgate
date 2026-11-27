@@ -1,0 +1,8 @@
+- type: entity
+  parent: ClothingNeckBase
+  id: ClothingNeckCollarBase
+  abstract: true
+  components:
+  - type: Clothing
+    equipDelay: 1.5
+    unequipDelay: 1.5

@@ -1,0 +1,7 @@
+- type: soundCollection
+  id: CollarBellRings
+  files:
+  - /Audio/_Priv/Jingle1.ogg
+  - /Audio/_Priv/Jingle2.ogg
+  - /Audio/_Priv/Jingle3.ogg
+  - /Audio/_Priv/Jingle4.ogg
