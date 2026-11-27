@@ -335,7 +335,7 @@ public sealed partial class NFAdventureRuleSystem : GameRuleSystem<NFAdventureRu
             if (location.SpawnGamePreset.Length > 0 && !protoIds.Contains(currentPreset))
                 continue;
 
-            if (_wgArrivals.Defer(location)) // WOLFGATE(PoiArrivals): jumps into the sector later in the shift instead
+            if (_wgArrivals.Defer(location, mapUid)) // WOLFGATE(PoiArrivals): jumps into the sector later in the shift instead
                 continue;
 
             switch (location.SpawnGroup)

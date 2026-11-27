@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Server._NF.GameRule;
+using Content.Server._WG.PoiArrivals;
 using Content.Server.Warps;
 using Content.Shared._Mono.Company;
 using Content.Shared._WG.Contracts;
@@ -45,9 +46,10 @@ public sealed partial class WGContractSystem
             names.Add(poi.Name);
 
         var query = EntityQueryEnumerator<StationDataComponent>();
-        while (query.MoveNext(out var uid, out _))
+        while (query.MoveNext(out var uid, out var data))
         {
-            if (names.Contains(MetaData(uid).EntityName))
+            // A station still jumping into the sector isn't open for business yet.
+            if (names.Contains(MetaData(uid).EntityName) && !data.Grids.Any(grid => HasComp<WGPoiArrivalComponent>(grid)))
                 return uid;
         }
 

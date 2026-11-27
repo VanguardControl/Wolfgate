@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Numerics;
 using Content.Server._NF.GameRule;
 using Content.Server._NF.Smuggling;
 using Content.Server._NF.Smuggling.Components;
@@ -9,6 +10,7 @@ using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Events;
 using Content.Server.Shuttles.Systems;
 using Content.Server.Station.Systems;
+using Content.Shared._WG.PoiArrivals;
 using Content.Shared.GameTicking;
 using Content.Shared.Shuttles.Components;
 using Robust.Shared.Map;
@@ -34,8 +36,11 @@ public sealed partial class WGPoiArrivalSystem : EntitySystem
     /// <summary>Spool-up on the holding map, which nobody sees.</summary>
     private const float StartupTime = 1f;
 
-    /// <summary>Each held-back point of interest and how far into the shift it arrives.</summary>
-    private readonly Dictionary<string, (PointOfInterestPrototype Poi, TimeSpan Due)> _pending = new();
+    /// <summary>A held-back point of interest: its arrival, the map it arrives on and how far into the shift.</summary>
+    private readonly record struct Pending(PointOfInterestPrototype Poi, WGPoiArrivalPrototype Arrival, MapId Sector, TimeSpan Due);
+
+    /// <summary>The held-back points of interest, by POI ID.</summary>
+    private readonly Dictionary<string, Pending> _pending = new();
 
     public override void Initialize()
     {
@@ -50,15 +55,21 @@ public sealed partial class WGPoiArrivalSystem : EntitySystem
         _pending.Clear();
     }
 
-    /// <summary>Holds a point of interest back from round-start generation if it arrives later; false if it doesn't.</summary>
-    public bool Defer(PointOfInterestPrototype poi)
+    /// <summary>The arrival for a point of interest, if it has one.</summary>
+    public WGPoiArrivalPrototype? ArrivalOf(string poi)
     {
-        if (!_proto.TryIndex<WGPoiArrivalPrototype>(poi.ID, out var arrival))
+        return _proto.EnumeratePrototypes<WGPoiArrivalPrototype>().FirstOrDefault(arrival => arrival.Poi == poi);
+    }
+
+    /// <summary>Holds a point of interest back from round-start generation if it arrives on the sector map later; false if it doesn't.</summary>
+    public bool Defer(PointOfInterestPrototype poi, MapId sector)
+    {
+        if (ArrivalOf(poi.ID) is not { } arrival)
             return false;
 
         var seconds = _random.NextFloat((float) arrival.MinDelay.TotalSeconds, (float) arrival.MaxDelay.TotalSeconds);
         var due = TimeSpan.FromSeconds(seconds);
-        _pending[poi.ID] = (poi, due);
+        _pending[poi.ID] = new Pending(poi, arrival, sector, due);
         Log.Info($"{poi.ID} will arrive {due:hh\\:mm\\:ss} into the round.");
         return true;
     }
@@ -70,7 +81,7 @@ public sealed partial class WGPoiArrivalSystem : EntitySystem
     }
 
     /// <summary>The held-back points of interest still to come, soonest first.</summary>
-    public List<(string Id, TimeSpan Due)> Pending()
+    public List<(string Id, TimeSpan Due)> PendingArrivals()
     {
         return _pending.Select(pair => (pair.Key, pair.Value.Due)).OrderBy(entry => entry.Due).ToList();
     }
@@ -79,13 +90,14 @@ public sealed partial class WGPoiArrivalSystem : EntitySystem
     {
         base.Update(frameTime);
 
-        if (_pending.Count == 0)
+        // Nothing arrives once the shift is over; restart cleanup drops what is left.
+        if (_pending.Count == 0 || _ticker.RunLevel != GameRunLevel.InRound)
             return;
 
         var now = _ticker.RoundDuration();
-        foreach (var (id, (_, due)) in _pending)
+        foreach (var (id, entry) in _pending)
         {
-            if (now >= due)
+            if (now >= entry.Due)
             {
                 WarpIn(id);
                 return;
@@ -99,20 +111,28 @@ public sealed partial class WGPoiArrivalSystem : EntitySystem
         if (!_pending.Remove(id, out var entry))
             return false;
 
-        var poi = entry.Poi;
-        var holding = _map.CreateMap(out var holdingId);
-        if (!_poi.WgSpawnArrival(holdingId, poi, out var grid, out var destination))
+        if (!_map.TryGetMap(entry.Sector, out var sector))
         {
-            Log.Error($"{poi.ID} failed to load for its arrival.");
+            Log.Error($"{id} has no sector map to arrive on.");
+            return false;
+        }
+
+        var holding = _map.CreateMap(out var holdingId);
+        if (!_poi.WgSpawnArrival(holdingId, entry.Poi, out var grid, out var destination))
+        {
+            Log.Error($"{id} failed to load for its arrival.");
             Del(holding);
             return false;
         }
 
+        // Setting up the station listed the holding map as an FTL destination; no one else may jump there.
+        RemComp<FTLDestinationComponent>(holding);
+
         var arrival = EnsureComp<WGPoiArrivalComponent>(grid);
-        arrival.Arrival = poi.ID;
+        arrival.Arrival = entry.Arrival.ID;
         arrival.Holding = holding;
 
-        var target = new EntityCoordinates(_map.GetMap(_ticker.DefaultMap), destination);
+        var target = new EntityCoordinates(sector.Value, destination);
         if (TryComp<ShuttleComponent>(grid, out var shuttle)
             && _shuttle.WgTryGetFTLProximity(grid, target, out var coordinates, out var angle))
         {
@@ -122,7 +142,7 @@ public sealed partial class WGPoiArrivalSystem : EntitySystem
         }
 
         // A grid that can't jump is set down in place.
-        Log.Warning($"{poi.ID} could not jump in and was placed directly.");
+        Log.Warning($"{id} could not jump in and was placed directly.");
         if (!_shuttle.TryFTLProximity(grid, target))
             _transform.SetCoordinates(grid, target);
         Arrive((grid, arrival));
@@ -134,7 +154,7 @@ public sealed partial class WGPoiArrivalSystem : EntitySystem
         Arrive(ent);
     }
 
-    /// <summary>Finishes an arrival: clears the holding map, gives the station its dead drops and tells the sector.</summary>
+    /// <summary>Finishes an arrival: clears the holding map, gives the station its dead drops and, mid-shift, tells the sector.</summary>
     private void Arrive(Entity<WGPoiArrivalComponent> ent)
     {
         if (ent.Comp.Holding is { } holding && !TerminatingOrDeleted(holding))
@@ -144,13 +164,13 @@ public sealed partial class WGPoiArrivalSystem : EntitySystem
         if (station != null && TryComp<StationDeadDropComponent>(station, out var drops))
             PlaceDeadDrops(station.Value, drops);
 
-        if (_proto.TryIndex<WGPoiArrivalPrototype>(ent.Comp.Arrival, out var arrival))
+        if (_ticker.RunLevel == GameRunLevel.InRound && _proto.TryIndex<WGPoiArrivalPrototype>(ent.Comp.Arrival, out var arrival))
         {
             var position = _transform.GetWorldPosition(ent);
             var message = Loc.GetString(arrival.Announcement,
                 ("station", Name(ent)),
-                ("range", WGReaverCampaignSystem.Kilometres(System.Numerics.Vector2.Zero, position)),
-                ("bearing", WGReaverCampaignSystem.Bearing(System.Numerics.Vector2.Zero, position)));
+                ("range", WGReaverCampaignSystem.Kilometres(Vector2.Zero, position)),
+                ("bearing", WGReaverCampaignSystem.Bearing(Vector2.Zero, position)));
             _chat.DispatchGlobalAnnouncement(message, Loc.GetString(arrival.Sender), colorOverride: arrival.Color);
         }
 

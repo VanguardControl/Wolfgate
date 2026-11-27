@@ -5,8 +5,8 @@ using System.Numerics;
 using Content.Server._NF.GameRule;
 using Content.Server._WG.Contracts;
 using Content.Server._WG.PoiArrivals;
-using Content.Server.GameTicking;
 using Content.Server.Station.Systems;
+using Content.Shared._WG.PoiArrivals;
 using Content.Shared.Maps;
 using Content.Shared.Shuttles.Components;
 using Robust.Server.Console;
@@ -19,8 +19,8 @@ using Robust.UnitTesting;
 namespace Content.IntegrationTests.Tests._WG.PoiArrivals;
 
 /// <summary>
-/// Arriving points of interest are held back at round start for 30 to 90 minutes, then load as their station on a holding
-/// map and jump into the sector.
+/// Arriving points of interest are held back at round start for 15 to 45 minutes, then load as their station on a holding
+/// map and jump into the sector; their contractors post only once they have arrived.
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WGPoiArrivalSystem))]
@@ -37,21 +37,25 @@ public sealed class PoiArrivalTest
     {
         await using var pair = await PoolManager.GetServerClient();
         var protos = pair.Server.ResolveDependency<IPrototypeManager>();
+        var arrivals = pair.Server.EntMan.System<WGPoiArrivalSystem>();
 
         await pair.Server.WaitAssertion(() =>
         {
-            foreach (var arrival in protos.EnumeratePrototypes<WGPoiArrivalPrototype>())
+            var all = protos.EnumeratePrototypes<WGPoiArrivalPrototype>().ToList();
+            foreach (var arrival in all)
             {
-                Assert.That(protos.HasIndex<PointOfInterestPrototype>(arrival.ID), $"{arrival.ID} is no point of interest.");
-                Assert.That(protos.HasIndex<GameMapPrototype>(arrival.ID), $"{arrival.ID} has no game map for its station.");
+                Assert.That(protos.HasIndex<PointOfInterestPrototype>(arrival.Poi), $"{arrival.ID}: {arrival.Poi} is no point of interest.");
+                Assert.That(protos.HasIndex<GameMapPrototype>(arrival.Poi), $"{arrival.ID}: {arrival.Poi} has no game map for its station.");
                 Assert.That(arrival.MinDelay, Is.LessThanOrEqualTo(arrival.MaxDelay), $"{arrival.ID} arrives before it can.");
+                Assert.That(all.Count(other => other.Poi == arrival.Poi), Is.EqualTo(1), $"{arrival.Poi} has more than one arrival.");
             }
 
-            foreach (var id in new[] { "AnomalousLab", "Sevastopol" })
+            foreach (var poi in new[] { "AnomalousLab", "Sevastopol" })
             {
-                var arrival = protos.Index<WGPoiArrivalPrototype>(id);
-                Assert.That(arrival.MinDelay, Is.EqualTo(TimeSpan.FromMinutes(30)));
-                Assert.That(arrival.MaxDelay, Is.EqualTo(TimeSpan.FromMinutes(90)));
+                var arrival = arrivals.ArrivalOf(poi);
+                Assert.That(arrival, Is.Not.Null, $"{poi} doesn't arrive mid-shift.");
+                Assert.That(arrival!.MinDelay, Is.EqualTo(TimeSpan.FromMinutes(15)));
+                Assert.That(arrival.MaxDelay, Is.EqualTo(TimeSpan.FromMinutes(45)));
             }
         });
     }
@@ -65,33 +69,33 @@ public sealed class PoiArrivalTest
         var entMan = server.EntMan;
         var protos = server.ResolveDependency<IPrototypeManager>();
         var arrivals = entMan.System<WGPoiArrivalSystem>();
-        var ticker = entMan.System<GameTicker>();
         var stations = entMan.System<StationSystem>();
         var xforms = entMan.System<SharedTransformSystem>();
         var contracts = entMan.System<WGContractSystem>();
         var console = server.ResolveDependency<IServerConsoleHost>();
+
+        // The test pool runs no round, so the test makes the sector map the adventure rule would pass in.
+        var sector = await pair.CreateTestMap();
 
         EntityUid grid = default;
         EntityUid holding = default;
 
         await server.WaitAssertion(() =>
         {
-            Assert.That(ticker.DefaultMap, Is.Not.EqualTo(MapId.Nullspace), "No sector map to arrive on.");
-
             // A contract board, so the only thing between Sevastopol and its contracts is the station being there.
-            BoardStation(server, ticker.DefaultMap);
+            BoardStation(server, sector.MapId);
             Assert.That(contracts.ContractorHomes().ContainsKey(Contractor), Is.False,
                 "Sevastopol's contractor has a home before Sevastopol arrived.");
             Assert.That(contracts.PostOffer(InboundContract), Is.Null, "Sevastopol posted before it arrived.");
 
-            Assert.That(arrivals.Defer(protos.Index<PointOfInterestPrototype>(Poi)));
-            Assert.That(arrivals.Defer(protos.Index<PointOfInterestPrototype>("Lancelot")), Is.False,
+            Assert.That(arrivals.Defer(protos.Index<PointOfInterestPrototype>(Poi), sector.MapId));
+            Assert.That(arrivals.Defer(protos.Index<PointOfInterestPrototype>("Lancelot"), sector.MapId), Is.False,
                 "A POI without an arrival was held back.");
 
             var due = arrivals.Due(Poi);
             Assert.That(due, Is.Not.Null);
-            Assert.That(due!.Value, Is.InRange(TimeSpan.FromMinutes(30), TimeSpan.FromMinutes(90)));
-            Assert.That(arrivals.Pending().Select(entry => entry.Id), Does.Contain(Poi));
+            Assert.That(due!.Value, Is.InRange(TimeSpan.FromMinutes(15), TimeSpan.FromMinutes(45)));
+            Assert.That(arrivals.PendingArrivals().Select(entry => entry.Id), Does.Contain(Poi));
 
             // Admins force it in ahead of schedule.
             console.ExecuteCommand("wg_poiarrivals sevastopol");
@@ -106,6 +110,10 @@ public sealed class PoiArrivalTest
             Assert.That(entMan.GetComponent<TransformComponent>(grid).MapUid, Is.EqualTo(holding),
                 "The POI should spool up on its holding map.");
             Assert.That(stations.GetOwningStation(grid), Is.Not.Null, "The POI was not set up as a station.");
+            Assert.That(entMan.HasComponent<FTLDestinationComponent>(holding), Is.False,
+                "Pilots can jump to the holding map, which is deleted on arrival.");
+            Assert.That(contracts.ContractorHomes().ContainsKey(Contractor), Is.False,
+                "Sevastopol's contractor found its station while it was still jumping in.");
         });
 
         var arrived = false;
@@ -119,7 +127,7 @@ public sealed class PoiArrivalTest
         await server.WaitAssertion(() =>
         {
             Assert.That(arrived, "The POI never arrived.");
-            Assert.That(entMan.GetComponent<TransformComponent>(grid).MapID, Is.EqualTo(ticker.DefaultMap),
+            Assert.That(entMan.GetComponent<TransformComponent>(grid).MapID, Is.EqualTo(sector.MapId),
                 "The POI arrived somewhere other than the sector map.");
             Assert.That(xforms.GetWorldPosition(grid).Length(), Is.GreaterThan(1000f), "The POI arrived at the sector core.");
             Assert.That(entMan.Deleted(holding), "The holding map was left behind.");

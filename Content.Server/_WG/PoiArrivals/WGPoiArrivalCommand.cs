@@ -2,6 +2,7 @@ using System.Linq;
 using Content.Server.Administration;
 using Content.Server.GameTicking;
 using Content.Shared.Administration;
+using Content.Shared.GameTicking;
 using Robust.Shared.Console;
 
 namespace Content.Server._WG.PoiArrivals;
@@ -25,7 +26,7 @@ public sealed partial class WGPoiArrivalCommand : LocalizedEntityCommands
             return;
         }
 
-        var pending = _arrivals.Pending();
+        var pending = _arrivals.PendingArrivals();
         if (args.Length == 0)
         {
             if (pending.Count == 0)
@@ -42,6 +43,12 @@ public sealed partial class WGPoiArrivalCommand : LocalizedEntityCommands
                     ("due", due.ToString(@"hh\:mm\:ss")), ("left", left.ToString(@"hh\:mm\:ss"))));
             }
 
+            return;
+        }
+
+        if (_ticker.RunLevel == GameRunLevel.PostRound)
+        {
+            shell.WriteError(Loc.GetString("cmd-wg_poiarrivals-round-over"));
             return;
         }
 
@@ -69,7 +76,7 @@ public sealed partial class WGPoiArrivalCommand : LocalizedEntityCommands
         if (args.Length != 1)
             return CompletionResult.Empty;
 
-        var options = _arrivals.Pending().Select(entry => entry.Id).Append(All);
+        var options = _arrivals.PendingArrivals().Select(entry => entry.Id).Append(All);
         return CompletionResult.FromHintOptions(options, Loc.GetString("cmd-wg_poiarrivals-hint"));
     }
 }

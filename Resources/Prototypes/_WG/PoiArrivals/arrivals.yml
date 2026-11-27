@@ -1,11 +1,13 @@
 - type: wgPoiArrival
-  id: AnomalousLab
-  minDelay: 30m
-  maxDelay: 90m
+  id: WGPoiArrivalAnomalousLab
+  poi: AnomalousLab
+  minDelay: 15m
+  maxDelay: 45m
   announcement: wg-poi-arrival-anomalous-lab
 
 - type: wgPoiArrival
-  id: Sevastopol
-  minDelay: 30m
-  maxDelay: 90m
+  id: WGPoiArrivalSevastopol
+  poi: Sevastopol
+  minDelay: 15m
+  maxDelay: 45m
   announcement: wg-poi-arrival-sevastopol
