@@ -44,6 +44,17 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
     private static readonly ProtoId<AccessLevelPrototype> OfficerAccess = "WGUndergroundFixer";
     private static readonly ProtoId<RadioChannelPrototype> OpenChannel = "Common";
 
+    // A picked verb is found again by its priority as well as its text, so none of these depends on how many
+    // verbs came before it: a bail verb appearing or going must not move the ones below and make them miss.
+    private const int StatusPriority = 20;
+    private const int PassPriority = 19;
+    private const int BailPriority = 18;
+    private const int MarketPriority = 17;
+    private const int TurretPriority = 16;
+    private const int PayrollPriority = 15;
+    private const int HopPriority = 14;
+    private const int VendettaPriority = 13;
+
     /// <summary>How near a ship has to be to the terminal for a vendetta to be declared on it, in metres.</summary>
     private const float VendettaRange = 1500f;
 
@@ -81,12 +92,11 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
         bool Member() => Authorized(ent, user, out _, out _);
         bool Officer() => Authorized(ent, user, out _, out var still) && still;
         bool Boss() => Authorized(ent, user, out var still, out _) && still;
-        var priority = 20;
 
         args.Verbs.Add(new AlternativeVerb
         {
             Text = Loc.GetString("wg-underground-verb-status"),
-            Priority = priority--,
+            Priority = StatusPriority,
             Act = () =>
             {
                 if (Member())
@@ -100,7 +110,7 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
         args.Verbs.Add(new AlternativeVerb
         {
             Text = Loc.GetString("wg-underground-verb-pass"),
-            Priority = priority--,
+            Priority = PassPriority,
             Act = () =>
             {
                 if (Officer())
@@ -114,7 +124,7 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
             args.Verbs.Add(new AlternativeVerb
             {
                 Text = Loc.GetString("wg-underground-verb-bail", ("name", Name(prisoner)), ("amount", held.Comp.Bail)),
-                Priority = priority--,
+                Priority = BailPriority,
                 Act = () =>
                 {
                     if (Officer())
@@ -132,7 +142,7 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
         args.Verbs.Add(new AlternativeVerb
         {
             Text = Loc.GetString(close ? "wg-underground-verb-close" : "wg-underground-verb-open"),
-            Priority = priority--,
+            Priority = MarketPriority,
             Act = () =>
             {
                 if (Boss())
@@ -144,23 +154,24 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
         args.Verbs.Add(new AlternativeVerb
         {
             Text = Loc.GetString(arm ? "wg-underground-verb-arm" : "wg-underground-verb-disarm"),
-            Priority = priority--,
+            Priority = TurretPriority,
             Act = () =>
             {
                 if (!Boss() || _base.Armed == arm)
                     return;
 
-                // Arming tells everyone aboard itself, with the warning.
+                // Arming tells everyone aboard itself, with the warning. A raid keeps the turrets up whatever
+                // the Godfather orders, and saying they were standing down would send people into them.
                 _base.SetArmed(arm);
                 if (!arm)
-                    _heat.TellFaction(Loc.GetString("wg-underground-turrets-down"));
+                    _heat.TellFaction(Loc.GetString(_base.WantTurrets ? "wg-underground-turrets-raid" : "wg-underground-turrets-down"));
             },
         });
 
         args.Verbs.Add(new AlternativeVerb
         {
             Text = Loc.GetString("wg-underground-verb-payroll", ("amount", _cfg.GetCVar(WGUndergroundCVars.PayrollEach))),
-            Priority = priority--,
+            Priority = PayrollPriority,
             Act = () =>
             {
                 if (Boss())
@@ -174,7 +185,7 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
             args.Verbs.Add(new AlternativeVerb
             {
                 Text = Loc.GetString("wg-underground-verb-hop"),
-                Priority = priority--,
+                Priority = HopPriority,
                 ConfirmationPopup = true,
                 Act = () =>
                 {
@@ -193,7 +204,7 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
             args.Verbs.Add(new AlternativeVerb
             {
                 Text = Loc.GetString("wg-underground-verb-vendetta", ("ship", Name(target))),
-                Priority = priority--,
+                Priority = VendettaPriority,
                 Act = () =>
                 {
                     if (Boss())
@@ -300,7 +311,7 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
         }
 
         // Pay that couldn't land, such as a locked account, goes back to the treasury.
-        _heat.Earn(unpaid * each);
+        _heat.Refund(unpaid * each);
         _heat.TellFaction(Loc.GetString("wg-underground-payroll-paid", ("amount", each), ("count", crew.Count - unpaid)));
         _adminLog.Add(LogType.Action, LogImpact.Low, $"{ToPrettyString(user):player} paid {crew.Count - unpaid} Underground members {each} each from the treasury");
     }

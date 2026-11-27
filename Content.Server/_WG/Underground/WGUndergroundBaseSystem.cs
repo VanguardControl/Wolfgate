@@ -57,7 +57,7 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
     public bool Armed { get; private set; }
 
     /// <summary>Whether the turrets should be up: armed by the Godfather, or a raid window is open.</summary>
-    private bool WantTurrets => Armed || _heat.Level == WGUndergroundHeatSystem.Raid;
+    public bool WantTurrets => Armed || _heat.Level == WGUndergroundHeatSystem.Raid;
 
     /// <summary>When turrets that have been ordered up deploy, once the warning to everyone aboard has run.</summary>
     private TimeSpan? _deployAt;

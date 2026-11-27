@@ -42,6 +42,7 @@ wg-underground-turrets-armed = The station's turrets are armed. They fire on any
 wg-underground-turrets-warning = The station's turrets come up in {$seconds} seconds. They fire on anyone without Underground access. Guests, leave now.
 wg-underground-turrets-closed = This station's turrets are up. They fire on anyone without Underground access that they can see, in a docked ship too. Undock and stand off.
 wg-underground-turrets-down = The station's turrets are standing down.
+wg-underground-turrets-raid = The Godfather's order is lifted, but the turrets stay up until the raid window closes.
 wg-underground-hop-told = The Godfather is moving the station. It jumps in {$seconds} seconds. Get aboard, or cast off if you are not coming.
 wg-underground-hop-wait = The jump drive is recharging. It is ready in {$minutes} minutes.
 wg-underground-hop-raid = The station can't jump while a raid window is open.

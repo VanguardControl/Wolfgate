@@ -23,6 +23,7 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Preferences.Loadouts;
 using Content.Shared.Roles;
 using Content.Shared.Shuttles.Components;
+using Content.Shared.Stacks;
 using Content.Shared.Turrets;
 using Content.Shared.Verbs;
 using Robust.Shared.Configuration;
@@ -136,6 +137,13 @@ public sealed class WGUndergroundTest
             Assert.That(heat.HeatShare(member), Is.EqualTo(1f));
             Assert.That(heat.HeatShare(null), Is.EqualTo(1f), "A sale with no known seller counts as the Underground's.");
             cfg.SetCVar(WGUndergroundCVars.HeatOutsider, 0f);
+
+            // Pay that couldn't be delivered goes back to the treasury without counting as income.
+            var held = heat.Treasury;
+            var earned = heat.Earned;
+            heat.Refund(500);
+            Assert.That(heat.Treasury, Is.EqualTo(held + 500));
+            Assert.That(heat.Earned, Is.EqualTo(earned), "A refund was counted as takings.");
             heat.Reset();
 
             entMan.DeleteEntity(member);
@@ -190,6 +198,10 @@ public sealed class WGUndergroundTest
             Assert.That(heat.RaidEnds, Is.Not.Null);
             Assert.That(entMan.HasComponent<FTLComponent>(grid), Is.False, "The station left during a raid window.");
             Assert.That(home.NextHop, Is.LessThanOrEqualTo(timing.CurTime), "A jump the raid called off still cost the hour.");
+
+            // The raid keeps the turrets wanted whatever the Godfather orders, which is what the console reports.
+            station.SetArmed(false);
+            Assert.That(station.WantTurrets, Is.True, "Standing the turrets down lowered them during a raid.");
             Assert.That(station.TryHop((grid, home), out refusal), Is.False, "The station jumped out of a raid.");
             Assert.That(refusal, Is.EqualTo(Loc.GetString("wg-underground-hop-raid")));
             heat.Tick(heat.RaidEnds!.Value);
@@ -406,11 +418,22 @@ public sealed class WGUndergroundTest
             // A verb built while they were allowed does nothing once they aren't.
             var heat = server.System<WGUndergroundHeatSystem>();
             heat.SetClosed(false);
-            var label = server.ResolveDependency<ILocalizationManager>().GetString("wg-underground-verb-close");
-            var close = entMan.System<SharedVerbSystem>()
-                .GetLocalVerbs(console, user, typeof(AlternativeVerb), force: true)
-                .FirstOrDefault(verb => verb.Text == label);
+            var loc = server.ResolveDependency<ILocalizationManager>();
+            var verbs = entMan.System<SharedVerbSystem>();
+            var label = loc.GetString("wg-underground-verb-close");
+            var menu = verbs.GetLocalVerbs(console, user, typeof(AlternativeVerb), force: true);
+            var close = menu.FirstOrDefault(verb => verb.Text == label);
             Assert.That(close, Is.Not.Null, "The Godfather's card didn't get the market verb.");
+
+            // A picked verb is matched on its priority, so a bail verb turning up above must not move this one.
+            var prisoner = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            entMan.AddComponent<WGUndergroundMemberComponent>(prisoner);
+            entMan.AddComponent<WGUndergroundHeldComponent>(prisoner);
+            var withHold = verbs.GetLocalVerbs(console, user, typeof(AlternativeVerb), force: true);
+            Assert.That(withHold, Has.Count.EqualTo(menu.Count + 1), "A held prisoner didn't add a bail verb.");
+            Assert.That(withHold.First(verb => verb.Text == label).Priority, Is.EqualTo(close!.Priority), "A bail verb moved the market verb, so a menu opened before it would miss.");
+            entMan.DeleteEntity(prisoner);
+
             company.CompanyName = "TSF";
             close!.Act?.Invoke();
             Assert.That(heat.Closed, Is.False, "A verb built before the company change still ran.");
@@ -434,6 +457,19 @@ public sealed class WGUndergroundTest
             xforms.SetWorldPosition(ship.Owner, new System.Numerics.Vector2(5000f, 0f));
             Assert.That(terminal.InVendettaReach(console, ship), Is.False, "A ship that has left can still be named.");
             Assert.That(terminal.InVendettaReach(console, map.Grid.Owner), Is.False, "The station can be named against itself.");
+
+            // The same through the verb: built with the ship beside the station, picked after it has gone.
+            xforms.SetWorldPosition(ship.Owner, new System.Numerics.Vector2(200f, 0f));
+            var named = loc.GetString("wg-underground-verb-vendetta", ("ship", entMan.GetComponent<MetaDataComponent>(ship).EntityName));
+            var vendetta = verbs.GetLocalVerbs(console, user, typeof(AlternativeVerb), force: true).FirstOrDefault(verb => verb.Text == named);
+            Assert.That(vendetta, Is.Not.Null, "A ship beside the station got no vendetta verb.");
+            xforms.SetWorldPosition(ship.Owner, new System.Numerics.Vector2(5000f, 0f));
+            vendetta!.Act?.Invoke();
+            Assert.That(terminal.UnderVendetta(ship), Is.False, "A vendetta was declared on a ship that had left.");
+            xforms.SetWorldPosition(ship.Owner, new System.Numerics.Vector2(200f, 0f));
+            vendetta.Act?.Invoke();
+            Assert.That(terminal.UnderVendetta(ship), Is.True, "A vendetta wasn't declared on a ship in reach.");
+            server.System<WGUndergroundBaseSystem>().SetArmed(false);
             entMan.DeleteEntity(ship);
 
             entMan.DeleteEntity(user);
@@ -628,6 +664,17 @@ public sealed class WGUndergroundTest
             Assert.That(entMan.Deleted(heretic), Is.False, "The heretic's body was taken away.");
             Assert.That(entMan.HasComponent<HereticComponent>(heretic), Is.False, "The mark wasn't cleared.");
             Assert.That(entMan.GetComponent<ContrabandComponent>(heretic).TurnInValues.ContainsKey(WGUndergroundWarrantSystem.Doubloons), Is.False);
+
+            // What the console paid out for the body: half of the 250 on the mark.
+            var paid = 0;
+            var stacks = entMan.EntityQueryEnumerator<StackComponent, TransformComponent>();
+            while (stacks.MoveNext(out _, out var stack, out var where))
+            {
+                if (where.MapID == map.MapId && stack.StackTypeId == WGUndergroundWarrantSystem.Doubloons.Id)
+                    paid += stack.Count;
+            }
+
+            Assert.That(paid, Is.EqualTo(125), "The pallet didn't pay half for a heretic's body.");
 
             // A marked heretic shut in a crate the pallet buys: the crate goes, the heretic doesn't.
             crate = entMan.SpawnEntity("CrateGenericSteel", map.GridCoords);

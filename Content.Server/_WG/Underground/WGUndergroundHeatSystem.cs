@@ -166,6 +166,13 @@ public sealed partial class WGUndergroundHeatSystem : EntitySystem
         Earned += thalers;
     }
 
+    /// <summary>Puts back thalers that were taken out and not spent. It is not income, so the round's takings don't move.</summary>
+    public void Refund(int thalers)
+    {
+        if (thalers > 0)
+            Treasury += thalers;
+    }
+
     /// <summary>Takes from the treasury, if it holds that much.</summary>
     public bool Spend(int thalers)
     {
