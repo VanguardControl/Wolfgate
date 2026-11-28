@@ -1,0 +1,24 @@
+- type: entity
+  parent: [BaseStructureDisableToolUse, BaseStructureIndestructible, VendingMachineCredit]
+  id: PrivSexVend
+  name: THE SEXVEND
+  description: Vends sex and sex accessories.
+  components:
+  - type: VendingMachine
+    pack: PrivSexVendInventory
+    offState: off
+    brokenState: broken
+    normalState: normal-unshaded
+    ejectState: eject-unshaded
+    denyState: deny-unshaded
+    requiresCash: true
+  - type: Sprite
+    sprite: Structures/Machines/VendingMachines/vendomat.rsi
+    layers:
+    - state: "off"
+      map: ["enum.VendingMachineVisualLayers.Base"]
+    - state: "off"
+      map: ["enum.VendingMachineVisualLayers.BaseUnshaded"]
+      shader: unshaded
+    - state: panel
+      map: ["enum.WiresVisualLayers.MaintenancePanel"]
