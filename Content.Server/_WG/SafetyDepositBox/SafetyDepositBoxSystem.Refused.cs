@@ -1,6 +1,8 @@
+using Content.Server.Stack;
+using Content.Shared._WG.SafetyDepositBox;
+using Content.Shared._WG.SafetyDepositBox.Components;
 using Content.Shared.Database;
 using Content.Shared.Storage;
-using Content.Shared.Whitelist;
 using Robust.Shared.Containers;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
@@ -12,45 +14,41 @@ public sealed partial class SafetyDepositBoxSystem
 {
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedContainerSystem _container = default!;
-    [Dependency] private EntityWhitelistSystem _whitelist = default!;
+    [Dependency] private SafetyDepositAllowListSystem _allowList = default!;
+    [Dependency] private StackSystem _stack = default!;
 
     /// <summary>
-    /// Takes out anything the box refuses that is tucked inside a stored item, such as a cell in a device's slot,
-    /// and hands it back. Returns how many came out.
+    /// Takes out anything the box refuses or has no room left for under its limits, however deep, such as an ID in a
+    /// bag or a cell in a device's slot, splits off what of a stack goes over a limit, and hands it back. Returns how
+    /// many came out.
     /// </summary>
     private int EjectNestedRefused(EntityUid player, EntityUid boxEntity, StorageComponent storage)
     {
+        TryComp<SafetyDepositAllowListComponent>(boxEntity, out var allowList);
         var refused = new List<EntityUid>();
-        foreach (var item in storage.Container.ContainedEntities)
-            FindNestedRefused(item, storage, refused);
+        var over = new Dictionary<EntityUid, int>();
+        _allowList.FindRefused((boxEntity, storage, allowList), refused, over);
 
-        foreach (var nested in refused)
+        foreach (var item in refused)
         {
-            _container.TryRemoveFromContainer(nested, force: true);
-            _hands.PickupOrDrop(player, nested);
-            _adminLogger.Add(LogType.Action, LogImpact.Low,
-                $"{ToPrettyString(player):actor} got {ToPrettyString(nested):entity} back from inside an item in safety deposit box {ToPrettyString(boxEntity)}");
+            _container.TryRemoveFromContainer(item, force: true);
+            HandBack(player, boxEntity, item);
         }
 
-        return refused.Count;
+        foreach (var (stack, amount) in over)
+        {
+            if (_stack.Split(stack, amount, Transform(player).Coordinates) is { } split)
+                HandBack(player, boxEntity, split);
+        }
+
+        return refused.Count + over.Count;
     }
 
-    private void FindNestedRefused(EntityUid parent, StorageComponent storage, List<EntityUid> refused)
+    private void HandBack(EntityUid player, EntityUid boxEntity, EntityUid item)
     {
-        if (!TryComp<ContainerManagerComponent>(parent, out var manager))
-            return;
-
-        foreach (var container in _container.GetAllContainers(parent, manager))
-        {
-            foreach (var nested in container.ContainedEntities)
-            {
-                // A refused item comes out whole, with whatever is inside it.
-                if (_whitelist.IsBlacklistPass(storage.Blacklist, nested))
-                    refused.Add(nested);
-                else
-                    FindNestedRefused(nested, storage, refused);
-            }
-        }
+        _hands.PickupOrDrop(player, item);
+        _adminLogger.Add(LogType.Action, LogImpact.Low,
+            $"{ToPrettyString(player):actor} got {ToPrettyString(item):entity} back from safety deposit box {ToPrettyString(boxEntity)}");
     }
 
     /// <summary>
