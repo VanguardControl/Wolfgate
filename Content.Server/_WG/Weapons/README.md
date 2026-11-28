@@ -5,7 +5,14 @@ beam, so shots appear the moment they're fired; the server links its copy to the
 shooter. When the server fires fewer rounds than a request predicted (a burst it carried on itself, a late request it
 had already caught up), it names the unfired copies in `WGPredictedShotsRefusedEvent` and the shooter's client drops
 them, so no phantom round flies on. Also material bullet impact and punch sounds ported from Skyrat-tg, a Mosin loadout for the Contractor, and the Strix
-.357 revolver with extra Vagrant gun loadouts.
+.357 revolver with extra Vagrant gun loadouts. A revolver's reload and empty treat a chamber whose round is gone, or
+hasn't reached the client yet, as empty, where it used to throw and could take the client down mid-reload.
+
+Hand-held lasers are the sustain choice against ballistics' burst: the retro laser and the NF laser pistol, the laser
+rifle, the energy gun and the Svalinn fire at 3 a second (the laser cannon at 2, the makeshift at 2.5), and all but the
+cell-fed Svalinn win a shot back every 4 to 6 seconds once they've been idle for 2. Their Heat burns hurt more than gunshot
+wounds (`BurnWound` pain 1.2 a point of severity, in Wolfmed's markers). The standard pulse rifle hits a little harder:
+`RiflePulse`, which the mech pulse gun shares, deals Heat 29.
 
 Entry points: the `GunSystem.Prediction` partials (shared, client and server), `impacts.yml` with the sounds under
 `Resources/Audio/_WG/Weapons`, and `WGContractorMosinLoadout`. `WGGunPredictionTest` covers prediction.
@@ -108,6 +115,7 @@ keeps the bolas (`CatcherAmmoTest`).
 - [`Content.IntegrationTests/Tests/_WG/Weapons/HitscanPointBlankTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Weapons/HitscanPointBlankTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Weapons/NpcHitscanTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Weapons/NpcHitscanTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Weapons/ProjectileSweepTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Weapons/ProjectileSweepTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/Weapons/RevolverStaleRoundTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Weapons/RevolverStaleRoundTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Weapons/SecondaryKeyGunTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Weapons/SecondaryKeyGunTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Weapons/ShieldSidearmTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Weapons/ShieldSidearmTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Weapons/SingleAmmoProviderTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Weapons/SingleAmmoProviderTest.cs)
@@ -285,11 +293,19 @@ keeps the bolas (`CatcherAmmoTest`).
 - [`Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.cs`](../../../Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.cs)
   - one path for both sides that links predicted projectiles
   - a shot at a target on the shooter's own spot has no direction to trace
+- [`Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.Revolver.cs`](../../../Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.Revolver.cs)
+  - a cancelled transfer still moved rounds
+  - a slot can hold a round that is gone or not yet received; clear it without touching it
+  - a round that is gone or not yet received threw on reload, so spawn a fresh one
 - [`Content.Shared/Wieldable/SharedWieldableSystem.cs`](../../../Content.Shared/Wieldable/SharedWieldableSystem.cs)
   - a gun loaded from a save skipped map init and had no wield bonus
   - attachable pistols have no wield bonus, which is not an error
+- [`Resources/Prototypes/_DV/Entities/Objects/Weapons/Guns/Battery/battery_guns.yml`](../../../Resources/Prototypes/_DV/Entities/Objects/Weapons/Guns/Battery/battery_guns.yml)
+  - was 2; part of the laser sustain buff
+  - a kill shot back every 4 s after 2 s idle
 - [`Resources/Prototypes/_Goobstation/Entities/Objects/Weapons/Guns/Pistols/pistol.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Objects/Weapons/Guns/Pistols/pistol.yml): this ballistic sidearm and its children (Hawk-4, Dragoon, registered copy) fire alongside a shield
 - [`Resources/Prototypes/_Mono/Entities/Objects/Specific/Planet/flora.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Specific/Planet/flora.yml): material bullet impacts
+- [`Resources/Prototypes/_Mono/Entities/Objects/Weapons/Guns/Projectiles/hitscan.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Weapons/Guns/Projectiles/hitscan.yml): was 25; the pulse rifle hits a little harder
 - [`Resources/Prototypes/_Mono/Entities/Objects/Weapons/Guns/registered_loadout_cases.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Weapons/Guns/registered_loadout_cases.yml): Extra guns for Vagrants, from libertyvend.
 - [`Resources/Prototypes/_Mono/Entities/Objects/Weapons/Guns/SMGs/nt.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Weapons/Guns/SMGs/nt.yml): a full-auto SMG is no sidearm, so the revolver base's shield exemption is switched off
 - [`Resources/Prototypes/_Mono/Entities/SpaceArtillery/SpaceArtillery/Kinetic/charon_launcher.yml`](../../../Resources/Prototypes/_Mono/Entities/SpaceArtillery/SpaceArtillery/Kinetic/charon_launcher.yml): refill from linked ammo loaders after each shot
@@ -316,7 +332,14 @@ keeps the bolas (`CatcherAmmoTest`).
   - Make Strix and energy gun craftable through research.
 - [`Resources/Prototypes/_Nuclear14/Entities/Structures/Decoration/floordecor.yml`](../../../Resources/Prototypes/_Nuclear14/Entities/Structures/Decoration/floordecor.yml): material bullet impacts
 - [`Resources/Prototypes/Entities/Mobs/base.yml`](../../../Resources/Prototypes/Entities/Mobs/base.yml): material bullet impacts
-- [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Battery/battery_guns.yml`](../../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Battery/battery_guns.yml): own pulse rifle shot
+- [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Battery/battery_guns.yml`](../../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Battery/battery_guns.yml)
+  - was 2; part of the laser sustain buff
+  - faster fire and a shot back every 4 s after 2 s idle
+  - a little faster fire and a shot back every 6 s after 2 s idle
+  - a shot back every 4 s after 2 s idle
+  - own pulse rifle shot
+  - was 1.5; part of the laser sustain buff
+  - a shot back every 5 s after 2 s idle
 - [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Projectiles/projectiles.yml`](../../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Projectiles/projectiles.yml): untagged targets sound like metal
 - [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Turrets/turrets_ballistic.yml`](../../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Turrets/turrets_ballistic.yml)
   - parented to BaseWeaponTurret so its 50 rounds of 9mm are its one ammo provider.

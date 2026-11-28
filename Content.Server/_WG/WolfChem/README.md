@@ -76,6 +76,8 @@ pays the same in a tank or in baggies, and splitting one into doses earns nothin
 which at 15,000 a point is about 13% of the value: under the `heat_floor` a dump sells for, so handing in never beats
 selling. A shipyard pays nothing for narcotics aboard a hull it buys, nor for what holds them, a tank, a crate's
 baggies or a spill (`ShipyardSystem.Narcotics.cs`), so a stockpile can't be sold past the heat inside a ship.
+The Underground Black Market's pallets buy none at all: a grid with `WGRefusesNarcotics` (set by the POI) leaves
+anything holding narcotics, packed or not, on the pallet and sells the rest (`CargoSystem.Narcotics.cs`).
 
 Entry points: `WGDose` and `WGClearIntoxication` (entity effects), `SharedWGIntoxicationSystem` (levels, tiers,
 `IsNeurowareHost`), `WGIntoxicationSystem.Tick`, `WGDependenceSystem.Tick`, `WGDeliverySystem`,
@@ -131,6 +133,7 @@ client partial of `WolfmedSyntheticHudOverlaySystem`. Sticks are in `Resources/P
 ### Server
 
 - [`Content.Server/_WG/WolfChem/Narcotics/BotanySystem.Narcotics.cs`](Narcotics/BotanySystem.Narcotics.cs)
+- [`Content.Server/_WG/WolfChem/Narcotics/CargoSystem.Narcotics.cs`](Narcotics/CargoSystem.Narcotics.cs)
 - [`Content.Server/_WG/WolfChem/Narcotics/HealthAnalyzerSystem.Narcotics.cs`](Narcotics/HealthAnalyzerSystem.Narcotics.cs)
 - [`Content.Server/_WG/WolfChem/Narcotics/MetabolizerSystem.Granular.cs`](Narcotics/MetabolizerSystem.Granular.cs)
 - [`Content.Server/_WG/WolfChem/Narcotics/ShipyardSystem.Narcotics.cs`](Narcotics/ShipyardSystem.Narcotics.cs)
@@ -154,6 +157,7 @@ client partial of `WolfmedSyntheticHudOverlaySystem`. Sticks are in `Resources/P
 - [`Content.Server/_WG/WolfChem/Narcotics/WGNarcoticStockSystem.cs`](Narcotics/WGNarcoticStockSystem.cs)
 - [`Content.Server/_WG/WolfChem/Narcotics/WGNodSystem.cs`](Narcotics/WGNodSystem.cs)
 - [`Content.Server/_WG/WolfChem/Narcotics/WGPilotImpairmentComponent.cs`](Narcotics/WGPilotImpairmentComponent.cs)
+- [`Content.Server/_WG/WolfChem/Narcotics/WGRefusesNarcoticsComponent.cs`](Narcotics/WGRefusesNarcoticsComponent.cs)
 - [`Content.Server/_WG/WolfChem/Narcotics/WGSecondhandSmokeSystem.cs`](Narcotics/WGSecondhandSmokeSystem.cs)
 - [`Content.Server/_WG/WolfChem/Neuroware/WGNeurowareSystem.cs`](Neuroware/WGNeurowareSystem.cs)
 - [`Content.Server/_WG/WolfChem/Purity/BotanySystem.Purity.cs`](Purity/BotanySystem.Purity.cs)
@@ -219,6 +223,7 @@ client partial of `WolfmedSyntheticHudOverlaySystem`. Sticks are in `Resources/P
 - [`Content.IntegrationTests/Tests/_WG/WolfChem/Narcotics/IntoxicationTest.cs`](../../../Content.IntegrationTests/Tests/_WG/WolfChem/Narcotics/IntoxicationTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/WolfChem/Narcotics/NarcoticHandInTest.cs`](../../../Content.IntegrationTests/Tests/_WG/WolfChem/Narcotics/NarcoticHandInTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/WolfChem/Narcotics/NarcoticHeatTest.cs`](../../../Content.IntegrationTests/Tests/_WG/WolfChem/Narcotics/NarcoticHeatTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/WolfChem/Narcotics/NarcoticRefusalTest.cs`](../../../Content.IntegrationTests/Tests/_WG/WolfChem/Narcotics/NarcoticRefusalTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/WolfChem/Narcotics/NarcoticTipPlanetTest.cs`](../../../Content.IntegrationTests/Tests/_WG/WolfChem/Narcotics/NarcoticTipPlanetTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/WolfChem/Narcotics/NodTest.cs`](../../../Content.IntegrationTests/Tests/_WG/WolfChem/Narcotics/NodTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/WolfChem/Narcotics/RadioProbeSystem.cs`](../../../Content.IntegrationTests/Tests/_WG/WolfChem/Narcotics/RadioProbeSystem.cs)
@@ -321,6 +326,7 @@ client partial of `WolfmedSyntheticHudOverlaySystem`. Sticks are in `Resources/P
 - [`Content.Server/Botany/Systems/BotanySystem.Produce.cs`](../../Botany/Systems/BotanySystem.Produce.cs)
   - narcotic produce is graded by potency
   - produce that grew a street drug is a narcotic
+- [`Content.Server/Cargo/Systems/CargoSystem.Shuttle.cs`](../../Cargo/Systems/CargoSystem.Shuttle.cs): a grid that refuses narcotics leaves them on the pallet
 - [`Content.Server/Cargo/Systems/PricingSystem.cs`](../../Cargo/Systems/PricingSystem.cs): a reagent is worth its grade
 - [`Content.Server/Chemistry/EntitySystems/ChemMasterSystem.cs`](../../Chemistry/EntitySystems/ChemMasterSystem.cs)
   - read before the removal prunes it
@@ -353,11 +359,13 @@ client partial of `WolfmedSyntheticHudOverlaySystem`. Sticks are in `Resources/P
   - grades of Reagents
   - grades of BufferReagents
 - [`Content.Shared/MedicalScanner/HealthAnalyzerScannedUserMessage.cs`](../../../Content.Shared/MedicalScanner/HealthAnalyzerScannedUserMessage.cs): drug levels, held effects and dependence
+- [`Resources/Locale/en-US/_Mono/reagents/narcotics.ftl`](../../../Resources/Locale/en-US/_Mono/reagents/narcotics.ftl): the crystal takes 25u since Monolith's fent buff, and leftover fent explodes
 - [`Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/silicon_base.yml`](../../../Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/silicon_base.yml): neuroware twins apply these to a synthetic's own body
 - [`Resources/Prototypes/_ES/Reagents/gases.yml`](../../../Resources/Prototypes/_ES/Reagents/gases.yml): thin haze from smoking is harmless; fire-thick smoke still chokes
 - [`Resources/Prototypes/_Impstation/Reagents/biological.yml`](../../../Resources/Prototypes/_Impstation/Reagents/biological.yml): held while it is in the blood instead of piling up each tick
 - [`Resources/Prototypes/_Mono/Catalogs/Fills/Lockers/salvmaint_locker.yml`](../../../Resources/Prototypes/_Mono/Catalogs/Fills/Lockers/salvmaint_locker.yml): neuroware sticks turn up in maintenance lockers
 - [`Resources/Prototypes/_Mono/Entities/Objects/Misc/solids.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Misc/solids.yml): fits a baggie
+- [`Resources/Prototypes/_Mono/PointsOfInterest/underground.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/underground.yml): the black market's pallets won't buy narcotics
 - [`Resources/Prototypes/_Mono/Reagents/letoferol.yml`](../../../Resources/Prototypes/_Mono/Reagents/letoferol.yml): drunkenness follows the units in the blood
 - [`Resources/Prototypes/_Mono/Reagents/medicine.yml`](../../../Resources/Prototypes/_Mono/Reagents/medicine.yml)
   - only in an overdose, like its jitter
@@ -367,11 +375,14 @@ client partial of `WolfmedSyntheticHudOverlaySystem`. Sticks are in `Resources/P
   - held while it is in the blood instead of piling up each tick
   - held at the units left, as long as it used to pile up to
   - drunkenness follows the units in the blood
+- [`Resources/Prototypes/_Mono/Recipes/Reactions/fentanyl.yml`](../../../Resources/Prototypes/_Mono/Recipes/Reactions/fentanyl.yml): under 25u it waits instead of eating the fentanyl for no crystal
+- [`Resources/Prototypes/_NF/Body/Organs/goblin_organs.yml`](../../../Resources/Prototypes/_NF/Body/Organs/goblin_organs.yml): at full rate the stomach cleared ethanol before it could make a goblin drunk
 - [`Resources/Prototypes/_NF/Entities/Objects/Specific/Hydroponics/leaves.yml`](../../../Resources/Prototypes/_NF/Entities/Objects/Specific/Hydroponics/leaves.yml): fits a baggie
 - [`Resources/Prototypes/_NF/Reagents/medicine.yml`](../../../Resources/Prototypes/_NF/Reagents/medicine.yml): held while it is in the blood instead of piling up each tick
 - [`Resources/Prototypes/_Onyx/Reagents/Medicine/medicine.yml`](../../../Resources/Prototypes/_Onyx/Reagents/Medicine/medicine.yml)
   - medical opioids build dependence slowly through the Opium profile
   - medical opioids build dependence slowly through the Heroin profile
+- [`Resources/Prototypes/Body/Organs/moth.yml`](../../../Resources/Prototypes/Body/Organs/moth.yml): at full rate the stomach cleared ethanol before it could make a moth drunk
 - [`Resources/Prototypes/Catalog/Fills/Crates/botany.yml`](../../../Resources/Prototypes/Catalog/Fills/Crates/botany.yml): drug crops come only from this crate and dealers
 - [`Resources/Prototypes/Entities/Markers/Spawners/Random/maintenance.yml`](../../../Resources/Prototypes/Entities/Markers/Spawners/Random/maintenance.yml): neuroware sticks turn up in maintenance
 - [`Resources/Prototypes/Entities/Markers/Spawners/Random/Salvage/tables_loot.yml`](../../../Resources/Prototypes/Entities/Markers/Spawners/Random/Salvage/tables_loot.yml): neuroware sticks turn up in salvage treasure

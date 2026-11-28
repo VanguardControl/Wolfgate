@@ -20,9 +20,10 @@ The [color=#44cc00]Safety Deposit Box System[/color] allows you to securely stor
     <GuideEntityEmbed Entity="SafetyDepositBoxLarge"/>
   </Box>
   Three box sizes are available, each with different storage capacity:
-  - [bold]Small (2x2)[/bold] - $2,000,000
-  - [bold]Medium (2x4)[/bold] - $3,500,000
-  - [bold]Large (2x6)[/bold] - $5,000,000
+<!-- WOLFGATE(SafetyDepositBox): boxes hold three times as much; medium and large take suits and armour -->
+  - [bold]Small (4x3)[/bold] - $2,000,000
+  - [bold]Medium (6x4)[/bold] - $3,500,000
+  - [bold]Large (9x4)[/bold] - $5,000,000
 
 The cost is deducted from your [color=#44cc00]bank account[/color] when you purchase a box.
 
@@ -86,10 +87,17 @@ The safety deposit system preserves:
 <!-- WOLFGATE(SafetyDepositBox) START: what a box refuses is read from the box prototype, not hand-listed -->
 ## What Can Be Stored
 
-A box takes ordinary items that fit its grid and its size limit: Small boxes hold Small items, Medium boxes hold up to Normal items and Large boxes hold up to Large items. Tools, clothing, ammunition, paperwork, food, parts and most other gear are fine.
+A box takes ordinary items that fit its grid and its size limit: Small boxes hold up to Normal items, while Medium and Large boxes hold up to Huge items, such as armour vests and hardsuits. Tools, weapons, clothing, ammunition, paperwork, food, drinks and most other gear are fine, and so are bags and boxes to keep it tidy. Faction weapons are fine up to tier 2; heavy and top-tier weapons, machine parts and anything built into a body or a machine are not.
 
-[color=#ff6600]The box refuses these outright:[/color]
+[color=#ff6600]The box refuses these:[/color]
   <SafetyDepositRefusedEmbed/>
+
+[color=#44cc00]It still takes these, though some fall under the list above:[/color]
+  <SafetyDepositRefusedEmbed List="Allowed"/>
+
+Whatever is inside a stored item, such as a bag's contents or a gun's magazine, is held to the same rules. Anything the box refuses is handed back when you deposit it; the rest stays where it was.
+
+Anything holding reagents may carry food and drink freely, but other reagents only as much as it came with. A beaker of medicine is refused; a pack of cigarettes is not.
 <!-- WOLFGATE END -->
   - [bold]Monolithic Crystals[/bold]
 </Document>
