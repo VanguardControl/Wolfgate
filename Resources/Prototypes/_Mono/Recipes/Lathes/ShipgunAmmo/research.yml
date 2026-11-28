@@ -98,3 +98,22 @@
   id: QuasarAcceleratorUniversal
   parent: BaseLightOrdinanceAdvancedAmmoRecipe
   result: LightFighterOrdinanceQuasarItem
+
+# WolfGate Start
+
+- type: latheRecipe
+  id: GPOH500BombUniversal
+  parent: BaseHeavyOrdinanceAmmoRecipe
+  result: HeavyFighterOrdinanceGPOItem
+
+- type: latheRecipe
+  id: GPOH500EMPBombUniversal
+  parent: BaseAdvancedHeavyOrdinanceAmmoRecipe
+  result: HeavyFighterEMPOrdinanceGPOItem
+
+- type: latheRecipe
+  id: GPOH500HEFBombUniversal
+  parent: BaseAdvancedHeavyOrdinanceAmmoRecipe
+  result: HeavyFighterHEFOrdinanceGPOItem
+
+# WolfGate End

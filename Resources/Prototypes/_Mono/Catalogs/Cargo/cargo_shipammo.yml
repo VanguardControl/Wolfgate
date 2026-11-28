@@ -349,3 +349,28 @@
   cost: 25000
   category: cargoproduct-category-name-shipammo
   group: market
+
+# WolfGate Start
+
+- type: cargoProduct
+  id: ArmoryShipAmmoGPOL50KG
+  icon:
+    sprite: _NF/Structures/Storage/Crates/secure_ammo.rsi
+    state: icon
+  product: CrateAmmoBoxGPOL50KG
+  cost: 12500
+  category: cargoproduct-category-name-shipammo
+  group: market
+
+
+- type: cargoProduct
+  id: ArmoryShipAmmoGPOH500KG
+  icon:
+    sprite: _NF/Structures/Storage/Crates/secure_ammo.rsi
+    state: icon
+  product: CrateAmmoBoxGPOH500KG
+  cost: 12500
+  category: cargoproduct-category-name-shipammo
+  group: market
+
+# WolfGate End

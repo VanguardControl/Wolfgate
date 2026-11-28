@@ -113,6 +113,10 @@
 
 - type: Tag
   id: PaladinMagazine
+# WolfGate Start
+- type: Tag
+  id: HeavyFighterOrdinance
+# WolfGate End
 
 # Other
 

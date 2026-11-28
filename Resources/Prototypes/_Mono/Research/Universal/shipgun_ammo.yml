@@ -110,3 +110,36 @@
   - UniversalLightFighterOrdinance
   - UniversalPlastitaniumCore
   position: 0, -20
+
+# WolfGate Start
+
+- type: technology
+  id: UniversalheavyFighterOrdinance
+  name: "Heavy Fighter Ordinance Production"
+  entityIcon: HeavyFighterOrdinanceGPOItem
+  discipline: FactionUniversal
+  tier: 3
+  cost: 40000
+  recipeUnlocks:
+  - GPOH500BombUniversal
+  technologyPrerequisites:
+  - UniversalLightFighterOrdinance
+  - UniversalPlastitaniumCore
+  position: -1, -20
+
+- type: technology
+  id: UniversalAdvancedheavyFighterOrdinance
+  name: "Advanced Heavy Fighter Ordinance Production"
+  entityIcon: HeavyFighterHEFOrdinanceGPOItem
+  discipline: FactionUniversal
+  tier: 3
+  cost: 60000
+  recipeUnlocks:
+  - GPOH500EMPBombUniversal
+  - GPOH500HEFBombUniversal
+  technologyPrerequisites:
+  - UniversalheavyFighterOrdinance
+  - UniversalPlastitaniumCore
+  position: -1, -23
+
+# WolfGate End

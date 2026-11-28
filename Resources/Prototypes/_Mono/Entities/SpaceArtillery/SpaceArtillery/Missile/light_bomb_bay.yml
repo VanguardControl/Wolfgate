@@ -52,3 +52,62 @@
   - type: HardpointAnchorableOnly
     class: Missile
     size: Light
+
+# WolfGate Start
+
+- type: entity
+  id: WeaponTurretHeavyMunitionsBay
+  name: GPOB-H Heavy Munitions Bay
+  parent:
+  - BallisticArtilleryCartridge
+  - BallisticArtilleryTier3HP
+  description: A relatively Heavy, armored munitions bay capable of holding up to one Heavyweight ordinance packages. Typically found on medium spacecraft, particularly bombers, and provide a limited use method of damaging targets far above the user's weight class.
+  components:
+  - type: StaticPrice
+    price: 1000
+  - type: Sprite
+    sprite: _WG/Shipweapon/ship_artillery/heavymunitionsbay.rsi
+    layers:
+    - state: space_artillery
+  - type: Appearance
+  - type: AmmoCounter
+  - type: WirelessNetworkConnection
+    range: 700
+  - type: GunSignalControl
+  - type: Gun
+    projectileSpeed: 50
+    fireRate: 0.25
+    recoil: 5
+    shootThermalSignature: 8000000 # ~2.8km
+    soundGunshot:
+      path: /Audio/Weapons/Guns/Gunshots/rocket_launcher.ogg
+    soundEmpty:
+      path: /Audio/Weapons/Guns/EmptyAlarm/smg_empty_alarm.ogg
+  - type: SpaceArtillery
+    powerChargeRate: 50
+    powerUsePassive: 75
+    powerUseActive: 0
+  - type: BallisticAmmoProvider
+    whitelist:
+      tags:
+      - HeavyFighterOrdinance
+    capacity: 1
+    soundInsert:
+      path: /Audio/Items/rped.ogg
+  - type: Actions
+  - type: RadarBlip
+    radarColor: "#ff9d00"
+    scale: 0.7
+    visibleFromOtherGrids: true
+  - type: ShipGunType
+    shipType: Missile
+  - type: ShipGunClass
+    shipClass: Heavy
+  - type: ShipRepairable
+    repairTime: 25
+    repairCost: 100
+  - type: HardpointAnchorableOnly
+    class: Missile
+    size: Heavy
+
+# WolfGate Stop

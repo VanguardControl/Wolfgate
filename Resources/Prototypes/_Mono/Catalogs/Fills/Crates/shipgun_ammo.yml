@@ -368,3 +368,29 @@
     contents:
     - id: Asm220TorpedoHESACLOS
       amount: 4
+
+# WolfGate Start
+
+- type: entity
+  parent: CrateAmmoSecureMercenary
+  id: CrateAmmoBoxGPOL50KG
+  name: GPOB-L 50KG Bomb box
+  description: Contains 4 50KG Light Fighter Ordinance.
+  components:
+  - type: StorageFill
+    contents:
+    - id: LightFighterOrdinanceGPOItem
+      amount: 4
+
+- type: entity
+  parent: CrateAmmoSecureMercenary
+  id: CrateAmmoBoxGPOH500KG
+  name: GPOB-H 500KG Bomb box
+  description: Contains 1 500KG Heavy Fighter Ordinance.
+  components:
+  - type: StorageFill
+    contents:
+    - id: HeavyFighterOrdinanceGPOItem
+      amount: 1
+
+# Wolfgate End

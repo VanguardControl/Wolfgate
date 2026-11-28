@@ -306,3 +306,339 @@
     totalIntensity: 10
 
 # Quasar end
+
+# WolfGate Start
+
+- type: entity
+  id: HeavyFighterOrdinanceGPOProjectile
+  name: GPO-H 500kg Unguided Bomb
+  description: Say your prayer.
+  parent: ShipMissileBase
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Structural: 100
+        Blunt: 50
+        Heat: 50
+  - type: Sprite
+    sprite: _WG/Shipweapon/ammunition/GPO/HE.rsi
+    layers:
+    - state: HE
+    scale: 1, 1
+  - type: Ammo
+    muzzleFlash: null
+  - type: RadarBlip
+    radarColor: "#ffff00"
+    scale: 3
+    shape: square
+  - type: TimedDespawn
+    lifetime: 30
+  - type: ExplodeOnTrigger
+  - type: Explosive
+    explosionType: Default
+    totalIntensity: 4000
+    intensitySlope: 30
+    maxIntensity: 3000
+    tileBreakScale: 6
+  - type: MiningGatheringSoft
+  - type: MiningGatheringHard
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 400
+      behaviors:
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+      - !type:ExplodeBehavior
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+
+- type: entity
+  id: HeavyFighterOrdinanceGPOItem
+  name: GPO-H 500kg Unguided Bomb
+  description: A fairly durable and Very high yield explosive payload. Rarely seen in conventional space combat and a remnant of ground-based warfare, bombs can deal devastating damage... if they manage to hit their target. It can fit in a Heavy GPOH housing.
+  parent: BaseGrenade
+  components:
+  - type: Tag
+    tags:
+    - HeavyFighterOrdinance
+  - type: Item
+    size: Huge
+  - type: CartridgeAmmo
+    proto: HeavyFighterOrdinanceGPOProjectile
+    deleteOnSpawn: true
+    muzzleFlash: null
+  - type: Sprite
+    sprite: _WG/Shipweapon/ammunition/GPO/HE.rsi
+    layers:
+    - state: HE
+      map: ["enum.AmmoVisualLayers.Base"]
+    scale: 1, 1
+  - type: Appearance
+  - type: SpentAmmoVisuals
+  - type: Flammable
+    fireSpread: true
+    firestackFade: -0.01
+    alwaysCombustible: true
+    damage:
+      types:
+        Heat: 1
+        Structural: 2
+  - type: FireVisuals
+    sprite: Mobs/Effects/onfire.rsi
+    normalState: Generic_mob_burning
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 50
+      behaviors:
+      - !type:DoActsBehavior
+        acts: ["Destruction"]
+      - !type:ExplodeBehavior
+  - type: ExplodeOnTrigger
+  - type: Explosive
+    explosionType: Default
+    maxIntensity: 500
+    intensitySlope: 3
+    totalIntensity: 250
+
+# end of 500KG HE
+
+- type: entity
+  id: HeavyFighterEMPOrdinanceGPOProjectile
+  name: GPO-H 500kg Unguided EMP Bomb
+  description: I hope you arent an Robot.
+  parent: ShipMissileBase
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Structural: 100
+        Blunt: 50
+        Heat: 50
+  - type: Sprite
+    sprite: _WG/Shipweapon/ammunition/GPO/Emp.rsi
+    layers:
+    - state: Emp
+    scale: 1, 1
+  - type: Ammo
+    muzzleFlash: null
+  - type: RadarBlip
+    radarColor: "#ffff00"
+    scale: 2
+    shape: square
+  - type: TimedDespawn
+    lifetime: 30
+  - type: EmpOnTrigger
+    range: 20
+    energyConsumption: 4000000
+    disableDuration: 20
+  - type: ExplodeOnTrigger
+  - type: Explosive
+    explosionType: Default
+    totalIntensity: 2000
+    intensitySlope: 30
+    maxIntensity: 1500
+    tileBreakScale: 3
+  - type: MiningGatheringSoft
+  - type: MiningGatheringHard
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 250
+      behaviors:
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+      - !type:ExplodeBehavior
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+
+- type: entity
+  id: HeavyFighterEMPOrdinanceGPOItem
+  name: GPO-H 500kg Unguided EMP Bomb
+  description: A fairly durable and relatively powerfull EMP payload. EMP Bombs can deal devastating damage... if they manage to hit their target. It can fit in a Heavy GPOh housing.
+  parent: BaseGrenade
+  components:
+  - type: Tag
+    tags:
+    - HeavyFighterOrdinance
+  - type: Item
+    size: Huge
+  - type: CartridgeAmmo
+    proto: HeavyFighterEMPOrdinanceGPOProjectile
+    deleteOnSpawn: true
+    muzzleFlash: null
+  - type: Sprite
+    sprite: _WG/Shipweapon/ammunition/GPO/Emp.rsi
+    layers:
+    - state: Emp
+      map: ["enum.AmmoVisualLayers.Base"]
+    scale: 1, 1
+  - type: Appearance
+  - type: SpentAmmoVisuals
+  - type: Flammable
+    fireSpread: true
+    firestackFade: -0.01
+    alwaysCombustible: true
+    damage:
+      types:
+        Heat: 1
+        Structural: 2
+  - type: FireVisuals
+    sprite: Mobs/Effects/onfire.rsi
+    normalState: Generic_mob_burning
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 50
+      behaviors:
+      - !type:DoActsBehavior
+        acts: ["Destruction"]
+      - !type:ExplodeBehavior
+  - type: ExplodeOnTrigger
+  - type: Explosive
+    explosionType: Default
+    maxIntensity: 100
+    intensitySlope: 3
+    totalIntensity: 50
+
+# end of 500KG EMP
+
+- type: entity
+  id: HeavyFighterHEFOrdinanceGPOProjectile
+  name: GPO-H 500kg Unguided Fragmentation Bomb
+  description: You are dead.
+  parent: ShipMissileBase
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Structural: 100
+        Blunt: 50
+        Heat: 50
+  - type: Sprite
+    sprite: _WG/Shipweapon/ammunition/GPO/Frag.rsi
+    layers:
+    - state: Frag
+    scale: 1, 1
+  - type: Ammo
+    muzzleFlash: null
+  - type: RadarBlip
+    radarColor: "#ffff00"
+    scale: 2
+    shape: square
+  - type: TimedDespawn
+    lifetime: 30
+  - type: ProjectileGrenade
+    fillPrototype: 30mmBullet
+    capacity: 45 # lag!
+    minVelocity: 8
+    maxVelocity: 16
+    randomAngle: true
+  - type: TriggerOnProximity
+    requiresAnchored: false
+    enabled: true
+    shape:
+      !type:PhysShapeCircle
+      radius: 5
+      mask:
+      - BulletImpassable
+      - Opaque
+  - type: ContainerContainer
+    containers:
+      cluster-payload: !type:Container
+  - type: ExplodeOnTrigger
+  - type: Explosive
+    explosionType: Default
+    totalIntensity: 1500
+    intensitySlope: 30
+    maxIntensity: 750
+    tileBreakScale: 1
+  - type: MiningGatheringSoft
+  - type: MiningGatheringHard
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 250
+      behaviors:
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+      - !type:ExplodeBehavior
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+
+
+- type: entity
+  id: HeavyFighterHEFOrdinanceGPOItem
+  name: GPO-H 500kg Unguided Fragmentation Bomb
+  description: A fairly durable and relatively high yield Fragmentation payload. Rarely seen in conventional space combat and a remnant of ground-based warfare, fragmentation bombs were considered war crime but it wont stop you from using them. It can fit in a Heavy GPOH housing.
+  parent: BaseGrenade
+  components:
+  - type: Tag
+    tags:
+    - HeavyFighterOrdinance
+  - type: Item
+    size: Huge
+  - type: CartridgeAmmo
+    proto: HeavyFighterHEFOrdinanceGPOProjectile
+    deleteOnSpawn: true
+    muzzleFlash: null
+  - type: Sprite
+    sprite: _WG/Shipweapon/ammunition/GPO/Frag.rsi
+    layers:
+    - state: Frag
+      map: ["enum.AmmoVisualLayers.Base"]
+    scale: 1, 1
+  - type: Appearance
+  - type: SpentAmmoVisuals
+  - type: Flammable
+    fireSpread: true
+    firestackFade: -0.01
+    alwaysCombustible: true
+    damage:
+      types:
+        Heat: 1
+        Structural: 2
+  - type: FireVisuals
+    sprite: Mobs/Effects/onfire.rsi
+    normalState: Generic_mob_burning
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 50
+      behaviors:
+      - !type:DoActsBehavior
+        acts: ["Destruction"]
+      - !type:ExplodeBehavior
+  - type: ExplodeOnTrigger
+  - type: ProjectileGrenade
+    fillPrototype: 30mmBullet
+    capacity: 20 # lag!
+    minVelocity: 8
+    maxVelocity: 16
+    randomAngle: true
+  - type: ContainerContainer
+    containers:
+      cluster-payload: !type:Container
+  - type: Explosive
+    explosionType: Default
+    maxIntensity: 100
+    intensitySlope: 3
+    totalIntensity: 50
+
+# end of 500KG Shrapnell
+
+# WolfGate End

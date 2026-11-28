@@ -127,3 +127,29 @@
     Glass: 400 # opticals/misc
     Gold: 200 # more electronics/misc
     Silver: 200 # electronics/misc
+
+# WolfGate Start
+
+- type: latheRecipe
+  parent: BaseShipgunAmmoRecipe
+  id: BaseHeavyOrdinanceAmmoRecipe
+  abstract: true
+  materials:
+    WGMunitions: 5000 # WOLFGATE(TradeGoods): researched ship ammo uses bulk munitions from ammo crates
+    Steel: 1200
+    Plasma: 3000 # explosive payload/advanced
+    Silver: 200 # electronics/misc
+
+- type: latheRecipe
+  parent: BaseShipgunAmmoRecipe
+  id: BaseAdvancedHeavyOrdinanceAmmoRecipe
+  abstract: true
+  materials:
+    WGMunitions: 2500 # WOLFGATE(TradeGoods): researched ship ammo uses bulk munitions from ammo crates
+    Steel: 1200
+    Plasma: 1500 # explosive payload/advanced
+    Glass: 400 # opticals/misc
+    Gold: 1000 # more electronics/misc
+    Silver: 1000
+
+#WolfGate End
