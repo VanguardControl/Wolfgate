@@ -5,6 +5,7 @@ using Content.Client.Administration.Systems;
 using Content.Client.Administration.UI.CustomControls;
 using Content.Client.UserInterface.Controls;
 using Content.Client.UserInterface.Systems.Bwoink;
+using Content.Shared._WG.AHelpTickets;
 using Content.Shared.Administration;
 using Robust.Client.UserInterface;
 using Robust.Shared.Input;
@@ -26,6 +27,10 @@ public sealed class AHelpChannelSelectTest
         var client = pair.Client;
         var ui = client.ResolveDependency<IUserInterfaceManager>();
         AdminAHelpUIHandler Helper() => (AdminAHelpUIHandler) ui.GetUIController<AHelpUIController>().UIHelper!;
+
+        // This covers the upstream per-player panel, which staff get with the ticket panel off.
+        await pair.Server.WaitPost(() => pair.Server.CfgMan.SetCVar(AHelpTicketCVars.TicketsPanel, false));
+        await pair.RunTicksSync(5);
 
         await client.WaitPost(() =>
         {
@@ -74,6 +79,8 @@ public sealed class AHelpChannelSelectTest
         }
 
         await client.WaitPost(() => Helper().Close());
+        await pair.Server.WaitPost(() => pair.Server.CfgMan.SetCVar(AHelpTicketCVars.TicketsPanel, true));
+        await pair.RunTicksSync(5);
         await pair.CleanReturnAsync();
     }
 

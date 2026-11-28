@@ -56,7 +56,7 @@ Entry points: `AdminFlags.Event`, `EventChatCommand` (`esay`), `ChatManager.Send
 - [`Content.Client/Chat/Managers/ChatManager.cs`](../../../Content.Client/Chat/Managers/ChatManager.cs): event staff chat
 - [`Content.Client/UserInterface/Systems/Bwoink/AHelpUIController.cs`](../../../Content.Client/UserInterface/Systems/Bwoink/AHelpUIController.cs)
   - event staff get the staff window
-  - send the picked category
+  - send the picked category, from either player window
   - ahelp category picker
   - ahelp category picker above the chat
 - [`Content.Client/UserInterface/Systems/Chat/ChatUIController.cs`](../../../Content.Client/UserInterface/Systems/Chat/ChatUIController.cs): event staff see / filter esay

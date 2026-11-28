@@ -20,6 +20,11 @@ public sealed class OpenAdminLogsCommand : IConsoleCommand
             return;
         }
 
+        // WOLFGATE(LogInvestigator) START: the investigator replaces the log window while it is on
+        if (Content.Server._WG.LogInvestigator.LogInvestigatorEui.TryOpen(player, null))
+            return;
+        // WOLFGATE END
+
         var eui = IoCManager.Resolve<EuiManager>();
         var ui = new AdminLogsEui();
         eui.OpenEui(ui, player);

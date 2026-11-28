@@ -45,8 +45,14 @@ namespace Content.Shared.Administration
 
             // WOLFGATE(EventStaff) START: ahelp category picked by the player
             public readonly AHelpCategory Category;
+            // WOLFGATE END
 
-            public BwoinkTextMessage(NetUserId userId, NetUserId trueSender, string text, DateTime? sentAt = default, bool playSound = true, bool adminOnly = false, AHelpCategory category = AHelpCategory.Player)
+            // WOLFGATE(AHelpTickets) START: system notices (connects, closes, reminders), told apart from Discord replies that share SystemUserId
+            // The constructor also takes EventStaff's category.
+            public readonly bool WGSystem;
+
+            public BwoinkTextMessage(NetUserId userId, NetUserId trueSender, string text, DateTime? sentAt = default, bool playSound = true, bool adminOnly = false, AHelpCategory category = AHelpCategory.Player, bool wgSystem = false)
+            // public BwoinkTextMessage(NetUserId userId, NetUserId trueSender, string text, DateTime? sentAt = default, bool playSound = true, bool adminOnly = false, AHelpCategory category = AHelpCategory.Player)
             // WOLFGATE END
             {
                 SentAt = sentAt ?? DateTime.Now;
@@ -56,6 +62,7 @@ namespace Content.Shared.Administration
                 PlaySound = playSound;
                 AdminOnly = adminOnly;
                 Category = category; // WOLFGATE(EventStaff)
+                WGSystem = wgSystem; // WOLFGATE(AHelpTickets)
             }
         }
     }

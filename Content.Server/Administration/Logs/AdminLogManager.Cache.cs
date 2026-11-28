@@ -104,13 +104,22 @@ public sealed partial class AdminLogManager
         // TODO ADMIN LOGS a better heuristic than linq spaghetti
         var query = cache.AsEnumerable();
 
+        // WOLFGATE(LogInvestigator) START: ordered by id, since pages continue from the last id and pre-round logs join the cache late
         query = filter.DateOrder switch
         {
-            DateOrder.Ascending => query,
-            DateOrder.Descending => query.Reverse(),
+            DateOrder.Ascending => query.OrderBy(log => log.Id),
+            DateOrder.Descending => query.OrderByDescending(log => log.Id),
             _ => throw new ArgumentOutOfRangeException(nameof(filter),
                 $"Unknown {nameof(DateOrder)} value {filter.DateOrder}")
         };
+        // query = filter.DateOrder switch
+        // {
+        //     DateOrder.Ascending => query,
+        //     DateOrder.Descending => query.Reverse(),
+        //     _ => throw new ArgumentOutOfRangeException(nameof(filter),
+        //         $"Unknown {nameof(DateOrder)} value {filter.DateOrder}")
+        // };
+        // WOLFGATE END
 
         if (filter.Search != null)
         {
@@ -158,10 +167,19 @@ public sealed partial class AdminLogManager
             query = query.Where(log => log.Players.Length == 0);
         }
 
-        if (filter.LogsSent != 0)
+        // WOLFGATE(LogInvestigator) START: page by the last log sent; new logs at the front made Skip repeat the tail
+        if (filter.LastLogId != null)
         {
-            query = query.Skip(filter.LogsSent);
+            var wgLast = filter.LastLogId.Value;
+            query = filter.DateOrder == DateOrder.Ascending
+                ? query.Where(log => log.Id > wgLast)
+                : query.Where(log => log.Id < wgLast);
         }
+        // if (filter.LogsSent != 0)
+        // {
+        //     query = query.Skip(filter.LogsSent);
+        // }
+        // WOLFGATE END
 
         if (filter.Limit != null)
         {

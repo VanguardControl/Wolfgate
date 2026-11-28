@@ -116,6 +116,10 @@ public sealed partial class PlayerPanelEui : BaseEui
                     return;
 
                 _adminLog.Add(LogType.Action, $"{Player:actor} opened logs on {_targetPlayer.Username:subject}");
+                // WOLFGATE(LogInvestigator) START: open on the player, not a text search for their name
+                if (Content.Server._WG.LogInvestigator.LogInvestigatorEui.TryOpenForPlayer(Player, _targetPlayer.UserId))
+                    break;
+                // WOLFGATE END
                 var ui = new AdminLogsEui();
                 _eui.OpenEui(ui, Player);
                 ui.SetLogFilter(search: _targetPlayer.Username);

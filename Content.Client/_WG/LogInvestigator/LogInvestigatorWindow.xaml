@@ -1,0 +1,77 @@
+<DefaultWindow xmlns="https://spacestation14.io"
+               Title="{Loc 'wg-log-investigator-title'}"
+               MinSize="1100 620"
+               SetSize="1300 760">
+    <SplitContainer Orientation="Horizontal" VerticalExpand="True">
+        <!-- A split holds two panes: query and results inside, the detail pane beside them. -->
+        <SplitContainer Orientation="Horizontal" VerticalExpand="True" HorizontalExpand="True" SizeFlagsStretchRatio="3">
+        <BoxContainer Orientation="Vertical" MinWidth="280" SizeFlagsStretchRatio="1">
+            <BoxContainer Orientation="Horizontal">
+                <Label Text="{Loc 'wg-log-investigator-round'}" />
+                <SpinBox Name="RoundBox" MinWidth="130" />
+                <Button Name="CurrentRoundButton" Text="{Loc 'wg-log-investigator-current'}" StyleClasses="OpenLeft" />
+            </BoxContainer>
+            <BoxContainer Orientation="Horizontal">
+                <Label Text="{Loc 'wg-log-investigator-from'}" />
+                <LineEdit Name="FromEdit" HorizontalExpand="True" PlaceHolder="0:00:00" />
+                <Label Text="{Loc 'wg-log-investigator-to'}" />
+                <LineEdit Name="ToEdit" HorizontalExpand="True" PlaceHolder="{Loc 'wg-log-investigator-end'}" />
+            </BoxContainer>
+            <Label Text="{Loc 'wg-log-investigator-players'}" StyleClasses="LabelSubText" />
+            <ScrollContainer MaxHeight="96" HScrollEnabled="False">
+                <BoxContainer Name="PlayerChips" Orientation="Vertical" />
+            </ScrollContainer>
+            <LineEdit Name="PlayerSearch" PlaceHolder="{Loc 'wg-log-investigator-player-search'}" />
+            <ScrollContainer MinHeight="90" MaxHeight="150" HScrollEnabled="False">
+                <BoxContainer Name="PlayerMatches" Orientation="Vertical" />
+            </ScrollContainer>
+            <CheckBox Name="AllPlayersBox" Text="{Loc 'wg-log-investigator-all-players'}" />
+            <BoxContainer Name="EntityChips" Orientation="Vertical" />
+            <LineEdit Name="TextBox" PlaceHolder="{Loc 'wg-log-investigator-text'}" />
+            <BoxContainer Name="ImpactButtons" Orientation="Horizontal" />
+            <CheckBox Name="NonPlayersBox" Text="{Loc 'wg-log-investigator-non-players'}" Pressed="True" />
+            <CheckBox Name="OldestFirstBox" Text="{Loc 'wg-log-investigator-oldest-first'}" />
+            <CheckBox Name="NearBox" Text="{Loc 'wg-log-investigator-near'}" ToolTip="{Loc 'wg-log-investigator-near-tooltip'}" />
+            <Label Text="{Loc 'wg-log-investigator-categories'}" StyleClasses="LabelSubText" />
+            <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
+                <BoxContainer Name="CategoryTree" Orientation="Vertical" />
+            </ScrollContainer>
+            <GridContainer Name="Presets" Columns="2" />
+            <Label Name="QueryError" Visible="False" FontColorOverride="#ff9f43" />
+            <Button Name="SearchButton" Text="{Loc 'wg-log-investigator-search'}" StyleClasses="Caution" />
+        </BoxContainer>
+        <BoxContainer Orientation="Vertical" HorizontalExpand="True" SizeFlagsStretchRatio="2" Margin="4 0">
+            <Button Name="NewLogsButton" Visible="False" StyleClasses="OpenBoth" />
+            <ScrollContainer Name="ResultsScroll" VerticalExpand="True" HScrollEnabled="False" ReserveScrollbarSpace="True">
+                <BoxContainer Name="Results" Orientation="Vertical" HorizontalExpand="True" />
+            </ScrollContainer>
+            <BoxContainer Orientation="Horizontal">
+                <Label Name="CountLabel" HorizontalExpand="True" ClipText="True" MouseFilter="Stop" />
+                <CheckBox Name="LiveBox" Text="{Loc 'wg-log-investigator-live'}" ToolTip="{Loc 'wg-log-investigator-live-tooltip'}" Pressed="True" />
+                <Control MinWidth="8" />
+                <CheckBox Name="CollapseBox" Text="{Loc 'wg-log-investigator-collapse'}" Pressed="True" />
+                <Button Name="MoreButton" Text="{Loc 'wg-log-investigator-more'}" Disabled="True" StyleClasses="OpenRight" />
+                <Button Name="CopyButton" Text="{Loc 'wg-log-investigator-copy'}" StyleClasses="OpenLeft" />
+            </BoxContainer>
+        </BoxContainer>
+        </SplitContainer>
+        <BoxContainer Orientation="Vertical" MinWidth="340" SizeFlagsStretchRatio="1">
+            <ScrollContainer MaxHeight="220" HScrollEnabled="False">
+                <RichTextLabel Name="Detail" HorizontalExpand="True" />
+            </ScrollContainer>
+            <BoxContainer Name="RefActions" Orientation="Vertical" />
+            <BoxContainer Orientation="Horizontal">
+                <Button Name="EncounterButton" Text="{Loc 'wg-log-investigator-encounter'}" StyleClasses="OpenRight" />
+                <Button Name="TimelineButton" Text="{Loc 'wg-log-investigator-timeline'}" StyleClasses="OpenLeft" />
+                <Control HorizontalExpand="True" />
+                <Label Text="{Loc 'wg-log-investigator-radius'}" ToolTip="{Loc 'wg-log-investigator-radius-tooltip'}" MouseFilter="Stop" />
+                <LineEdit Name="RadiusEdit" Text="15" MinWidth="40" ToolTip="{Loc 'wg-log-investigator-radius-tooltip'}" />
+            </BoxContainer>
+            <Label Name="ReportTitle" StyleClasses="LabelHeading" />
+            <Button Name="ReportFilterButton" Text="{Loc 'wg-log-investigator-report-filter'}" Visible="False" StyleClasses="OpenBoth" />
+            <ScrollContainer VerticalExpand="True" HScrollEnabled="False" ReserveScrollbarSpace="True">
+                <BoxContainer Name="Report" Orientation="Vertical" HorizontalExpand="True" />
+            </ScrollContainer>
+        </BoxContainer>
+    </SplitContainer>
+</DefaultWindow>

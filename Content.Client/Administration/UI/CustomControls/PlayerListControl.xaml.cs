@@ -136,9 +136,23 @@ public sealed partial class PlayerListControl : BoxContainer
 
         if (_selectedPlayer != null && !_playerList.Contains(_selectedPlayer))
             _selectedPlayer = null;
+        // WOLFGATE(AHelpTickets) START: keep the selection on the refreshed record, so its body and name are current
+        else if (_selectedPlayer != null)
+            _selectedPlayer = _playerList.First(p => p.Equals(_selectedPlayer));
+        // WOLFGATE END
 
         FilterList();
     }
+
+    // WOLFGATE(AHelpTickets) START: a closed or popped-out list stops listening, or it kept sorting forever
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+
+        if (disposing)
+            _adminSystem.PlayerListChanged -= PopulateList;
+    }
+    // WOLFGATE END
 
 
     private string GetText(PlayerInfo info)

@@ -46,6 +46,11 @@ public sealed partial class AdminLogsControl : Control
 
         SetImpacts(Enum.GetValues<LogImpact>().OrderBy(impact => impact).ToArray());
         SetTypes(Enum.GetValues<LogType>());
+
+        // WOLFGATE(LogInvestigator) START: logs with no player (explosions, game rules) are shown unless turned off
+        IncludeNonPlayersButton.Pressed = true;
+        IncludeNonPlayerLogs = true;
+        // WOLFGATE END
     }
 
     private int CurrentRound { get; set; }

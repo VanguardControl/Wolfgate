@@ -111,6 +111,11 @@ public sealed partial class AHelpUIController: UIController, IOnSystemChanged<Bw
         DebugTools.Assert(_bwoinkSystem != null);
         _bwoinkSystem!.OnBwoinkTextMessageRecieved -= ReceivedBwoink;
         _bwoinkSystem = null;
+
+        // WOLFGATE(AHelpTickets) START: systems are rebuilt on reconnect, so a window built on the old ones goes with them
+        UIHelper?.Dispose();
+        UIHelper = null;
+        // WOLFGATE END
     }
 
     private void SetAHelpPressed(bool pressed)
@@ -172,15 +177,30 @@ public sealed partial class AHelpUIController: UIController, IOnSystemChanged<Bw
     {
         var isAdmin = _adminManager.HasFlag(AdminFlags.Adminhelp) || _adminManager.HasFlag(AdminFlags.Event); // WOLFGATE(EventStaff): event staff get the staff window
 
-        if (UIHelper != null && UIHelper.IsAdmin == isAdmin)
+        // WOLFGATE(AHelpTickets) START: staff get the ticket panel and players the ticket window unless wg.ahelp.tickets_panel is off
+        var wgTicketsOn = _config.GetCVar(Content.Shared._WG.AHelpTickets.AHelpTicketCVars.TicketsPanel);
+        var wgTickets = isAdmin && wgTicketsOn;
+        var wgPlayer = !isAdmin && wgTicketsOn;
+        if (UIHelper != null && UIHelper.IsAdmin == isAdmin && UIHelper is Content.Client._WG.AHelpTickets.WGTicketAHelpUIHandler == wgTickets
+            && UIHelper is Content.Client._WG.AHelpTickets.WGPlayerAHelpUIHandler == wgPlayer)
             return;
+        // if (UIHelper != null && UIHelper.IsAdmin == isAdmin)
+        //     return;
+        // WOLFGATE END
 
         UIHelper?.Dispose();
         var ownerUserId = _playerManager.LocalUser!.Value;
-        UIHelper = isAdmin ? new AdminAHelpUIHandler(ownerUserId) : new UserAHelpUIHandler(ownerUserId);
+        // WOLFGATE(AHelpTickets) START: staff get the ticket panel and players the ticket window unless wg.ahelp.tickets_panel is off
+        UIHelper = wgTickets
+            ? new Content.Client._WG.AHelpTickets.WGTicketAHelpUIHandler(ownerUserId)
+            : wgPlayer
+                ? new Content.Client._WG.AHelpTickets.WGPlayerAHelpUIHandler(ownerUserId)
+                : isAdmin ? new AdminAHelpUIHandler(ownerUserId) : new UserAHelpUIHandler(ownerUserId);
+        // UIHelper = isAdmin ? new AdminAHelpUIHandler(ownerUserId) : new UserAHelpUIHandler(ownerUserId);
+        // WOLFGATE END
         UIHelper.DiscordRelayChanged(_discordRelayActive);
 
-        UIHelper.SendMessageAction = (userId, textMessage, playSound, adminOnly) => _bwoinkSystem?.Send(userId, textMessage, playSound, adminOnly, (UIHelper as UserAHelpUIHandler)?.Category ?? AHelpCategory.Player); // WOLFGATE(EventStaff): send the picked category
+        UIHelper.SendMessageAction = (userId, textMessage, playSound, adminOnly) => _bwoinkSystem?.Send(userId, textMessage, playSound, adminOnly, (UIHelper as UserAHelpUIHandler)?.Category ?? (UIHelper as Content.Client._WG.AHelpTickets.WGPlayerAHelpUIHandler)?.Category ?? AHelpCategory.Player); // WOLFGATE(EventStaff): send the picked category, from either player window
         UIHelper.InputTextChanged += (channel, text) => _bwoinkSystem?.SendInputTextUpdated(channel, text.Length > 0);
         UIHelper.OnClose += () => { SetAHelpPressed(false); };
         UIHelper.OnOpen +=  () => { SetAHelpPressed(true); };
@@ -217,6 +237,13 @@ public sealed partial class AHelpUIController: UIController, IOnSystemChanged<Bw
     public void PopOut()
     {
         EnsureUIHelper();
+        // WOLFGATE(AHelpTickets) START: the ticket panel pops out on its own
+        if (UIHelper is Content.Client._WG.AHelpTickets.WGTicketAHelpUIHandler wgTickets)
+        {
+            wgTickets.PopOut();
+            return;
+        }
+        // WOLFGATE END
         if (UIHelper is not AdminAHelpUIHandler helper)
             return;
 
@@ -490,6 +517,16 @@ public sealed class AdminAHelpUIHandler : IAHelpUIHandler
     {
         Window?.Dispose();
         Window = null;
+        // WOLFGATE(AHelpTickets) START: a popped-out panel has no Window, so its OS window and control go here
+        if (ClydeWindow != null)
+        {
+            ClydeWindow.RequestClosed -= OnRequestClosed;
+            ClydeWindow.Dispose();
+            ClydeWindow = null;
+            WindowRoot = null;
+        }
+        Control?.Dispose();
+        // WOLFGATE END
         Control = null;
         _activePanelMap.Clear();
         EverOpened = false;
@@ -589,6 +626,7 @@ public sealed class UserAHelpUIHandler : IAHelpUIHandler
         _categorySelector = new AHelpCategorySelector();
         _chatPanel.VerticalExpand = true;
         var layout = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
+        layout.AddChild(new Content.Client._WG.AHelpTickets.AHelpTicketStatusLabel()); // WOLFGATE(AHelpTickets): the player's ticket number and state
         layout.AddChild(_categorySelector);
         layout.AddChild(_chatPanel);
         _window.Contents.AddChild(layout);

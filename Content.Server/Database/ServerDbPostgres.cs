@@ -551,14 +551,29 @@ namespace Content.Server.Database
             // Read the link above for parameterization before changing this method or you get the bullet
             if (!string.IsNullOrWhiteSpace(filter?.Search))
             {
+                // WOLFGATE(LogInvestigator) START: substring match, so entity ids and partial words are found like in the cache
+                // English full text search read "123/n123" as one word and stemmed the rest, so most searches came back empty.
+                var pattern = $"%{WGLikeEscape(filter.Search.Trim())}%";
                 return db.AdminLog.FromSql($"""
 SELECT a.admin_log_id, a.round_id, a.date, a.impact, a.json, a.message, a.type FROM admin_log AS a
-WHERE to_tsvector('english'::regconfig, a.message) @@ websearch_to_tsquery('english'::regconfig, {filter.Search})
+WHERE a.message ILIKE {pattern}
 """);
+                // return db.AdminLog.FromSql($"""
+// SELECT a.admin_log_id, a.round_id, a.date, a.impact, a.json, a.message, a.type FROM admin_log AS a
+// WHERE to_tsvector('english'::regconfig, a.message) @@ websearch_to_tsquery('english'::regconfig, {filter.Search})
+// """);
+                // WOLFGATE END
             }
 
             return db.AdminLog;
         }
+
+        // WOLFGATE(LogInvestigator) START: escapes LIKE wildcards in a search
+        private static string WGLikeEscape(string text)
+        {
+            return text.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+        }
+        // WOLFGATE END
 
         protected override DateTime NormalizeDatabaseTime(DateTime time)
         {

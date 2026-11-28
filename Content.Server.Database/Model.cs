@@ -79,6 +79,11 @@ namespace Content.Server.Database
         public DbSet<WolfgateNanoChatNumber> WolfgateNanoChatNumber { get; set; } = null!; // WOLFGATE(NanoChat): each character's number
         public DbSet<WolfgatePainting> WolfgatePainting { get; set; } = null!; // WOLFGATE(Paintings): the art catalogue
         public DbSet<WolfgateAdminObserver> WolfgateAdminObserver { get; set; } = null!; // WOLFGATE(AdminObserver): admins' observer settings
+        // WOLFGATE(AHelpTickets) START: ahelp tickets and their messages, kept for good
+        public DbSet<WolfgateAhelpTicket> WolfgateAhelpTicket { get; set; } = null!;
+        public DbSet<WolfgateAhelpMessage> WolfgateAhelpMessage { get; set; } = null!;
+        // WOLFGATE END
+        public DbSet<WolfgatePlayerPosition> WolfgatePlayerPosition { get; set; } = null!; // WOLFGATE(LogInvestigator): where players were, for "who was nearby"
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -634,6 +639,28 @@ namespace Content.Server.Database
             modelBuilder.Entity<WolfgateAdminObserver>()
                 .HasIndex(o => o.PlayerUserId)
                 .IsUnique();
+            // WOLFGATE END
+
+            // WOLFGATE(AHelpTickets) START: tickets are listed by player and round; messages go with their ticket
+            modelBuilder.Entity<WolfgateAhelpTicket>()
+                .HasIndex(t => new { t.PlayerUserId, t.OpenedAt });
+
+            modelBuilder.Entity<WolfgateAhelpTicket>()
+                .HasIndex(t => t.RoundId);
+
+            modelBuilder.Entity<WolfgateAhelpMessage>()
+                .HasOne(m => m.Ticket)
+                .WithMany(t => t.Messages)
+                .HasForeignKey(m => m.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<WolfgateAhelpMessage>()
+                .HasIndex(m => new { m.TicketId, m.SentAt });
+            // WOLFGATE END
+
+            // WOLFGATE(LogInvestigator) START: position samples are read by round and time
+            modelBuilder.Entity<WolfgatePlayerPosition>()
+                .HasIndex(p => new { p.RoundId, p.SampledAt });
             // WOLFGATE END
         }
 
@@ -2442,6 +2469,124 @@ namespace Content.Server.Database
         public string Data { get; set; } = "";
 
         public DateTime Saved { get; set; }
+    }
+    // WOLFGATE END
+
+    // WOLFGATE(AHelpTickets) START: an ahelp ticket and its transcript, kept for good
+    /// <summary>One ahelp ticket: a player's issue from their first message until staff close it or the round ends.</summary>
+    public class WolfgateAhelpTicket
+    {
+        /// <summary>The ticket number staff see.</summary>
+        [Key]
+        public int Id { get; set; }
+
+        public int RoundId { get; set; }
+
+        /// <summary>The game server it was opened on, since servers share the database.</summary>
+        [Required, MaxLength(128)]
+        public string ServerName { get; set; } = null!;
+
+        public Guid PlayerUserId { get; set; }
+
+        [Required, MaxLength(64)]
+        public string PlayerName { get; set; } = null!;
+
+        [MaxLength(128)]
+        public string? CharacterName { get; set; }
+
+        /// <summary>The AHelpCategory the player picked, by name.</summary>
+        [Required, MaxLength(16)]
+        public string Category { get; set; } = null!;
+
+        /// <summary>The AHelpTicketState, by name.</summary>
+        [Required, MaxLength(16)]
+        public string State { get; set; } = null!;
+
+        public Guid? AssigneeUserId { get; set; }
+
+        [MaxLength(64)]
+        public string? AssigneeName { get; set; }
+
+        public DateTime OpenedAt { get; set; }
+
+        public DateTime? ClaimedAt { get; set; }
+
+        /// <summary>When staff first answered the player where the player could see it.</summary>
+        public DateTime? FirstReplyAt { get; set; }
+
+        public DateTime? ClosedAt { get; set; }
+
+        [MaxLength(64)]
+        public string? ClosedBy { get; set; }
+
+        /// <summary>The macros staff used on it, comma separated, for counting.</summary>
+        [MaxLength(512)]
+        public string? Macros { get; set; }
+
+        public List<WolfgateAhelpMessage> Messages { get; set; } = null!;
+    }
+
+    /// <summary>One line of an ahelp ticket.</summary>
+    public class WolfgateAhelpMessage
+    {
+        [Key]
+        public long Id { get; set; }
+
+        public int TicketId { get; set; }
+
+        public WolfgateAhelpTicket Ticket { get; set; } = null!;
+
+        public DateTime SentAt { get; set; }
+
+        /// <summary>Who wrote it; null for Discord replies and system lines.</summary>
+        public Guid? AuthorUserId { get; set; }
+
+        [Required, MaxLength(64)]
+        public string AuthorName { get; set; } = null!;
+
+        /// <summary>"player", "staff", "discord" or "system".</summary>
+        [Required, MaxLength(16)]
+        public string Source { get; set; } = null!;
+
+        /// <summary>Hidden from the player: a staff note.</summary>
+        public bool AdminOnly { get; set; }
+
+        [Required]
+        public string Text { get; set; } = null!;
+    }
+    // WOLFGATE END
+
+    // WOLFGATE(LogInvestigator) START: where each player was every few seconds, pruned with the admin logs
+    /// <summary>Where a player's body was at one moment, for working out who was near an event.</summary>
+    public class WolfgatePlayerPosition
+    {
+        [Key]
+        public long Id { get; set; }
+
+        public int RoundId { get; set; }
+
+        public DateTime SampledAt { get; set; }
+
+        public Guid PlayerUserId { get; set; }
+
+        /// <summary>The body's entity id, as admin logs write ids.</summary>
+        public int EntityId { get; set; }
+
+        /// <summary>The body's name, as admin logs show it.</summary>
+        [MaxLength(128)]
+        public string? EntityName { get; set; }
+
+        public int MapId { get; set; }
+
+        /// <summary>The grid's entity id, or null off grid.</summary>
+        public int? GridId { get; set; }
+
+        /// <summary>World position.</summary>
+        public float X { get; set; }
+
+        public float Y { get; set; }
+
+        public bool Alive { get; set; }
     }
     // WOLFGATE END
 }

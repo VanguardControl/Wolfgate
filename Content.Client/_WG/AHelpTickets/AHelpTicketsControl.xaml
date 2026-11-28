@@ -1,0 +1,64 @@
+<Control xmlns="https://spacestation14.io"
+         xmlns:ui="clr-namespace:Content.Client.UserInterface.Controls">
+    <PanelContainer StyleClasses="BackgroundDark">
+        <SplitContainer Orientation="Horizontal" VerticalExpand="True">
+            <BoxContainer Orientation="Vertical" HorizontalExpand="True" SizeFlagsStretchRatio="1" MinWidth="260">
+                <LineEdit Name="SearchBox" Access="Public" HorizontalExpand="True"
+                          PlaceHolder="{Loc 'wg-ahelp-tickets-search-placeholder'}" />
+                <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
+                    <Button Name="FilterMine" ToggleMode="True" Text="{Loc 'wg-ahelp-tickets-filter-mine'}" StyleClasses="OpenRight" />
+                    <Button Name="FilterOnline" ToggleMode="True" Text="{Loc 'wg-ahelp-tickets-filter-online'}" StyleClasses="OpenBoth" />
+                    <Button Name="FilterNotes" ToggleMode="True" Text="{Loc 'wg-ahelp-tickets-filter-notes'}" StyleClasses="OpenBoth" />
+                    <Button Name="FilterClosed" ToggleMode="True" Pressed="True" Text="{Loc 'wg-ahelp-tickets-filter-closed'}" StyleClasses="OpenLeft" />
+                </BoxContainer>
+                <ui:ListContainer Name="TicketList" Access="Public" Toggle="True" Group="True" VerticalExpand="True" />
+                <Label Name="EmptyLabel" Text="{Loc 'wg-ahelp-tickets-empty'}" StyleClasses="LabelSubText" Visible="False" />
+            </BoxContainer>
+            <SplitContainer Orientation="Horizontal" VerticalExpand="True" HorizontalExpand="True" SizeFlagsStretchRatio="3">
+                <!-- The chat, with the ticket and player column on its right. -->
+                <BoxContainer Orientation="Vertical" HorizontalExpand="True" SizeFlagsStretchRatio="2" Margin="4 0" MinWidth="360">
+                    <Label Name="Placeholder" Text="{Loc 'wg-ahelp-tickets-none-selected'}" StyleClasses="LabelSubText" VerticalExpand="True" VAlign="Center" Align="Center" />
+                    <BoxContainer Name="BwoinkArea" Access="Public" VerticalExpand="True" />
+                    <Label Name="Collision" Visible="False" FontColorOverride="#ffb347" />
+                    <BoxContainer Name="MacroConfirm" Orientation="Horizontal" HorizontalExpand="True" Visible="False">
+                        <Label Name="MacroConfirmLabel" HorizontalExpand="True" ClipText="True" MouseFilter="Stop" />
+                        <Button Name="MacroSend" Text="{Loc 'wg-ahelp-macro-send'}" StyleClasses="OpenRight" />
+                        <Button Name="MacroCancel" Text="{Loc 'wg-ahelp-macro-cancel'}" StyleClasses="OpenLeft" />
+                    </BoxContainer>
+                    <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
+                        <CheckBox Name="AdminOnly" Access="Public" Text="{Loc 'wg-ahelp-tickets-admin-only'}" />
+                        <Control MinWidth="8" />
+                        <CheckBox Name="PlaySound" Access="Public" Text="{Loc 'wg-ahelp-tickets-play-sound'}" Pressed="True" />
+                        <Control HorizontalExpand="True" />
+                        <OptionButton Name="Macros" />
+                    </BoxContainer>
+                </BoxContainer>
+                <ScrollContainer HScrollEnabled="False" SizeFlagsStretchRatio="1" MinWidth="280">
+                    <BoxContainer Name="InfoColumn" Orientation="Vertical" HorizontalExpand="True" Margin="4 0 0 0">
+                        <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
+                            <Label Text="{Loc 'wg-ahelp-tickets-section-ticket'}" StyleClasses="LabelHeading" HorizontalExpand="True" />
+                            <Button Name="PopOut" Access="Public" Text="{Loc 'wg-ahelp-tickets-pop-out'}" />
+                        </BoxContainer>
+                        <RichTextLabel Name="Header" />
+                        <Label Name="Viewers" StyleClasses="LabelSubText" Visible="False" />
+                        <GridContainer Columns="2" HorizontalExpand="True">
+                            <Button Name="ClaimButton" Text="{Loc 'wg-ahelp-tickets-claim'}" ToolTip="{Loc 'wg-ahelp-tickets-claim-tooltip'}" StyleClasses="OpenBoth" HorizontalExpand="True" />
+                            <Button Name="UnclaimButton" Text="{Loc 'wg-ahelp-tickets-unclaim'}" ToolTip="{Loc 'wg-ahelp-tickets-unclaim-tooltip'}" StyleClasses="OpenBoth" HorizontalExpand="True" />
+                            <Button Name="ResolveButton" Text="{Loc 'wg-ahelp-tickets-resolve'}" StyleClasses="OpenBoth" HorizontalExpand="True" />
+                            <Button Name="RejectButton" Text="{Loc 'wg-ahelp-tickets-reject'}" StyleClasses="OpenBoth" HorizontalExpand="True" />
+                            <Button Name="IcButton" Text="{Loc 'wg-ahelp-tickets-ic'}" StyleClasses="OpenBoth" HorizontalExpand="True" />
+                            <Button Name="ReopenButton" Text="{Loc 'wg-ahelp-tickets-reopen'}" ToolTip="{Loc 'wg-ahelp-tickets-reopen-tooltip'}" StyleClasses="OpenBoth" HorizontalExpand="True" />
+                            <Button Name="AssistButton" Text="{Loc 'wg-ahelp-tickets-assist'}" ToolTip="{Loc 'wg-ahelp-tickets-assist-tooltip'}" StyleClasses="OpenBoth" HorizontalExpand="True" />
+                            <Button Name="ExportButton" Text="{Loc 'wg-ahelp-tickets-export'}" ToolTip="{Loc 'wg-ahelp-tickets-export-tooltip'}" StyleClasses="OpenBoth" HorizontalExpand="True" />
+                        </GridContainer>
+                        <Label Text="{Loc 'wg-ahelp-tickets-section-player'}" StyleClasses="LabelHeading" Margin="0 6 0 0" />
+                        <RichTextLabel Name="Card" />
+                        <GridContainer Name="Actions" Columns="2" HorizontalExpand="True" />
+                        <Label Name="ShipsHeading" Text="{Loc 'wg-ahelp-tickets-section-ships'}" StyleClasses="LabelHeading" Margin="0 6 0 0" Visible="False" />
+                        <BoxContainer Name="Ships" Orientation="Vertical" HorizontalExpand="True" />
+                    </BoxContainer>
+                </ScrollContainer>
+            </SplitContainer>
+        </SplitContainer>
+    </PanelContainer>
+</Control>

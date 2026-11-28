@@ -1845,6 +1845,147 @@ namespace Content.Server.Database.Migrations.Postgres
                     b.ToTable("wolfgate_admin_observer", (string)null);
                 });
 
+            modelBuilder.Entity("Content.Server.Database.WolfgateAhelpMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("wolfgate_ahelp_message_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("AdminOnly")
+                        .HasColumnType("boolean")
+                        .HasColumnName("admin_only");
+
+                    b.Property<string>("AuthorName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("author_name");
+
+                    b.Property<Guid?>("AuthorUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("author_user_id");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("text");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("integer")
+                        .HasColumnName("ticket_id");
+
+                    b.HasKey("Id")
+                        .HasName("PK_wolfgate_ahelp_message");
+
+                    b.HasIndex("TicketId", "SentAt");
+
+                    b.ToTable("wolfgate_ahelp_message", (string)null);
+                });
+
+            modelBuilder.Entity("Content.Server.Database.WolfgateAhelpTicket", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("wolfgate_ahelp_ticket_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AssigneeName")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("assignee_name");
+
+                    b.Property<Guid?>("AssigneeUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("assignee_user_id");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("category");
+
+                    b.Property<string>("CharacterName")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("character_name");
+
+                    b.Property<DateTime?>("ClaimedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("claimed_at");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_at");
+
+                    b.Property<string>("ClosedBy")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("closed_by");
+
+                    b.Property<DateTime?>("FirstReplyAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("first_reply_at");
+
+                    b.Property<string>("Macros")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("macros");
+
+                    b.Property<DateTime>("OpenedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("opened_at");
+
+                    b.Property<string>("PlayerName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("player_name");
+
+                    b.Property<Guid>("PlayerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_user_id");
+
+                    b.Property<int>("RoundId")
+                        .HasColumnType("integer")
+                        .HasColumnName("round_id");
+
+                    b.Property<string>("ServerName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("server_name");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("state");
+
+                    b.HasKey("Id")
+                        .HasName("PK_wolfgate_ahelp_ticket");
+
+                    b.HasIndex("RoundId");
+
+                    b.HasIndex("PlayerUserId", "OpenedAt");
+
+                    b.ToTable("wolfgate_ahelp_ticket", (string)null);
+                });
+
             modelBuilder.Entity("Content.Server.Database.WolfgateCensus", b =>
                 {
                     b.Property<int>("Id")
@@ -2765,6 +2906,64 @@ namespace Content.Server.Database.Migrations.Postgres
                     b.ToTable("wolfgate_photo_album", (string)null);
                 });
 
+            modelBuilder.Entity("Content.Server.Database.WolfgatePlayerPosition", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("wolfgate_player_position_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Alive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("alive");
+
+                    b.Property<int>("EntityId")
+                        .HasColumnType("integer")
+                        .HasColumnName("entity_id");
+
+                    b.Property<string>("EntityName")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("entity_name");
+
+                    b.Property<int?>("GridId")
+                        .HasColumnType("integer")
+                        .HasColumnName("grid_id");
+
+                    b.Property<int>("MapId")
+                        .HasColumnType("integer")
+                        .HasColumnName("map_id");
+
+                    b.Property<Guid>("PlayerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_user_id");
+
+                    b.Property<int>("RoundId")
+                        .HasColumnType("integer")
+                        .HasColumnName("round_id");
+
+                    b.Property<DateTime>("SampledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sampled_at");
+
+                    b.Property<float>("X")
+                        .HasColumnType("real")
+                        .HasColumnName("x");
+
+                    b.Property<float>("Y")
+                        .HasColumnType("real")
+                        .HasColumnName("y");
+
+                    b.HasKey("Id")
+                        .HasName("PK_wolfgate_player_position");
+
+                    b.HasIndex("RoundId", "SampledAt");
+
+                    b.ToTable("wolfgate_player_position", (string)null);
+                });
+
             modelBuilder.Entity("Content.Server.Database.WolfgateShipCommandPreset", b =>
                 {
                     b.Property<int>("Id")
@@ -3454,6 +3653,18 @@ namespace Content.Server.Database.Migrations.Postgres
                     b.Navigation("Box");
                 });
 
+            modelBuilder.Entity("Content.Server.Database.WolfgateAhelpMessage", b =>
+                {
+                    b.HasOne("Content.Server.Database.WolfgateAhelpTicket", "Ticket")
+                        .WithMany("Messages")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_wolfgate_ahelp_message_wolfgate_ahelp_ticket_ticket_id");
+
+                    b.Navigation("Ticket");
+                });
+
             modelBuilder.Entity("Content.Server.Database.WolfgateCensusResponse", b =>
                 {
                     b.HasOne("Content.Server.Database.WolfgateCensus", "Census")
@@ -3726,6 +3937,11 @@ namespace Content.Server.Database.Migrations.Postgres
             modelBuilder.Entity("Content.Server.Database.WayfarerSafetyDepositBox", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Content.Server.Database.WolfgateAhelpTicket", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("Content.Server.Database.WolfgateCensus", b =>

@@ -122,6 +122,7 @@ public sealed partial class AdminLogsEui : BaseEui
                     AnyPlayers = request.AnyPlayers,
                     AllPlayers = request.AllPlayers,
                     IncludeNonPlayers = request.IncludeNonPlayers,
+                    DateOrder = request.DateOrder, // WOLFGATE(LogInvestigator): the requested order was dropped
                     LastLogId = null,
                     Limit = _clientBatchSize
                 };
@@ -157,21 +158,37 @@ public sealed partial class AdminLogsEui : BaseEui
         var stopwatch = new Stopwatch();
         stopwatch.Start();
 
-        var logs = await Task.Run(async () => await _adminLogs.All(_filter, _adminLogListPool.Get),
-            _filter.CancellationToken);
+        // WOLFGATE(LogInvestigator) START: a request replaced by a newer one is cancelled, not an error
+        List<SharedAdminLog> logs;
+        try
+        {
+            logs = await Task.Run(async () => await _adminLogs.All(_filter, _adminLogListPool.Get),
+                _filter.CancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        // var logs = await Task.Run(async () => await _adminLogs.All(_filter, _adminLogListPool.Get),
+        //     _filter.CancellationToken);
+        // WOLFGATE END
 
         if (logs.Count > 0)
         {
             _filter.LogsSent += logs.Count;
 
-            var largestId = _filter.DateOrder switch
-            {
-                DateOrder.Ascending => 0,
-                DateOrder.Descending => ^1,
-                _ => throw new ArgumentOutOfRangeException(nameof(_filter.DateOrder), _filter.DateOrder, null)
-            };
-
-            _filter.LastLogId = logs[largestId].Id;
+            // WOLFGATE(LogInvestigator) START: the next page starts after the last row sent, in either order
+            // Index 0 for ascending made every page start one row on from the previous one.
+            _filter.LastLogId = logs[^1].Id;
+            // var largestId = _filter.DateOrder switch
+            // {
+            //     DateOrder.Ascending => 0,
+            //     DateOrder.Descending => ^1,
+            //     _ => throw new ArgumentOutOfRangeException(nameof(_filter.DateOrder), _filter.DateOrder, null)
+            // };
+            //
+            // _filter.LastLogId = logs[largestId].Id;
+            // WOLFGATE END
         }
 
         var message = new NewLogs(logs, replace, logs.Count >= _filter.Limit);

@@ -1192,9 +1192,16 @@ INSERT INTO player_round (players_id, rounds_id) VALUES ({players[player]}, {id}
 
                 if (filter.AllPlayers != null)
                 {
+                    // WOLFGATE(LogInvestigator) START: "all players" means the log involves every one of them, as in the cache
+                    var wgIds = filter.AllPlayers.Distinct().ToList();
+                    var wgCount = wgIds.Count;
                     query = query.Where(log =>
-                        log.Players.All(p => filter.AllPlayers.Contains(p.PlayerUserId)) ||
+                        log.Players.Count(p => wgIds.Contains(p.PlayerUserId)) == wgCount ||
                         log.Players.Count == 0 && filter.IncludeNonPlayers);
+                    // query = query.Where(log =>
+                    //     log.Players.All(p => filter.AllPlayers.Contains(p.PlayerUserId)) ||
+                    //     log.Players.Count == 0 && filter.IncludeNonPlayers);
+                    // WOLFGATE END
                 }
             }
             else
@@ -1213,13 +1220,22 @@ INSERT INTO player_round (players_id, rounds_id) VALUES ({players[player]}, {id}
                 };
             }
 
+            // WOLFGATE(LogInvestigator) START: ties on date break by id, which the page cursor follows
             query = filter.DateOrder switch
             {
-                DateOrder.Ascending => query.OrderBy(log => log.Date),
-                DateOrder.Descending => query.OrderByDescending(log => log.Date),
+                DateOrder.Ascending => query.OrderBy(log => log.Date).ThenBy(log => log.Id),
+                DateOrder.Descending => query.OrderByDescending(log => log.Date).ThenByDescending(log => log.Id),
                 _ => throw new ArgumentOutOfRangeException(nameof(filter),
                     $"Unknown {nameof(DateOrder)} value {filter.DateOrder}")
             };
+            // query = filter.DateOrder switch
+            // {
+            //     DateOrder.Ascending => query.OrderBy(log => log.Date),
+            //     DateOrder.Descending => query.OrderByDescending(log => log.Date),
+            //     _ => throw new ArgumentOutOfRangeException(nameof(filter),
+            //         $"Unknown {nameof(DateOrder)} value {filter.DateOrder}")
+            // };
+            // WOLFGATE END
 
             const int hardLogLimit = 500_000;
             if (filter.Limit != null)

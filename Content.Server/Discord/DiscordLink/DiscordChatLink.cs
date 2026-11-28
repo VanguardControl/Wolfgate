@@ -225,16 +225,32 @@ public sealed partial class DiscordChatLink : IPostInjectInit
             var formattedMessage = $"{adminOnlyPrefix}`{author}`: {message}";
 
             // Check if we already have a thread for this user
-            if (!_ahelpThreads.TryGetValue(userId, out var threadId))
+            // WOLFGATE(AHelpTickets) START: a second message waits for the thread the first is creating, instead of making another
+            var (threadId, pending, creating) = WGThreadFor(userId, () =>
+                _discordLink.CreateAhelpThreadAsync(_ahelpChannelId.Value, userId, playerName, formattedMessage, roundId, characterName));
+            if (creating)
             {
-                // Create a new thread for this ahelp
-                var newThreadId = await _discordLink.CreateAhelpThreadAsync(_ahelpChannelId.Value, userId, playerName, formattedMessage, roundId, characterName);
-                if (newThreadId.HasValue)
-                {
-                    _ahelpThreads[userId] = newThreadId.Value;
-                }
+                WGThreadCreated(userId, pending!, await pending!);
                 return; // Initial message already sent when creating thread
             }
+
+            if (pending != null)
+            {
+                if (await pending is not { } made)
+                    return;
+                threadId = made;
+            }
+            // if (!_ahelpThreads.TryGetValue(userId, out var threadId))
+            // {
+            //     // Create a new thread for this ahelp
+            //     var newThreadId = await _discordLink.CreateAhelpThreadAsync(_ahelpChannelId.Value, userId, playerName, formattedMessage, roundId, characterName);
+            //     if (newThreadId.HasValue)
+            //     {
+            //         _ahelpThreads[userId] = newThreadId.Value;
+            //     }
+            //     return; // Initial message already sent when creating thread
+            // }
+            // WOLFGATE END
 
             // Send message to existing thread
             await _discordLink.SendThreadMessageAsync(threadId, formattedMessage);
@@ -258,6 +274,11 @@ public sealed partial class DiscordChatLink : IPostInjectInit
     /// </summary>
     private string FormatDiscordAuthor(string displayName, string? roleTitle, uint? roleColor)
     {
+        // WOLFGATE(AHelpTickets) START: names go into markup, so a bracket in one can't break the line in game
+        displayName = Robust.Shared.Utility.FormattedMessage.EscapeText(displayName);
+        roleTitle = roleTitle == null ? null : Robust.Shared.Utility.FormattedMessage.EscapeText(roleTitle);
+        // WOLFGATE END
+
         // Add role title if available
         if (!string.IsNullOrEmpty(roleTitle))
         {
