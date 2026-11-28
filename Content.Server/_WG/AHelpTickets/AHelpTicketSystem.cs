@@ -239,6 +239,7 @@ public sealed partial class AHelpTicketSystem : EntitySystem
                 ticket.Info.AssigneeName = null;
                 ticket.LastReminder = now;
                 _bwoink.WGSetClaimed(ticket.Info.Player, false);
+                SendPlayerStatus(ticket);
                 break;
             case AHelpTicketAction.Reopen:
                 if (!ticket.Info.State.IsClosed() || _open.ContainsKey(ticket.Info.Player))

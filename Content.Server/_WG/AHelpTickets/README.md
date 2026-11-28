@@ -101,6 +101,7 @@ Entry points: `AHelpTicketSystem` (server; fed by `BwoinkSystem.WGTicketLine`), 
   - systems are rebuilt on reconnect, so a window built on the old ones goes with them
   - staff get the ticket panel and players the ticket window unless wg.ahelp.tickets_panel is off
   - the ticket panel pops out on its own
+  - a popped-out panel has no Window, so its OS window and control go here
   - the player's ticket number and state
 - [`Content.Server.Database/Model.cs`](../../../Content.Server.Database/Model.cs)
   - ahelp tickets and their messages, kept for good

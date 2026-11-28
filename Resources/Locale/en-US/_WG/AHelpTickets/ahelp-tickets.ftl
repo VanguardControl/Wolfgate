@@ -149,6 +149,7 @@ wg-ahelp-player-form-message = What happened? Who, where and when helps staff mo
 wg-ahelp-player-form-submit = Submit ticket
 wg-ahelp-player-closed = This ticket is closed. Write again to open a new one, or press New ticket.
 wg-ahelp-player-new-ticket = New ticket
+wg-ahelp-player-new-ticket-open = Your ticket is still open. Write in it to add to it.
 wg-ahelp-player-export-header = Ticket #{ $number }
 wg-ahelp-player-status = Ticket { $number ->
     [0] (being filed)

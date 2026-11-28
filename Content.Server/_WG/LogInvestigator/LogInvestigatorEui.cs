@@ -37,6 +37,7 @@ public sealed class LogInvestigatorEui : BaseEui
 
     /// <summary>The most rows a report reads of each kind.</summary>
     private const int ReportRows = 5000;
+    private const int ReportPages = 10;
 
     /// <summary>The window around a moment that "who was nearby" looks at.</summary>
     private static readonly TimeSpan NearbyWindow = TimeSpan.FromSeconds(60);
@@ -363,7 +364,7 @@ public sealed class LogInvestigatorEui : BaseEui
             if (grids.Count > 0)
             {
                 var hails = new LogQuery { RoundId = query.RoundId, FromSeconds = from, ToSeconds = to, Types = new HashSet<LogType> { LogType.Chat }, Text = "Hail from", Ascending = true };
-                chat.AddRange((await Rows(hails, cancel)).Where(r => r.Refs.Any(x => x.Key.StartsWith("grid") && grids.Contains(x.Id))));
+                chat.AddRange(await Matching(hails, r => r.Refs.Any(x => x.Key.StartsWith("grid") && grids.Contains(x.Id)), cancel));
             }
 
             chat = chat.DistinctBy(r => r.Id).ToList();
@@ -458,6 +459,26 @@ public sealed class LogInvestigatorEui : BaseEui
     {
         var (rows, _, _) = await _db.GetInvestigatorLogsAsync(query, _roundStart, null, ReportRows, false, cancel);
         return rows;
+    }
+
+    /// <summary>
+    /// Rows of the query that pass a filter the database can't apply, paged so the filter sees past the first page.
+    /// Stops at <see cref="ReportRows"/> matches or <see cref="ReportPages"/> pages.
+    /// </summary>
+    private async Task<List<LogRow>> Matching(LogQuery query, Func<LogRow, bool> filter, CancellationToken cancel)
+    {
+        var found = new List<LogRow>();
+        int? after = null;
+        for (var page = 0; page < ReportPages && found.Count < ReportRows; page++)
+        {
+            var (rows, hasMore, _) = await _db.GetInvestigatorLogsAsync(query, _roundStart, after, ReportRows, false, cancel);
+            found.AddRange(rows.Where(filter));
+            if (!hasMore || rows.Count == 0)
+                break;
+            after = rows[^1].Id;
+        }
+
+        return found.Take(ReportRows).ToList();
     }
 
     /// <summary>Seconds since the round started, or null when the start isn't known.</summary>

@@ -33,6 +33,7 @@ public sealed class WGPlayerAHelpUIHandler : IAHelpUIHandler
     private AHelpCategorySelector? _category;
     private TextEdit? _firstMessage;
     private Label? _closedNotice;
+    private Button? _newTicket;
     private RichTextLabel? _relayLabel;
     private AHelpTicketClientSystem? _tickets;
     private bool _relayActive;
@@ -169,7 +170,7 @@ public sealed class WGPlayerAHelpUIHandler : IAHelpUIHandler
         view.AddChild(_closedNotice);
 
         var buttons = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal };
-        var newTicket = new Button { Text = Loc.GetString("wg-ahelp-player-new-ticket"), StyleClasses = { "OpenRight" } };
+        var newTicket = _newTicket = new Button { Text = Loc.GetString("wg-ahelp-player-new-ticket"), StyleClasses = { "OpenRight" } };
         newTicket.OnPressed += _ =>
         {
             _talking = false;
@@ -219,6 +220,13 @@ public sealed class WGPlayerAHelpUIHandler : IAHelpUIHandler
         _chatView.Visible = !showForm;
         if (_closedNotice != null)
             _closedNotice.Visible = status != null && status.State.IsClosed();
+
+        // While a ticket is open, anything filed would only add to it.
+        if (_newTicket != null)
+        {
+            _newTicket.Disabled = open;
+            _newTicket.ToolTip = open ? Loc.GetString("wg-ahelp-player-new-ticket-open") : null;
+        }
     }
 
     private async void Export()
@@ -260,6 +268,7 @@ public sealed class WGPlayerAHelpUIHandler : IAHelpUIHandler
         _category = null;
         _firstMessage = null;
         _closedNotice = null;
+        _newTicket = null;
         _relayLabel = null;
     }
 }

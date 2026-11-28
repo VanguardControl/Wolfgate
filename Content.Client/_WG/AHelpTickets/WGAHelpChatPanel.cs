@@ -91,14 +91,23 @@ public sealed class WGAHelpChatPanel : BoxContainer
         inputRow.AddChild(sendButton);
         AddChild(inputRow);
 
-        OnVisibilityChanged += c =>
-        {
-            if (!c.Visible)
-                return;
+        OnVisibilityChanged += _ => MarkSeen();
+    }
 
-            Unread = 0;
-            _stickFrames = 2;
-        };
+    /// <summary>Clears the unread count once the panel is on screen, its window included.</summary>
+    private void MarkSeen()
+    {
+        if (!VisibleInTree)
+            return;
+
+        Unread = 0;
+        _stickFrames = 2;
+    }
+
+    protected override void EnteredTree()
+    {
+        base.EnteredTree();
+        MarkSeen();
     }
 
     private void Send(string text)
@@ -115,7 +124,7 @@ public sealed class WGAHelpChatPanel : BoxContainer
     public void ReceiveLine(SharedBwoinkSystem.BwoinkTextMessage message)
     {
         var notice = message.WGSystem;
-        if (!Visible && !notice)
+        if (!VisibleInTree && !notice)
             Unread++;
         if (!notice)
             LastMessage = message.SentAt;
@@ -209,14 +218,15 @@ public sealed class WGAHelpChatPanel : BoxContainer
         if (_typingLeft.Count > 0)
         {
             var delta = TimeSpan.FromSeconds(args.DeltaSeconds);
+            var removed = false;
             foreach (var name in _typingLeft.Keys.ToList())
             {
                 _typingLeft[name] -= delta;
                 if (_typingLeft[name] <= TimeSpan.Zero)
-                    _typingLeft.Remove(name);
+                    removed |= _typingLeft.Remove(name);
             }
 
-            if (_typingLeft.Count == 0)
+            if (removed)
                 UpdateTyping();
         }
 

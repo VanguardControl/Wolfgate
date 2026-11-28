@@ -164,8 +164,8 @@ public sealed partial class AHelpTicketSystem
 
         body = attached;
         var character = Name(attached);
-        var profile = prefs.Characters.Values.OfType<HumanoidCharacterProfile>().FirstOrDefault(p => p.Name == character)
-                      ?? prefs.SelectedCharacter as HumanoidCharacterProfile;
+        // No match means no loadout: the selected slot may be another character with the same job.
+        var profile = prefs.Characters.Values.OfType<HumanoidCharacterProfile>().FirstOrDefault(p => p.Name == character);
         if (profile == null || !profile.Loadouts.TryGetValue(LoadoutSystem.GetJobPrototype(job.Value), out var role))
             return false;
 

@@ -179,9 +179,11 @@ public sealed partial class LogInvestigatorWindow : DefaultWindow
         if (_pollGeneration != _searchGeneration || _awaitingFirstPage)
             return;
 
+        // Rerun what is on screen, not whatever the filters were edited to since.
         if (page.HasMore)
         {
-            Search();
+            if (_loadedQuery is { } loaded)
+                Search(loaded);
             return;
         }
 
@@ -312,7 +314,13 @@ public sealed partial class LogInvestigatorWindow : DefaultWindow
     /// <summary>Starts a new search. Load more waits for its first page, so it never mixes it with the rows shown.</summary>
     private void Search()
     {
-        _loadedQuery = BuildQuery();
+        Search(BuildQuery());
+    }
+
+    /// <summary>Starts a new search for this query.</summary>
+    private void Search(LogQuery query)
+    {
+        _loadedQuery = query;
         _hasMore = false;
         _awaitingFirstPage = true;
         _searchGeneration++;

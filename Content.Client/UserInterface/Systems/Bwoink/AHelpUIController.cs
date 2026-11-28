@@ -517,6 +517,16 @@ public sealed class AdminAHelpUIHandler : IAHelpUIHandler
     {
         Window?.Dispose();
         Window = null;
+        // WOLFGATE(AHelpTickets) START: a popped-out panel has no Window, so its OS window and control go here
+        if (ClydeWindow != null)
+        {
+            ClydeWindow.RequestClosed -= OnRequestClosed;
+            ClydeWindow.Dispose();
+            ClydeWindow = null;
+            WindowRoot = null;
+        }
+        Control?.Dispose();
+        // WOLFGATE END
         Control = null;
         _activePanelMap.Clear();
         EverOpened = false;
