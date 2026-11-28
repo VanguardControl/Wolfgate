@@ -1,0 +1,41 @@
+- type: loadout
+  id: ClothingNeckCowBellCollar
+  price: 0
+  equipment:
+    slot: ClothingNeckCowBellCollar
+
+- type: loadout
+  id: ClothingUniformOversizeSweatshirt
+  price: 0
+  equipment:
+    slot: ClothingUniformOversizeSweatshirt
+
+- type: loadout
+  id: ClothingUniformOversizeSweatUni
+  price: 0
+  equipment:
+    slot: ClothingUniformOversizeSweatUni
+
+- type: loadout
+  id: ClothingUniformOversizeSweatTacky
+  price: 0
+  equipment:
+    slot: ClothingUniformOversizeSweatTacky
+
+- type: loadout
+  id: ClothingUniformOversizeSweatGoth
+  price: 0
+  equipment:
+    slot: ClothingUniformOversizeSweatGoth
+
+- type: loadout
+  id: ClothingNeckBellCollar
+  price: 0
+  equipment:
+    slot: ClothingNeckBellCollar
+
+- type: loadout
+  id: ClothingNeckBellCollar
+  price: 0
+  equipment:
+    slot: ClothingNeckBellCollar

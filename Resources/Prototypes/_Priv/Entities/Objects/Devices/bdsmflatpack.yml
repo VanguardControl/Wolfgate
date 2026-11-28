@@ -1,0 +1,9 @@
+- type: entity
+  parent: BaseFlatpack
+  id: bdsmflatpack
+  name: BDSM Bed flatpack
+  description: A Flatpack for the BDSM bed.
+  components:
+   - type: Flatpack
+     entity: NovaBedBdsmBed
+
