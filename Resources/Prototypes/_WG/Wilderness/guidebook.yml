@@ -1,0 +1,5 @@
+- type: guideEntry
+  id: WGWilderness
+  name: guide-entry-wg-wilderness
+  text: "/ServerInfo/_WG/Wilderness/Guidebook/Wilderness.xml"
+  ruleEntry: true

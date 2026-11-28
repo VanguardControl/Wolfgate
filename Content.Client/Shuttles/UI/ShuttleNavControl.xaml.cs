@@ -670,6 +670,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
         DrawWgTerrain(handle, worldToView, xform.MapUid); // WOLFGATE(Planets): cached planetary terrain beneath radar contacts.
         DrawSectorBorders(handle, worldToView, xform.MapID); // WOLFGATE(SectorControl): faction territory borders beneath radar contacts.
         DrawDroneRings(handle, worldToView, xform.MapUid); // WOLFGATE(DroneRings): draw rings where drones start to spawn.
+        DrawWgZoneRings(handle, worldToView, xform.MapUid); // WOLFGATE(Wilderness): the edges of Safe Zones, Wildernesses and outposts.
 
         _grids.Clear();
         _mapManager.FindGridsIntersecting(xform.MapID, new Box2(mapPos.Position - MaxRadarRangeVector, mapPos.Position + MaxRadarRangeVector), ref _grids, approx: true, includeMap: false);
@@ -844,6 +845,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
             }
         }
         #endregion
+        DrawWgMarks(handle, worldToView, ourGridId); // WOLFGATE(Wilderness): skulls over marked ships, our own included, above the hulls
         WgDrawTags(handle); // WOLFGATE(RadarLabels): every contact's tag, laid out together over the scope.
         DrawWgLatticeDeadZones(handle, worldToView, xform.MapUid); // WOLFGATE(Lattice): the Coda shows only as static on every scanner.
         DrawWgCoordinateReadout(handle); // WOLFGATE(Waypoints): cursor and scanner coordinates over everything else.
@@ -943,6 +945,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
                     //if (isPlayerShuttle) // Mono - comments this out, replaced elsewere
                     //    shouldDrawIFF &= ShowIFFShuttles;
                 }
+                var wgNamed = shouldDrawIFF; // WOLFGATE(Wilderness): whether it would be named but for range, for a marked ship's skull
 
                 //var mapCenter = curGridToWorld. * gridBody.LocalCenter;
                 //shouldDrawIFF = NfCheckShouldDrawIffRangeCondition(shouldDrawIFF, mapCenter, curGridToWorld); // Frontier code
@@ -1067,6 +1070,8 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
                             }
                         }
 
+                        displayColor = WgMarkColor(gUid, displayColor); // WOLFGATE(Wilderness): a marked ship's name shows red
+
                         // Split label text into lines
                         var lines = labelText.Split('\n');
                         var mainLabel = lines[0];
@@ -1075,6 +1080,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
                         WgBeginTag(uiPosition * UIScale, (uiPosition + labelOffset) * UIScale, isMouseOver ? 3 : isPlayerShuttle ? 2 : 1,
                             always: isMouseOver && WgHoverReveal || distance <= WgTagCloseRange, key: gUid.Id); // a ship this close keeps its name: it could be shooting
                         WgTagLine(handle, mainLabel, UIScale * 0.9f, displayColor);
+                        WgTagSkull(handle, gUid, uiPosition * UIScale, mainLabel); // WOLFGATE(Wilderness): a skull by a marked ship's blip and name
                         if (shouldDrawDetailedIFF)
                         {
                             WgTagLine(handle, !hideLabel ? lines[1] : Loc.GetString("shuttle-console-company-unknown"), UIScale * 0.7f, displayColor);
@@ -1121,6 +1127,8 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
                         NfAddBlipToList(_tempBlipDataList, isOutsideRadarCircle, uiPosition, uiXCentre, uiYCentre, labelColor, hideLabel ? default : gUid); // Frontier code
                                                                                                                                                         // End Frontier: IFF drawing functions
                 }
+
+                WgMarkUntagged(gUid, gridUiPosition * UIScale, wgNamed && !shouldDrawIFF, blipOnly); // WOLFGATE(Wilderness): a marked ship past name range keeps its skull
 
                 // Frontier Don't skip drawing blips if they're out of range.
                 // WOLFGATE(AsteroidMining) START: redrew every blip so far once per grid; drawn once after the loop

@@ -2,7 +2,9 @@
 # Roleplay Rule 6
 ## Safe Zones: Sanctuary and Conduct
 
-<!-- WOLFGATE: rule colours readable on light and dark backgrounds -->[color=#2e9e4f][bold]Safe Zones[/bold][/color] (Colossus Central, Medical Dispatch, and a 256m radius around each) are neutral sanctuary areas for all players, regardless of group or affiliation.
+<!-- WOLFGATE(Wilderness): Caelestinus Central is the Safe Zone; Medical Dispatch no longer spawns -->[color=#2e9e4f][bold]Safe Zones[/bold][/color] (Caelestinus Central and a 256m radius around it) are neutral sanctuary areas for all players, regardless of group or affiliation.
+
+<!-- WOLFGATE(Wilderness): the on-screen zone banner -->Your screen shows a green [color=#2e9e4f][bold]SAFE ZONE[/bold][/color] banner while you are inside one. See [textlink="Zones and the Wilderness" link="WGWilderness"].
 
 <!-- WOLFGATE: rule colours readable on light and dark backgrounds -->[color=#b8860b][bold]Admin Summary:[/bold][/color]
 - Safe Zones are neutral and protect everyone unless you cause trouble.
@@ -23,7 +25,8 @@
 -- Crimes on the safezone (Trespass, Vandalism of the station)
 <!-- WOLFGATE: rule colours readable on light and dark backgrounds -->-- Being in safezone radius while having an active [color=#d93c3c]command[/color] bounty on yourself.
 -- Being in safezone radius as ghost-role antagonist (Cortical borer, Asakim, Chimera, ADM/ADC).
--- Failure to comply with station head requirements (Overseer for Colossus Central, as an example).
+<!-- WOLFGATE(Wilderness): the station is Caelestinus Central -->-- Failure to comply with station head requirements (Overseer for Caelestinus Central, as an example).
+<!-- WOLFGATE(Wilderness): a Wilderness mark ends Safe Zone protection -->-- Being [color=#d93c3c][bold]marked[/bold][/color] under the Wilderness rules (a skull on radar or overhead), until the mark runs out.
 
 <!-- WOLFGATE: rule colours readable on light and dark backgrounds -->- If you cause trouble in a Safe Zone or it's radius (see above), you [color=#b8860b]forfeit protection[/color] and may be detained. [color=#b8860b][bold]Detained individuals must be handed over to CC Judges or the Overseer for processing, not to any faction or group.[/bold][/color]
 

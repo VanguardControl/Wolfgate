@@ -91,6 +91,7 @@
     - WGPseudobulbarAffect
     - Snoring
     - WGPhotographer
+    - WGMarkedForLife
   - name: wg-trait-group-body
     traits:
     - LightweightDrunk

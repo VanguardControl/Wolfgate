@@ -18,6 +18,24 @@ public sealed partial class WGAnnouncementChipSystem : EntitySystem
     /// <summary>Chips on screen now.</summary>
     public int ChipCount => _chips.Count;
 
+    private const float DefaultTop = 48f;
+    private float? _topMargin;
+
+    /// <summary>Where the stack starts from the top of the screen, so a banner above can push it down; null for the default.</summary>
+    public float? TopMargin
+    {
+        get => _topMargin;
+        set
+        {
+            if (_topMargin == value)
+                return;
+
+            _topMargin = value;
+            if (_stack != null)
+                LayoutContainer.SetMarginTop(_stack, value ?? DefaultTop);
+        }
+    }
+
     public override void Initialize()
     {
         base.Initialize();
@@ -83,7 +101,7 @@ public sealed partial class WGAnnouncementChipSystem : EntitySystem
         _ui.PopupRoot.AddChild(_stack);
         LayoutContainer.SetAnchorPreset(_stack, LayoutContainer.LayoutPreset.CenterTop);
         LayoutContainer.SetGrowHorizontal(_stack, LayoutContainer.GrowDirection.Both);
-        LayoutContainer.SetMarginTop(_stack, 48);
+        LayoutContainer.SetMarginTop(_stack, _topMargin ?? DefaultTop);
         return _stack;
     }
 }

@@ -1,4 +1,5 @@
 using Content.Shared._WG.NpcVehicleCrew;
+using Content.Shared._WG.Wilderness;
 using Content.Shared.EntityTable.EntitySelectors;
 using Content.Shared.Procedural;
 using Content.Shared.Salvage;
@@ -208,6 +209,10 @@ public sealed partial class WGPlanetPoiEntry
     /// </summary>
     [DataField]
     public string? Below;
+
+    /// <summary>A zone centred on the site, such as a Wilderness round a vault.</summary>
+    [DataField]
+    public ProtoId<WGZonePrototype>? Zone;
 }
 
 /// <summary>Whether a site has one entrance, multiple entrances, or no roads.</summary>

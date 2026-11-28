@@ -14,6 +14,10 @@
   spawnGroup: Required
   gridPath: /Maps/_Mono/Supercapitals/jupiter_hw.yml
   addComponents:
+  # WOLFGATE(Wilderness) START: a mobile base, outside port-strike protection
+  - type: WGZoneSource
+    zone: WGNotSafeMobile
+  # WOLFGATE END
   - type: IFF
     color: "#d1bf58"
     flags: [HideLabel]

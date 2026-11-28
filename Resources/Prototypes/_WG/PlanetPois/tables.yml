@@ -83,6 +83,7 @@
     below: /Maps/_WG/PlanetPois/atalis_house_below.yml
   - mapPath: /Maps/_WG/PlanetPois/planetary_vault.yml
     name: wg-poi-planetary-vault
+    zone: WGWilderness
     expeditions: false
     footprint: -9,-21,16,10
     minCount: 0
@@ -317,6 +318,7 @@
     below: /Maps/_WG/PlanetPois/atalis_house_below.yml
   - mapPath: /Maps/_WG/PlanetPois/planetary_vault.yml
     name: wg-poi-planetary-vault
+    zone: WGWilderness
     expeditions: false
     footprint: -9,-21,16,10
     minCount: 0
@@ -457,6 +459,7 @@
     rotate: true
   - mapPath: /Maps/_WG/PlanetPois/planetary_vault.yml
     name: wg-poi-planetary-vault
+    zone: WGWilderness
     expeditions: false
     footprint: -9,-21,16,10
     minCount: 0
@@ -539,6 +542,7 @@
     rotate: true
   - mapPath: /Maps/_WG/PlanetPois/planetary_vault.yml
     name: wg-poi-planetary-vault
+    zone: WGWilderness
     expeditions: false
     footprint: -9,-21,16,10
     minCount: 0
@@ -630,6 +634,7 @@
     rotate: true
   - mapPath: /Maps/_WG/PlanetPois/planetary_vault.yml
     name: wg-poi-planetary-vault
+    zone: WGWilderness
     expeditions: false
     footprint: -9,-21,16,10
     minCount: 0
@@ -719,6 +724,7 @@
     rotate: true
   - mapPath: /Maps/_WG/PlanetPois/planetary_vault.yml
     name: wg-poi-planetary-vault
+    zone: WGWilderness
     expeditions: false
     footprint: -9,-21,16,10
     minCount: 0

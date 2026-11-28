@@ -203,6 +203,11 @@ public sealed partial class WGPlanetPoiSystem
                     site.Signal = SpawnSignal(ground, orbit, new Vector2i((actual.Left + actual.Right) / 2, (actual.Bottom + actual.Top) / 2), entry, table);
                     record.Sites.Add(site);
                     created.Add(site.Signal);
+                    if (listed.Zone is { } zone)
+                    {
+                        var middle = new Vector2((actual.Left + actual.Right) / 2f, (actual.Bottom + actual.Top) / 2f);
+                        created.Add(_zones.SpawnMarker(new EntityCoordinates(ground, middle), zone, Loc.GetString(entry.Name)));
+                    }
                 }
                 catch (Exception error) when (!TerminatingOrDeleted(ground))
                 {

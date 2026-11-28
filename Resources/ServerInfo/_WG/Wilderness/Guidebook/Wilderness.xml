@@ -1,0 +1,23 @@
+<Document>
+# Zones and the Wilderness
+
+Some places change what the rules protect. An alert shows the zone you are in, and a line in chat says when you cross in or out. Where you can be attacked (a Wilderness, an outpost at war, or anywhere while you are marked) a banner also shows at the top, with a title and a sound as you cross in. Click the banner to open the rule behind it. Shuttle consoles and mass scanners draw most zones' edges as a dashed ring, but not all: PDV drop pods and the Underground Black Market keep theirs off radar, as they keep their names, and so does Helios wherever its name is hidden.
+
+## Safe Zone
+[color=#2e9e4f][bold]Green banner.[/bold][/color] Caelestinus Central and everything within 256 m of it. Policy protects everyone here who is not causing trouble: no theft, no unprovoked attacks. See [textlink="Safe Zones" link="MonolithRuleRoleplaySevenSafeZones"].
+
+## Wilderness
+[color=#d93c3c][bold]Red banner with hazard stripes.[/bold][/color] A PvP zone for everyone: everything within 512 m of an event site: bluespace vaults and weapons caches, FTL intercepts, PDV drop pods and planetary vaults. Claiming a vault or cache changes nothing. Salvage wrecks, bluespace dungeon asteroids and Monolithic Fragments are not Wildernesses: they are left to whoever is clearing them.
+<WGWildernessRule/>
+
+While you are being marked, the banner counts down. Once marked, it shows how long your mark, or your ship's, has left, and a faint red border shows round the screen. A marked ship's name shows red with a skull on everyone's radar, and a marked person has a skull over their head. See [textlink="Random deathmatch" link="MonolithRuleConflictOneRandomDeathmatch"].
+
+## Faction outposts
+[color=#d68c14][bold]Amber banner.[/bold][/color] Within 256 m of a faction outpost such as Halcyon. While the war is COLD, the outpost and ships near it are protected from port strikes; while it is HOT, they may be struck. The banner changes with the war level. The Underground Black Market is a faction outpost too, but the war level never opens it: it may be struck only during an Underground RAID or with admin permission. See [textlink="Port striking" link="MonolithRuleConflictFourPortStriking"].
+
+## Not a Safe Zone
+[color=#9aa4ad][bold]Grey banner.[/bold][/color] Aboard, or docked at, a station named as not a Safe Zone, such as Camelot, or a mobile base such as the Jupiter. Ordinary rules and escalation apply.
+
+## Settings
+Under Options, Wolfgate, Interface, Zones you choose where the banner, the crossing title and the sounds show (in every zone, only where you can be attacked, or never), when the screen border shows and how strong it is, and whether you get the chat lines and the radar rings. The alert always shows, and so do the chat messages about your mark.
+</Document>

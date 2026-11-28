@@ -1,0 +1,163 @@
+# Wilderness
+
+Shows players where the rules protect them, and marks those who stay where they don't. A `wgZone` prototype is a kind
+of zone (Safe Zone, Wilderness, faction outpost, not a safe zone) with its banner text, colour, icon, alert and the
+rule it links to. A `WGZoneSource` on a grid, or a `WGZoneMarker` point on a planet, centres one: the Safe Zone on
+Caelestinus Central (256 m), a Wilderness on bluespace vaults, weapons caches and FTL intercepts, PDV drop pods
+and planetary vaults (512 m), outposts on Halcyon and Helios (256 m), not-safe on Camelot and the Jupiter (aboard, or
+aboard a ship docked there). The Underground Black Market is `WGUndergroundOutpost`: an outpost with no HOT text, so the war
+level never opens it (it may be struck only in an Underground RAID, from the `Underground` module, or with admin
+permission). Its ring, like Helios' and the drop pods', stays off radar. Salvage wrecks, bluespace dungeon asteroids
+and Monolithic Fragments have no zone on purpose: they are PvE dungeons, not contested sites.
+
+`WGZoneSystem` works out each player's zone once a second (the ship they're aboard, edge to edge, or them on foot),
+sets `WGInZoneComponent` for their client, shows the alert and says it in chat.
+
+Ships and people carry their own Wilderness mark, `WGSkullComponent`:
+
+- **Staying.** A ship, or a person not aboard one, that stays `wg.wilderness.dwell_seconds` (15) in a Wilderness is
+  marked. People aboard a ship don't count towards a mark of their own; the ship does. `wg.wilderness.skull_on_foot`
+  turns staying on foot off.
+- **Holding and running out.** Any mark holds at full while its carrier is in a Wilderness (a person by the ship
+  they're aboard) and runs out `wg.wilderness.skull_minutes` (5) after leaving, whether or not its player is connected.
+- **Pilots.** A pilot (`PilotComponent` at a shuttle console) and the ship that console is on share a mark: an
+  unmarked ship flown by a marked pilot takes the pilot's mark and time left, and an unmarked pilot of a marked ship
+  takes the ship's. Crew who aren't flying keep their own.
+- **Attacks.** A ship weapon hit (`WGCrewHullHitEvent`, raised by ship rounds, ship beams and ramming) on a ship in a
+  Wilderness from a ship outside one marks the attacking ship and every player who fired its guns from a gunnery
+  console in the last minute, for the full time, at once. `FireControlSystem` reports each order through `NoteAim`;
+  only a gun that then takes a shot (`GunShotEvent`) counts, so guns cooling down, empty or locked don't.
+
+A Wilderness is a PvP zone for everyone: anyone may fight anyone there without escalation, whatever their faction. A
+marked ship or person has no protection anywhere, Safe Zone included. The guidebook's `<WGWildernessRule/>` writes the
+mark's settings into the rules as guidebook bullets.
+
+The client (`WGZoneHudSystem`) shows a one-line pill under the top menu (zone, place, mark state) that opens to explain
+the zone for a few seconds on entering danger or under the cursor, and opens the rule when clicked; a title and a sound
+on crossing in; and a faint, still border while marked. It shows the player's own mark, or else their ship's. Each part
+has a client setting (`wg.wilderness.banner`, `titles`, `sounds`: always, danger or off; `screen_border`: wilderness,
+marked or off; `screen_border_intensity`, 0.1 to 1, default 0.4; `zone_chat`, read by the server for the crossing
+lines). Danger means a Wilderness, an outpost at war, or being marked, and is the default for all three. The border and
+title fit the visible part of whichever view draws them, the full screen or a console's cockpit view. A ghost sees none of it. The same crossing's title and sound, and
+its chat line or the "still marked" line, wait 60 s before they repeat, so hopping over an edge stays quiet. The
+player gets one zone alert: the zone's, with a sweep counting down to the mark in a Wilderness, or the mark's, counting
+down once out. `WGSkullOverlay` draws an 8 px skull centred over each marked person, like the status icons, and hidden
+where they are. Every radar (helm, mass scanner, gunnery and drone consoles) draws each zone's edge, and a marked ship's
+name in red with a skull after it and one over its blip (`ShuttleNavControl.Wilderness.cs`): the scope's own ship too,
+which has no tag, and a ship past the range names show. A vessel on another layer of a world, whose grid the client
+doesn't have, is marked through its world's signal list (`WGPlanetSignal.Marked`).
+
+Staff (the `Admin` flag) mark and clear by hand (`WGZoneSystem.Admin.cs`): right-click a person, or anything aboard a
+ship, for the Admin verbs, or run `wg_zone info|mark|standing|clear [ship] [player or entity id]` (no target is
+yourself). Whoever is marked or cleared is told in chat. Clearing a pilot also clears the ship they fly, and clearing a
+ship its pilots, since either would pass the mark straight back. An ordinary staff mark follows the usual rules after
+that: it holds in a Wilderness and runs out `skull_minutes` after leaving.
+
+A **standing mark** (`WGSkullComponent.Staff`) is staff-only and never runs out. It ends when staff clear it, when its
+person dies, or when its ship is destroyed: the grid is deleted, or it stops counting as a ship (no deed, or no longer a
+claimed wreck). A pilot and ship sharing one take an ordinary mark kept full while they fly together, which runs out as
+usual once they part. Clearing the partner of a standing mark leaves the standing mark alone, so the partner is marked
+again at once. Attacks and the Wilderness never shorten it.
+
+The **Marked for Life** trait (`WGMarkedForLife`, a Quirk that costs and gives no points) adds `WGMarkedTraitComponent`,
+which gives the body a **permanent mark** (`WGSkullComponent.Permanent`) at map init. It never runs out and outlasts
+death; ordinary, standing and attack marks leave it as it is, and it shares with a ship like a standing mark. Only a
+staff clear ends it, and that takes the trait component off the body too, for the rest of its life.
+
+The zone icons are built by `Tools/_WG/Wilderness/make_icons.py` from the radar marker glyphs.
+
+<!-- WOLFGATE-GENERATED START -->
+<!-- Generated by python Tools/_WG/Ci/modules.py --write. Don't edit by hand. -->
+
+## Files
+
+### Server
+
+- [`Content.Server/_WG/Wilderness/WGZoneCommand.cs`](WGZoneCommand.cs)
+- [`Content.Server/_WG/Wilderness/WGZoneSystem.Admin.cs`](WGZoneSystem.Admin.cs)
+- [`Content.Server/_WG/Wilderness/WGZoneSystem.Attacks.cs`](WGZoneSystem.Attacks.cs)
+- [`Content.Server/_WG/Wilderness/WGZoneSystem.cs`](WGZoneSystem.cs)
+- [`Content.Server/_WG/Wilderness/WGZoneSystem.Skull.cs`](WGZoneSystem.Skull.cs)
+
+### Shared
+
+- [`Content.Shared/_WG/Wilderness/WGInZoneComponent.cs`](../../../Content.Shared/_WG/Wilderness/WGInZoneComponent.cs)
+- [`Content.Shared/_WG/Wilderness/WGMarkedTraitComponent.cs`](../../../Content.Shared/_WG/Wilderness/WGMarkedTraitComponent.cs)
+- [`Content.Shared/_WG/Wilderness/WGSkullComponent.cs`](../../../Content.Shared/_WG/Wilderness/WGSkullComponent.cs)
+- [`Content.Shared/_WG/Wilderness/WGZonePrototype.cs`](../../../Content.Shared/_WG/Wilderness/WGZonePrototype.cs)
+- [`Content.Shared/_WG/Wilderness/WGZoneRingsComponent.cs`](../../../Content.Shared/_WG/Wilderness/WGZoneRingsComponent.cs)
+- [`Content.Shared/_WG/Wilderness/WGZoneSourceComponent.cs`](../../../Content.Shared/_WG/Wilderness/WGZoneSourceComponent.cs)
+- [`Content.Shared/_WG/Wilderness/WGZoneText.cs`](../../../Content.Shared/_WG/Wilderness/WGZoneText.cs)
+- [`Content.Shared/_WG/Wilderness/WildernessCVars.cs`](../../../Content.Shared/_WG/Wilderness/WildernessCVars.cs)
+
+### Client
+
+- [`Content.Client/_WG/Wilderness/ShuttleNavControl.Wilderness.cs`](../../../Content.Client/_WG/Wilderness/ShuttleNavControl.Wilderness.cs)
+- [`Content.Client/_WG/Wilderness/WGWildernessRule.cs`](../../../Content.Client/_WG/Wilderness/WGWildernessRule.cs)
+- [`Content.Client/_WG/Wilderness/WGZoneBanner.cs`](../../../Content.Client/_WG/Wilderness/WGZoneBanner.cs)
+- [`Content.Client/_WG/Wilderness/WGZoneHudSystem.cs`](../../../Content.Client/_WG/Wilderness/WGZoneHudSystem.cs)
+- [`Content.Client/_WG/Wilderness/WGZoneOverlays.cs`](../../../Content.Client/_WG/Wilderness/WGZoneOverlays.cs)
+
+### Integration tests
+
+- [`Content.IntegrationTests/Tests/_WG/Wilderness/WGWildernessTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Wilderness/WGWildernessTest.cs)
+
+### Prototypes
+
+- [`Resources/Prototypes/_WG/Wilderness/alerts.yml`](../../../Resources/Prototypes/_WG/Wilderness/alerts.yml)
+- [`Resources/Prototypes/_WG/Wilderness/entities.yml`](../../../Resources/Prototypes/_WG/Wilderness/entities.yml)
+- [`Resources/Prototypes/_WG/Wilderness/guidebook.yml`](../../../Resources/Prototypes/_WG/Wilderness/guidebook.yml)
+- [`Resources/Prototypes/_WG/Wilderness/traits.yml`](../../../Resources/Prototypes/_WG/Wilderness/traits.yml)
+- [`Resources/Prototypes/_WG/Wilderness/zones.yml`](../../../Resources/Prototypes/_WG/Wilderness/zones.yml)
+
+### Localization
+
+- [`Resources/Locale/en-US/_WG/Wilderness/wilderness.ftl`](../../../Resources/Locale/en-US/_WG/Wilderness/wilderness.ftl)
+
+### Textures
+
+- [`Resources/Textures/_WG/Wilderness/skull_icon.rsi/`](../../../Resources/Textures/_WG/Wilderness/skull_icon.rsi/)
+- [`Resources/Textures/_WG/Wilderness/zones.rsi/`](../../../Resources/Textures/_WG/Wilderness/zones.rsi/)
+
+### Guidebook
+
+- [`Resources/ServerInfo/_WG/Wilderness/Guidebook/Wilderness.xml`](../../../Resources/ServerInfo/_WG/Wilderness/Guidebook/Wilderness.xml)
+
+### Tools
+
+- [`Tools/_WG/Wilderness/make_icons.py`](../../../Tools/_WG/Wilderness/make_icons.py)
+
+## Non-modular edits
+
+- [`Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs)
+  - the edges of Safe Zones, Wildernesses and outposts.
+  - skulls over marked ships, our own included, above the hulls
+  - whether it would be named but for range, for a marked ship's skull
+  - a marked ship's name shows red
+  - a skull by a marked ship's blip and name
+  - a marked ship past name range keeps its skull
+- [`Content.Server/_Mono/FireControl/FireControlSystem.Console.cs`](../../_Mono/FireControl/FireControlSystem.Console.cs): who fired, for attacks into a Wilderness
+- [`Content.Server/_NF/Smuggling/DeadDropSystem.cs`](../../_NF/Smuggling/DeadDropSystem.cs): a drop pod is a Wilderness, its edge kept off radars like its name
+- [`Resources/Prototypes/_Mono/Guidebook/rules.yml`](../../../Resources/Prototypes/_Mono/Guidebook/rules.yml): the zones page sits with the conflict rules
+- [`Resources/Prototypes/_Mono/Outpost/caelestinus.yml`](../../../Resources/Prototypes/_Mono/Outpost/caelestinus.yml): the Safe Zone round Central
+- [`Resources/Prototypes/_Mono/PointsOfInterest/pdvhelios.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/pdvhelios.yml)
+  - port-strike protection round the faction outpost, kept off radars like its IFF
+  - port-strike protection round the faction outpost
+- [`Resources/Prototypes/_Mono/PointsOfInterest/Supercapitals/jupiter_hw.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/Supercapitals/jupiter_hw.yml): a mobile base, outside port-strike protection
+- [`Resources/Prototypes/_Mono/PointsOfInterest/tsfmchalcyon.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/tsfmchalcyon.yml): port-strike protection round the faction outpost
+- [`Resources/Prototypes/_Mono/PointsOfInterest/underground.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/underground.yml): a faction outpost the war level never opens, its edge kept off radars like its name
+- [`Resources/Prototypes/_Mono/PointsOfInterest/ussp.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/ussp.yml): named as not a safe zone
+- [`Resources/Prototypes/_NF/Events/nf_bluespace_grids_events.yml`](../../../Resources/Prototypes/_NF/Events/nf_bluespace_grids_events.yml): event sites are Wildernesses
+- [`Resources/Prototypes/Alerts/alerts.yml`](../../../Resources/Prototypes/Alerts/alerts.yml): the zone you're in sits high, where it is seen
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/One_RandomDeathmatch.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/One_RandomDeathmatch.xml)
+  - conflict zones are Wildernesses, with the mark
+  - the PvP rule, and the mark with the server's timings
+  - was "The fight stays there. Do not hunt them down once they leave."
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml): the zones page, otherwise only reachable from other rules
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Seven_SafeZones.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Seven_SafeZones.xml)
+  - Caelestinus Central is the Safe Zone; Medical Dispatch no longer spawns
+  - the on-screen zone banner
+  - the station is Caelestinus Central
+  - a Wilderness mark ends Safe Zone protection
+
+<!-- WOLFGATE-GENERATED END -->

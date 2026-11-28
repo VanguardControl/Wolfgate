@@ -22,6 +22,14 @@
                 <CheckBox Name="RadarSmartTagsCheckBox" Text="{Loc 'ui-options-wg-radar-smart-tags'}" />
                 <CheckBox Name="RadarIconsOnlyCheckBox" Text="{Loc 'ui-options-wg-radar-icons-only'}" />
                 <CheckBox Name="RadarHoverRevealCheckBox" Text="{Loc 'ui-options-wg-radar-hover-reveal'}" />
+                <Label Text="{Loc 'ui-options-wg-zones'}" StyleClasses="LabelKeyText"/>
+                <ui:OptionDropDown Name="WildernessBannerDropDown" Title="{Loc 'ui-options-wg-wilderness-banner'}" />
+                <ui:OptionDropDown Name="WildernessTitlesDropDown" Title="{Loc 'ui-options-wg-wilderness-titles'}" />
+                <ui:OptionDropDown Name="WildernessSoundsDropDown" Title="{Loc 'ui-options-wg-wilderness-sounds'}" />
+                <ui:OptionDropDown Name="WildernessBorderDropDown" Title="{Loc 'ui-options-wg-wilderness-border'}" />
+                <ui:OptionSlider Name="WildernessBorderIntensitySlider" Title="{Loc 'ui-options-wg-wilderness-border-intensity'}" />
+                <CheckBox Name="WildernessChatCheckBox" Text="{Loc 'ui-options-wg-wilderness-chat'}" />
+                <CheckBox Name="WildernessRingsCheckBox" Text="{Loc 'ui-options-wg-wilderness-rings'}" />
                 <Label Text="{Loc 'ui-options-wg-medical'}" StyleClasses="LabelKeyText"/>
                 <CheckBox Name="CritHeartbeatCheckBox" Text="{Loc 'ui-options-wg-crit-heartbeat'}" />
                 <CheckBox Name="DyingEffectsCheckBox" Text="{Loc 'ui-options-wg-dying-effects'}" />
