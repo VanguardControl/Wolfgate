@@ -163,6 +163,10 @@
     ClothingOuterArmorBPVestStabproof: 4294967295 # Infinite
     ClothingOuterVestWebMercenary: 4294967295 # Infinite
     ClothingOuterVestWebMercenaryBlack: 4294967295 # Infinite
+    # region Generic Mercenary Equipment
+    ClothingOuterHardsuitMercenary: 4294967295 # Infinite
+    ClothingShoesBootsMagMercenary: 4294967295 # Infinite
+    ClothingMaskGasMercenary: 4294967295 # Infinite
     # region Boots
     ClothingShoesTacticalSwatTan: 4294967295 # Infinite
     ClothingShoesTacticalSwatOlive: 4294967295 # Infinite
