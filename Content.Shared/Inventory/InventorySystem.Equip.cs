@@ -114,7 +114,8 @@ public abstract partial class InventorySystem
         // before we drop the item, check that it can be equipped in the first place.
         if (!CanEquip(actor, held.Value, ev.Slot, out var reason))
         {
-            _popup.PopupCursor(Loc.GetString(reason));
+            if (!WgEquipRefusalOnMob(reason, actor, actor)) // WOLFGATE(Proteans): a Protean's hardsuit refusal shows above it
+                _popup.PopupCursor(Loc.GetString(reason));
             return;
         }
 
@@ -153,7 +154,7 @@ public abstract partial class InventorySystem
 
         if (!force && !CanEquip(actor, target, itemUid, slot, out var reason, slotDefinition, inventory, clothing))
         {
-            if(!silent)
+            if(!silent && !WgEquipRefusalOnMob(reason, actor, target)) // WOLFGATE(Proteans): a Protean's hardsuit refusal shows above it
                 _popup.PopupCursor(Loc.GetString(reason));
             return false;
         }

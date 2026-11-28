@@ -74,7 +74,13 @@ public sealed partial class HumanoidProfileEditor
         if (Profile == null || !_prototypeManager.TryIndex<SpeciesPrototype>(Profile.Species, out var species))
             return;
 
-        if (_wgBiotypeButtons.TryGetValue(WGBiotypeRules.Resolve(Profile.Biotype, species), out var button))
+        var effective = WGBiotypeRules.Resolve(Profile.Biotype, species);
+        foreach (var (biotype, other) in _wgBiotypeButtons)
+        {
+            other.Disabled = species.BiotypeLocked && biotype != effective;
+        }
+
+        if (_wgBiotypeButtons.TryGetValue(effective, out var button))
             button.Pressed = true; // the group unpresses the other
     }
 

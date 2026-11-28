@@ -189,11 +189,15 @@ public abstract partial class SharedStrippableSystem : EntitySystem
             return false;
         }
 
-        if (!_inventorySystem.CanEquip(user, target, held, slot, out _))
+        // WOLFGATE(Proteans) START: a Protean's hardsuit refusal shows its own line above it
+        // if (!_inventorySystem.CanEquip(user, target, held, slot, out _))
+        if (!_inventorySystem.CanEquip(user, target, held, slot, out var wgReason))
         {
+            if (!_inventorySystem.WgEquipRefusalOnMob(wgReason, user, target))
             _popupSystem.PopupCursor(Loc.GetString("strippable-component-cannot-equip-message", ("owner", target)));
             return false;
         }
+        // WOLFGATE END
 
         return true;
     }

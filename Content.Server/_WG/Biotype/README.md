@@ -10,7 +10,8 @@ native mob is exactly the species' own prototype; a synthetic IPC is today's IPC
 `Biotype`; `Default` means native and validation (`EnsureValid`) turns it into the species' own, so a saved character
 keeps its body. Players pick it with the Biotype switch (one icon box each, the icon is the prototype's `icon`) in the Body card of the character creator
 (`Content.Client/_WG/Biotype/HumanoidProfileEditor.Biotype.cs`); it shows the species' own biotype until changed, and
-switching species resets it to the new species' own.
+switching species resets it to the new species' own. A species with `biotypeLocked: true` (the Protean) is only ever
+its native biotype: `Resolve` ignores a stored other one and the creator disables the other button.
 
 A mob picked as the other biotype is converted live by `WGBiotypeSystem.Apply` with that biotype's `wgBiotype` overlay
 (`Resources/Prototypes/_WG/Biotype/biotypes.yml`). `WGBiotypeSynthetic` gives an IPC body and the IPC's components;

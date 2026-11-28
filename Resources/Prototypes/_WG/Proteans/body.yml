@@ -1,0 +1,156 @@
+# The usual part layout so hands, legs, inventory and targeting work. One organ, the seed, in the torso.
+- type: body
+  id: WGProtean
+  name: "protean"
+  root: torso
+  slots:
+    head:
+      part: WGHeadProtean
+      connections:
+      - torso
+    torso:
+      part: WGTorsoProtean
+      connections:
+      - right arm
+      - left arm
+      - right leg
+      - left leg
+      - head
+      organs:
+        seed: WGProteanSeed
+    right arm:
+      part: WGRightArmProtean
+      connections:
+      - right hand
+    left arm:
+      part: WGLeftArmProtean
+      connections:
+      - left hand
+    right hand:
+      part: WGRightHandProtean
+    left hand:
+      part: WGLeftHandProtean
+    right leg:
+      part: WGRightLegProtean
+      connections:
+      - right foot
+    left leg:
+      part: WGLeftLegProtean
+      connections:
+      - left foot
+    right foot:
+      part: WGRightFootProtean
+    left foot:
+      part: WGLeftFootProtean
+
+# Parts never come off: no severing and no destruction thresholds.
+- type: entity
+  id: WGPartProtean
+  parent: PartSlime
+  abstract: true
+  components:
+  - type: BodyPart
+    species: WGProtean
+    canSever: false
+  - type: Destructible
+    thresholds: []
+
+- type: entity
+  id: WGTorsoProtean
+  parent: [WGPartProtean, BaseTorso]
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Destructible
+    thresholds: []
+
+- type: entity
+  id: WGHeadProtean
+  parent: [WGPartProtean, BaseHead]
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BodyPart
+    vital: false
+  - type: Destructible
+    thresholds: []
+
+- type: entity
+  id: WGLeftArmProtean
+  parent: [WGPartProtean, BaseLeftArm]
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Destructible
+    thresholds: []
+
+- type: entity
+  id: WGRightArmProtean
+  parent: [WGPartProtean, BaseRightArm]
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Destructible
+    thresholds: []
+
+- type: entity
+  id: WGLeftHandProtean
+  parent: [WGPartProtean, BaseLeftHand]
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Destructible
+    thresholds: []
+
+- type: entity
+  id: WGRightHandProtean
+  parent: [WGPartProtean, BaseRightHand]
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Destructible
+    thresholds: []
+
+- type: entity
+  id: WGLeftLegProtean
+  parent: [WGPartProtean, BaseLeftLeg]
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Destructible
+    thresholds: []
+
+- type: entity
+  id: WGRightLegProtean
+  parent: [WGPartProtean, BaseRightLeg]
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Destructible
+    thresholds: []
+
+- type: entity
+  id: WGLeftFootProtean
+  parent: [WGPartProtean, BaseLeftFoot]
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Destructible
+    thresholds: []
+
+- type: entity
+  id: WGRightFootProtean
+  parent: [WGPartProtean, BaseRightFoot]
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Destructible
+    thresholds: []
+
+# Its battery's charge is the Protean's nanomass.
+- type: entity
+  id: WGProteanSeed
+  parent: BaseItem
+  components:
+  - type: Sprite
+    sprite: _WG/Xenobiology/Specific/Xenobiology/extract.rsi
+    state: core
+  - type: Item
+    size: Tiny
+  - type: Organ
+    slotId: seed
+  - type: Battery
+    maxCharge: 100
+    startingCharge: 100
+    pricePerJoule: 0
+  - type: WGProteanSeed

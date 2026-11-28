@@ -42,6 +42,9 @@ public sealed partial class AutoSurgeonSystem : EntitySystem // WOLFGATE(Augment
         if (ent.Comp.Used || args.User == null)
             return;
 
+        if (WgRefusesBody(args.User.Value)) // WOLFGATE(Augments): a species with no augments refuses the autosurgeon
+            return;
+
         if (!_doAfter.TryStartDoAfter(new DoAfterArgs(
                 EntityManager,
                 ent.Owner,

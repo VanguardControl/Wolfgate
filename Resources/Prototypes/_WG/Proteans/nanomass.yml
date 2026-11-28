@@ -1,0 +1,194 @@
+- type: wgProteanDiet
+  id: WGProtean
+  materials:
+    Steel:
+      mass: 0.1
+    Glass:
+      mass: 0.05
+      trace: WGStatusEffectProteanLimber
+    Plasteel:
+      mass: 0.15
+      trace: WGStatusEffectProteanHardened
+    Silver:
+      mass: 0.05
+      trace: WGStatusEffectProteanConductive
+    Gold:
+      mass: 0.05
+      trace: WGStatusEffectProteanConductive
+    Plasma:
+      mass: 0.15
+      trace: WGStatusEffectProteanSurging
+    Uranium:
+      mass: 0.1
+      trace: WGStatusEffectProteanSustaining
+    Plastic:
+      mass: 0.02
+    Cloth:
+      mass: 0.02
+    Wood:
+      mass: 0.02
+
+- type: entity
+  id: WGProteanSlurry
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Clickable
+  - type: Transform
+    noRot: true
+  - type: Sprite
+    drawdepth: Puddles
+    layers:
+    - sprite: Fluids/puddle.rsi
+      state: splat0
+      color: "#9aa2acd0"
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      slurry:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.4,-0.4,0.4,0.4"
+        mask:
+        - ItemMask
+        layer:
+        - SlipLayer
+        hard: false
+  - type: StepTrigger
+  - type: WGProteanSlurry
+
+# Traces: what a material leaves behind for ten minutes. Limber and Conductive act on forms and modules, built later.
+- type: entity
+  parent: MobStatusEffectBase
+  id: WGStatusEffectProteanTraceBase
+  abstract: true
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: StatusEffect
+    whitelist:
+      components:
+      - WGNanomass
+  - type: WGProteanTrace
+
+- type: entity
+  parent: WGStatusEffectProteanTraceBase
+  id: WGStatusEffectProteanLimber
+  components:
+  - type: StatusEffectAlert
+    alert: WGProteanTraceLimber
+
+- type: entity
+  parent: WGStatusEffectProteanTraceBase
+  id: WGStatusEffectProteanHardened
+  components:
+  - type: StatusEffectAlert
+    alert: WGProteanTraceHardened
+  - type: WGProteanTrace
+    damage: 0.8
+
+- type: entity
+  parent: WGStatusEffectProteanTraceBase
+  id: WGStatusEffectProteanConductive
+  components:
+  - type: StatusEffectAlert
+    alert: WGProteanTraceConductive
+
+- type: entity
+  parent: WGStatusEffectProteanTraceBase
+  id: WGStatusEffectProteanSurging
+  components:
+  - type: StatusEffectAlert
+    alert: WGProteanTraceSurging
+  - type: WGProteanTrace
+    heal: 3
+    heat: 1.5
+
+- type: entity
+  parent: WGStatusEffectProteanTraceBase
+  id: WGStatusEffectProteanSustaining
+  components:
+  - type: StatusEffectAlert
+    alert: WGProteanTraceSustaining
+  - type: WGProteanTrace
+    upkeep: 0.5
+    glow: "#8cff8c"
+    glowRadius: 1.5
+
+- type: alert
+  id: WGProteanMass
+  icons:
+  - sprite: /Textures/Interface/Alerts/battery.rsi
+    state: battery0
+  - sprite: /Textures/Interface/Alerts/battery.rsi
+    state: battery1
+  - sprite: /Textures/Interface/Alerts/battery.rsi
+    state: battery2
+  - sprite: /Textures/Interface/Alerts/battery.rsi
+    state: battery3
+  - sprite: /Textures/Interface/Alerts/battery.rsi
+    state: battery4
+  - sprite: /Textures/Interface/Alerts/battery.rsi
+    state: battery5
+  - sprite: /Textures/Interface/Alerts/battery.rsi
+    state: battery6
+  - sprite: /Textures/Interface/Alerts/battery.rsi
+    state: battery7
+  - sprite: /Textures/Interface/Alerts/battery.rsi
+    state: battery8
+  - sprite: /Textures/Interface/Alerts/battery.rsi
+    state: battery9
+  - sprite: /Textures/Interface/Alerts/battery.rsi
+    state: battery10
+  name: wg-protean-mass-alert-name
+  description: wg-protean-mass-alert-desc
+  minSeverity: 0
+  maxSeverity: 10
+
+- type: alert
+  id: WGProteanMassLow
+  icons:
+  - sprite: /Textures/Interface/Alerts/battery.rsi
+    state: battery-none
+  name: wg-protean-mass-low-name
+  description: wg-protean-mass-low-desc
+
+- type: alert
+  id: WGProteanTraceLimber
+  icons:
+  - sprite: /Textures/Objects/Materials/Sheets/glass.rsi
+    state: glass
+  name: wg-protean-trace-glass-name
+  description: wg-protean-trace-glass-desc
+
+- type: alert
+  id: WGProteanTraceHardened
+  icons:
+  - sprite: /Textures/Objects/Materials/Sheets/metal.rsi
+    state: plasteel
+  name: wg-protean-trace-plasteel-name
+  description: wg-protean-trace-plasteel-desc
+
+- type: alert
+  id: WGProteanTraceConductive
+  icons:
+  - sprite: /Textures/Objects/Materials/ingots.rsi
+    state: silver
+  name: wg-protean-trace-conductive-name
+  description: wg-protean-trace-conductive-desc
+
+- type: alert
+  id: WGProteanTraceSurging
+  icons:
+  - sprite: /Textures/Objects/Materials/Sheets/other.rsi
+    state: plasma
+  name: wg-protean-trace-plasma-name
+  description: wg-protean-trace-plasma-desc
+
+- type: alert
+  id: WGProteanTraceSustaining
+  icons:
+  - sprite: /Textures/Objects/Materials/Sheets/other.rsi
+    state: uranium
+  name: wg-protean-trace-uranium-name
+  description: wg-protean-trace-uranium-desc
