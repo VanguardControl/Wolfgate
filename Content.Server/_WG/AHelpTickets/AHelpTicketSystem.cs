@@ -36,7 +36,7 @@ public enum AHelpLineSource : byte
 /// staff reply, closes it on Resolve, Reject or IC issue (or at round end), reminds staff of unclaimed ones and keeps
 /// every ticket and line in the database.
 /// </summary>
-public sealed class AHelpTicketSystem : EntitySystem
+public sealed partial class AHelpTicketSystem : EntitySystem
 {
     [Dependency] private IAdminManager _admins = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
@@ -77,6 +77,7 @@ public sealed class AHelpTicketSystem : EntitySystem
         SubscribeNetworkEvent<AHelpTicketTranscriptRequest>(OnTranscript);
         SubscribeNetworkEvent<AHelpTicketSearchRequest>(OnSearch);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+        InitializeStaff();
 
         _players.PlayerStatusChanged += OnPlayerStatusChanged;
         _admins.OnPermsChanged += OnPermsChanged;
@@ -388,6 +389,9 @@ public sealed class AHelpTicketSystem : EntitySystem
         if (_players.TryGetSessionById(msg.Player, out var session) && _bank.TryGetBalance(session, out var balance))
             card.Bank = balance;
 
+        card.Ships = OwnedShips(msg.Player);
+        card.LoadoutPrice = LoadoutPrice(msg.Player);
+
         try
         {
             var notes = _db.GetAllAdminRemarks(msg.Player.UserId);
@@ -460,6 +464,8 @@ public sealed class AHelpTicketSystem : EntitySystem
         }
 
         _open.Clear();
+        _viewing.Clear();
+        _lastAssist.Clear();
         foreach (var staff in StaffSessions())
         {
             RaiseNetworkEvent(new AHelpTicketListMessage(new List<AHelpTicketInfo>()), staff);
@@ -470,6 +476,9 @@ public sealed class AHelpTicketSystem : EntitySystem
 
     private void OnPlayerStatusChanged(object? sender, SessionStatusEventArgs e)
     {
+        if (e.NewStatus == SessionStatus.Disconnected)
+            SetViewing(e.Session, null);
+
         if (_open.TryGetValue(e.Session.UserId, out var ticket))
         {
             ticket.Info.Online = e.NewStatus == SessionStatus.InGame;
@@ -486,6 +495,9 @@ public sealed class AHelpTicketSystem : EntitySystem
 
     private void OnPermsChanged(AdminPermsChangedEventArgs args)
     {
+        if (_admins.GetAdminData(args.Player) == null)
+            SetViewing(args.Player, null);
+
         if (args.Player.Status == SessionStatus.InGame)
             SendList(args.Player);
     }

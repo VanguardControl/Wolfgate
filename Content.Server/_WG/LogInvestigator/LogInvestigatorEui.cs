@@ -41,13 +41,13 @@ public sealed class LogInvestigatorEui : BaseEui
     /// <summary>The window around a moment that "who was nearby" looks at.</summary>
     private static readonly TimeSpan NearbyWindow = TimeSpan.FromSeconds(60);
 
-    /// <summary>Radius the encounter report's nearby list uses.</summary>
-    private const int EncounterRadius = 15;
-
     private readonly ISawmill _sawmill;
     private readonly LogQuery? _prefill;
     private readonly LogReportKind? _prefillReport;
     private CancellationTokenSource _cancel = new();
+
+    /// <summary>Cancels the live poll for newer logs, apart from searches and reports.</summary>
+    private CancellationTokenSource _tailCancel = new();
 
     /// <summary>The round load in progress, if any; queries and reports wait for it.</summary>
     private Task? _roundLoad;
@@ -125,6 +125,8 @@ public sealed class LogInvestigatorEui : BaseEui
         _admins.OnPermsChanged -= OnPermsChanged;
         _cancel.Cancel();
         _cancel.Dispose();
+        _tailCancel.Cancel();
+        _tailCancel.Dispose();
     }
 
     private void OnPermsChanged(AdminPermsChangedEventArgs args)
@@ -258,6 +260,12 @@ public sealed class LogInvestigatorEui : BaseEui
 
     private async Task RunQuery(LogInvestigatorQueryMsg msg)
     {
+        if (msg is { Newer: true, AfterId: { } newest })
+        {
+            await RunNewer(msg.Query, newest);
+            return;
+        }
+
         await WaitForRound();
         var cancel = Restart();
         var query = msg.Query;
@@ -277,6 +285,28 @@ public sealed class LogInvestigatorEui : BaseEui
             SendMessage(new LogInvestigatorPageMsg(rows, first, hasMore, total));
     }
 
+    /// <summary>
+    /// The logs newer than the top of a newest-first list, so it stays live. It doesn't cancel a search or report in
+    /// progress; a newer poll replaces an older one.
+    /// </summary>
+    private async Task RunNewer(LogQuery query, int newest)
+    {
+        if (IsShutDown || _roundLoad is { IsCompleted: false } || _roundLoadFailed || query.RoundId != _roundId)
+            return;
+
+        _tailCancel.Cancel();
+        _tailCancel.Dispose();
+        _tailCancel = new CancellationTokenSource();
+        var cancel = _tailCancel.Token;
+
+        var page = _cfg.GetCVar(LogInvestigatorCVars.PageSize);
+        var (rows, hasMore, _) = await _db.GetInvestigatorLogsAsync(query, _roundStart, newest, page, false, cancel, newer: true);
+        cancel.ThrowIfCancellationRequested();
+
+        if (rows.Count > 0 && !IsShutDown && Player.Status != SessionStatus.Disconnected)
+            SendMessage(new LogInvestigatorPageMsg(rows, false, hasMore, null, newer: true));
+    }
+
     private async Task BuildReport(LogInvestigatorReportRequest request)
     {
         await WaitForRound();
@@ -286,7 +316,7 @@ public sealed class LogInvestigatorEui : BaseEui
 
         var report = request.Kind switch
         {
-            LogReportKind.Encounter => await Encounter(query, cancel),
+            LogReportKind.Encounter => await Encounter(query, Math.Clamp(request.Radius, 1, 200), cancel),
             LogReportKind.Timeline => await Timeline(query, cancel),
             LogReportKind.Nearby when request.Point is { } point => await Nearby(point, Math.Clamp(request.Radius, 1, 200), cancel),
             _ => null,
@@ -297,7 +327,7 @@ public sealed class LogInvestigatorEui : BaseEui
             SendMessage(new LogInvestigatorReportMsg(report));
     }
 
-    private async Task<LogReport> Encounter(LogQuery query, CancellationToken cancel)
+    private async Task<LogReport> Encounter(LogQuery query, int radius, CancellationToken cancel)
     {
         var combat = await Rows(Narrow(query, LogReports.CombatTypes), cancel);
 
@@ -339,7 +369,7 @@ public sealed class LogInvestigatorEui : BaseEui
             chat = chat.DistinctBy(r => r.Id).ToList();
 
             if (firstHit.VictimRef is { Map: { } map, X: { } x, Y: { } y } victim)
-                nearby = await NearbyList(new LogPoint(map, victim.Grid, x, y, firstHit.At), EncounterRadius, cancel);
+                nearby = await NearbyList(new LogPoint(map, victim.Grid, x, y, firstHit.At), radius, cancel);
         }
 
         return LogReports.Encounter(hits, deaths, chat, _roundStart, nearby);
@@ -381,7 +411,15 @@ public sealed class LogInvestigatorEui : BaseEui
 
     private async Task<LogReport> Nearby(LogPoint point, int radius, CancellationToken cancel)
     {
-        return LogReports.NearbyReport(point, radius, await NearbyList(point, radius, cancel), _roundStart);
+        var nearby = await NearbyList(point, radius, cancel);
+        var filter = new LogQuery
+        {
+            RoundId = _roundId,
+            Players = nearby.Select(n => n.Player).ToArray(),
+            FromSeconds = Seconds(point.At - NearbyWindow),
+            ToSeconds = Seconds(point.At + NearbyWindow),
+        };
+        return LogReports.NearbyReport(point, radius, nearby, _roundStart) with { Filter = nearby.Count > 0 ? filter : null };
     }
 
     private async Task<List<LogReports.LogPlayerNearby>> NearbyList(LogPoint point, int radius, CancellationToken cancel)

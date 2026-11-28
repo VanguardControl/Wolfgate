@@ -9,6 +9,9 @@ public sealed class AHelpTicketClientSystem : EntitySystem
     private readonly Dictionary<int, AHelpTicketInfo> _tickets = new();
     private readonly Dictionary<NetUserId, AHelpTicketPlayerCardMessage> _cards = new();
 
+    /// <summary>The ticket last reported as viewed.</summary>
+    private int? _viewing;
+
     /// <summary>This round's tickets, by key.</summary>
     public IReadOnlyDictionary<int, AHelpTicketInfo> Tickets => _tickets;
 
@@ -91,6 +94,28 @@ public sealed class AHelpTicketClientSystem : EntitySystem
         RaiseNetworkEvent(new AHelpTicketPlayerCardRequest(player));
     }
 
+    /// <summary>Tells the server which ticket this staffer has open, so others see who is looking at it.</summary>
+    public void View(int? key)
+    {
+        if (key == _viewing)
+            return;
+
+        _viewing = key;
+        RaiseNetworkEvent(new AHelpTicketViewMessage(key));
+    }
+
+    /// <summary>Asks the other staff online to look at a ticket.</summary>
+    public void Assist(int key)
+    {
+        RaiseNetworkEvent(new AHelpTicketAssistMessage(key));
+    }
+
+    /// <summary>Gives the player their job loadout again, free or paid from their bank.</summary>
+    public void GiveLoadout(NetUserId player, bool charge)
+    {
+        RaiseNetworkEvent(new AHelpTicketLoadoutMessage(player, charge));
+    }
+
     public void RequestTranscript(int number)
     {
         RaiseNetworkEvent(new AHelpTicketTranscriptRequest(number));
@@ -103,6 +128,8 @@ public sealed class AHelpTicketClientSystem : EntitySystem
 
     private void OnList(AHelpTicketListMessage msg)
     {
+        // A fresh list follows a reconnect or round end, when the server has forgotten what this staffer was viewing.
+        _viewing = null;
         _tickets.Clear();
         foreach (var ticket in msg.Tickets)
         {

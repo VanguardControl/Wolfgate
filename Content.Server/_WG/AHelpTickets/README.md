@@ -10,15 +10,25 @@ Staff get the ticket panel instead of the per-player list (`wg.ahelp.tickets_pan
 - Tickets are grouped Unclaimed, Mine, Claimed by others, Closed this round. A row only moves when its own ticket
   changes. Filters: mine, online, has notes, show closed. The search box matches names and #numbers at once; Enter
   searches everything ever said in stored tickets.
-- The ticket view has Claim, Unclaim, Resolve, Reject, IC issue and Reopen, the player card (playtime, notes, bans,
-  bank, past tickets), quick actions run as the staffer's own console commands, a warning when another staffer is
-  typing in the same ahelp, and the macro menu.
+- The chat is in the middle as message bubbles: the player on the left, staff on the right (the staffer's own lines
+  brighter, admin-only lines amber), notices in the middle. The column on its right has the ticket: Claim, Unclaim,
+  Resolve, Reject, IC issue and Reopen (hover text says what the player is shown), who else has it open, Request
+  assistance and Export .txt; then the player card (playtime, notes, bans, bank, past tickets), quick actions run as
+  the staffer's own console commands, and the player's ships, each opening in Shipmaster. Below the chat are a warning
+  when another staffer is typing in the same ahelp, and the macro menu.
+- Request assistance pings the other staff who see the ticket in admin chat, with its own sound and an Open ticket
+  link (`[ahelpticket=KEY/]`), and notes it in the ticket; once per ticket every 30 s.
+- Provide loadout (Admin flag) hands the player the loadout they picked for their job again, into their bag or hands,
+  for free or charged to their bank (all or nothing). The result is a staff line in the ticket and an admin log.
+- Who has a ticket open is tracked per staffer (`AHelpTicketViewMessage`) and shown in the column and the list.
 - Macros are canned replies that can also change the ticket or run a command. Hosts and Owners own the list:
   `Resources/Prototypes/_WG/AHelpTickets/macros.yml` and `Resources/Locale/en-US/_WG/AHelpTickets/macros.ftl`.
 - Unclaimed tickets past `wg.ahelp.stale_minutes` (5) turn orange and bwoink staff again.
 - Investigate opens the log investigator on the ticket (LogInvestigator).
 
-Players see their ticket number and whether staff have picked it up above their ahelp.
+Players get the ticket window (`WGPlayerAHelpUIHandler`): with nothing open it is a form (kind of issue, what happened,
+Submit); once filed, or once staff write first, it is the conversation as bubbles with the ticket's number and state
+on top, a New ticket button and Export .txt.
 
 Entry points: `AHelpTicketSystem` (server; fed by `BwoinkSystem.WGTicketLine`), `AHelpTicketClientSystem` and
 `WGTicketAHelpUIHandler` (client), the messages in `AHelpTicketMessages.cs`.
@@ -31,6 +41,7 @@ Entry points: `AHelpTicketSystem` (server; fed by `BwoinkSystem.WGTicketLine`), 
 ### Server
 
 - [`Content.Server/_WG/AHelpTickets/AHelpTicketSystem.cs`](AHelpTicketSystem.cs)
+- [`Content.Server/_WG/AHelpTickets/AHelpTicketSystem.Staff.cs`](AHelpTicketSystem.Staff.cs)
 - [`Content.Server/_WG/AHelpTickets/BwoinkSystem.AHelpTickets.cs`](BwoinkSystem.AHelpTickets.cs)
 - [`Content.Server/_WG/AHelpTickets/DiscordChatLink.AHelpTickets.cs`](DiscordChatLink.AHelpTickets.cs)
 - [`Content.Server/_WG/AHelpTickets/DiscordLink.AHelpTickets.cs`](DiscordLink.AHelpTickets.cs)
@@ -47,9 +58,14 @@ Entry points: `AHelpTicketSystem` (server; fed by `BwoinkSystem.WGTicketLine`), 
 
 - [`Content.Client/_WG/AHelpTickets/AHelpTicketClientSystem.cs`](../../../Content.Client/_WG/AHelpTickets/AHelpTicketClientSystem.cs)
 - [`Content.Client/_WG/AHelpTickets/AHelpTicketHistoryWindow.cs`](../../../Content.Client/_WG/AHelpTickets/AHelpTicketHistoryWindow.cs)
+- [`Content.Client/_WG/AHelpTickets/AHelpTicketLinkTag.cs`](../../../Content.Client/_WG/AHelpTickets/AHelpTicketLinkTag.cs)
 - [`Content.Client/_WG/AHelpTickets/AHelpTicketsControl.xaml`](../../../Content.Client/_WG/AHelpTickets/AHelpTicketsControl.xaml)
 - [`Content.Client/_WG/AHelpTickets/AHelpTicketsControl.xaml.cs`](../../../Content.Client/_WG/AHelpTickets/AHelpTicketsControl.xaml.cs)
 - [`Content.Client/_WG/AHelpTickets/AHelpTicketStatusLabel.cs`](../../../Content.Client/_WG/AHelpTickets/AHelpTicketStatusLabel.cs)
+- [`Content.Client/_WG/AHelpTickets/WGAHelpChatPanel.cs`](../../../Content.Client/_WG/AHelpTickets/WGAHelpChatPanel.cs)
+- [`Content.Client/_WG/AHelpTickets/WGChatBubbleRow.cs`](../../../Content.Client/_WG/AHelpTickets/WGChatBubbleRow.cs)
+- [`Content.Client/_WG/AHelpTickets/WGLoadoutGrantWindow.cs`](../../../Content.Client/_WG/AHelpTickets/WGLoadoutGrantWindow.cs)
+- [`Content.Client/_WG/AHelpTickets/WGPlayerAHelpUIHandler.cs`](../../../Content.Client/_WG/AHelpTickets/WGPlayerAHelpUIHandler.cs)
 - [`Content.Client/_WG/AHelpTickets/WGTicketAHelpUIHandler.cs`](../../../Content.Client/_WG/AHelpTickets/WGTicketAHelpUIHandler.cs)
 
 ### Integration tests
@@ -83,7 +99,7 @@ Entry points: `AHelpTicketSystem` (server; fed by `BwoinkSystem.WGTicketLine`), 
   - a closed or popped-out list stops listening, or it kept sorting forever
 - [`Content.Client/UserInterface/Systems/Bwoink/AHelpUIController.cs`](../../../Content.Client/UserInterface/Systems/Bwoink/AHelpUIController.cs)
   - systems are rebuilt on reconnect, so a window built on the old ones goes with them
-  - staff get the ticket panel unless wg.ahelp.tickets_panel is off
+  - staff get the ticket panel and players the ticket window unless wg.ahelp.tickets_panel is off
   - the ticket panel pops out on its own
   - the player's ticket number and state
 - [`Content.Server.Database/Model.cs`](../../../Content.Server.Database/Model.cs)

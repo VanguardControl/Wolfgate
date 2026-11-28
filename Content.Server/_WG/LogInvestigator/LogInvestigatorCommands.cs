@@ -99,14 +99,15 @@ public sealed class WGInvestigateCommand : LocalizedEntityCommands
         var players = new List<Guid> { ticket.Player.UserId };
         players.AddRange(NamedPlayers(text).Where(p => p != ticket.Player.UserId));
 
-        // The window runs in round time, from a while before the ticket opened until it closed.
+        // The window runs in round time, from a while before the ticket opened until it closed. An open ticket has no
+        // end, so the list keeps showing the newest logs instead of stopping at the moment it was opened.
         var start = DateTime.UtcNow - _ticker.RoundDuration();
         var query = new LogQuery
         {
             RoundId = ticket.RoundId,
             Players = players.Distinct().ToArray(),
             FromSeconds = Math.Max(0, (ticket.Opened - LookBack - start).TotalSeconds),
-            ToSeconds = ((closed ?? DateTime.UtcNow) - start).TotalSeconds,
+            ToSeconds = closed is { } end ? (end - start).TotalSeconds : null,
         };
 
         if (!LogInvestigatorEui.TryOpen(admin, query, LogReportKind.Encounter))

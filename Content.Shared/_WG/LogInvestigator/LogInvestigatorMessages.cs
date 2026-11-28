@@ -71,13 +71,13 @@ public enum LogReportKind : byte
 [Serializable, NetSerializable]
 public sealed record LogPoint(int Map, int? Grid, float X, float Y, DateTime At);
 
-/// <summary>A titled block of report lines.</summary>
+/// <summary>A titled block of report lines, and the logs behind it shown like the result list.</summary>
 [Serializable, NetSerializable]
-public sealed record LogReportSection(string Title, List<string> Lines);
+public sealed record LogReportSection(string Title, List<string> Lines, List<LogRow>? Rows = null);
 
-/// <summary>A finished report.</summary>
+/// <summary>A finished report; <see cref="Filter"/> is a search that narrows the results to what it found.</summary>
 [Serializable, NetSerializable]
-public sealed record LogReport(LogReportKind Kind, string Title, List<LogReportSection> Sections);
+public sealed record LogReport(LogReportKind Kind, string Title, List<LogReportSection> Sections, LogQuery? Filter = null);
 
 [Serializable, NetSerializable]
 public sealed class LogInvestigatorEuiState : EuiStateBase
@@ -92,21 +92,26 @@ public sealed class LogInvestigatorEuiState : EuiStateBase
     public bool Loading;
 }
 
-/// <summary>Client to server: run a query, from the start or after the last log shown.</summary>
+/// <summary>
+/// Client to server: run a query, from the start or after the last log shown; with <see cref="Newer"/>, the logs
+/// newer than <see cref="AfterId"/> instead, for keeping a newest-first list live.
+/// </summary>
 [Serializable, NetSerializable]
-public sealed class LogInvestigatorQueryMsg(LogQuery query, int? afterId) : EuiMessageBase
+public sealed class LogInvestigatorQueryMsg(LogQuery query, int? afterId, bool newer = false) : EuiMessageBase
 {
     public readonly LogQuery Query = query;
     public readonly int? AfterId = afterId;
+    public readonly bool Newer = newer;
 }
 
-/// <summary>Server to client: a page of results.</summary>
+/// <summary>Server to client: a page of results; <see cref="Newer"/> rows go above the ones shown.</summary>
 [Serializable, NetSerializable]
-public sealed class LogInvestigatorPageMsg(List<LogRow> rows, bool replace, bool hasMore, int? total) : EuiMessageBase
+public sealed class LogInvestigatorPageMsg(List<LogRow> rows, bool replace, bool hasMore, int? total, bool newer = false) : EuiMessageBase
 {
     public readonly List<LogRow> Rows = rows;
     public readonly bool Replace = replace;
     public readonly bool HasMore = hasMore;
+    public readonly bool Newer = newer;
 
     /// <summary>How many logs match, counted with the first page only.</summary>
     public readonly int? Total = total;

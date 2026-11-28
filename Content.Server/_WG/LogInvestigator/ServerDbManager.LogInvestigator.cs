@@ -9,9 +9,10 @@ public partial interface IServerDbManager
     /// <summary>
     /// A page of a round's logs matching the query, newest or oldest first by id, after <paramref name="afterId"/>.
     /// With <paramref name="count"/> also how many match, up to <see cref="ServerDbBase.InvestigatorCountCap"/>.
+    /// With <paramref name="newer"/>, the logs newer than <paramref name="afterId"/> instead, newest first.
     /// </summary>
     Task<(List<LogRow> Rows, bool HasMore, int? Total)> GetInvestigatorLogsAsync(
-        LogQuery query, DateTime? roundStart, int? afterId, int limit, bool count, CancellationToken cancel = default);
+        LogQuery query, DateTime? roundStart, int? afterId, int limit, bool count, CancellationToken cancel = default, bool newer = false);
 
     /// <summary>Stores samples of where players were.</summary>
     Task AddPlayerPositionsAsync(List<WolfgatePlayerPosition> positions, CancellationToken cancel = default);
@@ -23,10 +24,10 @@ public partial interface IServerDbManager
 public sealed partial class ServerDbManager
 {
     public Task<(List<LogRow> Rows, bool HasMore, int? Total)> GetInvestigatorLogsAsync(
-        LogQuery query, DateTime? roundStart, int? afterId, int limit, bool count, CancellationToken cancel = default)
+        LogQuery query, DateTime? roundStart, int? afterId, int limit, bool count, CancellationToken cancel = default, bool newer = false)
     {
         DbReadOpsMetric.Inc();
-        return RunDbCommand(() => _db.GetInvestigatorLogsAsync(query, roundStart, afterId, limit, count, cancel));
+        return RunDbCommand(() => _db.GetInvestigatorLogsAsync(query, roundStart, afterId, limit, count, cancel, newer));
     }
 
     public Task AddPlayerPositionsAsync(List<WolfgatePlayerPosition> positions, CancellationToken cancel = default)

@@ -16,20 +16,27 @@ wg-log-investigator-oldest-first = Oldest first
 wg-log-investigator-categories = Categories
 wg-log-investigator-search = Search
 wg-log-investigator-collapse = Fold repeats
+wg-log-investigator-live = Live
+wg-log-investigator-live-tooltip = On this round's newest-first list with no end time, new logs keep coming in.
+wg-log-investigator-new-logs = { $count ->
+    [one] 1 new log
+   *[other] { $count } new logs
+} (show)
 wg-log-investigator-more = Load more
 wg-log-investigator-copy = Copy all
 wg-log-investigator-count = { $loaded } loaded of { $total }
 wg-log-investigator-behind = (this round: the last few seconds may not be in yet)
-wg-log-investigator-run = { $time } [{ $type }] ×{ $count } over { $seconds }s: { $message }
+wg-log-investigator-run = ×{ $count } over { $seconds }s:
 wg-log-investigator-pick-row = Pick a log to see who and what it names.
 wg-log-investigator-filter = Filter
 wg-log-investigator-follow = Follow
-wg-log-investigator-teleport = TP
 wg-log-investigator-vv = VV
 wg-log-investigator-nearby = Nearby
 wg-log-investigator-timeline = Timeline
 wg-log-investigator-encounter = Encounter
-wg-log-investigator-radius = Radius
+wg-log-investigator-radius = Nearby radius (m)
+wg-log-investigator-radius-tooltip = How far from a log's position Nearby and Encounter look for players. Nearby's report can then filter the logs to them.
+wg-log-investigator-report-filter = Filter the logs to these players
 wg-log-investigator-preset-all = All logs
 wg-log-investigator-preset-combat = Combat
 wg-log-investigator-preset-comms = Chat and comms
@@ -79,7 +86,9 @@ wg-log-report-nearby-line = { $name }: { $distance } m at { $time }{ $sameGrid -
 }
 wg-log-report-nobody-nearby = Nobody was sampled nearby. Positions are recorded every few seconds from when this feature went live.
 wg-log-report-phases = Phases
-wg-log-report-phase-line = { $from }–{ $to } [{ $category }] ×{ $count }: { $first } … { $last }
+wg-log-report-phase-title = { $from }–{ $to } · { $category } ({ $count })
+wg-log-report-phase-skipped = { $count } logs in the middle of this phase are left out.
+wg-log-report-timeline-cut = { $phases } more phases are left out; narrow the time window.
 wg-log-report-no-logs = No logs for this player in the window.
 wg-log-report-pick-player = Pick a player first.
 

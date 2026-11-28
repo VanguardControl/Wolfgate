@@ -151,6 +151,50 @@ public sealed class AHelpTicketPanelTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>
+    /// A ticket open in a staffer's panel lists them as looking at it until the panel closes, and asking for help puts
+    /// a staff line in the ticket.
+    /// </summary>
+    [Test]
+    public async Task ViewersAndAssistance()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var client = pair.Client;
+        var tickets = pair.Server.System<AHelpTicketSystem>();
+        var clientTickets = client.System<AHelpTicketClientSystem>();
+        var clientBwoink = client.System<ClientBwoinkSystem>();
+        var staffName = pair.Server.PlayerMan.Sessions.Single().Name;
+        var player = new NetUserId(Guid.NewGuid());
+        var ui = client.ResolveDependency<IUserInterfaceManager>();
+
+        var received = new List<ClientBwoinkSystem.BwoinkTextMessage>();
+        EventHandler<ClientBwoinkSystem.BwoinkTextMessage> onReceived = (_, msg) => received.Add(msg);
+        clientBwoink.OnBwoinkTextMessageRecieved += onReceived;
+
+        await client.WaitPost(() => clientBwoink.Send(player, "staff message", false, false));
+        await WaitFor(pair, () => clientTickets.LatestFor(player) != null, "the client to hear of the ticket");
+        var key = clientTickets.LatestFor(player)!.Key;
+        AHelpTicketInfo Ticket() => tickets.Tickets.Single(t => t.Key == key);
+
+        await client.WaitPost(() =>
+        {
+            var controller = ui.GetUIController<AHelpUIController>();
+            controller.EnsureUIHelper();
+            controller.Open(player);
+        });
+        await WaitFor(pair, () => Ticket().Viewers.Contains(staffName), "the staffer to show as looking at the ticket");
+
+        await client.WaitPost(() => clientTickets.Assist(key));
+        await WaitFor(pair, () => received.Any(m => m.UserId == player && m.WGSystem && m.Text.Contains(staffName) && m.Text.Contains("help")),
+            "the request for help to show in the ticket");
+
+        await client.WaitPost(() => ui.GetUIController<AHelpUIController>().UIHelper?.Close());
+        await WaitFor(pair, () => Ticket().Viewers.Count == 0, "closing the panel to stop the staffer looking");
+
+        clientBwoink.OnBwoinkTextMessageRecieved -= onReceived;
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>With no staff online and no webhook, the "nobody heard you" notice is a system line, not activity.</summary>
     [Test]
     public async Task NoStaffNoticeIsASystemLine()

@@ -72,6 +72,9 @@ public sealed class AHelpTicketInfo
     public bool HasNotes;
     public int Messages;
     public bool Online;
+
+    /// <summary>Staff who have this ticket open in their panel now.</summary>
+    public List<string> Viewers = new();
 }
 
 /// <summary>A past ticket, as listed in a player's history or a search.</summary>
@@ -142,7 +145,11 @@ public sealed class AHelpTicketPlayerCardRequest(NetUserId player) : EntityEvent
     public readonly NetUserId Player = player;
 }
 
-/// <summary>Server to staff: a player's notes, bans, bank and past tickets.</summary>
+/// <summary>A ship a player owns, for opening it in Shipmaster.</summary>
+[Serializable, NetSerializable]
+public sealed record AHelpTicketShip(NetEntity Grid, string Name);
+
+/// <summary>Server to staff: a player's notes, bans, bank, past tickets, ships and loadout price.</summary>
 [Serializable, NetSerializable]
 public sealed class AHelpTicketPlayerCardMessage : EntityEventArgs
 {
@@ -152,6 +159,32 @@ public sealed class AHelpTicketPlayerCardMessage : EntityEventArgs
     public int? Bank;
     public int TotalTickets;
     public List<AHelpTicketHistoryEntry> Previous = new();
+    public List<AHelpTicketShip> Ships = new();
+
+    /// <summary>What the player's job loadout costs; null when they have no body or loadout to give.</summary>
+    public int? LoadoutPrice;
+}
+
+/// <summary>Staff to server: which ticket this staffer has open in their panel; null when none.</summary>
+[Serializable, NetSerializable]
+public sealed class AHelpTicketViewMessage(int? key) : EntityEventArgs
+{
+    public readonly int? Key = key;
+}
+
+/// <summary>Staff to server: ask the other staff online to look at a ticket.</summary>
+[Serializable, NetSerializable]
+public sealed class AHelpTicketAssistMessage(int key) : EntityEventArgs
+{
+    public readonly int Key = key;
+}
+
+/// <summary>Staff to server: give the player their job loadout again, free or paid from their bank.</summary>
+[Serializable, NetSerializable]
+public sealed class AHelpTicketLoadoutMessage(NetUserId player, bool charge) : EntityEventArgs
+{
+    public readonly NetUserId Player = player;
+    public readonly bool Charge = charge;
 }
 
 /// <summary>Staff to server: the transcript of a stored ticket.</summary>

@@ -1,5 +1,4 @@
 <DefaultWindow xmlns="https://spacestation14.io"
-               xmlns:ui="clr-namespace:Content.Client.UserInterface.Controls"
                Title="{Loc 'wg-log-investigator-title'}"
                MinSize="1100 620"
                SetSize="1300 760">
@@ -38,10 +37,15 @@
             <Button Name="SearchButton" Text="{Loc 'wg-log-investigator-search'}" StyleClasses="Caution" />
         </BoxContainer>
         <BoxContainer Orientation="Vertical" HorizontalExpand="True" SizeFlagsStretchRatio="2" Margin="4 0">
-            <ui:ListContainer Name="Results" Toggle="True" Group="True" VerticalExpand="True" />
+            <Button Name="NewLogsButton" Visible="False" StyleClasses="OpenBoth" />
+            <ScrollContainer Name="ResultsScroll" VerticalExpand="True" HScrollEnabled="False" ReserveScrollbarSpace="True">
+                <BoxContainer Name="Results" Orientation="Vertical" HorizontalExpand="True" />
+            </ScrollContainer>
             <BoxContainer Orientation="Horizontal">
                 <Label Name="CountLabel" />
                 <Control HorizontalExpand="True" />
+                <CheckBox Name="LiveBox" Text="{Loc 'wg-log-investigator-live'}" ToolTip="{Loc 'wg-log-investigator-live-tooltip'}" Pressed="True" />
+                <Control MinWidth="8" />
                 <CheckBox Name="CollapseBox" Text="{Loc 'wg-log-investigator-collapse'}" Pressed="True" />
                 <Button Name="MoreButton" Text="{Loc 'wg-log-investigator-more'}" Disabled="True" StyleClasses="OpenRight" />
                 <Button Name="CopyButton" Text="{Loc 'wg-log-investigator-copy'}" StyleClasses="OpenLeft" />
@@ -49,17 +53,22 @@
         </BoxContainer>
         </SplitContainer>
         <BoxContainer Orientation="Vertical" MinWidth="340" SizeFlagsStretchRatio="1">
-            <RichTextLabel Name="Detail" />
+            <ScrollContainer MaxHeight="220" HScrollEnabled="False">
+                <RichTextLabel Name="Detail" HorizontalExpand="True" />
+            </ScrollContainer>
             <BoxContainer Name="RefActions" Orientation="Vertical" />
             <BoxContainer Orientation="Horizontal">
                 <Button Name="EncounterButton" Text="{Loc 'wg-log-investigator-encounter'}" StyleClasses="OpenRight" />
                 <Button Name="TimelineButton" Text="{Loc 'wg-log-investigator-timeline'}" StyleClasses="OpenLeft" />
                 <Control HorizontalExpand="True" />
-                <Label Text="{Loc 'wg-log-investigator-radius'}" />
-                <LineEdit Name="RadiusEdit" Text="15" MinWidth="40" />
+                <Label Text="{Loc 'wg-log-investigator-radius'}" ToolTip="{Loc 'wg-log-investigator-radius-tooltip'}" MouseFilter="Stop" />
+                <LineEdit Name="RadiusEdit" Text="15" MinWidth="40" ToolTip="{Loc 'wg-log-investigator-radius-tooltip'}" />
             </BoxContainer>
             <Label Name="ReportTitle" StyleClasses="LabelHeading" />
-            <OutputPanel Name="Report" VerticalExpand="True" />
+            <Button Name="ReportFilterButton" Text="{Loc 'wg-log-investigator-report-filter'}" Visible="False" StyleClasses="OpenBoth" />
+            <ScrollContainer VerticalExpand="True" HScrollEnabled="False" ReserveScrollbarSpace="True">
+                <BoxContainer Name="Report" Orientation="Vertical" HorizontalExpand="True" />
+            </ScrollContainer>
         </BoxContainer>
     </SplitContainer>
 </DefaultWindow>

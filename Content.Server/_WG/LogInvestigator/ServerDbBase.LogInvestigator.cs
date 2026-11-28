@@ -15,7 +15,7 @@ public abstract partial class ServerDbBase
     public const int InvestigatorCountCap = 100_000;
 
     public async Task<(List<LogRow> Rows, bool HasMore, int? Total)> GetInvestigatorLogsAsync(
-        LogQuery query, DateTime? roundStart, int? afterId, int limit, bool count, CancellationToken cancel = default)
+        LogQuery query, DateTime? roundStart, int? afterId, int limit, bool count, CancellationToken cancel = default, bool newer = false)
     {
         await using var db = await GetDb(cancel);
 
@@ -23,9 +23,9 @@ public abstract partial class ServerDbBase
         int? total = count ? await logs.Take(InvestigatorCountCap).CountAsync(cancel) : null;
 
         if (afterId is { } after)
-            logs = query.Ascending ? logs.Where(l => l.Id > after) : logs.Where(l => l.Id < after);
+            logs = query.Ascending || newer ? logs.Where(l => l.Id > after) : logs.Where(l => l.Id < after);
 
-        logs = query.Ascending ? logs.OrderBy(l => l.Id) : logs.OrderByDescending(l => l.Id);
+        logs = query.Ascending && !newer ? logs.OrderBy(l => l.Id) : logs.OrderByDescending(l => l.Id);
 
         var rows = await logs
             .Take(limit + 1)

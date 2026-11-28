@@ -32,6 +32,9 @@ public static class LogReports
 
     private const int MaxLines = 200;
 
+    /// <summary>The most logs a timeline phase shows; a longer one shows its first and last halves.</summary>
+    private const int PhaseRows = 20;
+
     /// <summary>One entity hitting another, with turret hits credited to whoever fired the ship's guns.</summary>
     public sealed record Hit(DateTime At, string Attacker, Guid? AttackerPlayer, int AttackerId, string Victim, Guid? VictimPlayer, int VictimId, string Weapon, float Damage, LogRef VictimRef);
 
@@ -135,22 +138,21 @@ public static class LogReports
             sections.Add(new LogReportSection(Loc.GetString("wg-log-report-npc"), lines));
         }
 
-        var deathLines = deaths
+        var deathRows = deaths
             .Where(d => d.Message.Contains(" to Dead", StringComparison.Ordinal))
             .OrderBy(d => d.Date)
-            .Select(d => $"{Time(d.Date, roundStart)}  {d.Message}")
             .Take(MaxLines)
             .ToList();
-        if (deathLines.Count > 0)
-            sections.Add(new LogReportSection(Loc.GetString("wg-log-report-deaths"), deathLines));
+        if (deathRows.Count > 0)
+            sections.Add(new LogReportSection(Loc.GetString("wg-log-report-deaths"), new List<string>(), deathRows));
 
-        var chatLines = chatBefore
+        var chatRows = chatBefore
             .OrderBy(c => c.Date)
-            .Select(c => $"{Time(c.Date, roundStart)}  {c.Message}")
             .TakeLast(MaxLines)
             .ToList();
         sections.Add(new LogReportSection(Loc.GetString("wg-log-report-chat-before"),
-            chatLines.Count > 0 ? chatLines : new List<string> { Loc.GetString("wg-log-report-no-chat") }));
+            chatRows.Count > 0 ? new List<string>() : new List<string> { Loc.GetString("wg-log-report-no-chat") },
+            chatRows));
 
         if (nearby != null)
             sections.Add(NearbySection(nearby, roundStart));
@@ -158,40 +160,53 @@ public static class LogReports
         return new LogReport(LogReportKind.Encounter, Loc.GetString("wg-log-report-encounter-title"), sections);
     }
 
-    /// <summary>A player's logs run together into phases by category, split where they go quiet for a minute.</summary>
+    /// <summary>
+    /// A player's logs run together into phases by category, split where they go quiet for a minute. Each phase is a
+    /// section holding its logs, shown like the result list; a long phase keeps its first and last logs.
+    /// </summary>
     public static LogReport Timeline(string player, IEnumerable<LogRow> rows, IReadOnlyDictionary<LogType, string> categories, DateTime? roundStart)
     {
-        var phases = new List<(string Category, DateTime From, DateTime To, int Count, string First, string Last)>();
+        var phases = new List<(string Category, List<LogRow> Rows)>();
         foreach (var row in rows.OrderBy(r => r.Date).ThenBy(r => r.Id))
         {
             var category = categories.GetValueOrDefault(row.Type, row.Type.ToString());
-            if (phases.Count > 0 && phases[^1].Category == category && row.Date - phases[^1].To <= PhaseGap)
+            if (phases.Count > 0 && phases[^1].Category == category && row.Date - phases[^1].Rows[^1].Date <= PhaseGap)
             {
-                var last = phases[^1];
-                phases[^1] = (last.Category, last.From, row.Date, last.Count + 1, last.First, row.Message);
+                phases[^1].Rows.Add(row);
                 continue;
             }
 
-            phases.Add((category, row.Date, row.Date, 1, row.Message, row.Message));
+            phases.Add((category, new List<LogRow> { row }));
         }
 
-        var lines = phases
-            .Select(p => p.Count == 1
-                ? $"{Time(p.From, roundStart)}  [{p.Category}] {p.First}"
-                : Loc.GetString("wg-log-report-phase-line",
-                    ("from", Time(p.From, roundStart)),
-                    ("to", Time(p.To, roundStart)),
-                    ("category", p.Category),
-                    ("count", p.Count),
-                    ("first", p.First),
-                    ("last", p.Last)))
-            .Take(MaxLines * 2)
-            .ToList();
-        if (lines.Count == 0)
-            lines.Add(Loc.GetString("wg-log-report-no-logs"));
+        var sections = new List<LogReportSection>();
+        var shown = 0;
+        foreach (var (category, phase) in phases)
+        {
+            if (shown >= MaxLines * 2)
+            {
+                sections.Add(new LogReportSection(Loc.GetString("wg-log-report-timeline-cut", ("phases", phases.Count - sections.Count)), new List<string>()));
+                break;
+            }
 
-        return new LogReport(LogReportKind.Timeline, Loc.GetString("wg-log-report-timeline-title", ("player", player)),
-            new List<LogReportSection> { new(Loc.GetString("wg-log-report-phases"), lines) });
+            var title = Loc.GetString("wg-log-report-phase-title",
+                ("from", Time(phase[0].Date, roundStart)),
+                ("to", Time(phase[^1].Date, roundStart)),
+                ("category", category),
+                ("count", phase.Count));
+
+            var kept = phase.Count <= PhaseRows ? phase : phase.Take(PhaseRows / 2).Concat(phase.TakeLast(PhaseRows / 2)).ToList();
+            var lines = phase.Count > PhaseRows
+                ? new List<string> { Loc.GetString("wg-log-report-phase-skipped", ("count", phase.Count - kept.Count)) }
+                : new List<string>();
+            sections.Add(new LogReportSection(title, lines, kept));
+            shown += kept.Count;
+        }
+
+        if (sections.Count == 0)
+            sections.Add(new LogReportSection(Loc.GetString("wg-log-report-phases"), new List<string> { Loc.GetString("wg-log-report-no-logs") }));
+
+        return new LogReport(LogReportKind.Timeline, Loc.GetString("wg-log-report-timeline-title", ("player", player)), sections);
     }
 
     /// <summary>A player's closest approach to a point in the window.</summary>

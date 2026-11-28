@@ -177,9 +177,12 @@ public sealed partial class AHelpUIController: UIController, IOnSystemChanged<Bw
     {
         var isAdmin = _adminManager.HasFlag(AdminFlags.Adminhelp) || _adminManager.HasFlag(AdminFlags.Event); // WOLFGATE(EventStaff): event staff get the staff window
 
-        // WOLFGATE(AHelpTickets) START: staff get the ticket panel unless wg.ahelp.tickets_panel is off
-        var wgTickets = isAdmin && _config.GetCVar(Content.Shared._WG.AHelpTickets.AHelpTicketCVars.TicketsPanel);
-        if (UIHelper != null && UIHelper.IsAdmin == isAdmin && UIHelper is Content.Client._WG.AHelpTickets.WGTicketAHelpUIHandler == wgTickets)
+        // WOLFGATE(AHelpTickets) START: staff get the ticket panel and players the ticket window unless wg.ahelp.tickets_panel is off
+        var wgTicketsOn = _config.GetCVar(Content.Shared._WG.AHelpTickets.AHelpTicketCVars.TicketsPanel);
+        var wgTickets = isAdmin && wgTicketsOn;
+        var wgPlayer = !isAdmin && wgTicketsOn;
+        if (UIHelper != null && UIHelper.IsAdmin == isAdmin && UIHelper is Content.Client._WG.AHelpTickets.WGTicketAHelpUIHandler == wgTickets
+            && UIHelper is Content.Client._WG.AHelpTickets.WGPlayerAHelpUIHandler == wgPlayer)
             return;
         // if (UIHelper != null && UIHelper.IsAdmin == isAdmin)
         //     return;
@@ -187,15 +190,17 @@ public sealed partial class AHelpUIController: UIController, IOnSystemChanged<Bw
 
         UIHelper?.Dispose();
         var ownerUserId = _playerManager.LocalUser!.Value;
-        // WOLFGATE(AHelpTickets) START: staff get the ticket panel unless wg.ahelp.tickets_panel is off
+        // WOLFGATE(AHelpTickets) START: staff get the ticket panel and players the ticket window unless wg.ahelp.tickets_panel is off
         UIHelper = wgTickets
             ? new Content.Client._WG.AHelpTickets.WGTicketAHelpUIHandler(ownerUserId)
-            : isAdmin ? new AdminAHelpUIHandler(ownerUserId) : new UserAHelpUIHandler(ownerUserId);
+            : wgPlayer
+                ? new Content.Client._WG.AHelpTickets.WGPlayerAHelpUIHandler(ownerUserId)
+                : isAdmin ? new AdminAHelpUIHandler(ownerUserId) : new UserAHelpUIHandler(ownerUserId);
         // UIHelper = isAdmin ? new AdminAHelpUIHandler(ownerUserId) : new UserAHelpUIHandler(ownerUserId);
         // WOLFGATE END
         UIHelper.DiscordRelayChanged(_discordRelayActive);
 
-        UIHelper.SendMessageAction = (userId, textMessage, playSound, adminOnly) => _bwoinkSystem?.Send(userId, textMessage, playSound, adminOnly, (UIHelper as UserAHelpUIHandler)?.Category ?? AHelpCategory.Player); // WOLFGATE(EventStaff): send the picked category
+        UIHelper.SendMessageAction = (userId, textMessage, playSound, adminOnly) => _bwoinkSystem?.Send(userId, textMessage, playSound, adminOnly, (UIHelper as UserAHelpUIHandler)?.Category ?? (UIHelper as Content.Client._WG.AHelpTickets.WGPlayerAHelpUIHandler)?.Category ?? AHelpCategory.Player); // WOLFGATE(EventStaff): send the picked category, from either player window
         UIHelper.InputTextChanged += (channel, text) => _bwoinkSystem?.SendInputTextUpdated(channel, text.Length > 0);
         UIHelper.OnClose += () => { SetAHelpPressed(false); };
         UIHelper.OnOpen +=  () => { SetAHelpPressed(true); };

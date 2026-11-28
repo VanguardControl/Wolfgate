@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
-using Content.Client.Administration.UI.Bwoink;
 using Content.Client.UserInterface.Systems.Bwoink;
 using Content.Shared.Administration;
 using Robust.Client.Graphics;
@@ -19,7 +18,7 @@ public sealed class WGTicketAHelpUIHandler : IAHelpUIHandler
     [Dependency] private IUserInterfaceManager _ui = default!;
 
     private readonly NetUserId _owner;
-    private readonly Dictionary<NetUserId, BwoinkPanel> _panels = new();
+    private readonly Dictionary<NetUserId, WGAHelpChatPanel> _panels = new();
 
     private DefaultWindow? _window;
     private IClydeWindow? _clydeWindow;
@@ -55,6 +54,14 @@ public sealed class WGTicketAHelpUIHandler : IAHelpUIHandler
         if (channel != _owner)
             Control!.OpenPlayer(channel);
 
+        OpenWindow();
+    }
+
+    /// <summary>Opens the panel on a ticket of this round by its key, as a chat link asks.</summary>
+    public void OpenTicket(int key)
+    {
+        EnsureControl();
+        Control!.OpenTicket(key);
         OpenWindow();
     }
 
@@ -109,7 +116,7 @@ public sealed class WGTicketAHelpUIHandler : IAHelpUIHandler
         SendMessageAction?.Invoke(channel, text, playSound, adminOnly);
     }
 
-    public bool TryGetChannel(NetUserId channel, [NotNullWhen(true)] out BwoinkPanel? panel)
+    public bool TryGetChannel(NetUserId channel, [NotNullWhen(true)] out WGAHelpChatPanel? panel)
     {
         return _panels.TryGetValue(channel, out panel);
     }
@@ -153,8 +160,8 @@ public sealed class WGTicketAHelpUIHandler : IAHelpUIHandler
             Maximized = false,
             Title = Loc.GetString("wg-ahelp-tickets-title"),
             Monitor = _clyde.EnumerateMonitors().First(),
-            Width = 1000,
-            Height = 560,
+            Width = 1280,
+            Height = 680,
         });
         _clydeWindow.RequestClosed += OnRequestClosed;
         _clydeWindow.DisposeOnClose = true;
@@ -196,25 +203,30 @@ public sealed class WGTicketAHelpUIHandler : IAHelpUIHandler
         _window = new DefaultWindow
         {
             Title = Loc.GetString("wg-ahelp-tickets-title"),
-            MinSize = new Vector2(900, 520),
-            SetSize = new Vector2(1000, 600),
+            MinSize = new Vector2(1050, 560),
+            SetSize = new Vector2(1280, 680),
         };
         _window.Contents.AddChild(Control);
-        _window.OnClose += () => OnClose?.Invoke();
+        _window.OnClose += () =>
+        {
+            Control?.Hidden();
+            OnClose?.Invoke();
+        };
         _window.OnOpen += () =>
         {
+            Control?.Shown();
             OnOpen?.Invoke();
             _everOpened = true;
         };
     }
 
-    private BwoinkPanel EnsurePanel(NetUserId channel)
+    private WGAHelpChatPanel EnsurePanel(NetUserId channel)
     {
         EnsureControl();
         if (_panels.TryGetValue(channel, out var panel))
             return panel;
 
-        panel = new BwoinkPanel(text => SendMessageAction?.Invoke(channel, text,
+        panel = new WGAHelpChatPanel(channel, _owner, false, text => SendMessageAction?.Invoke(channel, text,
             (Control?.PlaySound.Pressed ?? true) && !(Control?.AdminOnly.Pressed ?? false),
             Control?.AdminOnly.Pressed ?? false))
         {

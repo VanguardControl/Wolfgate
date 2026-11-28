@@ -176,7 +176,23 @@ public sealed class LogInvestigatorTest
             {
                 Assert.That(first, Does.Contain("Femur").Or.Contain("Bob"), "Bob struck first, through his turret.");
                 Assert.That(first, Does.StartWith("0:01:40"));
-                Assert.That(report.Sections.SelectMany(s => s.Lines).Any(l => l.Contains("to Dead")));
+                Assert.That(report.Sections.SelectMany(s => s.Rows ?? new List<LogRow>()).Any(r => r.Message.Contains("to Dead")),
+                    "Deaths come back as log rows, drawn like the result list.");
+            });
+
+            // Two combat logs a few seconds apart are one phase; chat after a quiet minute starts another.
+            var timelineRows = new List<LogRow>(combat)
+            {
+                new(5, LogType.Chat, LogImpact.Low, start.AddSeconds(200), "Alice said hi", Array.Empty<LogRef>(), null),
+            };
+            var categories = new Dictionary<LogType, string> { [LogType.BulletHit] = "Combat", [LogType.MeleeHit] = "Combat", [LogType.Chat] = "Chat" };
+            var timeline = LogReports.Timeline("Alice", timelineRows, categories, start);
+            Assert.Multiple(() =>
+            {
+                Assert.That(timeline.Sections, Has.Count.EqualTo(2));
+                Assert.That(timeline.Sections[0].Rows, Has.Count.EqualTo(2));
+                Assert.That(timeline.Sections[0].Title, Does.StartWith("0:01:40"));
+                Assert.That(timeline.Sections[1].Rows!.Single().Id, Is.EqualTo(5));
             });
 
             var point = new LogPoint(1, 900, 0, 0, start.AddSeconds(100));

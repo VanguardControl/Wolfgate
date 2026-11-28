@@ -15,7 +15,7 @@ public sealed class LogInvestigatorEui : BaseEui
     {
         _window = new LogInvestigatorWindow();
         _window.OnClose += () => SendMessage(new CloseEuiMessage());
-        _window.QueryRequested += (query, after) => SendMessage(new LogInvestigatorQueryMsg(query, after));
+        _window.QueryRequested += (query, after, newer) => SendMessage(new LogInvestigatorQueryMsg(query, after, newer));
         _window.RoundRequested += round => SendMessage(new LogInvestigatorRoundMsg(round));
         _window.ReportRequested += (kind, query, point, radius) => SendMessage(new LogInvestigatorReportRequest(kind, query, point, radius));
     }

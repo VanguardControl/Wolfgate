@@ -11,6 +11,18 @@ wg-ahelp-ticket-stale = [color=#ffb347]{ $number ->
     [0] This ticket
    *[other] Ticket #{ $number }
 } has waited { $minutes } min without a staff reply.[/color]
+wg-ahelp-assist-line = [color=#ffb347]{ $staff } asked the other staff for help with this ticket.[/color]
+wg-ahelp-assist-chat = { $staff } asks for help with { $number ->
+    [0] a ticket
+   *[other] ticket #{ $number }
+} from { $player }.
+wg-ahelp-assist-chat-wrapped = [color=#ffb347]{ $text }[/color] [ahelpticket={ $key }/]
+wg-ahelp-loadout-none = [color=#ffb347]No loadout to give: the player needs a body, a job and a loadout picked for it.[/color]
+wg-ahelp-loadout-broke = [color=#ffb347]The player can't afford their loadout ({ $price } credits), so nothing was given.[/color]
+wg-ahelp-loadout-given = [color=#7fd48a]{ $staff } gave the player their loadout ({ $count } items){ $charged ->
+    [0] {" "}for free
+   *[other] , charging them { $charged } credits
+}.[/color]
 
 ## Ticket panel
 
@@ -54,6 +66,23 @@ wg-ahelp-tickets-header = { $character } ({ $username }) · { $state }{ $assigne
 }
 wg-ahelp-tickets-collision = { $name } is also replying.
 wg-ahelp-tickets-offline = offline
+wg-ahelp-tickets-section-ticket = Ticket
+wg-ahelp-tickets-section-player = Player
+wg-ahelp-tickets-section-ships = Ships
+wg-ahelp-tickets-claim-tooltip = Takes the ticket. The player sees that you are on it.
+wg-ahelp-tickets-unclaim-tooltip = Puts the ticket back as unclaimed. The player sees it is waiting for staff again.
+wg-ahelp-tickets-reopen-tooltip = Opens the closed ticket again and claims it. The player sees that you are on it.
+wg-ahelp-tickets-close-tooltip = Closes the ticket. The player is told: "{ $message }"
+wg-ahelp-tickets-assist = Request assistance
+wg-ahelp-tickets-assist-tooltip = Pings the other staff online with a sound and a chat link to this ticket.
+wg-ahelp-tickets-export = Export .txt
+wg-ahelp-tickets-export-tooltip = Saves this conversation to a text file.
+wg-ahelp-tickets-viewers = Also looking: { $names }
+wg-ahelp-tickets-ship-tooltip = Open this ship in Shipmaster
+wg-ahelp-export-header = Ticket #{ $number } · round { $round } · { $character } ({ $username }) · { $state }
+wg-ahelp-assist-link = [Open ticket]
+wg-ahelp-chat-placeholder = Type a message and press Enter
+wg-ahelp-chat-send = Send
 
 ## Player card
 
@@ -70,7 +99,6 @@ wg-ahelp-card-loading = Loading…
 ## Quick actions
 
 wg-ahelp-action-follow = Follow
-wg-ahelp-action-teleport = Teleport to
 wg-ahelp-action-bring = Bring
 wg-ahelp-action-respawn = Respawn
 wg-ahelp-action-aheal = Aheal
@@ -81,6 +109,23 @@ wg-ahelp-action-kick = Kick
 wg-ahelp-action-logs = Logs
 wg-ahelp-action-investigate = Investigate
 wg-ahelp-action-player-panel = Player panel
+wg-ahelp-action-loadout = Provide loadout
+wg-ahelp-action-loadout-tooltip = Gives the player their job loadout again, free or charged to their bank.
+
+## Provide loadout
+
+wg-ahelp-loadout-title = Provide loadout
+wg-ahelp-loadout-prompt = Give { $player } the loadout they picked for their job? { $price ->
+    [-1] The panel doesn't know its price yet.
+    [0] It costs nothing.
+   *[other] It costs { $price } credits.
+}
+wg-ahelp-loadout-free = Give for free
+wg-ahelp-loadout-charge = { $price ->
+    [-1] Charge the player
+   *[other] Charge the player ({ $price })
+}
+wg-ahelp-loadout-cancel = Cancel
 
 ## History and search
 
@@ -100,6 +145,11 @@ wg-ahelp-history-line = [color=gray]{ $time }[/color] { $source ->
 
 ## Player side
 
+wg-ahelp-player-form-message = What happened? Who, where and when helps staff most.
+wg-ahelp-player-form-submit = Submit ticket
+wg-ahelp-player-closed = This ticket is closed. Write again to open a new one, or press New ticket.
+wg-ahelp-player-new-ticket = New ticket
+wg-ahelp-player-export-header = Ticket #{ $number }
 wg-ahelp-player-status = Ticket { $number ->
     [0] (being filed)
    *[other] #{ $number }
