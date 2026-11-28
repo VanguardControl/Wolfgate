@@ -1,0 +1,39 @@
+# Vessel prototype made in mapping mode from "Type-MW Cargo Tug with 3 trailers". Check every field before it goes in the game.
+# Grid: put Type-MW Cargo Tug with 3 trailers.yml at Resources/SharedMaps/_WG/Community/mayweather.yml
+# Prototype: put this file, Type-MW Cargo Tug with 3 trailers.vessel.yml, at Resources/Prototypes/_WG/Community/mayweather.yml
+# Guessed from the grid (564 tiles), not set by the mapper: category, engine. Check them.
+# Set by the mapper in the export wizard: name, description, price, class, group, access, requireCrew.
+
+- type: vessel
+  id: WGMayweather
+  parent: BaseVessel
+  name: 'KSD Mayweather'
+  description: 'The Type-M-82 Cargo Tug, nicknamed the "Mayweather," is an aging line of cargo haulers. A small vessel without cargo capacity of its own, its two, widely-spaced thrusters and cargo clamps at the stern allow this vessel to haul a line of cargo trailers behind it.'
+  price: 57000 # appraised at 43869
+  category: Large # 564 tiles
+  group: Shipyard
+  shuttlePath: /SharedMaps/_WG/Community/mayweather.yml
+  guidebookPage: null
+  class:
+  - Cargo
+  - Civilian
+  engine:
+  - Plasma
+
+- type: gameMap
+  id: WGMayweather
+  mapName: 'Mayweather'
+  mapPath: /SharedMaps/_WG/Community/mayweather.yml
+  minPlayers: 0
+  stations:
+    WGMayweather:
+      stationProto: StandardFrontierVessel
+      components:
+      - type: StationNameSetup
+        mapNameTemplate: 'Mayweather CIV-{1}'
+        nameGenerator:
+          !type:NanotrasenNameGenerator
+          prefixCreator: '14'
+      - type: StationJobs
+        availableJobs:
+          Contractor: [ 0, 0 ]
