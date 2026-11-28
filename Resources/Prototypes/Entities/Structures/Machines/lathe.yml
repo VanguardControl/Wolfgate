@@ -511,7 +511,6 @@
     - StaticAmmoRecipePack
     - StaticGrenades
     - SecurityWeaponsStatic
-    - WGRavagerDroneVouchersStatic # WOLFGATE(OldVessels): Ravager drone LPCs
     dynamicPacks:
     - SecurityEquipment
     - SecurityExplosives

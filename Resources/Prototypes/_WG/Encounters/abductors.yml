@@ -29,7 +29,7 @@
     stealth: true
     disablers: [ WGIonDisruptor, WGHackHarpoonGunRaider ]
     navigation: WGCrewNavigationHunter
-    vessels: [ Hazel ]
+    vessels: [ Bastion ]
     side: pirates
     faction: PirateNF
     distress: false

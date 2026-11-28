@@ -149,9 +149,8 @@
     - DecayedHull
     shuttles:
     - Horsefly
-    - Mite
     - Mudskipper
-    - Tick
+    - Tick # WOLFGATE(OldVessels): remove Mite from Zvezda's listing
     - Sellsword
     - Xinhua
     - Duran

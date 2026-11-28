@@ -13,7 +13,7 @@
   ships:
   - key: flesh
     navigation: WGCrewNavigationRaider
-    vessels: [ Hazel, Metis, Mudskipper ]
+    vessels: [Metis, Mudskipper]
     retrofit: WGPirateRetrofitMedium
     side: flesh
     faction: WGChoir

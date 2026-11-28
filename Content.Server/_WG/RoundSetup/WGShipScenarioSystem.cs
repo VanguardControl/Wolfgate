@@ -194,7 +194,7 @@ public sealed partial class WGShipScenarioSystem : EntitySystem
         return true;
     }
 
-    /// <summary>The numbered name a shipyard purchase of the vessel gets, such as "HT Sagittarius EXP14-123".</summary>
+    /// <summary>The numbered name a shipyard purchase of the vessel gets, such as "BT-Y Metis EXP14-123".</summary>
     private string VesselStationName(VesselPrototype vessel)
     {
         if (_prototypes.TryIndex<GameMapPrototype>(vessel.ID, out var gameMap) &&

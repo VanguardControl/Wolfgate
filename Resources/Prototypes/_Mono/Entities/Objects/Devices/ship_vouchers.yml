@@ -84,7 +84,6 @@
     - Hoplite
     - Spica
     - Syringe
-    - Tumour
     - Razorback
     # WOLFGATE END
     # WOLFGATE(Shipyard) START: New WG T0 Ships
@@ -143,7 +142,6 @@
     - Cinquedea
     # WOLFGATE(OldVessels) START: classic ships returned at this tier
     - Aldebaran
-    - Sentinel
     - Tarantula
     # WOLFGATE END
 
@@ -255,9 +253,7 @@
     - Kynda
     - Tethys
     # WOLFGATE(OldVessels) START: classic ships returned at this tier
-    - Hazel
     - Metis
-    - Carrion
     - Eris
     - Prowler
     # WOLFGATE END
@@ -315,9 +311,8 @@
     vessels:
     - MotleyAnne
     - Neptune
-    # WOLFGATE(OldVessels) START: classic ships returned at this tier
+    # WOLFGATE(OldVessels) START: Ganymede restored at this tier
     - Ganymede
-    - Vulture
     # WOLFGATE END
 
 - type: entity

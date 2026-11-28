@@ -44,21 +44,7 @@
   - type: LoadMapRule
     gridPath: /Maps/_Mono/ShuttleEvent/sakuratsu_chimera.yml
 
-- type: entity
-  parent: BaseRandomShuttleRule
-  id: UnknownShuttleChimeraOlympus
-  components:
-  - type: StationEvent
-    startAnnouncement: station-event-unknown-shuttle-detected #station-event-chimera-shuttle-detected
-    startAudio:
-      path: /Audio/Misc/notice1.ogg
-    weight: 2
-    maxOccurrences: 2 # You may think this is absurd, but it can only spawn 4 events max in normal schedulers anyways.
-  - type: GameRule
-    minPlayers: 40
-  - type: LoadMapRule
-    gridPath: /Maps/_Mono/ShuttleEvent/olympus_chimera.yml
-
+# WOLFGATE(OldVessels): remove the Chimera encounter for the retired Olympus vessel
 - type: entity
   parent: BaseRandomShuttleRule
   id: UnknownShuttleChimeraTethys

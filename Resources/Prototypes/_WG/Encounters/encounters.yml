@@ -141,7 +141,6 @@
     navigation: WGCrewNavigationFreight
     vessels:
     - Plutomkii
-    - Twilight
     - Piva
     - Hermes
     side: freight
@@ -213,7 +212,6 @@
   - key: freighter
     navigation: WGCrewNavigationFreight
     vessels:
-    - Olympus
     - Autumn
     - Windreign
     side: freight
@@ -391,7 +389,7 @@
       skills: [ Green, Regular ]
       retrofit: WGPirateRetrofitMedium
     - minTier: 3
-      vessels: [ Windreign, Zhuangzi, Rosetta, WGDredger, Kalisto, Metis, Bastion, Garm ]
+      vessels: [ Windreign, Zhuangzi, WGDredger, Kalisto, Metis, Bastion, Garm ]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
@@ -450,7 +448,7 @@
       skills: [ Green, Regular ]
       retrofit: WGPirateRetrofitMedium
     - minTier: 3
-      vessels: [ Windreign, Zhuangzi, Rosetta, WGDredger, Kalisto, Metis, Bastion, Garm ]
+      vessels: [ Windreign, Zhuangzi, WGDredger, Kalisto, Metis, Bastion, Garm ]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
@@ -490,7 +488,7 @@
       skills: [ Green, Regular ]
       retrofit: WGPirateRetrofitMedium
     - minTier: 3
-      vessels: [ Windreign, Zhuangzi, Rosetta, WGDredger, Kalisto, Metis, Bastion, Garm ]
+      vessels: [ Windreign, Zhuangzi, WGDredger, Kalisto, Metis, Bastion, Garm ]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
@@ -546,7 +544,7 @@
   ships:
   - key: hauler
     navigation: WGCrewNavigationFreight
-    vessels: [ Olympus, Autumn, Windreign ]
+    vessels: [ Autumn, Windreign ]
     side: freight
     profile: WGCrewProfileHauler
     company: TSFCivilian
@@ -571,7 +569,7 @@
       skills: [ Green, Regular ]
       retrofit: WGPirateRetrofitMedium
     - minTier: 3
-      vessels: [ Windreign, Zhuangzi, Rosetta, WGDredger, Kalisto, Metis, Bastion, Garm ]
+      vessels: [ Windreign, Zhuangzi, WGDredger, Kalisto, Metis, Bastion, Garm ]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
@@ -595,26 +593,26 @@
       target: hauler
   - key: wing
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     tiers:
     - minTier: 0
       vessels: [ Horsefly, Tick ]
       skills: [ Green ]
       retrofit: WGPirateRetrofitLight
     - minTier: 2
-      vessels: [ Horsefly, Tick, Carrion ]
+      vessels: [Horsefly, Tick]
       skills: [ Green, Regular ]
       retrofit: WGPirateRetrofitMedium
     - minTier: 3
-      vessels: [ Carrion, Hazel, Horsefly, Tick ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular, Veteran ]
       retrofit: WGPirateRetrofitGrime
     - minTier: 5
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Veteran ]
       retrofit: WGPirateRetrofitGrime
     deckhands: 0
@@ -662,7 +660,7 @@
       skills: [ Green, Regular ]
       retrofit: WGPirateRetrofitMedium
     - minTier: 3
-      vessels: [ Windreign, Zhuangzi, Rosetta, WGDredger, Kalisto, Metis, Bastion, Garm ]
+      vessels: [ Windreign, Zhuangzi, WGDredger, Kalisto, Metis, Bastion, Garm ]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
@@ -686,26 +684,26 @@
     zoneLines: wg-encounter-pirate-zone
   - key: wing
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     tiers:
     - minTier: 0
       vessels: [ Horsefly, Tick ]
       skills: [ Green ]
       retrofit: WGPirateRetrofitLight
     - minTier: 2
-      vessels: [ Horsefly, Tick, Carrion ]
+      vessels: [Horsefly, Tick]
       skills: [ Green, Regular ]
       retrofit: WGPirateRetrofitMedium
     - minTier: 3
-      vessels: [ Carrion, Hazel, Horsefly, Tick ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular, Veteran ]
       retrofit: WGPirateRetrofitGrime
     - minTier: 5
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Veteran ]
       retrofit: WGPirateRetrofitGrime
     deckhands: 0
@@ -746,7 +744,7 @@
   - key: boarder
     stealth: true
     navigation: WGCrewNavigationHunter
-    vessels: [ Hazel, Metis, Mudskipper ]
+    vessels: [Metis, Mudskipper]
     tiers:
     - minTier: 0
       vessels: [ Spessbite, Takeaway, Caracara ]
@@ -757,7 +755,7 @@
       skills: [ Green, Regular ]
       retrofit: WGPirateRetrofitMedium
     - minTier: 4
-      vessels: [ Hazel, Metis, Mudskipper ]
+      vessels: [Metis, Mudskipper]
       skills: [ Regular, Veteran ]
       retrofit: WGPirateRetrofitGrime
     side: pirates
@@ -793,7 +791,7 @@
   ships:
   - key: trader
     navigation: WGCrewNavigationFreight
-    vessel: Twilight
+    vessel: Piva
     side: trader
     profile: WGCrewProfileHauler
     captain: false
@@ -866,7 +864,7 @@
       target: patrol
   - key: wing
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -1015,7 +1013,7 @@
   ships:
   - key: trader
     navigation: WGCrewNavigationFreight
-    vessel: Kestrel
+    vessel: Piva
     side: trader
     profile: WGCrewProfileHauler
     captain: false
@@ -1170,7 +1168,7 @@
   ships:
   - key: freighter
     navigation: WGCrewNavigationFreight
-    vessels: [ Plutomkii, Piva, Twilight ]
+    vessels: [ Plutomkii, Piva ]
     side: freight
     profile: WGCrewProfileHauler
     deckhands: 1
@@ -1250,7 +1248,7 @@
   ships:
   - key: freighter
     navigation: WGCrewNavigationFreight
-    vessels: [ Olympus, Autumn, Windreign ]
+    vessels: [ Autumn, Windreign ]
     side: freight
     profile: WGCrewProfileHauler
     deckhands: 3
@@ -1306,7 +1304,7 @@
     stranded: Thrusters
   - key: ambusher
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -1325,7 +1323,7 @@
       duration: 300
     - kind: Hold
 
-# The trap again with a larger bait and two ships in wait, for more players. It claims an Olympus; the bait is a Brute or an Argent.
+# The trap again with a larger bait and two ships in wait, for more players. The bait is a Brute or an Argent.
 - type: wgEncounter
   id: WGEncounterFalseMaydayLarge
   name: wg-encounter-name-stranded
@@ -1358,7 +1356,7 @@
     stranded: Thrusters
   - key: ambusher
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -1378,7 +1376,7 @@
     - kind: Hold
   - key: second
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -1467,7 +1465,7 @@
       target: raider
   - key: raider
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -1487,7 +1485,7 @@
       target: escort
   - key: wing
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -1534,7 +1532,7 @@
   ships:
   - key: raider
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -1551,7 +1549,7 @@
       target: corsair
   - key: wing
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -1887,7 +1885,7 @@
   ships:
   - key: raider
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -1908,7 +1906,7 @@
       target: corsair
   - key: wing
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -2024,7 +2022,7 @@
       target: raider
   - key: raider
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -2048,7 +2046,7 @@
       target: escort
   - key: wing
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -2216,7 +2214,7 @@
   ships:
   - key: smuggler
     navigation: WGCrewNavigationFreight
-    vessel: Twilight
+    vessel: Piva
     side: smugglers
     faction: PirateNF
     company: paycheckbratva
@@ -2303,7 +2301,7 @@
   ships:
   - key: smuggler
     navigation: WGCrewNavigationFreight
-    vessels: [ Olympus, Autumn, Windreign ]
+    vessels: [ Autumn, Windreign ]
     side: smugglers
     faction: PirateNF
     company: paycheckbratva
@@ -2393,7 +2391,7 @@
   stationClearance: 2000
   ships:
   - key: hulk
-    vessels: [ Piva, Plutomkii, Twilight ]
+    vessels: [ Piva, Plutomkii ]
     side: hulk
     distress: false
     derelict:
@@ -2519,7 +2517,7 @@
       target: frigate
   - key: wing
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -2539,7 +2537,7 @@
       target: frigate
   - key: wingtwo
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -2559,7 +2557,7 @@
       target: frigate
   - key: wingthree
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -2579,7 +2577,7 @@
       target: frigate
   - key: wingfour
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -3358,7 +3356,7 @@
       target: capital
   - key: wing
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -3378,7 +3376,7 @@
       target: capital
   - key: wingtwo
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -3398,7 +3396,7 @@
       target: capital
   - key: wingthree
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -3418,7 +3416,7 @@
       target: capital
   - key: wingfour
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -3438,7 +3436,7 @@
       target: capital
   - key: wingfive
     navigation: WGCrewNavigationRaider
-    vessels: [ Fenrir, Ganymede, Vulture ]
+    vessels: [ Fenrir, Ganymede ]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -3773,7 +3771,7 @@
       target: capital
   - key: fifth
     navigation: WGCrewNavigationRaider
-    vessels: [ Fenrir, Ganymede, Vulture ]
+    vessels: [ Fenrir, Ganymede ]
     deckhands: 2
     offset: 900, 900
     side: pirates
@@ -3791,7 +3789,7 @@
       target: capital
   - key: wing
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -3811,7 +3809,7 @@
       target: capital
   - key: wingtwo
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -3831,7 +3829,7 @@
       target: capital
   - key: wingthree
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -3851,7 +3849,7 @@
       target: capital
   - key: wingfour
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -3871,7 +3869,7 @@
       target: capital
   - key: wingfive
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]
@@ -3891,7 +3889,7 @@
       target: capital
   - key: wingsix
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    vessels: [Horsefly, Tick]
     deckhands: 0
     captain: false
     roles: [ WGCrewPilot, WGCrewGunner ]

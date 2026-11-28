@@ -107,7 +107,7 @@
   ships:
   - key: fugitive
     navigation: WGCrewNavigationFreight
-    vessels: [ Piva, Twilight ]
+    vessels: [ Piva ]
     side: fugitive
     profile: WGCrewProfileFugitive
     roles: [ WGCrewCaptain, WGCrewPilot ]
@@ -149,7 +149,7 @@
   ships:
   - key: fugitive
     navigation: WGCrewNavigationFugitive
-    vessels: [ Hazel, Mudskipper ]
+    vessels: [Mudskipper]
     side: fugitive
     profile: WGCrewProfileFugitive
     deckhands: 1
@@ -234,7 +234,7 @@
   ships:
   - key: fugitive
     navigation: WGCrewNavigationWarship
-    vessels: [ Ganymede, Vulture, Kortik, Saintie ]
+    vessels: [ Ganymede, Kortik, Saintie ]
     side: fugitive
     profile: WGCrewProfileFugitiveArmed
     deckhands: 4

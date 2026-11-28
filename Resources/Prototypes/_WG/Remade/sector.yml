@@ -151,7 +151,7 @@
   stationClearance: 3000
   ships:
   - key: hulk
-    vessels: [ Piva, Plutomkii, Twilight ]
+    vessels: [ Piva, Plutomkii ]
     side: hulk
     distress: false
     stealth: true
@@ -181,7 +181,7 @@
   stationClearance: 3000
   ships:
   - key: hulk
-    vessels: [ Piva, Plutomkii, Twilight ]
+    vessels: [ Piva, Plutomkii ]
     side: choir
     distress: false
     stealth: true
@@ -193,7 +193,7 @@
       resale: 0.25
   - key: choir
     navigation: WGCrewNavigationRaider
-    vessels: [ Hazel, Metis, Mudskipper ]
+    vessels: [Metis, Mudskipper]
     offset: 350, 250
     side: choir
     faction: WGChoir
@@ -242,7 +242,7 @@
   ships:
   - key: adrift
     navigation: WGCrewNavigationFreight
-    vessels: [ Plutomkii, Piva, Twilight ]
+    vessels: [ Plutomkii, Piva ]
     side: freight
     profile: WGCrewProfileHauler
     deckhands: 2

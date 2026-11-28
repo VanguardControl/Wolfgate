@@ -1012,7 +1012,6 @@ WFBaggieCocaine: WGBaggieCocaine
 WFBaggieCocaineCut: WGBaggieCocaineCut
 WFBaggieHeroin: WGBaggieHeroin
 WFBaggieHeroinCut: WGBaggieHeroinCut
-WFBalorCarrierComputer: WGBalorCarrierComputer
 WFBenchCartridge: WGBenchCartridge
 WFBenchHarpoonGun: WGBenchHarpoonGun
 WFBenchTerminal: WGBenchTerminal
@@ -4732,7 +4731,6 @@ WFRandomTankSpawner: WGRandomTankSpawner
 WFRandomVanSceneryVehicleSpawner: WGRandomVanSceneryVehicleSpawner
 WFRandomVanSpawner: WGRandomVanSpawner
 WFRandomVehiclePartSpawner: WGRandomVehiclePartSpawner
-WFRavagerCarrierComputer: WGRavagerCarrierComputer
 WFRcsmCartridgeLTBCannon: WGRcsmCartridgeLTBCannon
 WFRcsmProjectileLTBCannon: WGRcsmProjectileLTBCannon
 WFReaverCampaignRule: WGReaverCampaignRule
@@ -5023,7 +5021,6 @@ WFSurgeryTendWoundsBurnDeep: WGSurgeryTendWoundsBurnDeep
 WFSurgeryWeldChassis: WGSurgeryWeldChassis
 WFSurgeryWeldChassisBreach: WGSurgeryWeldChassisBreach
 WFSutureBorg: WGSutureBorg
-WFTSFCarrierComputer: WGTSFCarrierComputer
 WFTempleBlade: WGTempleBlade
 WFTempleRelicSpawner: WGTempleRelicSpawner
 WFTempleSkeleton: WGTempleSkeleton

@@ -18,9 +18,9 @@ public sealed partial class ShipScenarioTest
         EntityUid station = default;
         await server.WaitAssertion(() =>
         {
-            Assert.That(system.TryPrepare(19140, "Sagittarius", out station, out var reason), Is.True, reason);
+            Assert.That(system.TryPrepare(19140, "Sirius", out station, out var reason), Is.True, reason);
             Assert.That(server.EntMan.HasComponent<SalvageExpeditionDataComponent>(station), "The start has no expedition data.");
-            Assert.That(server.EntMan.GetComponent<MetaDataComponent>(station).EntityName, Does.Match(@"^HT Sagittarius EXP\S+$"),
+            Assert.That(server.EntMan.GetComponent<MetaDataComponent>(station).EntityName, Does.Match(@"^Sirius EXP\S+$"),
                 "The start gets the numbered name a bought ship has.");
         });
         await pair.RunTicksSync(5);

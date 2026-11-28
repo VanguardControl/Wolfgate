@@ -57,7 +57,7 @@ the ship that is hitting it, and dock again three minutes after the last hit
 with no attacker near. Breaking the hub resolves its reinforcements, which then go through the usual cleanup, and pays `strongholdBounty[tier]` times one plus
 half the level.
 
-At tier 5 the Reavers raise a citadel (`citadel` on the campaign, `WGReaverCitadel`, a Vulture; `.Citadel`). Once the
+At tier 5 the Reavers raise a citadel (`citadel` on the campaign, `WGReaverCitadel`, WGMinerva; `.Citadel`). Once the
 campaign has stood at Overrun for `citadelDelay`, a citadel convoy sets out from the highest-level stronghold to a held
 edge cell, announced in a chimed banner with the gamma alert (`capitalSound`) on top; it stands outside `maxStrongholds` and the one-convoy rule. Raised, it claims
 `citadelRings` rings, grows `citadelExtraLevels` past the tier's level cap and scores ten more than a stronghold. Breaking

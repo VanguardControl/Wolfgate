@@ -29,23 +29,23 @@
     # The USSP Ledokol capital and Buran frigate are favoured hubs: Ledokol is listed twice from tier 3.
     tiers:
     - minTier: 0
-      vessels: [ Balor, MClass, Intermission, WGHammerhead, Arkansaw, Claymore, Pelican, Saintie, Ledokol, Buran, WGMinerva ]
+      vessels: [ MClass, WGHammerhead, Arkansaw, Claymore, Pelican, Saintie, Ledokol, Buran, WGMinerva ]
       skills: [ Green ]
       retrofit: WGPirateRetrofitHubLight
     - minTier: 2
-      vessels: [ Balor, MClass, Intermission, WGHammerhead, Arkansaw, Claymore, Pelican, Saintie, Ledokol, Buran, WGMinerva ]
+      vessels: [ MClass, WGHammerhead, Arkansaw, Claymore, Pelican, Saintie, Ledokol, Buran, WGMinerva ]
       skills: [ Green, Regular ]
       retrofit: WGPirateRetrofitHubMedium
     - minTier: 3
-      vessels: [ MClass, Intermission, WGHammerhead, Arkansaw, Claymore, Saintie, Ledokol, Ledokol, Buran, WGMinerva ]
+      vessels: [ MClass, WGHammerhead, Arkansaw, Claymore, Saintie, Ledokol, Ledokol, Buran, WGMinerva ]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHubHeavy
     - minTier: 4
-      vessels: [ MClass, Intermission, WGHammerhead, Arkansaw, Claymore, Saintie, Ledokol, Ledokol, Buran, WGMinerva ]
+      vessels: [ MClass, WGHammerhead, Arkansaw, Claymore, Saintie, Ledokol, Ledokol, Buran, WGMinerva ]
       skills: [ Regular, Veteran ]
       retrofit: WGPirateRetrofitHubSiege
     - minTier: 5
-      vessels: [ MClass, Intermission, WGHammerhead, Arkansaw, Claymore, Saintie, Ledokol, Ledokol, Buran, WGMinerva ]
+      vessels: [ MClass, WGHammerhead, Arkansaw, Claymore, Saintie, Ledokol, Ledokol, Buran, WGMinerva ]
       skills: [ Veteran ]
       retrofit: WGPirateRetrofitHubSiege
     deckhands: 4
@@ -64,8 +64,8 @@
     objectives:
     - kind: Hold
 
-# The citadel: the tier 5 set piece, flown out as a convoy from the highest-level stronghold. Vulture carries 9 docking
-# ports and its own Sentinel shield generator, so the campaign places none. It holds and does not evade, as a hub.
+# The citadel: the tier 5 set piece, flown out as a convoy from the highest-level stronghold. Minerva is the Reavers'
+# great mobile base, so the campaign uses it as their capstone. It holds and does not evade, as a hub.
 - type: wgEncounter
   id: WGReaverCitadel
   name: wg-reaver-name-citadel
@@ -83,7 +83,7 @@
     distress: false
     company: WGAshfallReavers
     profile: WGCrewProfilePirate
-    vessels: [ Vulture ]
+    vessels: [ WGMinerva ]
     # The citadel keeps its own guns; only its decks are worn.
     retrofit: WGPirateRetrofitGrime
     deckhands: 6
@@ -194,7 +194,7 @@
     distress: false
     company: WGAshfallReavers
     profile: WGCrewProfilePirate
-    vessels: [ Saintie, Vulture, Ganymede, Buran, WGMinerva ]
+    vessels: [ Saintie, Ganymede, Buran, WGMinerva ]
     deckhands: 3
     guards: 2
     fuelStores: 12
@@ -261,26 +261,26 @@
     distress: false
     company: WGAshfallReavers
     profile: WGCrewProfilePirate
-    vessels: [ Carrion, Hazel, Horsefly, Tick, Svinya, Strayk ]
+    vessels: [Horsefly, Tick, Svinya, Strayk]
     tiers:
     - minTier: 0
       vessels: [ Horsefly, Tick ]
       skills: [ Green ]
       retrofit: WGPirateRetrofitLight
     - minTier: 2
-      vessels: [ Horsefly, Tick, Carrion, Strayk ]
+      vessels: [Horsefly, Tick, Strayk]
       skills: [ Green, Regular ]
       retrofit: WGPirateRetrofitMedium
     - minTier: 3
-      vessels: [ Carrion, Hazel, Horsefly, Tick, Svinya, Strayk ]
+      vessels: [Horsefly, Tick, Svinya, Strayk]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
-      vessels: [ Carrion, Hazel, Horsefly, Tick, Svinya, Strayk ]
+      vessels: [Horsefly, Tick, Svinya, Strayk]
       skills: [ Regular, Veteran ]
       retrofit: WGPirateRetrofitGrime
     - minTier: 5
-      vessels: [ Carrion, Hazel, Horsefly, Tick, Svinya, Strayk ]
+      vessels: [Horsefly, Tick, Svinya, Strayk]
       skills: [ Veteran ]
       retrofit: WGPirateRetrofitGrime
     deckhands: 0
@@ -350,26 +350,26 @@
     distress: false
     company: WGAshfallReavers
     profile: WGCrewProfilePirate
-    vessels: [ Carrion, Horsefly, Tick, Hazel, Svinya, Strayk ]
+    vessels: [Horsefly, Tick, Svinya, Strayk]
     tiers:
     - minTier: 0
       vessels: [ Horsefly, Tick ]
       skills: [ Green ]
       retrofit: WGPirateRetrofitLight
     - minTier: 2
-      vessels: [ Horsefly, Tick, Carrion, Strayk ]
+      vessels: [Horsefly, Tick, Strayk]
       skills: [ Green, Regular ]
       retrofit: WGPirateRetrofitMedium
     - minTier: 3
-      vessels: [ Carrion, Hazel, Horsefly, Tick, Svinya, Strayk ]
+      vessels: [Horsefly, Tick, Svinya, Strayk]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
-      vessels: [ Carrion, Horsefly, Tick, Hazel, Svinya, Strayk ]
+      vessels: [Horsefly, Tick, Svinya, Strayk]
       skills: [ Regular, Veteran ]
       retrofit: WGPirateRetrofitGrime
     - minTier: 5
-      vessels: [ Carrion, Horsefly, Tick, Hazel, Svinya, Strayk ]
+      vessels: [Horsefly, Tick, Svinya, Strayk]
       skills: [ Veteran ]
       retrofit: WGPirateRetrofitGrime
     deckhands: 0
@@ -415,7 +415,7 @@
       skills: [ Green, Regular ]
       retrofit: WGPirateRetrofitMedium
     - minTier: 3
-      vessels: [ Windreign, WGRenegade, Rosetta, WGDredger, Kalisto, Metis, Bastion, Garm ]
+      vessels: [ Windreign, WGRenegade, WGDredger, Kalisto, Metis, Bastion, Garm ]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
@@ -440,26 +440,26 @@
     distress: false
     company: WGAshfallReavers
     profile: WGCrewProfilePirate
-    vessels: [ Carrion, Horsefly, Tick, Hazel, Svinya, Strayk ]
+    vessels: [Horsefly, Tick, Svinya, Strayk]
     tiers:
     - minTier: 0
       vessels: [ Horsefly, Tick ]
       skills: [ Green ]
       retrofit: WGPirateRetrofitLight
     - minTier: 2
-      vessels: [ Horsefly, Tick, Carrion, Strayk ]
+      vessels: [Horsefly, Tick, Strayk]
       skills: [ Green, Regular ]
       retrofit: WGPirateRetrofitMedium
     - minTier: 3
-      vessels: [ Carrion, Hazel, Horsefly, Tick, Svinya, Strayk ]
+      vessels: [Horsefly, Tick, Svinya, Strayk]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
-      vessels: [ Carrion, Horsefly, Tick, Hazel, Svinya, Strayk ]
+      vessels: [Horsefly, Tick, Svinya, Strayk]
       skills: [ Regular, Veteran ]
       retrofit: WGPirateRetrofitGrime
     - minTier: 5
-      vessels: [ Carrion, Horsefly, Tick, Hazel, Svinya, Strayk ]
+      vessels: [Horsefly, Tick, Svinya, Strayk]
       skills: [ Veteran ]
       retrofit: WGPirateRetrofitGrime
     deckhands: 0
@@ -496,7 +496,7 @@
     distress: false
     company: WGAshfallReavers
     profile: WGCrewProfilePirate
-    vessels: [ Hazel, Metis, Mudskipper ]
+    vessels: [Metis, Mudskipper]
     tiers:
     - minTier: 0
       vessels: [ WGPibb, Takeaway, Caracara ]
@@ -507,7 +507,7 @@
       skills: [ Green, Regular ]
       retrofit: WGPirateRetrofitMedium
     - minTier: 4
-      vessels: [ Hazel, Metis, Mudskipper ]
+      vessels: [Metis, Mudskipper]
       skills: [ Regular, Veteran ]
       retrofit: WGPirateRetrofitGrime
     captain: false
@@ -569,26 +569,26 @@
     distress: false
     company: WGAshfallReavers
     profile: WGCrewProfilePirate
-    vessels: [ Carrion, Horsefly, Tick, Hazel, Svinya, Strayk ]
+    vessels: [Horsefly, Tick, Svinya, Strayk]
     tiers:
     - minTier: 0
       vessels: [ Horsefly, Tick ]
       skills: [ Green ]
       retrofit: WGPirateRetrofitLight
     - minTier: 2
-      vessels: [ Horsefly, Tick, Carrion, Strayk ]
+      vessels: [Horsefly, Tick, Strayk]
       skills: [ Green, Regular ]
       retrofit: WGPirateRetrofitMedium
     - minTier: 3
-      vessels: [ Carrion, Hazel, Horsefly, Tick, Svinya, Strayk ]
+      vessels: [Horsefly, Tick, Svinya, Strayk]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
-      vessels: [ Carrion, Horsefly, Tick, Hazel, Svinya, Strayk ]
+      vessels: [Horsefly, Tick, Svinya, Strayk]
       skills: [ Regular, Veteran ]
       retrofit: WGPirateRetrofitGrime
     - minTier: 5
-      vessels: [ Carrion, Horsefly, Tick, Hazel, Svinya, Strayk ]
+      vessels: [Horsefly, Tick, Svinya, Strayk]
       skills: [ Veteran ]
       retrofit: WGPirateRetrofitGrime
     deckhands: 0

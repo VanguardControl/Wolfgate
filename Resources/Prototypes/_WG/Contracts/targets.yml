@@ -13,7 +13,7 @@
   ships:
   - key: target
     navigation: WGCrewNavigationFreight
-    vessels: [ Piva, Twilight ]
+    vessels: [ Piva ]
     side: target
     profile: WGCrewProfileFugitive
     roles: [ WGCrewCaptain, WGCrewPilot ]
@@ -43,7 +43,7 @@
   ships:
   - key: target
     navigation: WGCrewNavigationFugitive
-    vessels: [ Piva, Twilight ]
+    vessels: [ Piva ]
     side: target
     profile: WGCrewProfileFugitive
     deckhands: 0
@@ -136,11 +136,11 @@
   ships:
   - key: lead
     navigation: WGCrewNavigationRaider
-    vessels: [ Windreign, Zhuangzi, Rosetta, WGDredger, Kalisto, Metis, Bastion, Garm ]
+    vessels: [ Windreign, Zhuangzi, WGDredger, Kalisto, Metis, Bastion, Garm ]
     # Reaver ships, by the contract's tier.
     tiers:
     - minTier: 3
-      vessels: [ Windreign, Zhuangzi, Rosetta, WGDredger, Kalisto, Metis, Bastion, Garm ]
+      vessels: [ Windreign, Zhuangzi, WGDredger, Kalisto, Metis, Bastion, Garm ]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
@@ -169,19 +169,19 @@
     - kind: Hold
   - key: wing
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Hazel, Horsefly, Tick ]
+    vessels: [Horsefly, Tick]
     # Reaver ships, by the contract's tier.
     tiers:
     - minTier: 3
-      vessels: [ Carrion, Hazel, Horsefly, Tick ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular, Veteran ]
       retrofit: WGPirateRetrofitGrime
     - minTier: 5
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Veteran ]
       retrofit: WGPirateRetrofitGrime
     offset: 120, 60
@@ -214,11 +214,11 @@
   ships:
   - key: target
     navigation: WGCrewNavigationRaider
-    vessels: [ Windreign, Zhuangzi, Rosetta, WGDredger, Kalisto, Metis, Bastion, Garm ]
+    vessels: [ Windreign, Zhuangzi, WGDredger, Kalisto, Metis, Bastion, Garm ]
     # Reaver ships, by the contract's tier.
     tiers:
     - minTier: 3
-      vessels: [ Windreign, Zhuangzi, Rosetta, WGDredger, Kalisto, Metis, Bastion, Garm ]
+      vessels: [ Windreign, Zhuangzi, WGDredger, Kalisto, Metis, Bastion, Garm ]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
@@ -268,10 +268,10 @@
       vessels: [ Fenrir, Garm, Ganymede ]
       skills: [ Regular ]
     - minTier: 4
-      vessels: [ Fenrir, Garm, Ganymede, Vulture ]
+      vessels: [ Fenrir, Garm, Ganymede ]
       skills: [ Regular, Veteran ]
     - minTier: 5
-      vessels: [ Fenrir, Garm, Ganymede, Vulture ]
+      vessels: [ Fenrir, Garm, Ganymede ]
       skills: [ Veteran ]
     side: raiders
     faction: PirateNF
@@ -309,7 +309,7 @@
   ships:
   - key: freighter
     navigation: WGCrewNavigationFreight
-    vessels: [ Piva, Twilight, Hermes ]
+    vessels: [ Piva, Hermes ]
     side: freight
     profile: WGCrewProfileHauler
     deckhands: 1
@@ -335,7 +335,7 @@
   ships:
   - key: freighter
     navigation: WGCrewNavigationFreight
-    vessels: [ Piva, Twilight, Hermes ]
+    vessels: [ Piva, Hermes ]
     side: freight
     profile: WGCrewProfileHauler
     deckhands: 1
@@ -390,19 +390,19 @@
     disengage: Deter
   - key: raider
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Hazel, Horsefly, Tick ]
+    vessels: [Horsefly, Tick]
     # Reaver ships, by the contract's tier.
     tiers:
     - minTier: 3
-      vessels: [ Carrion, Hazel, Horsefly, Tick ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular, Veteran ]
       retrofit: WGPirateRetrofitGrime
     - minTier: 5
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Veteran ]
       retrofit: WGPirateRetrofitGrime
     offset: 2400, 800
@@ -421,11 +421,11 @@
       target: freighter
   - key: gunship
     navigation: WGCrewNavigationRaider
-    vessels: [ Windreign, Zhuangzi, Rosetta, WGDredger, Kalisto, Metis, Bastion, Garm ]
+    vessels: [ Windreign, Zhuangzi, WGDredger, Kalisto, Metis, Bastion, Garm ]
     # Reaver ships, by the contract's tier.
     tiers:
     - minTier: 3
-      vessels: [ Windreign, Zhuangzi, Rosetta, WGDredger, Kalisto, Metis, Bastion, Garm ]
+      vessels: [ Windreign, Zhuangzi, WGDredger, Kalisto, Metis, Bastion, Garm ]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
@@ -468,19 +468,19 @@
   ships:
   - key: lead
     navigation: WGCrewNavigationFugitive
-    vessels: [ Carrion, Hazel, Horsefly, Tick ]
+    vessels: [Horsefly, Tick]
     # Reaver ships, by the contract's tier.
     tiers:
     - minTier: 3
-      vessels: [ Carrion, Hazel, Horsefly, Tick ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular, Veteran ]
       retrofit: WGPirateRetrofitGrime
     - minTier: 5
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Veteran ]
       retrofit: WGPirateRetrofitGrime
     side: target
@@ -500,19 +500,19 @@
     - kind: Hold
   - key: wing
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Hazel, Horsefly, Tick ]
+    vessels: [Horsefly, Tick]
     # Reaver ships, by the contract's tier.
     tiers:
     - minTier: 3
-      vessels: [ Carrion, Hazel, Horsefly, Tick ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular, Veteran ]
       retrofit: WGPirateRetrofitGrime
     - minTier: 5
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Veteran ]
       retrofit: WGPirateRetrofitGrime
     offset: 100, -80
@@ -544,19 +544,19 @@
   ships:
   - key: target
     navigation: WGCrewNavigationFugitive
-    vessels: [ Carrion, Hazel, Horsefly, Tick ]
+    vessels: [Horsefly, Tick]
     # Reaver ships, by the contract's tier.
     tiers:
     - minTier: 3
-      vessels: [ Carrion, Hazel, Horsefly, Tick ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular, Veteran ]
       retrofit: WGPirateRetrofitGrime
     - minTier: 5
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Veteran ]
       retrofit: WGPirateRetrofitGrime
     side: target
@@ -588,7 +588,7 @@
   ships:
   - key: target
     navigation: WGCrewNavigationFreight
-    vessels: [ Piva, Twilight, Hermes ]
+    vessels: [ Piva, Hermes ]
     side: target
     profile: WGCrewProfileFugitive
     roles: [ WGCrewCaptain, WGCrewPilot ]
@@ -619,19 +619,19 @@
   ships:
   - key: one
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Hazel, Horsefly, Tick ]
+    vessels: [Horsefly, Tick]
     # Reaver ships, by the contract's tier.
     tiers:
     - minTier: 3
-      vessels: [ Carrion, Hazel, Horsefly, Tick ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular, Veteran ]
       retrofit: WGPirateRetrofitGrime
     - minTier: 5
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Veteran ]
       retrofit: WGPirateRetrofitGrime
     side: raiders
@@ -652,19 +652,19 @@
     - kind: Hold
   - key: two
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Hazel, Horsefly, Tick ]
+    vessels: [Horsefly, Tick]
     # Reaver ships, by the contract's tier.
     tiers:
     - minTier: 3
-      vessels: [ Carrion, Hazel, Horsefly, Tick ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular, Veteran ]
       retrofit: WGPirateRetrofitGrime
     - minTier: 5
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Veteran ]
       retrofit: WGPirateRetrofitGrime
     offset: 900, 300
@@ -686,19 +686,19 @@
     - kind: Hold
   - key: three
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Hazel, Horsefly, Tick ]
+    vessels: [Horsefly, Tick]
     # Reaver ships, by the contract's tier.
     tiers:
     - minTier: 3
-      vessels: [ Carrion, Hazel, Horsefly, Tick ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular, Veteran ]
       retrofit: WGPirateRetrofitGrime
     - minTier: 5
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Veteran ]
       retrofit: WGPirateRetrofitGrime
     offset: -700, 800
@@ -720,19 +720,19 @@
     - kind: Hold
   - key: four
     navigation: WGCrewNavigationRaider
-    vessels: [ Carrion, Hazel, Horsefly, Tick ]
+    vessels: [Horsefly, Tick]
     # Reaver ships, by the contract's tier.
     tiers:
     - minTier: 3
-      vessels: [ Carrion, Hazel, Horsefly, Tick ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Regular, Veteran ]
       retrofit: WGPirateRetrofitGrime
     - minTier: 5
-      vessels: [ Carrion, Horsefly, Tick, Hazel ]
+      vessels: [Horsefly, Tick]
       skills: [ Veteran ]
       retrofit: WGPirateRetrofitGrime
     offset: 300, -1000
@@ -1077,11 +1077,11 @@
   ships:
   - key: target
     navigation: WGCrewNavigationRaider
-    vessels: [ Windreign, Zhuangzi, Rosetta, WGDredger, Kalisto, Metis, Bastion, Garm ]
+    vessels: [ Windreign, Zhuangzi, WGDredger, Kalisto, Metis, Bastion, Garm ]
     # Reaver ships, by the contract's tier.
     tiers:
     - minTier: 3
-      vessels: [ Windreign, Zhuangzi, Rosetta, WGDredger, Kalisto, Metis, Bastion, Garm ]
+      vessels: [ Windreign, Zhuangzi, WGDredger, Kalisto, Metis, Bastion, Garm ]
       skills: [ Regular ]
       retrofit: WGPirateRetrofitHeavy
     - minTier: 4

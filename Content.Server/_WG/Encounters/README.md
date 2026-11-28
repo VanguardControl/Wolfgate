@@ -169,7 +169,7 @@ with nobody left aboard they are its crew and stay on it. Extorters share what t
 leaving alone, has as its mark or is boarding is not gone for by another. Extorter encounters are
 `lifetime: Persistent`: no clock, no jump out, no share of the budget, and the scheduler's one-of-a-kind rule keeps at
 most one of each prototype alive. `extorters.yml` has three tiers flying as the Reavers with a warrant on the crew: light
-(Hazel, Green, 25000 toll, 15000 base), medium (Metis or Mudskipper, Regular, 60000 toll, 40000 base) and heavy (Kalisto
+(Tick, Green, 25000 toll, 15000 base), medium (Metis or Mudskipper, Regular, 60000 toll, 40000 base) and heavy (Kalisto
 or Scallywag, Veteran, four guards, 150000 toll, 90000 base). The admin window and `wg_encounter list` show what each
 extorter is doing (roaming, closing on a ship, hailing with the attempt, waiting for an answer, boarding) and what any
 warrant pays now.

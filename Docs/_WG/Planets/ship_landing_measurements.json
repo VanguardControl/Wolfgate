@@ -380,26 +380,6 @@
     "MaxGravityStrongestBank": 1.5247933352817258
   },
   {
-    "ID": "Carrion",
-    "Name": "ELH Carrion",
-    "Category": "Small",
-    "Group": "BlackMarket",
-    "Path": "/SharedMaps/_Mono/Shuttles/BlackMarket/carrion.yml",
-    "Mass": 61.12319,
-    "Thrust": 2400,
-    "BestBank": 1600,
-    "Banks": [
-      400,
-      200,
-      1600,
-      200
-    ],
-    "Thrusters": 6,
-    "OnlineAtSpawn": 0,
-    "MaxGravityCombined": 4.002544992216758,
-    "MaxGravityStrongestBank": 2.668363328144505
-  },
-  {
     "ID": "Claymore",
     "Name": "ZOB Claymore",
     "Category": "Large",
@@ -658,26 +638,6 @@
     "OnlineAtSpawn": 0,
     "MaxGravityCombined": 3.2539018234319976,
     "MaxGravityStrongestBank": 1.3015607293727989
-  },
-  {
-    "ID": "Hazel",
-    "Name": "BT-Y Hazel",
-    "Category": "Small",
-    "Group": "BlackMarket",
-    "Path": "/SharedMaps/_Mono/Shuttles/BlackMarket/hazel.yml",
-    "Mass": 112.013176,
-    "Thrust": 3000,
-    "BestBank": 1000,
-    "Banks": [
-      400,
-      800,
-      1000,
-      800
-    ],
-    "Thrusters": 9,
-    "OnlineAtSpawn": 0,
-    "MaxGravityCombined": 2.7301287980042352,
-    "MaxGravityStrongestBank": 0.9100429326680783
   },
   {
     "ID": "Hermes",
@@ -1040,26 +1000,6 @@
     "MaxGravityStrongestBank": 1.2873737891042196
   },
   {
-    "ID": "Littora",
-    "Name": "SKR Littora",
-    "Category": "Large",
-    "Group": "Expedition",
-    "Path": "/SharedMaps/_Mono/Shuttles/Expedition/littora.yml",
-    "Mass": 230.62674,
-    "Thrust": 3600,
-    "BestBank": 1800,
-    "Banks": [
-      1000,
-      400,
-      1800,
-      400
-    ],
-    "Thrusters": 18,
-    "OnlineAtSpawn": 0,
-    "MaxGravityCombined": 1.5911965675108624,
-    "MaxGravityStrongestBank": 0.7955982837554312
-  },
-  {
     "ID": "Magus",
     "Name": "SHM Magus",
     "Category": "Medium",
@@ -1400,26 +1340,6 @@
     "MaxGravityStrongestBank": 1.6067684511350206
   },
   {
-    "ID": "Olympus",
-    "Name": "DIS Olympus",
-    "Category": "Large",
-    "Group": "Shipyard",
-    "Path": "/SharedMaps/_Mono/Shuttles/olympus.yml",
-    "Mass": 723.56616,
-    "Thrust": 8400,
-    "BestBank": 4800,
-    "Banks": [
-      1200,
-      1200,
-      4800,
-      1200
-    ],
-    "Thrusters": 18,
-    "OnlineAtSpawn": 0,
-    "MaxGravityCombined": 1.1834012706589914,
-    "MaxGravityStrongestBank": 0.6762292975194236
-  },
-  {
     "ID": "Pacem",
     "Name": "Pacem",
     "Category": "Medium",
@@ -1538,46 +1458,6 @@
     "OnlineAtSpawn": 0,
     "MaxGravityCombined": 1.5255704453150696,
     "MaxGravityStrongestBank": 0.5085234817716898
-  },
-  {
-    "ID": "Phantom",
-    "Name": "IB Phantom",
-    "Category": "Small",
-    "Group": "Medical",
-    "Path": "/SharedMaps/_Mono/Shuttles/phantom.yml",
-    "Mass": 72.35516,
-    "Thrust": 7000,
-    "BestBank": 3600,
-    "Banks": [
-      1400,
-      1000,
-      3600,
-      1000
-    ],
-    "Thrusters": 29,
-    "OnlineAtSpawn": 0,
-    "MaxGravityCombined": 9.861875701629838,
-    "MaxGravityStrongestBank": 5.071821789409631
-  },
-  {
-    "ID": "Picses",
-    "Name": "SKR Picses",
-    "Category": "Medium",
-    "Group": "Expedition",
-    "Path": "/SharedMaps/_Mono/Shuttles/Expedition/picses.yml",
-    "Mass": 145.93637,
-    "Thrust": 2800,
-    "BestBank": 1400,
-    "Banks": [
-      600,
-      400,
-      1400,
-      400
-    ],
-    "Thrusters": 14,
-    "OnlineAtSpawn": 0,
-    "MaxGravityCombined": 1.9558046956808344,
-    "MaxGravityStrongestBank": 0.9779023478404172
   },
   {
     "ID": "Pillbox",
@@ -1800,26 +1680,6 @@
     "MaxGravityStrongestBank": 0.9769192858059309
   },
   {
-    "ID": "Rig",
-    "Name": "DIS Rig",
-    "Category": "Medium",
-    "Group": "Shipyard",
-    "Path": "/SharedMaps/_Mono/Shuttles/rig.yml",
-    "Mass": 180.47736,
-    "Thrust": 2400,
-    "BestBank": 1200,
-    "Banks": [
-      400,
-      400,
-      1200,
-      400
-    ],
-    "Thrusters": 9,
-    "OnlineAtSpawn": 0,
-    "MaxGravityCombined": 1.3555623710520446,
-    "MaxGravityStrongestBank": 0.6777811855260223
-  },
-  {
     "ID": "Rook",
     "Name": "Rook",
     "Category": "Small",
@@ -1878,26 +1738,6 @@
     "OnlineAtSpawn": 0,
     "MaxGravityCombined": 3.032686219998693,
     "MaxGravityStrongestBank": 1.2997226657137255
-  },
-  {
-    "ID": "Sagittarius",
-    "Name": "HT Sagittarius",
-    "Category": "Large",
-    "Group": "Expedition",
-    "Path": "/SharedMaps/_Mono/Shuttles/Expedition/sagittarius.yml",
-    "Mass": 222.42459,
-    "Thrust": 6600,
-    "BestBank": 3600,
-    "Banks": [
-      1000,
-      1000,
-      3600,
-      1000
-    ],
-    "Thrusters": 21,
-    "OnlineAtSpawn": 0,
-    "MaxGravityCombined": 3.0247684152985825,
-    "MaxGravityStrongestBank": 1.649873681071954
   },
   {
     "ID": "Sakuratsu",
@@ -2540,26 +2380,6 @@
     "MaxGravityStrongestBank": 1.3023795921310533
   },
   {
-    "ID": "Tumour",
-    "Name": "TSF-SKR Tumour",
-    "Category": "Medium",
-    "Group": "Security",
-    "Path": "/SharedMaps/_Mono/Shuttles/Nfsd/tumour.yml",
-    "Mass": 148.99536,
-    "Thrust": 3800,
-    "BestBank": 2000,
-    "Banks": [
-      1000,
-      400,
-      2000,
-      400
-    ],
-    "Thrusters": 19,
-    "OnlineAtSpawn": 0,
-    "MaxGravityCombined": 2.5998114095708837,
-    "MaxGravityStrongestBank": 1.3683217945109916
-  },
-  {
     "ID": "Twilight",
     "Name": "SKR Twilight",
     "Category": "Small",
@@ -2598,26 +2418,6 @@
     "OnlineAtSpawn": 0,
     "MaxGravityCombined": 3.3828577438599026,
     "MaxGravityStrongestBank": 1.353143097543961
-  },
-  {
-    "ID": "Tzipora",
-    "Name": "SKR Tzipora",
-    "Category": "Large",
-    "Group": "Medical",
-    "Path": "/SharedMaps/_Mono/Shuttles/tzipora.yml",
-    "Mass": 281.3695,
-    "Thrust": 2600,
-    "BestBank": 1200,
-    "Banks": [
-      600,
-      400,
-      1200,
-      400
-    ],
-    "Thrusters": 13,
-    "OnlineAtSpawn": 0,
-    "MaxGravityCombined": 0.9419488533039813,
-    "MaxGravityStrongestBank": 0.43474562460183747
   },
   {
     "ID": "Valkyrie",
@@ -2698,26 +2498,6 @@
     "OnlineAtSpawn": 0,
     "MaxGravityCombined": 3.54712422615041,
     "MaxGravityStrongestBank": 1.8273064195320294
-  },
-  {
-    "ID": "Veska",
-    "Name": "RG Veska",
-    "Category": "Micro",
-    "Group": "Custom",
-    "Path": "/SharedMaps/_Mono/Shuttles/Carrier/veska.yml",
-    "Mass": 12.2514,
-    "Thrust": 335,
-    "BestBank": 134,
-    "Banks": [
-      67,
-      67,
-      134,
-      67
-    ],
-    "Thrusters": 5,
-    "OnlineAtSpawn": 0,
-    "MaxGravityCombined": 2.7873408530298067,
-    "MaxGravityStrongestBank": 1.1149363412119226
   },
   {
     "ID": "Victoria",

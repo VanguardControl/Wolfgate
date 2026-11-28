@@ -234,8 +234,8 @@ rules free the cell as usual.
 ## Patrols
 
 Each stronghold keeps up to `patrols[tier]` packs out, under a campaign cap of `clamp(players / 5, 1, 6)` packs.
-`WGReaverPatrol`: lead Kalisto, Metis, Bastion or Garm with a pilot, gunner, captain and two hands; wing Carrion,
-Hazel, Horsefly or Tick with a pilot and gunner on `Escort`. Transient, off budget, no leash, warn 900 m, attack
+`WGReaverPatrol`: lead Kalisto, Metis, Bastion or Garm with a pilot, gunner, captain and two hands; wing Horsefly or
+Tick with a pilot and gunner on `Escort`. Transient, off budget, no leash, warn 900 m, attack
 450 m, `disengage: Deter` 1200 m, `icon: Skull`. Spawned at a clear point 600–1000 m from its stronghold, then given
 its route with `WGEncounterSystem.SetOrders`: `GoTo` (range 200) three to five held-cell centres as a random walk
 through held space, each checked clear (a point that is not is nudged or skipped), then `GoTo` home. Home with the

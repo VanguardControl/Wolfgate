@@ -33,7 +33,7 @@
   ships:
   - key: merchant
     navigation: WGCrewNavigationFreight
-    vessel: Twilight
+    vessel: Piva
     side: merchant
     profile: WGCrewProfileHauler
     captain: false
