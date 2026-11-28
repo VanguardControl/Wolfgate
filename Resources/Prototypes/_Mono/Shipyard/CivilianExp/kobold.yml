@@ -1,0 +1,36 @@
+﻿# Author: Mauve :3
+# GitHub: gaywolfgirl6
+# Discord: mauvelikeroses
+
+- type: vessel
+  id: Kobold
+  parent: BaseVessel
+  name: DIRE Kobold
+  description: An old cult classic built by D.I.R.E. as a proof of concept for their capabilities in ship making, beloved to a select few for its industrial charm and affordability. Comes with all the basics needed to begin your own Expedition travels, and not a damn thing more. Shadekin friendly, featuring Lightswitches for the whole ship.
+  price: 60000
+  category: Small
+  group: Expedition
+  shuttlePath: /SharedMaps/_Mono/Shuttles/CivilianExp/kobold.yml
+  guidebookPage: null
+  class:
+  - Expedition
+  engine:
+  - Uranium
+
+- type: gameMap
+  id: Kobold
+  mapName: 'Kobold'
+  mapPath: /SharedMaps/_Mono/Shuttles/CivilianExp/kobold.yml
+  minPlayers: 0
+  stations:
+    Kobold:
+      stationProto: StandardFrontierExpeditionVessel
+      components:
+      - type: StationNameSetup
+        mapNameTemplate: 'Kobold EXP{1}'
+        nameGenerator:
+          !type:NanotrasenNameGenerator
+          prefixCreator: '14'
+      - type: StationJobs
+        availableJobs:
+          Contractor: [ 0, 0 ]
