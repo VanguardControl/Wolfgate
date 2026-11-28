@@ -1,0 +1,61 @@
+
+
+- type: wgAugment
+  id: PAugmentCyberEyes
+  name: p-augment-cyber-eyes
+  desc: p-augment-cyber-eyes-desc
+  icon: { sprite: _Mono/Objects/Misc/cybernetics.rsi, state: corrective_lenses }
+  slot: Eyes
+  kind: Organ
+  organ: POrganCyberEyes
+  price: 5000
+
+- type: wgAugment
+  id: PAugmentCyberHeart
+  name: p-augment-cyber-heart
+  desc: p-augment-cyber-heart-desc
+  icon: { sprite: _Mono/Objects/Misc/cybernetics.rsi, state: leuko }
+  slot: Heart
+  kind: Organ
+  organ: POrganCyberHeart
+  price: 5000
+
+- type: wgAugment
+  id: PAugmentCyberLungs
+  name: p-augment-cyber-lungs
+  desc: p-augment-cyber-lungs-desc
+  icon: { sprite: _Mono/Objects/Misc/cybernetics.rsi, state: internal_air_system }
+  slot: Lungs
+  kind: Organ
+  organ: POrganCyberLungs
+  price: 5000
+
+- type: wgAugment
+  id: PAugmentCyberLiver
+  name: p-augment-cyber-liver
+  desc: p-augment-cyber-liver-desc
+  icon: { sprite: _Mono/Objects/Misc/cybernetics.rsi, state: cranial_aug }
+  slot: Liver
+  kind: Organ
+  organ: POrganCyberLiver
+  price: 5000
+
+- type: wgAugment
+  id: PAugmentCyberStomach
+  name: p-augment-cyber-stomach
+  desc: p-augment-cyber-stomach-desc
+  icon: { sprite: _HL/Mobs/Species/Synth/organs.rsi, state: stomach }
+  slot: Stomach
+  kind: Organ
+  organ: POrganCyberStomach
+  price: 5000
+
+- type: wgAugment
+  id: PAugmentCyberKidneys
+  name: p-augment-cyber-kidneys
+  desc: p-augment-cyber-kidneys-desc
+  icon: { sprite: _HL/Mobs/Species/Synth/organs.rsi, state: kidneys }
+  slot: Kidneys # PRIV - kidneys aren't in the augment list sorry these are admeme
+  kind: Organ
+  organ: POrganCyberKidneys
+  price: 5000
