@@ -142,6 +142,8 @@ wg-company-permission-design = Design
 wg-company-permission-design-help = Edit the logo and rank icons.
 wg-company-permission-editdetails = Edit details
 wg-company-permission-editdetails-help = Edit the description, colour and recruiting.
+wg-company-permission-silowithdraw = Persistent silo
+wg-company-permission-silowithdraw-help = Take materials out of the company's persistent material silo.
 
 wg-company-ledger-help = Every movement in or out of the account, newest first.
 wg-company-ledger-own-help = Your own deposits and withdrawals, newest first.
@@ -158,6 +160,9 @@ wg-company-ledger-kind-adminadjust = Admin
 wg-company-ledger-kind-adminrefund = Refund
 wg-company-ledger-kind-payment = Payment
 wg-company-ledger-kind-loadout = Loadout
+wg-company-ledger-kind-siloslot = Silo space
+wg-company-ledger-kind-silowithdraw = Silo withdrawal
+wg-company-ledger-kind-markettrade = Market trade
 
 wg-company-details = Details
 wg-company-colour = Colour

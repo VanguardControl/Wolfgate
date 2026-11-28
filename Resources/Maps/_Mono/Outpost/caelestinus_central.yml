@@ -4,8 +4,8 @@ meta:
   engineVersion: 291.0.4
   forkId: ""
   forkVersion: ""
-  time: 11/15/2026 11:38:48
-  entityCount: 11240
+  time: 11/26/2026 03:08:04
+  entityCount: 11250
 maps:
 - 2838
 grids:
@@ -76830,6 +76830,118 @@ entities:
       pos: 27.5,32.5
     - type: Fixtures
       fixtures: {}
+- proto: WGStockDeliveryPad
+  entities:
+  - uid: 10939
+    components:
+    - type: Transform
+      parent: 1
+      pos: -60.5,22.5
+    - type: DeviceLinkSink
+      ports:
+      - WGStockDeliveryPad
+      - OrderReceiver
+  - uid: 11230
+    components:
+    - type: Transform
+      parent: 1
+      pos: -61.5,-14.5
+    - type: DeviceLinkSink
+      ports:
+      - WGStockDeliveryPad
+      - OrderReceiver
+- proto: WGStockExchangeConsole
+  entities:
+  - uid: 10896
+    components:
+    - type: Transform
+      parent: 1
+      pos: -61.5,22.5
+    - type: DeviceLinkSource
+      linkedPorts:
+        10939:
+        - - WGStockExchangeConsole
+          - WGStockDeliveryPad
+        - - WGStockExchangeConsole
+          - OrderReceiver
+    - type: ApcPowerReceiver
+      powerLoad: 5
+    - type: Battery
+      startingCharge: 0
+  - uid: 11098
+    components:
+    - type: Transform
+      parent: 1
+      pos: -62.5,-14.5
+    - type: DeviceLinkSource
+      linkedPorts:
+        11230:
+        - - WGStockExchangeConsole
+          - WGStockDeliveryPad
+        - - WGStockExchangeConsole
+          - OrderReceiver
+    - type: ApcPowerReceiver
+      powerLoad: 5
+    - type: Battery
+      startingCharge: 0
+- proto: WGStockMaterialSilo
+  entities:
+  - uid: 10943
+    components:
+    - type: Transform
+      parent: 1
+      pos: -61.5,23.5
+  - uid: 11236
+    components:
+    - type: Transform
+      parent: 1
+      pos: -62.5,-13.5
+- proto: WGStockSellConsole
+  entities:
+  - uid: 10913
+    components:
+    - type: Transform
+      parent: 1
+      rot: 3.141592653589793 rad
+      pos: -61.5,24.5
+    - type: DeviceLinkSource
+      linkedPorts:
+        10938:
+        - - WGStockSellConsole
+          - WGStockSellPad
+    - type: ApcPowerReceiver
+      powerLoad: 5
+    - type: Battery
+      startingCharge: 0
+  - uid: 11215
+    components:
+    - type: Transform
+      parent: 1
+      rot: 3.141592653589793 rad
+      pos: -62.5,-12.5
+    - type: DeviceLinkSource
+      linkedPorts:
+        11216:
+        - - WGStockSellConsole
+          - WGStockSellPad
+    - type: ApcPowerReceiver
+      powerLoad: 5
+    - type: Battery
+      startingCharge: 0
+- proto: WGStockSellSpot
+  entities:
+  - uid: 10938
+    components:
+    - type: Transform
+      parent: 1
+      rot: 3.141592653589793 rad
+      pos: -62.5,24.5
+  - uid: 11216
+    components:
+    - type: Transform
+      parent: 1
+      rot: 3.141592653589793 rad
+      pos: -63.5,-12.5
 - proto: WGStreetsTrashBin
   entities:
   - uid: 11128

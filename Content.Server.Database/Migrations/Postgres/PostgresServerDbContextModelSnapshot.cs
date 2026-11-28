@@ -2049,6 +2049,16 @@ namespace Content.Server.Database.Migrations.Postgres
                         .HasColumnType("boolean")
                         .HasColumnName("recruiting");
 
+                    b.Property<string>("SiloMaterials")
+                        .IsRequired()
+                        .HasMaxLength(4096)
+                        .HasColumnType("character varying(4096)")
+                        .HasColumnName("silo_materials");
+
+                    b.Property<int>("SiloSlots")
+                        .HasColumnType("integer")
+                        .HasColumnName("silo_slots");
+
                     b.Property<string>("Tag")
                         .IsRequired()
                         .HasMaxLength(5)

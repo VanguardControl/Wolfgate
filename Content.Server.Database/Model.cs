@@ -2076,6 +2076,14 @@ namespace Content.Server.Database
         [Required, MaxLength(2048)]
         public string OwnerLoadout { get; set; } = "";
 
+        // WOLFGATE(StockExchange): persistent company material silo
+        /// <summary>Purchased persistent silo space, in sheets; zero until the company buys some.</summary>
+        public int SiloSlots { get; set; }
+
+        /// <summary>Persistent material stock as materialId:sheets pairs, semicolon-separated.</summary>
+        [Required, MaxLength(4096)]
+        public string SiloMaterials { get; set; } = "";
+
         public DateTime CreatedAt { get; set; }
 
         public List<WolfgateCompanyRank> Ranks { get; set; } = null!;
