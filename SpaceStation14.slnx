@@ -78,12 +78,16 @@
     <File Path="RobustToolbox/MSBuild/XamlIL.targets" />
     <File Path="RobustToolbox/MSBuild/WebView.targets" />
   </Folder>
+  <!-- WOLFGATE(EngineCompat) START: engine v295 moved NetSerializer to a NuGet package -->
+  <!--
   <Folder Name="/RobustToolbox/NetSerializer/">
     <Project Path="RobustToolbox/NetSerializer/NetSerializer/NetSerializer.csproj">
       <BuildType Solution="DebugOpt|*" Project="Debug" />
       <BuildType Solution="Tools|*" Project="Release" />
     </Project>
   </Folder>
+  -->
+  <!-- WOLFGATE END -->
   <Folder Name="/RobustToolbox/Project Files/">
     <File Path="RobustToolbox/Directory.Build.props" />
     <File Path="RobustToolbox/Directory.Packages.props" />

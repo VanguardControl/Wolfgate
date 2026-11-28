@@ -38,6 +38,25 @@ jobs:
       if: ${{ !cancelled() }}
       run: python3 Tools/_WG/ClothingLayer/shapes.py --check
 
+    # WOLFGATE(Engine): fails while the engine gitlink is not a commit on the Lupine branch .gitmodules names
+    - name: Check the engine gitlink is on its Lupine branch
+      if: ${{ !cancelled() }}
+      run: |
+        branch=$(git config -f .gitmodules submodule.RobustToolbox.branch)
+        url=$(git config -f .gitmodules submodule.RobustToolbox.url)
+        sha=$(git ls-tree HEAD RobustToolbox | awk '{print $3}')
+        git init -q "$RUNNER_TEMP/lupine"
+        if ! git -C "$RUNNER_TEMP/lupine" fetch -q --filter=tree:0 "$url" "+refs/heads/$branch:refs/remotes/lupine/$branch"; then
+          echo "::error::Lupine has no branch $branch (named in .gitmodules)."
+          exit 1
+        fi
+        if git -C "$RUNNER_TEMP/lupine" merge-base --is-ancestor "$sha" "lupine/$branch"; then
+          echo "RobustToolbox $sha is on $branch."
+        else
+          echo "::error::RobustToolbox points at $sha, which is not on Lupine's $branch. Merge the engine change into $branch first, or point the gitlink at a commit on it."
+          exit 1
+        fi
+
     # Runs even when the check above failed; skipped for Monolith ports, whose upstream edits carry no markers.
     - name: Check edits outside _WG
       if: ${{ !cancelled() && github.event_name == 'pull_request' && !startsWith(github.head_ref, 'autoport/') && !startsWith(github.event.pull_request.title, '[AUTOPORT]') }}

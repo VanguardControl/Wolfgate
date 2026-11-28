@@ -44,7 +44,6 @@ public sealed partial class ShipPaSystem
         SubscribeLocalEvent<ShipPaSpeakerComponent, MapInitEvent>(OnSpeakerMapInit);
         SubscribeLocalEvent<ShipPaSpeakerComponent, ComponentShutdown>(OnSpeakerShutdown);
         SubscribeLocalEvent<ShipPaSpeakerComponent, AnchorStateChangedEvent>(OnSpeakerAnchorChanged);
-        SubscribeLocalEvent<ShipPaSpeakerComponent, ReAnchorEvent>(OnSpeakerReAnchor);
         SubscribeLocalEvent<ShipPaSpeakerComponent, EntParentChangedMessage>(OnSpeakerParentChanged);
         SubscribeLocalEvent<ShipPaSpeakerComponent, PowerChangedEvent>(OnSpeakerPowerChanged);
         SubscribeLocalEvent<ShipPaSpeakerComponent, DamageChangedEvent>(OnSpeakerDamageChanged);
@@ -114,14 +113,6 @@ public sealed partial class ShipPaSystem
 
         UpdateAppearance(ent);
         QueueRefresh(args.Transform.GridUid);
-    }
-
-    private void OnSpeakerReAnchor(Entity<ShipPaSpeakerComponent> ent, ref ReAnchorEvent args)
-    {
-        DisableSpeaker(ent);
-        IndexSpeaker(ent);
-        QueueRefresh(args.OldGrid);
-        QueueRefresh(args.Grid);
     }
 
     private void OnSpeakerParentChanged(Entity<ShipPaSpeakerComponent> ent, ref EntParentChangedMessage args)

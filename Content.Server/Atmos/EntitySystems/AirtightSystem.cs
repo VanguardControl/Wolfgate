@@ -19,7 +19,7 @@ namespace Content.Server.Atmos.EntitySystems
             SubscribeLocalEvent<AirtightComponent, ComponentInit>(OnAirtightInit);
             SubscribeLocalEvent<AirtightComponent, ComponentShutdown>(OnAirtightShutdown);
             SubscribeLocalEvent<AirtightComponent, AnchorStateChangedEvent>(OnAirtightPositionChanged);
-            SubscribeLocalEvent<AirtightComponent, ReAnchorEvent>(OnAirtightReAnchor);
+            // SubscribeLocalEvent<AirtightComponent, ReAnchorEvent>(OnAirtightReAnchor); // WOLFGATE(EngineCompat): engine v292 removed ReAnchorEvent (wizden#45353)
             SubscribeLocalEvent<AirtightComponent, MoveEvent>(OnAirtightMoved);
         }
 
@@ -52,6 +52,7 @@ namespace Content.Server.Atmos.EntitySystems
         private void OnAirtightPositionChanged(EntityUid uid, AirtightComponent airtight, ref AnchorStateChangedEvent args)
         {
             var xform = Transform(uid);
+            var oldPosition = airtight.LastPosition; // WOLFGATE(EngineCompat): a grid split now re-anchors (wizden#45353)
 
             if (!TryComp(xform.GridUid, out MapGridComponent? grid))
                 return;
@@ -66,20 +67,31 @@ namespace Content.Server.Atmos.EntitySystems
 
             var airtightEv = new AirtightChanged(uid, airtight, false, (gridId.Value, tilePos));
             RaiseLocalEvent(uid, ref airtightEv, true);
-        }
 
-        private void OnAirtightReAnchor(EntityUid uid, AirtightComponent airtight, ref ReAnchorEvent args)
-        {
-            foreach (var gridId in new[] { args.OldGrid, args.Grid })
+            // WOLFGATE(EngineCompat) START: engine v292 removed ReAnchorEvent; also invalidate the old tile (wizden#45353)
+            if (oldPosition != default && oldPosition != airtight.LastPosition)
             {
-                // Update and invalidate new position.
-                airtight.LastPosition = (gridId, args.TilePos);
-                InvalidatePosition(gridId, args.TilePos);
-
-                var airtightEv = new AirtightChanged(uid, airtight, false, (gridId, args.TilePos));
-                RaiseLocalEvent(uid, ref airtightEv, true);
+                InvalidatePosition(oldPosition.Grid, oldPosition.Tile);
+                var oldAirtightEv = new AirtightChanged(uid, airtight, false, oldPosition);
+                RaiseLocalEvent(uid, ref oldAirtightEv, true);
             }
+            // WOLFGATE END
         }
+
+        // WOLFGATE(EngineCompat) START: engine v292 removed ReAnchorEvent (wizden#45353)
+        // private void OnAirtightReAnchor(EntityUid uid, AirtightComponent airtight, ref ReAnchorEvent args)
+        // {
+        //     foreach (var gridId in new[] { args.OldGrid, args.Grid })
+        //     {
+        //         // Update and invalidate new position.
+        //         airtight.LastPosition = (gridId, args.TilePos);
+        //         InvalidatePosition(gridId, args.TilePos);
+        //
+        //         var airtightEv = new AirtightChanged(uid, airtight, false, (gridId, args.TilePos));
+        //         RaiseLocalEvent(uid, ref airtightEv, true);
+        //     }
+        // }
+        // WOLFGATE END
 
         private void OnAirtightMoved(Entity<AirtightComponent> ent, ref MoveEvent ev)
         {

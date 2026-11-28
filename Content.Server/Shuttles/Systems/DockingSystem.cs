@@ -48,7 +48,8 @@ namespace Content.Server.Shuttles.Systems
             SubscribeLocalEvent<DockingComponent, ComponentStartup>(OnStartup);
             SubscribeLocalEvent<DockingComponent, ComponentShutdown>(OnShutdown);
             SubscribeLocalEvent<DockingComponent, AnchorStateChangedEvent>(OnAnchorChange);
-            SubscribeLocalEvent<DockingComponent, ReAnchorEvent>(OnDockingReAnchor);
+            // SubscribeLocalEvent<DockingComponent, ReAnchorEvent>(OnDockingReAnchor); // WOLFGATE(EngineCompat): engine v292 removed ReAnchorEvent (wizden#45353)
+            SubscribeLocalEvent<DockingComponent, MoveEvent>(OnDockingMove); // WOLFGATE(EngineCompat): redock on a move instead (wizden#45353)
 
             SubscribeLocalEvent<DockingComponent, BeforeDoorAutoCloseEvent>(OnAutoClose);
 
@@ -200,13 +201,17 @@ namespace Content.Server.Shuttles.Systems
             }
         }
 
-        private void OnDockingReAnchor(Entity<DockingComponent> entity, ref ReAnchorEvent args)
+        // WOLFGATE(EngineCompat) START: engine v292 removed ReAnchorEvent; redock on a move instead (wizden#45353)
+        // private void OnDockingReAnchor(Entity<DockingComponent> entity, ref ReAnchorEvent args)
+        private void OnDockingMove(Entity<DockingComponent> entity, ref MoveEvent args)
         {
             var uid = entity.Owner;
             var component = entity.Comp;
 
-            if (!component.Docked)
+            // if (!component.Docked)
+            if (!component.Docked || args.OnlyRotation)
                 return;
+            // WOLFGATE END
 
             var otherDock = component.DockedWith;
             var other = Comp<DockingComponent>(otherDock!.Value);
