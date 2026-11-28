@@ -9,7 +9,7 @@
   parent: BaseVessel
   name: 'SSY Echidna'
   description: 'The Savannah Shipyards Echidna is a mech carrier based on the gutted hull of the retired Chandrahas class Syndicate corvette. While not as fearsome as its previous incarnation, the Echidna provides plenty of utility to any scavenging or expeditionary operations.'
-  price: 260000 # appraised at 133217
+  price: 260500 # appraised at 133217
   category: Large # 750 tiles
   group: Shipyard
   shuttlePath: /SharedMaps/_WG/Community/ssy_echidna.yml
