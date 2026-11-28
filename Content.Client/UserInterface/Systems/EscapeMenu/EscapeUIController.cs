@@ -7,6 +7,7 @@ using Content.Client.Lobby; // WOLFGATE(InRoundCreator)
 using Content.Client._WG.Roadmap; // WOLFGATE(Roadmap)
 using Content.Client._WG.SectorControl; // WOLFGATE(SectorControl)
 using Content.Client._WG.LoreBook; // WOLFGATE(LoreBook)
+using Content.Client._WG.Mentors; // WOLFGATE(Mentors)
 using Content.Client._WG.Unstuck; // WOLFGATE(Unstuck)
 using Content.Client.UserInterface.Controls;
 using Content.Client.UserInterface.Systems.Guidebook;
@@ -99,6 +100,14 @@ public sealed partial class EscapeUIController : UIController, IOnStateEntered<G
         {
             CloseEscapeWindow();
             UIManager.GetUIController<CensusUIController>().ToggleWindow();
+        };
+        // WOLFGATE END
+
+        // WOLFGATE(Mentors) START: the Mentoring page in the game menu
+        _escapeWindow.MentoringButton.OnPressed += _ =>
+        {
+            CloseEscapeWindow();
+            UIManager.GetUIController<MentoringUIController>().ToggleWindow();
         };
         // WOLFGATE END
 

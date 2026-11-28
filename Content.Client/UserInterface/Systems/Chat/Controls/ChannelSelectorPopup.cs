@@ -20,6 +20,7 @@ public sealed class ChannelSelectorPopup : Popup
         ChatSelectChannel.Dead,
         ChatSelectChannel.Admin, // WOLFGATE(EventStaff): comma for the event channel
         ChatSelectChannel.Event, // WOLFGATE(EventStaff)
+        ChatSelectChannel.Mentor, // WOLFGATE(Mentors)
         // NOTE: Console is not in there and it can never be permanently selected.
         // You can, however, still submit commands as console by prefixing with /.
     };

@@ -12,6 +12,9 @@ public sealed partial class BwoinkSystem
     /// </summary>
     private readonly HashSet<NetUserId> _claimedAHelps = new();
 
+    /// <summary>The line that last resolved each player's ahelp, so lines before it count as answered.</summary>
+    private readonly Dictionary<NetUserId, BwoinkTextMessage> _wgResolvedLine = new();
+
     /// <summary>
     /// Whether a player has an ahelp that staff have answered and not resolved.
     /// </summary>
@@ -41,24 +44,31 @@ public sealed partial class BwoinkSystem
         if (!(admin?.HasFlag(AdminFlags.Adminhelp) ?? false) && !CanEventStaffAnswer(admin, msg.Channel))
             return;
 
-        _claimedAHelps.Remove(msg.Channel);
+        ResolveAHelp(msg.Channel, args.SenderSession.Name);
+    }
 
-        var category = GetAHelpCategory(msg.Channel);
-        var adminText = Loc.GetString("wg-bwoink-resolved-admin", ("admin", FormattedMessage.EscapeText(args.SenderSession.Name)));
-        var adminMsg = new BwoinkTextMessage(msg.Channel, SystemUserId, $"{CategoryTag(category)} {adminText}", playSound: false, category: category);
+    /// <summary>Resolves a player's ahelp and tells them and staff who resolved it.</summary>
+    public void ResolveAHelp(NetUserId playerChannel, string adminName)
+    {
+        _claimedAHelps.Remove(playerChannel);
+
+        var category = GetAHelpCategory(playerChannel);
+        var adminText = Loc.GetString("wg-bwoink-resolved-admin", ("admin", FormattedMessage.EscapeText(adminName)));
+        var adminMsg = new BwoinkTextMessage(playerChannel, SystemUserId, $"{CategoryTag(category)} {adminText}", playSound: false, category: category);
         var admins = GetTargetAdmins(category);
         foreach (var channel in admins)
         {
             RaiseNetworkEvent(adminMsg, channel);
         }
 
-        var playerMsg = new BwoinkTextMessage(msg.Channel, SystemUserId, Loc.GetString("wg-bwoink-resolved-player"), playSound: false);
-        if (_playerManager.TryGetSessionById(msg.Channel, out var player) && !admins.Contains(player.Channel))
+        var playerMsg = new BwoinkTextMessage(playerChannel, SystemUserId, Loc.GetString("wg-bwoink-resolved-player"), playSound: false);
+        if (_playerManager.TryGetSessionById(playerChannel, out var player) && !admins.Contains(player.Channel))
             RaiseNetworkEvent(playerMsg, player.Channel);
 
         // Kept with the ahelp, so staff who connect later see it was resolved instead of an open ticket.
-        WgRecordHistory(msg.Channel, adminMsg, playerMsg);
+        WgRecordHistory(playerChannel, adminMsg, playerMsg);
+        _wgResolvedLine[playerChannel] = adminMsg;
 
-        _sawmill.Info($"{args.SenderSession.Name} resolved the ahelp of {msg.Channel}");
+        _sawmill.Info($"{adminName} resolved the ahelp of {playerChannel}");
     }
 }

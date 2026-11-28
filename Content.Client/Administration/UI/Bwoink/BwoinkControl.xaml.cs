@@ -81,6 +81,7 @@ namespace Content.Client.Administration.UI.Bwoink
                 if (info.OverallPlaytime <= TimeSpan.FromMinutes(_cfg.GetCVar(CCVars.NewPlayerThreshold)))
                     sb.Append(new Rune(0x23F2)); // ⏲
 
+                WgAppendMentorMarks(sb, info.SessionId); // WOLFGATE(MentorHelp): mentor badge and open question mark
                 sb.AppendFormat("\"{0}\"", text);
 
                 return sb.ToString();
@@ -195,6 +196,7 @@ namespace Content.Client.Administration.UI.Bwoink
                     _entMan.System<BwoinkSystem>().SendResolve(_currentPlayer.SessionId);
             };
             // WOLFGATE END
+            WgInitMentorHelp(); // WOLFGATE(MentorHelp): Mentor Help buttons and markers
         }
 
         public void OnBwoink(NetUserId channel)
@@ -244,6 +246,7 @@ namespace Content.Client.Administration.UI.Bwoink
             Follow.Disabled = !Follow.Visible || disabled;
 
             Resolve.Disabled = disabled; // WOLFGATE(AHelpResolve)
+            WgUpdateMentorHelp(); // WOLFGATE(MentorHelp): Mentor Help buttons and markers
         }
 
         private string FormatTabTitle(ItemList.Item li, PlayerInfo? pl = default)

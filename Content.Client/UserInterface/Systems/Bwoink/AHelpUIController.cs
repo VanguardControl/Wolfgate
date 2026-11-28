@@ -180,7 +180,16 @@ public sealed partial class AHelpUIController: UIController, IOnSystemChanged<Bw
         UIHelper = isAdmin ? new AdminAHelpUIHandler(ownerUserId) : new UserAHelpUIHandler(ownerUserId);
         UIHelper.DiscordRelayChanged(_discordRelayActive);
 
-        UIHelper.SendMessageAction = (userId, textMessage, playSound, adminOnly) => _bwoinkSystem?.Send(userId, textMessage, playSound, adminOnly, (UIHelper as UserAHelpUIHandler)?.Category ?? AHelpCategory.Player); // WOLFGATE(EventStaff): send the picked category
+        // WOLFGATE(MentorHelp) START: a how-to question goes to Mentor Help instead
+        // UIHelper.SendMessageAction = (userId, textMessage, playSound, adminOnly) => _bwoinkSystem?.Send(userId, textMessage, playSound, adminOnly, (UIHelper as UserAHelpUIHandler)?.Category ?? AHelpCategory.Player); // WOLFGATE(EventStaff): send the picked category
+        UIHelper.SendMessageAction = (userId, textMessage, playSound, adminOnly) =>
+        {
+            if (WgSendToMentorHelp(textMessage))
+                return;
+
+            _bwoinkSystem?.Send(userId, textMessage, playSound, adminOnly, (UIHelper as UserAHelpUIHandler)?.Category ?? AHelpCategory.Player);
+        };
+        // WOLFGATE END
         UIHelper.InputTextChanged += (channel, text) => _bwoinkSystem?.SendInputTextUpdated(channel, text.Length > 0);
         UIHelper.OnClose += () => { SetAHelpPressed(false); };
         UIHelper.OnOpen +=  () => { SetAHelpPressed(true); };
@@ -511,6 +520,7 @@ public sealed class UserAHelpUIHandler : IAHelpUIHandler
     private AHelpCategorySelector? _categorySelector;
     public AHelpCategory Category => _categorySelector?.Category ?? AHelpCategory.Player;
     // WOLFGATE END
+    public AHelpCategorySelector? CategorySelector => _categorySelector; // WOLFGATE(MentorHelp): the how-to entry
     private bool _discordRelayActive;
 
     public void Receive(SharedBwoinkSystem.BwoinkTextMessage message)
@@ -589,6 +599,7 @@ public sealed class UserAHelpUIHandler : IAHelpUIHandler
         _categorySelector = new AHelpCategorySelector();
         _chatPanel.VerticalExpand = true;
         var layout = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
+        layout.AddChild(new Content.Client._WG.MentorHelp.MentorHelpAHelpHeader()); // WOLFGATE(MentorHelp): mentors on duty and Ask a Mentor
         layout.AddChild(_categorySelector);
         layout.AddChild(_chatPanel);
         _window.Contents.AddChild(layout);

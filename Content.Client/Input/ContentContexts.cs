@@ -181,6 +181,7 @@ namespace Content.Client.Input
             common.AddFunction(ContentKeyFunctions.OpenDecalSpawnWindow);
             common.AddFunction(ContentKeyFunctions.OpenAdminMenu);
             common.AddFunction(Content.Shared._WG.AdminObserver.WGAdminObserverKeys.WGToggleAghost); // WOLFGATE(AdminObserver): the admin ghost key works from any body
+            common.AddFunction(Content.Shared._WG.MentorHelp.WGMentorHelpKeys.WGOpenMentorHelp); // WOLFGATE(MentorHelp): Mentor Help key
             common.AddFunction(ContentKeyFunctions.OpenGuidebook);
 
             // WOLFGATE(Xenonids) START: RMC's resist key and the xenonid input context xeno mobs use

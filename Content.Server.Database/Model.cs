@@ -79,6 +79,15 @@ namespace Content.Server.Database
         public DbSet<WolfgateNanoChatNumber> WolfgateNanoChatNumber { get; set; } = null!; // WOLFGATE(NanoChat): each character's number
         public DbSet<WolfgatePainting> WolfgatePainting { get; set; } = null!; // WOLFGATE(Paintings): the art catalogue
         public DbSet<WolfgateAdminObserver> WolfgateAdminObserver { get; set; } = null!; // WOLFGATE(AdminObserver): admins' observer settings
+        // WOLFGATE(Mentors) START: the mentor roster and applications to join it
+        public DbSet<WolfgateMentor> WolfgateMentor { get; set; } = null!;
+        public DbSet<WolfgateMentorApplication> WolfgateMentorApplication { get; set; } = null!;
+        // WOLFGATE END
+        // WOLFGATE(MentorHelp) START: Mentor Help tickets, their messages and the canned answers
+        public DbSet<WolfgateMentorTicket> WolfgateMentorTicket { get; set; } = null!;
+        public DbSet<WolfgateMentorTicketMessage> WolfgateMentorTicketMessage { get; set; } = null!;
+        public DbSet<WolfgateMentorCanned> WolfgateMentorCanned { get; set; } = null!;
+        // WOLFGATE END
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -634,6 +643,39 @@ namespace Content.Server.Database
             modelBuilder.Entity<WolfgateAdminObserver>()
                 .HasIndex(o => o.PlayerUserId)
                 .IsUnique();
+            // WOLFGATE END
+
+            // WOLFGATE(Mentors) START: defaults for rows the panel writes, applications listed by player
+            modelBuilder.Entity<WolfgateMentor>()
+                .Property(m => m.History)
+                .HasDefaultValue("[]");
+
+            modelBuilder.Entity<WolfgateMentor>()
+                .Property(m => m.StaffNotes)
+                .HasDefaultValue("");
+
+            modelBuilder.Entity<WolfgateMentorApplication>()
+                .HasIndex(a => a.UserId);
+            // WOLFGATE END
+
+            // WOLFGATE(MentorHelp) START: messages gone with their ticket, tickets searched by player, mentor and date
+            modelBuilder.Entity<WolfgateMentorTicketMessage>()
+                .HasOne(m => m.Ticket)
+                .WithMany(t => t.Messages)
+                .HasForeignKey(m => m.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<WolfgateMentorTicketMessage>()
+                .HasIndex(m => m.SenderUserId);
+
+            modelBuilder.Entity<WolfgateMentorTicket>()
+                .HasIndex(t => t.PlayerUserId);
+
+            modelBuilder.Entity<WolfgateMentorTicket>()
+                .HasIndex(t => t.ClaimedBy);
+
+            modelBuilder.Entity<WolfgateMentorTicket>()
+                .HasIndex(t => t.OpenedAt);
             // WOLFGATE END
         }
 
@@ -2442,6 +2484,172 @@ namespace Content.Server.Database
         public string Data { get; set; } = "";
 
         public DateTime Saved { get; set; }
+    }
+    // WOLFGATE END
+
+    // WOLFGATE(Mentors) START: the mentor roster and applications to join it
+    /// <summary>A player on the mentor roster, kept after they leave it so its history stays.</summary>
+    public class WolfgateMentor
+    {
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
+        public Guid UserId { get; set; }
+
+        /// <summary>"trainee", "mentor" or "senior".</summary>
+        [Required, MaxLength(16)]
+        public string Tier { get; set; } = "trainee";
+
+        /// <summary>"active", "inactive" or "suspended" on the roster; "revoked" or "resigned" off it.</summary>
+        [Required, MaxLength(16)]
+        public string State { get; set; } = "active";
+
+        /// <summary>How they were granted: "auto", "staff" or "panel".</summary>
+        [Required, MaxLength(16)]
+        public string Source { get; set; } = "staff";
+
+        public DateTime GrantedAt { get; set; }
+
+        /// <summary>The staff member or Senior who granted it; null for an automatic grant.</summary>
+        public Guid? GrantedBy { get; set; }
+
+        public DateTime LastActiveAt { get; set; }
+
+        public DateTime? PromotedAt { get; set; }
+
+        /// <summary>Changes as a JSON list of entries with when, who, what and why.</summary>
+        [Required]
+        public string History { get; set; } = "[]";
+
+        [Required]
+        public string StaffNotes { get; set; } = "";
+    }
+
+    /// <summary>A player's application to become a mentor.</summary>
+    public class WolfgateMentorApplication
+    {
+        [Key]
+        public int Id { get; set; }
+
+        public Guid UserId { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        /// <summary>Overall playtime when they applied.</summary>
+        public int PlaytimeMinutes { get; set; }
+
+        /// <summary>The form's answers as JSON, keyed by question id (Census format).</summary>
+        [Required]
+        public string Answers { get; set; } = "{}";
+
+        /// <summary>The record check at apply time as JSON: bans, notes and why it was or wasn't spotless.</summary>
+        [Required]
+        public string RecordSummary { get; set; } = "{}";
+
+        /// <summary>"pending", "approved", "auto_approved", "denied" or "withdrawn".</summary>
+        [Required, MaxLength(16)]
+        public string State { get; set; } = "pending";
+
+        public Guid? ReviewedBy { get; set; }
+
+        public DateTime? ReviewedAt { get; set; }
+
+        /// <summary>The reason given with a denial, shown to the player.</summary>
+        public string? Reason { get; set; }
+
+        /// <summary>When they may apply again after a denial.</summary>
+        public DateTime? ReapplyAfter { get; set; }
+    }
+    // WOLFGATE END
+
+    // WOLFGATE(MentorHelp) START: Mentor Help tickets, their messages and the canned answers
+    /// <summary>A Mentor Help ticket: one player's question and how it ended.</summary>
+    public class WolfgateMentorTicket
+    {
+        [Key]
+        public int Id { get; set; }
+
+        public int? ServerId { get; set; }
+
+        public int? RoundId { get; set; }
+
+        public Guid PlayerUserId { get; set; }
+
+        /// <summary>The name mentors saw: the character played, or the one selected in the lobby.</summary>
+        [Required, MaxLength(64)]
+        public string CharacterName { get; set; } = "";
+
+        [MaxLength(16)]
+        public string? Topic { get; set; }
+
+        /// <summary>Marked as about a secret role, so only mentors out of the round saw it.</summary>
+        public bool SecretRole { get; set; }
+
+        public bool Newbie { get; set; }
+
+        /// <summary>Opened by staff from an ahelp rather than by the player.</summary>
+        public bool FromAhelp { get; set; }
+
+        public DateTime OpenedAt { get; set; }
+
+        public DateTime? FirstAnswerAt { get; set; }
+
+        /// <summary>The mentor holding the claim; at close, the one credited with the resolve.</summary>
+        public Guid? ClaimedBy { get; set; }
+
+        public DateTime? ClosedAt { get; set; }
+
+        /// <summary>"resolved", "player", "idle", "round_end", "escalated" or "fallback".</summary>
+        [MaxLength(16)]
+        public string? CloseReason { get; set; }
+
+        /// <summary>1 for thumbs up, -1 for down, null when not rated.</summary>
+        public int? Rating { get; set; }
+
+        public string? RatingComment { get; set; }
+
+        public List<WolfgateMentorTicketMessage> Messages { get; set; } = null!;
+    }
+
+    /// <summary>One line in a ticket. Its text is cleared after the retention window; the row stays for the numbers.</summary>
+    public class WolfgateMentorTicketMessage
+    {
+        [Key]
+        public int Id { get; set; }
+
+        public int TicketId { get; set; }
+        public WolfgateMentorTicket Ticket { get; set; } = null!;
+
+        /// <summary>Null for system lines.</summary>
+        public Guid? SenderUserId { get; set; }
+
+        /// <summary>"player", "mentor", "staff" or "system".</summary>
+        [Required, MaxLength(16)]
+        public string SenderRole { get; set; } = "player";
+
+        [Required]
+        public string Text { get; set; } = "";
+
+        public DateTime SentAt { get; set; }
+    }
+
+    /// <summary>A canned answer mentors can insert, kept by Senior Mentors and staff.</summary>
+    public class WolfgateMentorCanned
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [Required, MaxLength(64)]
+        public string Title { get; set; } = "";
+
+        [Required]
+        public string Text { get; set; } = "";
+
+        /// <summary>The guidebook entry it links to, if any.</summary>
+        [MaxLength(128)]
+        public string? GuideEntry { get; set; }
+
+        public Guid? UpdatedBy { get; set; }
+
+        public DateTime UpdatedAt { get; set; }
     }
     // WOLFGATE END
 }

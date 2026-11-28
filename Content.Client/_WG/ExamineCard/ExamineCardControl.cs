@@ -393,6 +393,11 @@ public sealed class ExamineCardControl : PanelContainer
             VerticalAlignment = VAlignment.Center,
             Margin = new Thickness(8, 3, 0, 3),
         });
+
+        // An on-duty mentor's crown plate beside the mark (Mentors module).
+        if (Content.Client._WG.Mentors.WGMentorSigil.For(target, entities) is { } sigil)
+            footerRow.AddChild(sigil);
+
         footerRow.AddChild(_footer);
         root.AddChild(new PanelContainer { PanelOverride = Box(band.WithAlpha(BandAlpha), null, 0), Children = { footerRow } });
     }

@@ -85,6 +85,7 @@ public sealed partial class ChatUIController : UIController
         {SharedChatSystem.EmotesAltPrefix, ChatSelectChannel.Emotes},
         {SharedChatSystem.AdminPrefix, ChatSelectChannel.Admin},
         {SharedChatSystem.EventPrefix, ChatSelectChannel.Event}, // WOLFGATE(EventStaff)
+        {SharedChatSystem.MentorPrefix, ChatSelectChannel.Mentor}, // WOLFGATE(Mentors)
         {SharedChatSystem.SubtlePrefix, ChatSelectChannel.Subtle}, // WOLFGATE(Subtle)
         {SharedChatSystem.SubtleOocPrefix, ChatSelectChannel.SubtleOOC}, // WOLFGATE(Subtle)
         {SharedChatSystem.RadioCommonPrefix, ChatSelectChannel.Radio},
@@ -102,6 +103,7 @@ public sealed partial class ChatUIController : UIController
         {ChatSelectChannel.Emotes, SharedChatSystem.EmotesPrefix},
         {ChatSelectChannel.Admin, SharedChatSystem.AdminPrefix},
         {ChatSelectChannel.Event, SharedChatSystem.EventPrefix}, // WOLFGATE(EventStaff)
+        {ChatSelectChannel.Mentor, SharedChatSystem.MentorPrefix}, // WOLFGATE(Mentors)
         {ChatSelectChannel.Subtle, SharedChatSystem.SubtlePrefix}, // WOLFGATE(Subtle)
         {ChatSelectChannel.SubtleOOC, SharedChatSystem.SubtleOocPrefix}, // WOLFGATE(Subtle)
         {ChatSelectChannel.Radio, SharedChatSystem.RadioCommonPrefix},
@@ -590,6 +592,14 @@ public sealed partial class ChatUIController : UIController
         {
             FilterableChannels |= ChatChannel.EventChat;
             CanSendChannels |= ChatSelectChannel.Event;
+        }
+        // WOLFGATE END
+
+        // WOLFGATE(Mentors) START: mentors and staff see / filter mentor chat
+        if (WGMentorChat)
+        {
+            FilterableChannels |= ChatChannel.MentorChat;
+            CanSendChannels |= ChatSelectChannel.Mentor;
         }
         // WOLFGATE END
 
