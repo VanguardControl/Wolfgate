@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Server._NF.Shuttles.Components;
+using Content.Server._WG.Planets.Atmosphere;
 using Content.Server.Salvage;
 using Content.Server.Shuttles.Events;
 using Content.Server.Shuttles.Systems;
@@ -11,6 +12,7 @@ using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._WG.Planets.Bounds;
 
@@ -21,6 +23,7 @@ namespace Content.Server._WG.Planets.Bounds;
 public sealed partial class WGPlanetBoundsSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private RestrictedRangeSystem _restricted = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private ShuttleSystem _shuttle = default!;
@@ -34,11 +37,25 @@ public sealed partial class WGPlanetBoundsSystem : EntitySystem
     /// shoving it off whatever it landed on.</summary>
     private const float ClampInset = 0.5f;
 
+    /// <summary>How many tiles deep a world's rim of rock tiles is; the barrier stands at its inner edge.</summary>
+    public const int RimWidth = 2;
+
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<WGPlanetNetworkBuiltEvent>(OnNetworkBuilt);
         SubscribeLocalEvent<FTLCompletedEvent>(OnFtlCompleted);
+        SubscribeLocalEvent<WGTerrainOpenTilesEvent>(OnTerrainOpenTiles);
+    }
+
+    /// <summary>Rim rock is bare ground under the planet's air, not a floor someone built.</summary>
+    private void OnTerrainOpenTiles(ref WGTerrainOpenTilesEvent args)
+    {
+        foreach (var surface in _proto.EnumeratePrototypes<WGPlanetSurfacePrototype>())
+        {
+            if (surface.BoundaryTile is { } tile)
+                args.Tiles.Add(tile);
+        }
     }
 
     /// <summary>The radius a surface gets this round, or zero for unbounded.</summary>
@@ -80,11 +97,12 @@ public sealed partial class WGPlanetBoundsSystem : EntitySystem
         }
 
         // Only where someone can walk: a hull in the air is turned back by the drag sweep instead.
-        _restricted.CreateBoundary(new EntityCoordinates(args.Ground, centre), radius);
+        var barrier = args.Surface.BoundaryTile != null ? radius - RimWidth : radius;
+        _restricted.CreateBoundary(new EntityCoordinates(args.Ground, centre), barrier);
 
         foreach (var layer in network.LowerLayers)
         {
-            _restricted.CreateBoundary(new EntityCoordinates(layer, centre), radius);
+            _restricted.CreateBoundary(new EntityCoordinates(layer, centre), barrier);
         }
     }
 

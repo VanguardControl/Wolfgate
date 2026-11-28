@@ -3,6 +3,7 @@ using Content.Server._Mono.FireControl;
 using Content.Server._Mono.Projectiles.TargetGuided;
 using Content.Server._Mono.Projectiles.TargetSeeking;
 using Content.Server._WG.BoardingAction.Components;
+using Content.Server._WG.ColdStorage;
 using Content.Server._WG.Tether;
 using Content.Server.Power.EntitySystems;
 using Content.Server.Shuttles.Components;
@@ -43,6 +44,7 @@ public sealed partial class WGHackHarpoonSystem : EntitySystem
     [Dependency] private TargetSeekingSystem _seeking = default!;
     [Dependency] private WGBoardingHelmSystem _helm = default!;
     [Dependency] private WGFtlDisruptionSystem _disruption = default!;
+    [Dependency] private WGGridStasisSystem _stasis = default!;
 
     /// <summary>How far past a gun's aim point a refused shot is followed, in metres.</summary>
     private const float ShotReach = 4000f;
@@ -283,6 +285,8 @@ public sealed partial class WGHackHarpoonSystem : EntitySystem
         gun.Comp.Latched = now;
         gun.Comp.NextArc = now;
         gun.Comp.Lockdown = false;
+        _stasis.Pin(target, $"hack {gun.Owner}");
+        _stasis.Pin(source, $"hack {gun.Owner}");
         var hacked = EnsureComp<WGHackedGridComponent>(target);
         hacked.Hackers[gun] = source;
         if (hacked.Engines.Count == 0)
@@ -425,6 +429,11 @@ public sealed partial class WGHackHarpoonSystem : EntitySystem
         gun.Comp.Source = null;
         gun.Comp.Lockdown = false;
         _gunnerWarned.Clear();
+        if (target is { } pinnedTarget)
+            _stasis.Unpin(pinnedTarget, $"hack {gun.Owner}");
+
+        if (source is { } pinnedSource)
+            _stasis.Unpin(pinnedSource, $"hack {gun.Owner}");
 
         if (target is { } hull)
         {

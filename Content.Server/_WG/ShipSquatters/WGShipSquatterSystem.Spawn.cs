@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using Content.Server._WG.ColdStorage;
 using Content.Server._WG.Encounters.Components;
 using Content.Server._WG.NpcCrew.Components;
 using Content.Server.Shuttles.Components;
@@ -26,6 +27,7 @@ public sealed partial class WGShipSquatterSystem
 {
     [Dependency] private IConfigurationManager _config = default!;
     [Dependency] private WGLandingSurveySystem _survey = default!;
+    [Dependency] private WGGridStasisSystem _stasis = default!;
 
     /// <summary>The squatter himself.</summary>
     public static readonly EntProtoId SquatterProto = "WGShipSquatter";
@@ -193,6 +195,7 @@ public sealed partial class WGShipSquatterSystem
     public bool TryMoveIn(EntityUid ship, out EntityUid squatter)
     {
         squatter = EntityUid.Invalid;
+        _stasis.Wake(ship);
         if (!TryComp(ship, out MapGridComponent? grid) || !TryPickBed(ship, grid, out var tile))
             return false;
 

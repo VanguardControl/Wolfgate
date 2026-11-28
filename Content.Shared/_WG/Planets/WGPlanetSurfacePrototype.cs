@@ -1,6 +1,7 @@
 using Content.Shared._DV.Planet;
 using Content.Shared._FarHorizons.StarSystem.Prototypes;
 using Content.Shared._WG.PlanetPois;
+using Content.Shared.Maps;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
@@ -40,9 +41,16 @@ public sealed partial class WGPlanetSurfacePrototype : IPrototype
     [DataField]
     public bool Preload = true;
 
-    /// <summary>The wall laid on the outermost ring of ground tiles once the world is preloaded; null lays none.</summary>
+    /// <summary>
+    /// The tile the world's rim is laid in once it is preloaded, with the barrier moved in to its inner edge; null
+    /// lays none.
+    /// </summary>
     [DataField]
-    public EntProtoId? BoundaryWall = "WGPlanetBoundaryWall";
+    public ProtoId<ContentTileDefinition>? BoundaryTile = "WGPlanetRimRock";
+
+    /// <summary>A wall laid on the outermost ring of ground tiles instead, one entity a tile; null lays none.</summary>
+    [DataField]
+    public EntProtoId? BoundaryWall;
 
     /// <summary>The points of interest rolled onto the world each round before its preload; null places none.</summary>
     [DataField]

@@ -274,6 +274,7 @@ public sealed partial class ShipHarpoonTurretSystem : SharedShipHarpoonTurretSys
         rope.Carried = true;
         Dirty(uid, rope);
         _pvs.AddGlobalOverride(uid);
+        _rope.PinEnds(uid, rope);
         turret.Comp.FlightRope = uid;
     }
 

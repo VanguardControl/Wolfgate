@@ -1,3 +1,4 @@
+using Content.Server._WG.ColdStorage; // WOLFGATE(ColdStorage)
 using Content.Server.Cargo.Systems;
 using Content.Server.Power.Components;
 using Content.Shared._Mono.CCVar;
@@ -51,6 +52,9 @@ public sealed partial class GridCleanupSystem : BaseCleanupSystem<MapGridCompone
         if (!TryComp<MapGridComponent>(uid, out var grid) || !TryComp<PhysicsComponent>(uid, out var body))
             return false;
 
+        if (HasComp<Content.Server._WG.ColdStorage.WGStoredGridComponent>(uid)) // WOLFGATE(ColdStorage): a kept grid's record runs the clock while its contents are stored
+            return false;
+
         var parent = xform.ParentUid;
 
         var state = EnsureComp<GridCleanupGridComponent>(uid);
@@ -62,7 +66,7 @@ public sealed partial class GridCleanupSystem : BaseCleanupSystem<MapGridCompone
             || HasComp<MapGridComponent>(parent) // do not delete anything on planetmaps either
             || _immuneQuery.HasComp(uid)
             || !state.IgnoreIFF && TryComp<IFFComponent>(uid, out var iff) && (iff.Flags & IFFFlags.HideLabel) == 0 // delete only if IFF off
-            || _cleanup.HasNearbyPlayers(xform.Coordinates, state.DistanceOverride ?? _maxDistance * scale * scale) // square it
+            || _cleanup.HasNearbyPlayers(xform.Coordinates, state.DistanceOverride ?? _maxDistance * scale * scale * WGRadiusScale) // square it; WOLFGATE(ColdStorage): tighter under entity pressure
             || !state.IgnorePowered && HasPoweredAPC((uid, xform)) // don't delete if it has powered APCs
             || !state.IgnorePrice && _pricing.AppraiseGrid(uid) > _maxValue) // expensive to run, put last
         {
@@ -70,7 +74,7 @@ public sealed partial class GridCleanupSystem : BaseCleanupSystem<MapGridCompone
             return false;
         }
         // see if we should update timer or just be deleted
-        else if (state.CleanupAccumulator < _duration)
+        else if (state.CleanupAccumulator < _duration * WGDurationScale) // WOLFGATE(ColdStorage): sooner under entity pressure
         {
             state.CleanupAccumulator += _cleanupInterval * state.CleanupAcceleration / scale;
             return false;

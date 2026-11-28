@@ -19,31 +19,51 @@ public sealed partial class ShipyardSystem
     public void WGStripUnsavable(EntityUid grid, SerializationOptions options)
     {
         var probeOptions = options with { ErrorOnOrphan = false };
-        var pending = new Queue<EntityUid>();
-        pending.Enqueue(grid);
-        var serializer = new EntitySerializer(_wgDependencies, probeOptions);
-
-        while (pending.TryDequeue(out var uid))
+        var order = new List<EntityUid> { grid };
+        for (var i = 0; i < order.Count; i++)
         {
-            var children = Transform(uid).ChildEnumerator;
+            var children = Transform(order[i]).ChildEnumerator;
             while (children.MoveNext(out var child))
             {
-                pending.Enqueue(child);
+                order.Add(child);
             }
+        }
+
+        // Every id is reserved first, as a real save does: an entity not reached yet would otherwise be written as
+        // "invalid", and two such keys in one dictionary throw and strip a healthy component.
+        var probe = new EntitySerializer(_wgDependencies, probeOptions);
+        var savable = new HashSet<EntityUid>();
+        foreach (var uid in order)
+        {
+            if (probe.IsSerializable(uid))
+                savable.Add(uid);
+        }
+
+        EntitySerializer Fresh()
+        {
+            var fresh = new EntitySerializer(_wgDependencies, probeOptions);
+            fresh.ReserveYamlIds(savable);
+            return fresh;
+        }
+
+        var serializer = Fresh();
+        foreach (var uid in order)
+        {
+            if (!savable.Contains(uid))
+                continue;
 
             // A few bad components on one entity at most; past that, leave it to the final save to fail.
             for (var attempt = 0; attempt < 8; attempt++)
             {
                 try
                 {
-                    if (serializer.IsSerializable(uid))
-                        serializer.SerializeEntity(uid);
+                    serializer.SerializeEntity(uid);
                     break;
                 }
                 catch (Exception e)
                 {
                     var name = serializer.CurrentComponent;
-                    serializer = new EntitySerializer(_wgDependencies, probeOptions);
+                    serializer = Fresh();
                     if (name == null || !_wgComponentFactory.TryGetRegistration(name, out var registration) ||
                         !TryComp(uid, registration.Type, out var bad))
                     {

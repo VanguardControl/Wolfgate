@@ -1,3 +1,4 @@
+using Content.Server._WG.ColdStorage;
 using Content.Server.Shuttles.Components;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._NF.ShuttleRecords;
@@ -14,6 +15,9 @@ namespace Content.Server._NF.Shipyard.Systems;
 /// </summary>
 public sealed partial class ShipyardSystem
 {
+    [Dependency] private WGGridStasisSystem _wgStasis = default!;
+    [Dependency] private WGColdStoreSystem _wgColdStore = default!;
+
     /// <summary>The ID cards and vouchers that hold a ship's deed, copies included.</summary>
     public List<EntityUid> DeedHolders(EntityUid shuttleUid)
     {
@@ -73,6 +77,7 @@ public sealed partial class ShipyardSystem
     /// </summary>
     public bool GrantDeed(EntityUid shuttleUid, EntityUid idCard, string ownerName)
     {
+        _wgStasis.Wake(shuttleUid);
         if (!HasComp<ShuttleComponent>(shuttleUid) || !HasComp<IdCardComponent>(idCard) || HasComp<ShuttleDeedComponent>(idCard))
             return false;
 
@@ -137,6 +142,7 @@ public sealed partial class ShipyardSystem
         if (TryComp<ShuttleDeedComponent>(shuttleUid, out var existing))
             return existing;
 
+        _wgStasis.Wake(shuttleUid);
         var deed = AddComp<ShuttleDeedComponent>(shuttleUid);
         AssignShuttleDeedProperties(deed, shuttleUid, Name(shuttleUid), ownerName, false);
         Dirty(shuttleUid, deed);

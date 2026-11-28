@@ -1,4 +1,5 @@
 using Content.Server._Mono.FireControl;
+using Content.Server._WG.ColdStorage;
 using Content.Server._WG.NpcCrew.Components;
 using Content.Server.Power.Components;
 using Content.Server.Power.EntitySystems;
@@ -22,6 +23,7 @@ public sealed partial class WGCrewShipStatusSystem : EntitySystem
     [Dependency] private PowerReceiverSystem _power = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedMapSystem _maps = default!;
+    [Dependency] private WGGridStasisSystem _stasis = default!;
     [Dependency] private Content.Server.Shuttles.Systems.DockingSystem _docking = default!;
 
     private readonly HashSet<EntityUid> _boarded = new();
@@ -184,6 +186,12 @@ public sealed partial class WGCrewShipStatusSystem : EntitySystem
     private Reading Read(EntityUid grid)
     {
         var now = _timing.CurTime;
+
+        // Its guns, thrusters and crew are paused, which reads as disarmed and abandoned: keep what was seen awake, or
+        // intact if nothing was, so crews neither leave it as a prize nor fear it.
+        if (_stasis.IsInStasis(grid))
+            return _cache.TryGetValue(grid, out var kept) ? kept.Reading : default;
+
         if (_cache.TryGetValue(grid, out var cached) && now < cached.Until)
             return cached.Reading;
 
@@ -348,6 +356,10 @@ public sealed partial class WGCrewShipStatusSystem : EntitySystem
                 Forget(grid);
                 continue;
             }
+
+            // The survey can't see a ship in stasis, so its last reading stands.
+            if (_stasis.IsInStasis(grid))
+                continue;
 
             if (TryComp<ShuttleComponent>(grid, out var shuttle))
                 _cache[grid] = (now + CacheTime, Measure(grid, shuttle, _armedNow.Contains(grid), _crewedNow.Contains(grid),

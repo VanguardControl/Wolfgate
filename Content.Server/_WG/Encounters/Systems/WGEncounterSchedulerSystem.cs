@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Numerics;
 using Content.Server._Mono.AlertLevel;
+using Content.Server._WG.ColdStorage;
 using Content.Server._WG.Lattice;
 using Content.Server._NF.GameTicking.Events;
 using Content.Server.GameTicking;
@@ -33,6 +34,7 @@ public sealed partial class WGEncounterSchedulerSystem : EntitySystem
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private WGLatticeSystem _lattice = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private WGEntityPressureSystem _pressure = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private IConfigurationManager _config = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
@@ -205,7 +207,7 @@ public sealed partial class WGEncounterSchedulerSystem : EntitySystem
     private TimeSpan Interval()
     {
         var scale = MathF.Max(0.1f, Preset?.IntervalScale ?? 1f);
-        return TimeSpan.FromSeconds(_random.NextFloat(_intervalMin, MathF.Max(_intervalMin, _intervalMax)) * scale);
+        return TimeSpan.FromSeconds(_random.NextFloat(_intervalMin, MathF.Max(_intervalMin, _intervalMax)) * scale * _pressure.Scale(1f, 2f));
     }
 
     /// <summary>Starts freight runs on their own clock, so they neither wait for the storyteller nor take its slots.</summary>
@@ -223,7 +225,7 @@ public sealed partial class WGEncounterSchedulerSystem : EntitySystem
 
     private TimeSpan FreightInterval()
     {
-        return TimeSpan.FromSeconds(_random.NextFloat(_freightIntervalMin, MathF.Max(_freightIntervalMin, _freightIntervalMax)));
+        return TimeSpan.FromSeconds(_random.NextFloat(_freightIntervalMin, MathF.Max(_freightIntervalMin, _freightIntervalMax)) * _pressure.Scale(1f, 2f));
     }
 
     /// <summary>Picks and starts one freight run now, if its cap, a candidate and a route allow it.</summary>

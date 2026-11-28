@@ -217,8 +217,7 @@ public sealed partial class FireControlSystem : EntitySystem
         server.Controlled.Clear();
         server.UsedProcessingPower = 0;
 
-        var query = EntityQueryEnumerator<FireControllableComponent>();
-
+        var query = AllEntityQuery<FireControllableComponent>(); // WOLFGATE(ColdStorage): paused guns of a grid in stasis still count
         while (query.MoveNext(out var controllable, out var controlComp))
         {
             if (_xform.GetGrid(controllable) == grid && EntityManager.GetComponent<TransformComponent>(controllable).Anchored)

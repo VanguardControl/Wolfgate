@@ -101,7 +101,8 @@ never generates a chunk outside it (`BiomeSystem.WGBounds`), an impassable bound
 below it, the radar draws nothing past it, a hull can't enter the atmosphere unless it is wholly inside, one adrift out
 there is pulled back to the edge before it falls, and one flying out in the air is turned back (`WGPlanetDragSystem`).
 `WGPlanetPreloadSystem` then generates the whole circle, nearest the centre first and `wg.planet_preload_budget` ms a
-tick, one world at a time, and walls the outermost ring of tiles with the surface's `boundaryWall`; a preloaded ground
+tick, one world at a time, and lays the last two tiles inside the edge in the surface's `boundaryTile`, sheer rock
+with the barrier at its inner edge (a rim of tiles and no entities; `boundaryWall` lays one wall a tile instead); a preloaded ground
 (`WGPlanetPreloadedComponent`) keeps its tiles and decals for good. Its trees, rocks and plants are stashed instead
 (`BiomeSystem.WGStash`, `wg.planet_terrain_stash`): once everything that needed them in place has been placed, the
 preload puts away the untouched biome entities of every chunk nobody is near, the loader lays them again from the
@@ -621,6 +622,8 @@ left dirty, and built again when someone comes near or a path is asked for acros
 - [`Resources/Textures/_WG/Planets/Objects/jetpack_atmospheric.rsi/`](../../../Resources/Textures/_WG/Planets/Objects/jetpack_atmospheric.rsi/)
 - [`Resources/Textures/_WG/Planets/Objects/parachute.rsi/`](../../../Resources/Textures/_WG/Planets/Objects/parachute.rsi/)
 - [`Resources/Textures/_WG/Planets/Structures/flesh_trees.rsi/`](../../../Resources/Textures/_WG/Planets/Structures/flesh_trees.rsi/)
+- [`Resources/Textures/_WG/Planets/Tiles/attributions.yml`](../../../Resources/Textures/_WG/Planets/Tiles/attributions.yml)
+- [`Resources/Textures/_WG/Planets/Tiles/rim_rock.png`](../../../Resources/Textures/_WG/Planets/Tiles/rim_rock.png)
 
 ### Audio
 

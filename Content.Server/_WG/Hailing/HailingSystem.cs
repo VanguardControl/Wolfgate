@@ -3,6 +3,7 @@ using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
 using Content.Server.Chat.Managers;
 using Content.Server.Power.EntitySystems;
+using Content.Server._WG.ColdStorage;
 using Content.Server._WG.ShipPa;
 using Content.Server.Shuttles.Components;
 using Content.Shared._Mono.Detection;
@@ -46,6 +47,7 @@ public sealed partial class HailingSystem : EntitySystem
     [Dependency] private MetaDataSystem _meta = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private WGNewbieSystem _newbie = default!;
+    [Dependency] private WGGridStasisSystem _stasis = default!;
 
     /// <summary>Lines of a call each console keeps.</summary>
     public const int MaxLog = 60;
@@ -311,7 +313,9 @@ public sealed partial class HailingSystem : EntitySystem
             return targets;
 
         _ships.Clear();
-        var query = EntityQueryEnumerator<ShuttleConsoleComponent, TransformComponent>();
+
+        // A ship in stasis has paused consoles but is still there to ring.
+        var query = AllEntityQuery<ShuttleConsoleComponent, TransformComponent>();
 
         while (query.MoveNext(out var uid, out _, out var xform))
         {
@@ -344,7 +348,7 @@ public sealed partial class HailingSystem : EntitySystem
     /// </summary>
     public bool HasFreeConsole(EntityUid ship)
     {
-        var query = EntityQueryEnumerator<ShuttleConsoleComponent, TransformComponent>();
+        var query = AllEntityQuery<ShuttleConsoleComponent, TransformComponent>();
 
         while (query.MoveNext(out var uid, out _, out var xform))
         {
@@ -422,6 +426,7 @@ public sealed partial class HailingSystem : EntitySystem
             return Refuse(console, HailEndReason.Unavailable);
         }
 
+        _stasis.Wake(ship);
         _consoles.Clear();
         var busy = false;
         var query = EntityQueryEnumerator<ShuttleConsoleComponent, TransformComponent>();
@@ -493,6 +498,7 @@ public sealed partial class HailingSystem : EntitySystem
         if (TerminatingOrDeleted(ship))
             return null;
 
+        _stasis.Wake(ship);
         _consoles.Clear();
         var query = EntityQueryEnumerator<ShuttleConsoleComponent, TransformComponent>();
 

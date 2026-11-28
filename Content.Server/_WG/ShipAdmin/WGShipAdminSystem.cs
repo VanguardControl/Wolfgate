@@ -1,4 +1,5 @@
 using Content.Server._WG.Administration.Systems;
+using Content.Server._WG.ColdStorage;
 using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
 using Content.Server.EUI;
@@ -23,6 +24,7 @@ public sealed partial class WGShipAdminSystem : EntitySystem
     [Dependency] private IAdminLogManager _adminLog = default!;
     [Dependency] private EuiManager _eui = default!;
     [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private WGGridStasisSystem _stasis = default!;
 
     private static readonly TimeSpan DetailInterval = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan ListInterval = TimeSpan.FromSeconds(10);
@@ -125,6 +127,12 @@ public sealed partial class WGShipAdminSystem : EntitySystem
     public bool Allowed(ICommonSession admin, WGShipAdminAction action)
     {
         return WGShipAdminPermissions.Allowed(Flags(admin), action);
+    }
+
+    /// <summary>Wakes a ship in stasis before staff act on it, so every tool finds its parts awake.</summary>
+    public void WakeTarget(EntityUid grid)
+    {
+        _stasis.Wake(grid);
     }
 
     /// <summary>Runs an action that needs no more than a switch; the result line goes back to the panel.</summary>

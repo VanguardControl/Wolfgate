@@ -270,6 +270,7 @@ public sealed partial class WGShipAdminEui : BaseEui
         }
 
         grid = found.Value;
+        _ships.WakeTarget(grid);
         return true;
     }
 

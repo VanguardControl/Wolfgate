@@ -74,9 +74,8 @@ public sealed class CavernPreclaimTest
 
                     var grid = entMan.GetComponent<MapGridComponent>(world.Cavern);
                     var edge = new Vector2i(Radius - 1, 0);
-                    var walled = maps.GetAnchoredEntities(world.Cavern, grid, edge).Any(uid =>
-                        entMan.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID == "WGPlanetBoundaryWall");
-                    Assert.That(walled, Is.True, "The cavern's edge tile has no boundary wall.");
+                    var rim = server.ResolveDependency<Robust.Shared.Map.ITileDefinitionManager>()["WGPlanetRimRock"].TileId;
+                    Assert.That(maps.GetTileRef(world.Cavern, grid, edge).Tile.TypeId, Is.EqualTo(rim), "The cavern's edge tile is not rim rock.");
                     Assert.That(maps.GetTileRef(world.Cavern, grid, edge + Vector2i.Right).Tile.IsEmpty, Is.True, "The cavern has a tile outside the circle.");
                 });
             });

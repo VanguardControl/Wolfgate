@@ -39,6 +39,7 @@ public sealed partial class ShipyardSystem
     /// <param name="cardFaction">False leaves the hull's faction as the caller set it; a purchase takes the card's.</param>
     public bool TryAssignDeed(EntityUid shuttleUid, EntityUid idCard, ICommonSession owner, VesselPrototype? vessel, string? shipName = null, EntityUid? existingStation = null, bool cardFaction = true)
     {
+        _wgStasis.Wake(shuttleUid);
         if (!HasComp<ShuttleComponent>(shuttleUid) || !TryComp<IdCardComponent>(idCard, out var card))
             return false;
 

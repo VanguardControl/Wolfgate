@@ -1,3 +1,4 @@
+using Content.Server._WG.ColdStorage;
 using Content.Server._WG.ShipCommand;
 using Content.Shared._WG.ShipCommand;
 using System.Linq;
@@ -63,6 +64,7 @@ public sealed partial class WGDrydockSystem : EntitySystem
     [Dependency] private WGTradeMarketSystem _tradeMarket = default!;
     [Dependency] private WGShipServiceSystem _shipServices = default!;
     [Dependency] private ITileDefinitionManager _tileDefs = default!;
+    [Dependency] private WGGridStasisSystem _stasis = default!;
 
     /// <summary>Upper bound on ship tiles kept for ambient sparks.</summary>
     private const int MaxSparkTiles = 512;
@@ -86,6 +88,7 @@ public sealed partial class WGDrydockSystem : EntitySystem
         SubscribeLocalEvent<WGDrydockConsoleComponent, WGDrydockCleanDriftMessage>(OnCleanDrift);
         SubscribeLocalEvent<WGDrydockCraneComponent, MapInitEvent>(OnCraneMapInit);
         SubscribeLocalEvent<WGDrydockCraneComponent, ComponentShutdown>(OnCraneShutdown);
+        SubscribeLocalEvent<WGDrydockJobComponent, ComponentShutdown>(OnJobShutdown);
         SubscribeLocalEvent<PrototypesReloadedEventArgs>(_ =>
         {
             _estimates.Clear();
@@ -1025,6 +1028,12 @@ public sealed partial class WGDrydockSystem : EntitySystem
         return TryGetBerth(console, comp, out var berth) && berth.Cranes.Any(c => Transform(c).GridUid == ship);
     }
 
+    /// <summary>However a job ends, even with its console destroyed, its ship may sleep again.</summary>
+    private void OnJobShutdown(Entity<WGDrydockJobComponent> ent, ref ComponentShutdown args)
+    {
+        _stasis.Unpin(ent.Comp.Ship, $"drydock {ent.Owner}");
+    }
+
     /// <summary>Starts a paid job: queues its items, then deploys the cranes over the ship.</summary>
     public void StartJob(EntityUid console, WGDrydockConsoleComponent comp, EntityUid ship, EntityUid? payer, List<WGDrydockWorkItem> items, int price, bool paidInMaterials = false, string? voucher = null, float refundScale = 1f)
     {
@@ -1037,6 +1046,7 @@ public sealed partial class WGDrydockSystem : EntitySystem
         TurnOffBerthLights(console, comp);
         var job = AddComp<WGDrydockJobComponent>(console);
         job.Ship = ship;
+        _stasis.Pin(ship, $"drydock {console}");
         job.Payer = payer;
         job.PaidInMaterials = paidInMaterials;
         job.Voucher = voucher;

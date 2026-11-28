@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Server._WG.ColdStorage;
 using Content.Server.Power.Components;
 using Content.Server.Physics.Controllers;
 using Content.Server.Shuttles.Systems;
@@ -30,6 +31,7 @@ public sealed partial class TractorBeamSystem : VirtualController
     [Dependency] private DetectionSystem _detection = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private MoverController _mover = default!;
+    [Dependency] private WGGridStasisSystem _stasis = default!;
 
     private TimeSpan _nextUiUpdate;
     private readonly HashSet<EntityUid> _docked = new();
@@ -262,10 +264,12 @@ public sealed partial class TractorBeamSystem : VirtualController
         EntityUid controller, EntityUid source, EntityUid target)
     {
         StopBeamAudio(emitter, beam);
+        UnpinBeam(emitter, beam);
         beam.AutoCaught = false;
         beam.SourceGrid = source;
         beam.Controller = controller;
         beam.Target = target;
+        PinBeam(emitter, beam);
         beam.TargetOffset = Comp<PhysicsComponent>(target).LocalCenter;
         beam.HoldDistance = Vector2.Distance(Center(source), Center(target));
         beam.HoldSourceAngle = (float) TransformSystem.GetWorldRotation(source).Theta;
@@ -289,8 +293,30 @@ public sealed partial class TractorBeamSystem : VirtualController
         Dirty(emitter, beam);
     }
 
+    /// <summary>Keeps both grids of a held beam out of stasis; one pin per emitter, so beams on a grid don't release each other's.</summary>
+    private void PinBeam(EntityUid emitter, TractorBeamEmitterComponent beam)
+    {
+        var reason = $"tractor-beam {emitter}";
+        if (beam.SourceGrid is { } source)
+            _stasis.Pin(source, reason);
+
+        if (beam.Target is { } target)
+            _stasis.Pin(target, reason);
+    }
+
+    private void UnpinBeam(EntityUid emitter, TractorBeamEmitterComponent beam)
+    {
+        var reason = $"tractor-beam {emitter}";
+        if (beam.SourceGrid is { } source)
+            _stasis.Unpin(source, reason);
+
+        if (beam.Target is { } target)
+            _stasis.Unpin(target, reason);
+    }
+
     public void Release(EntityUid uid, TractorBeamEmitterComponent beam)
     {
+        UnpinBeam(uid, beam);
         StopBeamAudio(uid, beam);
         DeleteVisual(beam);
         var changed = beam.Target != null || beam.Active || beam.Strain != 0;

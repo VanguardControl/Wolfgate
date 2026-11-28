@@ -1,3 +1,4 @@
+using Content.Server._WG.ColdStorage; // WOLFGATE(ColdStorage)
 using Content.Server.Cargo.Systems;
 using Content.Server.NPC.HTN;
 using Content.Server.Shuttles.Components;
@@ -89,6 +90,7 @@ public sealed partial class SpaceCleanupSystem : BaseCleanupSystem<PhysicsCompon
 
     private bool ShouldEntityCleanup(EntityUid uid, float aggression)
     {
+        aggression = WGPressureAggression(aggression); // WOLFGATE(ColdStorage): radii shrink as entity pressure climbs
         // WOLFGATE(Cleanup) START: same decision with cheap rejections before pricing; unusual cvars fall through to the check below
         if (WGTryShouldEntityCleanup(uid, aggression, out var wgCleanup))
             return wgCleanup;

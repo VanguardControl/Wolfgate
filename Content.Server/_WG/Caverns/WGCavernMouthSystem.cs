@@ -24,6 +24,7 @@ namespace Content.Server._WG.Caverns;
 public sealed partial class WGCavernMouthSystem : EntitySystem
 {
     [Dependency] private BiomeSystem _biome = default!;
+    [Dependency] private Content.Server._WG.ColdStorage.WGPlanetStoreSystem _planetStore = default!;
     [Dependency] private CESharedZLevelsSystem _zLevels = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private IConfigurationManager _cfg = default!;

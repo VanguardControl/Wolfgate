@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Server._WG.ColdStorage;
 using Content.Server.Administration;
 using Content.Shared.Administration;
 using Robust.Shared.Console;
@@ -10,6 +11,7 @@ namespace Content.Server._WG.EntityCensus;
 public sealed partial class WGEntityCensusCommand : LocalizedEntityCommands
 {
     [Dependency] private WGEntityCensusSystem _census = default!;
+    [Dependency] private WGEntityPressureSystem _pressure = default!;
 
     public override string Command => "wg_entcensus";
 
@@ -33,11 +35,19 @@ public sealed partial class WGEntityCensusCommand : LocalizedEntityCommands
         shell.WriteLine(Loc.GetString("cmd-wg_entcensus-total",
             ("total", census.Total), ("contained", census.Contained), ("time", census.Taken.ToString(@"hh\:mm\:ss"))));
 
+        shell.WriteLine(Loc.GetString("cmd-wg_entcensus-pressure", ("pressure", _pressure.Pressure.ToString("F2"))));
+
         shell.WriteLine(Loc.GetString("cmd-wg_entcensus-kinds"));
         for (var i = 0; i < (int) WGCensusKind.Count; i++)
         {
             shell.WriteLine($"  {(WGCensusKind) i,-12} {census.Kinds[i],8} ({census.Paused[i]} paused)");
         }
+
+        shell.WriteLine(Loc.GetString("cmd-wg_entcensus-stasis",
+            ("grids", census.StasisGrids), ("entities", census.StasisEntities)));
+
+        shell.WriteLine(Loc.GetString("cmd-wg_entcensus-stored",
+            ("grids", census.StoredGrids), ("entities", census.StoredEntities)));
 
         shell.WriteLine(Loc.GetString("cmd-wg_entcensus-prototypes"));
         foreach (var (id, count) in census.Prototypes.OrderByDescending(pair => pair.Value).Take(rows))

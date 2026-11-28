@@ -1,6 +1,7 @@
 using System.Linq;
 using Content.Server._WG.Administration.Systems;
 using Content.Server._WG.BattleLoad;
+using Content.Server._WG.ColdStorage;
 using Content.Server._WG.Drydock;
 using Content.Server._WG.Encounters.Components;
 using Content.Server._WG.NpcCrew;
@@ -41,6 +42,7 @@ public sealed partial class WGEncounterSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private WGEntityPressureSystem _pressure = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private IConfigurationManager _config = default!;
     [Dependency] private AdminVesselSpawnSystem _vessels = default!;
@@ -991,7 +993,8 @@ public sealed partial class WGEncounterSystem : EntitySystem
         _livingGroups.Clear();
         _livingAboard.Clear();
         _livingEngineers.Clear();
-        var crew = EntityQueryEnumerator<WGCrewComponent, TransformComponent>();
+        // Paused crew count: a ship in stasis still has its crew.
+        var crew = AllEntityQuery<WGCrewComponent, TransformComponent>();
         while (crew.MoveNext(out var uid, out var member, out var xform))
         {
             if (!_mobs.IsAlive(uid))
@@ -1208,7 +1211,7 @@ public sealed partial class WGEncounterSystem : EntitySystem
         if (_crewIndexed)
             return anywhere ? _livingGroups.Contains(ship.Group) : _livingAboard.Contains((ship.Group, ship.Grid));
 
-        var crew = EntityQueryEnumerator<WGCrewComponent, TransformComponent>();
+        var crew = AllEntityQuery<WGCrewComponent, TransformComponent>();
         while (crew.MoveNext(out var uid, out var member, out var xform))
         {
             if (member.Group == ship.Group && (anywhere || xform.GridUid == ship.Grid) && _mobs.IsAlive(uid))
@@ -1448,7 +1451,7 @@ public sealed partial class WGEncounterSystem : EntitySystem
     private bool CleanUp(WGEncounterComponent encounter)
     {
         var now = _timing.CurTime;
-        var overdue = encounter.ResolvedAt is { } resolved && now - resolved >= _cleanupLinger;
+        var overdue = encounter.ResolvedAt is { } resolved && now - resolved >= _cleanupLinger * _pressure.Scale(1f, 0.5f);
         var remaining = false;
         foreach (var ship in encounter.Ships.Values)
         {
@@ -1529,7 +1532,7 @@ public sealed partial class WGEncounterSystem : EntitySystem
             else
                 ship.Quiet ??= _timing.CurTime;
 
-            if (ship.Quiet is { } quiet && _timing.CurTime - quiet >= _cleanupDelay)
+            if (ship.Quiet is { } quiet && _timing.CurTime - quiet >= _cleanupDelay * _pressure.Scale(1f, 0.5f))
                 RemoveShip(ship);
             else
                 remaining = true;

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Threading.Tasks;
 using Content.Server._NF.Shipyard.Systems;
+using Content.Server._WG.ColdStorage;
 using Content.Server.Shuttles.Systems;
 using Content.Shared.GameTicking;
 using Robust.Server.Player;
@@ -26,6 +27,10 @@ public sealed partial class WGHullRetireSystem : EntitySystem
     [Dependency] private SharedMapSystem _maps = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private ShipyardSystem _shipyard = default!;
+    [Dependency] private WGGridStasisSystem _stasis = default!;
+
+    /// <summary>Held until the hull is deleted.</summary>
+    private const string StasisPin = "hull-retire";
 
     private const double TickBudgetMs = 4;
 
@@ -40,11 +45,29 @@ public sealed partial class WGHullRetireSystem : EntitySystem
     /// <summary>The last hull finished, for logs and tests: time spent, ticks taken and the longest tick.</summary>
     public (string Name, double CopyMs, int CopyTicks, double DeleteMs, int DeleteTicks, double WorstMs) Last { get; private set; }
 
+    /// <summary>Makes the next kept copy throw, for tests of what a failed save leaves.</summary>
+    internal bool FailNextKeptCopy;
+
+    /// <summary>The kept copy whose slice is running on the main thread right now, so errors logged meanwhile are its own.</summary>
+    public WGParkedCopy? Slicing { get; private set; }
+
+    /// <summary>The thread running <see cref="Slicing"/>; 0 when none is.</summary>
+    public int SlicingThread { get; private set; }
+
     private sealed class RetiringHull
     {
         public EntityUid Grid;
         public string Name = string.Empty;
         public HullCopy? Copy;
+
+        /// <summary>Copied only: the hull stays parked afterwards until <see cref="Retire"/> or <see cref="ReleaseParked"/>.</summary>
+        public bool Keep;
+
+        /// <summary>Only what is on the grid is deleted; the grid itself stays parked for whoever asked.</summary>
+        public bool KeepGrid;
+
+        /// <summary>Children of the grid that are neither copied nor deleted, with everything in them.</summary>
+        public HashSet<EntityUid>? Kept;
         public List<EntityUid>? Children;
         public int NextChild;
         public double CopyMs;
@@ -63,6 +86,9 @@ public sealed partial class WGHullRetireSystem : EntitySystem
         public List<EntityUid> Entities = new();
         public int Next;
         public bool Retried;
+
+        /// <summary>Set for a kept copy, which is never stripped: a throw fails it.</summary>
+        public WGParkedCopy? Parked;
     }
 
     public override void Initialize()
@@ -78,6 +104,20 @@ public sealed partial class WGHullRetireSystem : EntitySystem
     }
 
     /// <summary>
+    /// Parks the hull and deletes everything on it in slices, leaving the grid itself parked and empty. The grid is
+    /// in <see cref="Emptied"/> once that is done.
+    /// </summary>
+    public void RetireContents(EntityUid grid, HashSet<EntityUid>? keep = null)
+    {
+        var hull = GetOrPark(grid);
+        hull.KeepGrid = true;
+        hull.Kept = keep;
+    }
+
+    /// <summary>Grids <see cref="RetireContents"/> has finished with; whoever asked takes theirs out.</summary>
+    public readonly HashSet<EntityUid> Emptied = new();
+
+    /// <summary>
     /// Retires the hull and copies it first. The task gives its YAML, or null if the copy failed.
     /// </summary>
     public Task<string?> RetireWithCopy(EntityUid grid, List<EntityUid> carry)
@@ -85,6 +125,27 @@ public sealed partial class WGHullRetireSystem : EntitySystem
         var hull = GetOrPark(grid);
         hull.Copy ??= new HullCopy { Carry = carry };
         return hull.Copy.Result.Task;
+    }
+
+    /// <summary>
+    /// Parks the hull and copies it in slices as it stands, without deleting it or stripping anything. It stays parked
+    /// and pinned until <see cref="Retire"/> deletes it or <see cref="ReleaseParked"/> lets it go.
+    /// </summary>
+    /// <param name="leaveOut">Children of the grid left out of the copy with everything in them; they stay alive on it.</param>
+    public WGParkedCopy CopyParked(EntityUid grid, HashSet<EntityUid>? leaveOut = null)
+    {
+        var hull = GetOrPark(grid);
+        hull.Keep = true;
+        hull.Kept = leaveOut;
+        hull.Copy ??= new HullCopy();
+        hull.Copy.Parked ??= new WGParkedCopy { Text = hull.Copy.Result.Task };
+        return hull.Copy.Parked;
+    }
+
+    /// <summary>Drops the park pin of a hull from <see cref="CopyParked"/>: one put back, or one already deleted.</summary>
+    public void ReleaseParked(EntityUid grid)
+    {
+        _stasis.Unpin(grid, StasisPin);
     }
 
     private RetiringHull GetOrPark(EntityUid grid)
@@ -96,6 +157,7 @@ public sealed partial class WGHullRetireSystem : EntitySystem
         }
 
         var hull = new RetiringHull { Grid = grid, Name = ToPrettyString(grid).ToString() };
+        _stasis.Pin(grid, StasisPin);
         Park(grid);
         _hulls.Enqueue(hull);
         return hull;
@@ -103,6 +165,10 @@ public sealed partial class WGHullRetireSystem : EntitySystem
 
     private void Park(EntityUid grid)
     {
+        // Copied and kept earlier: already parked.
+        if (_parkMap != null && Transform(grid).MapUid == _parkMap)
+            return;
+
         _docking.UndockDocks(grid);
         KeepPlayersBehind(grid);
 
@@ -150,6 +216,7 @@ public sealed partial class WGHullRetireSystem : EntitySystem
             if (Deleted(hull.Grid))
             {
                 hull.Copy?.Result.TrySetResult(null);
+                FinishKept(hull, "deleted");
                 _hulls.Dequeue();
                 continue;
             }
@@ -167,6 +234,13 @@ public sealed partial class WGHullRetireSystem : EntitySystem
                     continue;
             }
 
+            if (hull.Keep)
+            {
+                FinishKept(hull, null);
+                _hulls.Dequeue();
+                continue;
+            }
+
             var deleteStart = _timer.Elapsed.TotalMilliseconds;
             var deleted = DeleteSlice(hull);
             var deleteSpent = _timer.Elapsed.TotalMilliseconds - deleteStart;
@@ -178,18 +252,44 @@ public sealed partial class WGHullRetireSystem : EntitySystem
                 continue;
 
             _hulls.Dequeue();
+            if (hull.KeepGrid)
+                Emptied.Add(hull.Grid);
+            else
+                _stasis.Unpin(hull.Grid, StasisPin);
+
             Last = (hull.Name, hull.CopyMs, hull.CopyTicks, hull.DeleteMs, hull.DeleteTicks, hull.WorstMs);
             Log.Info($"Retired {hull.Name}: copy {hull.CopyMs:0} ms over {hull.CopyTicks} ticks, delete {hull.DeleteMs:0} ms over {hull.DeleteTicks} ticks, longest {hull.WorstMs:0} ms.");
         }
+    }
+
+    /// <summary>Marks a kept copy finished with its timings, or with why it failed.</summary>
+    private static void FinishKept(RetiringHull hull, string? error)
+    {
+        if (hull.Copy?.Parked is not { } parked || parked.Done)
+            return;
+
+        parked.Error ??= error;
+        parked.CopyMs = hull.CopyMs;
+        parked.CopyTicks = hull.CopyTicks;
+        parked.WorstMs = hull.WorstMs;
+        parked.Done = true;
     }
 
     /// <summary>Serialises entities until the tick's budget is gone. Sets <see cref="HullCopy.Next"/> to -1 when finished.</summary>
     private void CopySlice(RetiringHull hull, HullCopy copy)
     {
         var lifted = LiftCarried(copy);
+        Slicing = copy.Parked;
+        SlicingThread = Environment.CurrentManagedThreadId;
         try
         {
             copy.Serializer ??= BeginCopy(hull, copy);
+
+            if (copy.Parked != null && FailNextKeptCopy)
+            {
+                FailNextKeptCopy = false;
+                throw new InvalidOperationException("Failure forced by a test.");
+            }
 
             while (copy.Next < copy.Entities.Count)
             {
@@ -204,6 +304,15 @@ public sealed partial class WGHullRetireSystem : EntitySystem
         }
         catch (Exception e)
         {
+            // A kept copy is never stripped: whoever asked decides what a failure means.
+            if (copy.Parked != null)
+            {
+                copy.Parked.Error = $"{e.GetType().Name}: {e.Message}";
+                copy.Result.TrySetResult(null);
+                copy.Next = -1;
+                return;
+            }
+
             if (copy.Retried)
             {
                 Log.Error($"Failed to copy {hull.Name} for resale: {e}");
@@ -221,6 +330,8 @@ public sealed partial class WGHullRetireSystem : EntitySystem
         }
         finally
         {
+            Slicing = null;
+            SlicingThread = 0;
             foreach (var proto in lifted)
             {
                 proto.MapSavable = false;
@@ -230,18 +341,22 @@ public sealed partial class WGHullRetireSystem : EntitySystem
 
     private EntitySerializer BeginCopy(RetiringHull hull, HullCopy copy)
     {
-        _shipyard.WGPruneDeadKeys(hull.Grid);
+        // A kept hull may come back, so it is never changed: dead keys that break the save fail the copy instead.
+        if (copy.Parked == null)
+            _shipyard.WGPruneDeadKeys(hull.Grid);
 
         // The event can add entities to save, such as a grid's chunk entities.
         copy.Roots = new HashSet<EntityUid> { hull.Grid };
         var maps = new HashSet<MapId> { Transform(hull.Grid).MapID };
         RaiseLocalEvent(new BeforeSerializationEvent(copy.Roots, maps, FileCategory.Grid));
 
-        var serializer = new EntitySerializer(_dependencies, CopyOptions());
+        // A kept copy is read back by this server in the same round, so what it points at off the hull (a station
+        // record on a door's reader, a card) is still there. A resale copy outlives all of that.
+        var serializer = new EntitySerializer(_dependencies, CopyOptions() with { KeepExternalReferences = copy.Parked != null });
         var entities = new HashSet<EntityUid>();
         foreach (var root in copy.Roots)
         {
-            Include(serializer, root, entities);
+            Include(serializer, root, entities, hull.Kept);
         }
 
         copy.Entities = new List<EntityUid>(entities);
@@ -249,16 +364,16 @@ public sealed partial class WGHullRetireSystem : EntitySystem
         return serializer;
     }
 
-    private void Include(EntitySerializer serializer, EntityUid uid, HashSet<EntityUid> entities)
+    private void Include(EntitySerializer serializer, EntityUid uid, HashSet<EntityUid> entities, HashSet<EntityUid>? leaveOut)
     {
-        if (!serializer.IsSerializable(uid))
+        if (!serializer.IsSerializable(uid) || leaveOut != null && leaveOut.Contains(uid))
             return;
 
         entities.Add(uid);
         var children = Transform(uid).ChildEnumerator;
         while (children.MoveNext(out var child))
         {
-            Include(serializer, child, entities);
+            Include(serializer, child, entities, leaveOut);
         }
     }
 
@@ -304,11 +419,13 @@ public sealed partial class WGHullRetireSystem : EntitySystem
                 return false;
 
             var child = hull.Children[hull.NextChild++];
-            if (!Deleted(child))
+            if (!Deleted(child) && hull.Kept?.Contains(child) != true)
                 Del(child);
         }
 
-        Del(hull.Grid);
+        if (!hull.KeepGrid)
+            Del(hull.Grid);
+
         return true;
     }
 
@@ -346,9 +463,30 @@ public sealed partial class WGHullRetireSystem : EntitySystem
         foreach (var hull in _hulls)
         {
             hull.Copy?.Result.TrySetResult(null);
+            FinishKept(hull, "round restart");
         }
 
         _hulls.Clear();
         _parkMap = null;
     }
+}
+
+/// <summary>A copy of a parked hull that is kept: its YAML, written on a worker, and what the copy cost.</summary>
+public sealed class WGParkedCopy
+{
+    /// <summary>The YAML, or null if the copy failed.</summary>
+    public Task<string?> Text = default!;
+
+    /// <summary>Why the copy failed, if it did.</summary>
+    public string? Error;
+
+    /// <summary>Set once serialising is over; <see cref="Text"/> may still be being written.</summary>
+    public bool Done;
+
+    /// <summary>Errors the serializer logged while this copy's own slices ran.</summary>
+    public int Errors;
+
+    public double CopyMs;
+    public int CopyTicks;
+    public double WorstMs;
 }

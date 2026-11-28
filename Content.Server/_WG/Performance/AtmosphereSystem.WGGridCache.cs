@@ -1,3 +1,4 @@
+using Content.Server._WG.ColdStorage;
 using Content.Server.Atmos.Components;
 using Content.Shared.Atmos.Components;
 using Robust.Shared.Map.Components;
@@ -9,6 +10,8 @@ public sealed partial class AtmosphereSystem
     /// <summary>A full rebuild this often catches an atmosphere whose parts arrived in an unusual order.</summary>
     private static readonly TimeSpan WGGridCacheRebuild = TimeSpan.FromSeconds(5);
 
+    [Dependency] private WGGridStasisSystem _wgStasis = default!;
+
     private readonly List<Entity<GridAtmosphereComponent, GasTileOverlayComponent, MapGridComponent, TransformComponent>> _wgAtmospheres = new();
     private bool _wgAtmospheresDirty = true;
     private TimeSpan _wgNextAtmospheresRebuild;
@@ -19,13 +22,33 @@ public sealed partial class AtmosphereSystem
     private void WGInitializeGridCache()
     {
         SubscribeLocalEvent<GridAtmosphereComponent, EntityUnpausedEvent>(OnWGGridUnpaused);
+        SubscribeLocalEvent<GridAtmosphereComponent, WGGridStasisChangedEvent>(OnWGGridStasisChanged);
     }
 
     private void OnWGGridUnpaused(Entity<GridAtmosphereComponent> ent, ref EntityUnpausedEvent args) => WGAtmospheresChanged();
 
+    /// <summary>Marks the list stale; a grid entering stasis also leaves a run carried over from a tick out of budget.</summary>
+    private void OnWGGridStasisChanged(Entity<GridAtmosphereComponent> ent, ref WGGridStasisChangedEvent args)
+    {
+        WGAtmospheresChanged();
+        if (!args.InStasis)
+            return;
+
+        for (var i = _currentRunAtmosphere.Count - 1; i >= 0; i--)
+        {
+            if (_currentRunAtmosphere[i].Owner != ent.Owner)
+                continue;
+
+            _currentRunAtmosphere.RemoveAt(i);
+            if (_currentRunAtmosphereIndex > i)
+                _currentRunAtmosphereIndex--;
+        }
+    }
+
     /// <summary>
     /// Fills a new run with every grid atmosphere, walking the entities only after one was added or removed or a cached
-    /// component went away. Like the query it replaces, it leaves paused grids out, so unpausing one marks it stale.
+    /// component went away. Like the query it replaces, it leaves paused grids out, so unpausing one marks it stale; a grid
+    /// in stasis is left out too, and entering or leaving it marks the list stale.
     /// </summary>
     private void WGQueueRunAtmospheres()
     {
@@ -36,6 +59,9 @@ public sealed partial class AtmosphereSystem
             var query = EntityQueryEnumerator<GridAtmosphereComponent, GasTileOverlayComponent, MapGridComponent, TransformComponent>();
             while (query.MoveNext(out var uid, out var atmos, out var overlay, out var grid, out var xform))
             {
+                if (_wgStasis.IsInStasis(uid))
+                    continue;
+
                 _wgAtmospheres.Add((uid, atmos, overlay, grid, xform));
             }
 
