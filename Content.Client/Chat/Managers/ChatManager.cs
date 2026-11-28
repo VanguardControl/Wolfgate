@@ -61,6 +61,12 @@ internal sealed partial class ChatManager : IChatManager
                 break;
             // WOLFGATE END
 
+            // WOLFGATE(Mentors) START: mentor chat
+            case ChatSelectChannel.Mentor:
+                _consoleHost.ExecuteCommand($"msay \"{CommandParsing.Escape(str)}\"");
+                break;
+            // WOLFGATE END
+
             case ChatSelectChannel.Emotes:
                 _consoleHost.ExecuteCommand($"me \"{CommandParsing.Escape(str)}\"");
                 break;

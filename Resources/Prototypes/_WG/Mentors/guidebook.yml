@@ -1,0 +1,5 @@
+- type: guideEntry
+  id: WGMentorCodeOfConduct
+  name: guide-entry-wg-mentor-coc
+  text: "/ServerInfo/_WG/Mentors/Guidebook/CodeOfConduct.xml"
+  priority: 0

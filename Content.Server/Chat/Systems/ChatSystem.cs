@@ -896,6 +896,7 @@ public sealed partial class ChatSystem : SharedChatSystem
         var wrappedMessage = Loc.GetString("chat-manager-entity-looc-wrap-message",
             ("entityName", name),
             ("message", FormattedMessage.EscapeText(message)));
+        wrappedMessage = Content.Server._WG.Mentors.MentorChatTag.Apply(EntityManager.System<Content.Server._WG.Mentors.WGMentorSystem>(), player, name, wrappedMessage); // WOLFGATE(Mentors): mentor tag on LOOC
 
         SendInVoiceRange(ChatChannel.LOOC, name, message, wrappedMessage,
             obfuscated: string.Empty,
