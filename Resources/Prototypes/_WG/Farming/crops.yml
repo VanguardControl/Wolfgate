@@ -1,0 +1,213 @@
+# TESTING: grow times are a sixteenth of their tuned values for gathering test data; restore (x16) when outposts ship.
+# Outpost crops: real minutes of growing to ripen (time lit and watered), and the outdoor temperature band (C) they grow in.
+# The ID is the botany seed ID. Seeds with no entry grow on any climate at their stock speed, still only while lit.
+
+- type: wgCrop
+  id: wheat
+  minutes: 3.75
+  minTemp: 2
+  maxTemp: 30
+
+- type: wgCrop
+  id: oat
+  minutes: 3.75
+  minTemp: 0
+  maxTemp: 28
+
+- type: wgCrop
+  id: rice
+  minutes: 5.625
+  minTemp: 15
+  maxTemp: 38
+
+- type: wgCrop
+  id: corn
+  minutes: 7.5
+  minTemp: 12
+  maxTemp: 35
+
+- type: wgCrop
+  id: soybeans
+  minutes: 4.6875
+  minTemp: 10
+  maxTemp: 32
+
+- type: wgCrop
+  id: sugarcane
+  minutes: 8.4375
+  minTemp: 18
+  maxTemp: 40
+
+- type: wgCrop
+  id: potato
+  minutes: 4.6875
+  minTemp: 4
+  maxTemp: 26
+
+- type: wgCrop
+  id: carrots
+  minutes: 2.8125
+  minTemp: 4
+  maxTemp: 26
+
+- type: wgCrop
+  id: cabbage
+  minutes: 3.75
+  minTemp: 0
+  maxTemp: 24
+
+- type: wgCrop
+  id: garlic
+  minutes: 3.75
+  minTemp: 0
+  maxTemp: 26
+
+- type: wgCrop
+  id: onion
+  minutes: 3.75
+  minTemp: 2
+  maxTemp: 28
+
+- type: wgCrop
+  id: onionred
+  minutes: 3.75
+  minTemp: 2
+  maxTemp: 28
+
+- type: wgCrop
+  id: tomato
+  minutes: 5.625
+  minTemp: 12
+  maxTemp: 34
+
+- type: wgCrop
+  id: eggplant
+  minutes: 5.625
+  minTemp: 15
+  maxTemp: 35
+
+- type: wgCrop
+  id: chili
+  minutes: 4.6875
+  minTemp: 15
+  maxTemp: 38
+
+- type: wgCrop
+  id: pumpkin
+  minutes: 9.375
+  minTemp: 8
+  maxTemp: 30
+
+- type: wgCrop
+  id: watermelon
+  minutes: 9.375
+  minTemp: 18
+  maxTemp: 38
+
+- type: wgCrop
+  id: pea
+  minutes: 3.75
+  minTemp: 4
+  maxTemp: 26
+
+- type: wgCrop
+  id: berries
+  minutes: 4.6875
+  minTemp: 6
+  maxTemp: 30
+
+- type: wgCrop
+  id: grape
+  minutes: 7.5
+  minTemp: 12
+  maxTemp: 34
+
+- type: wgCrop
+  id: apple
+  minutes: 9.375
+  minTemp: 2
+  maxTemp: 28
+
+- type: wgCrop
+  id: cherry
+  minutes: 8.4375
+  minTemp: 4
+  maxTemp: 28
+
+- type: wgCrop
+  id: lemon
+  minutes: 9.375
+  minTemp: 14
+  maxTemp: 36
+
+- type: wgCrop
+  id: lime
+  minutes: 9.375
+  minTemp: 14
+  maxTemp: 36
+
+- type: wgCrop
+  id: orange
+  minutes: 9.375
+  minTemp: 14
+  maxTemp: 36
+
+- type: wgCrop
+  id: banana
+  minutes: 10.3125
+  minTemp: 20
+  maxTemp: 40
+
+- type: wgCrop
+  id: pineapple
+  minutes: 10.3125
+  minTemp: 20
+  maxTemp: 40
+
+- type: wgCrop
+  id: cocoa
+  minutes: 9.375
+  minTemp: 20
+  maxTemp: 40
+
+- type: wgCrop
+  id: teaPlant
+  minutes: 5.625
+  minTemp: 8
+  maxTemp: 30
+
+- type: wgCrop
+  id: tobacco
+  minutes: 6.5625
+  minTemp: 12
+  maxTemp: 34
+
+- type: wgCrop
+  id: cotton
+  minutes: 6.5625
+  minTemp: 15
+  maxTemp: 36
+
+- type: wgCrop
+  id: chanterelle
+  minutes: 2.8125
+  minTemp: -5
+  maxTemp: 22
+
+- type: wgCrop
+  id: towercap
+  minutes: 4.6875
+  minTemp: -5
+  maxTemp: 25
+
+- type: wgCrop
+  id: aloe
+  minutes: 4.6875
+  minTemp: 15
+  maxTemp: 40
+
+- type: wgCrop
+  id: poppy
+  minutes: 3.75
+  minTemp: 5
+  maxTemp: 30
