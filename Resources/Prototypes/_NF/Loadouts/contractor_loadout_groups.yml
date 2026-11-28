@@ -552,10 +552,6 @@
   - ContractorClothingOuterWinterCE
 #  - ContractorClothingOuterCoatLabCmo # Temp removed for MOM. Will return if replaced.
   - ContractorClothingOuterCoatLabSeniorPhysician
-  - ClothingUniformOversizeSweatshirt
-  - ClothingUniformOversizeSweatGoth
-  - ClothingUniformOversizeSweatTacky
-  - ClothingUniformOversizeSweatUni
   - ContractorClothingOuterCoatRD
   - ContractorClothingOuterCoatLabSeniorResearcher
   - ContractorClothingOuterFlannelRed
@@ -1030,8 +1026,6 @@
   - ContractorClothingNeckCloakCapFormal
   - ContractorClothingNeckCloakQm
   - ContractorClothingNeckMantleQM
-  - ClothingNeckCowBellCollar #The Den
-  - ClothingNeckBellCollar #middle finger emoji
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WG/MeridianClothing/port.py
   - WGMeridianLoadoutClothingAccessoryAntiSecPin
   - WGMeridianLoadoutClothingAccessoryArmbandCargo
@@ -1147,6 +1141,7 @@
   - WGMeridianLoadoutClothingNeckCloakSkillRewardProduction
   - WGMeridianLoadoutClothingNeckCloakTribalmantle
   - WGMeridianLoadoutClothingNeckCloakWolfCoat
+  - WGMeridianLoadoutClothingNeckCollarCowbell
   - WGMeridianLoadoutClothingNeckCollarReagentClothing
   - WGMeridianLoadoutClothingNeckEldritchAmulet
   - WGMeridianLoadoutClothingNeckFaceScarf
