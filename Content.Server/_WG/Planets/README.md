@@ -6,8 +6,8 @@ shuttle console's orbit button (an unsanctioned world asks first), descend throu
 thrusters, lift off again, and land hard, skid, break up or crash when lift is lost. Hulls that stop keeping station
 fall out of orbit, and a world's gravity well pulls adrift hulls in from the sector.
 
-With `wg.planet_pvs_range_limited` on (off by default: a client returning to a layer it left saw its walls and
-objects missing until the engine re-sends a returning layer whole), every layer but orbit is range-limited in PVS
+With `wg.planet_pvs_range_limited` on (off by default; it was turned off because a client returning to a layer it
+left saw its walls and objects missing, which Lupine#4 fixes), every layer but orbit is range-limited in PVS
 (`WGPlanetPvsSystem`): a client gets a
 layer's map and terrain only while a viewer is on or near it, instead of every planet tile on every join. The orbit
 layer stays sent to everyone, so radar, the FTL target and parked hulls work from anywhere; the ground is deleted on
