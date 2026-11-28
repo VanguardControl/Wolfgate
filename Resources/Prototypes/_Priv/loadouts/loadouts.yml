@@ -33,3 +33,9 @@
   price: 0
   equipment:
     slot: ClothingNeckBellCollar
+
+- type: loadout
+  id: ClothingNeckBellCollar
+  price: 0
+  equipment:
+    slot: ClothingNeckBellCollar
