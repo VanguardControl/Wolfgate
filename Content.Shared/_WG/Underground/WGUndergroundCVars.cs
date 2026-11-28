@@ -42,15 +42,23 @@ public sealed class WGUndergroundCVars
     public static readonly CVarDef<float> HeatOutsider =
         CVarDef.Create("wg.underground.heat_outsider", 0f, CVar.SERVERONLY);
 
-    /// <summary>What a member's smuggling crate pays at RAID Heat, as a multiple of its price; it climbs from 1 at no Heat.</summary>
-    public static readonly CVarDef<float> PremiumMax =
-        CVarDef.Create("wg.underground.premium_max", 3f, CVar.SERVERONLY);
+    /// <summary>What a member's smuggling crate pays at no Heat, as a multiple of its price.</summary>
+    public static readonly CVarDef<float> PriceQuiet =
+        CVarDef.Create("wg.underground.price_quiet", 1.5f, CVar.SERVERONLY);
 
-    /// <summary>Share of RAID Heat from which the premium also multiplies a smuggling crate's telecrystals, from 0 to 1.</summary>
-    public static readonly CVarDef<float> PremiumTelecrystals =
-        CVarDef.Create("wg.underground.premium_telecrystals", 0.65f, CVar.SERVERONLY);
+    /// <summary>What a member's smuggling crate pays just short of RAID, as a multiple of its price; it falls to this from <c>price_quiet</c>.</summary>
+    public static readonly CVarDef<float> PriceHot =
+        CVarDef.Create("wg.underground.price_hot", 0.5f, CVar.SERVERONLY);
 
-    /// <summary>Heat a TSF or PDV player killed by an Underground member adds.</summary>
+    /// <summary>What a member's smuggling crate pays during a raid window and the lockdown after it, as a multiple of its price.</summary>
+    public static readonly CVarDef<float> PriceLockdown =
+        CVarDef.Create("wg.underground.price_lockdown", 0.25f, CVar.SERVERONLY);
+
+    /// <summary>Heat a TSF or PDV player put into critical condition by an Underground member adds.</summary>
+    public static readonly CVarDef<float> HeatCrit =
+        CVarDef.Create("wg.underground.heat_crit", 2f, CVar.SERVERONLY);
+
+    /// <summary>Heat a TSF or PDV player killed by an Underground member adds, on top of any for the crit before it.</summary>
     public static readonly CVarDef<float> HeatKill =
         CVarDef.Create("wg.underground.heat_kill", 3f, CVar.SERVERONLY);
 
@@ -60,11 +68,19 @@ public sealed class WGUndergroundCVars
 
     /// <summary>Minutes a RAID window stays open.</summary>
     public static readonly CVarDef<float> RaidMinutes =
-        CVarDef.Create("wg.underground.raid_minutes", 20f, CVar.SERVERONLY);
+        CVarDef.Create("wg.underground.raid_minutes", 30f, CVar.SERVERONLY);
 
     /// <summary>Minutes after a RAID window before another can open.</summary>
     public static readonly CVarDef<float> RaidLockMinutes =
         CVarDef.Create("wg.underground.raid_lock_minutes", 45f, CVar.SERVERONLY);
+
+    /// <summary>Minutes after a RAID window that the market stays shut and the vend locked, as during the window.</summary>
+    public static readonly CVarDef<float> LockdownMinutes =
+        CVarDef.Create("wg.underground.lockdown_minutes", 30f, CVar.SERVERONLY);
+
+    /// <summary>Military credits the TSF's uplinks receive when a RAID window opens.</summary>
+    public static readonly CVarDef<int> RaidReward =
+        CVarDef.Create("wg.underground.raid_reward", 100, CVar.SERVERONLY);
 
     /// <summary>Minutes between the bearings security is given while the Underground is WANTED.</summary>
     public static readonly CVarDef<float> BearingMinutes =
@@ -74,17 +90,25 @@ public sealed class WGUndergroundCVars
     public static readonly CVarDef<int> WarrantJob =
         CVarDef.Create("wg.underground.warrant_job", 25, CVar.SERVERONLY);
 
-    /// <summary>Minutes a member can't be handed in again after a capture or bail.</summary>
+    /// <summary>Minutes a member can't be handed in again after a capture or bail, unless they attack the TSF or PDV.</summary>
     public static readonly CVarDef<float> ServedMinutes =
-        CVarDef.Create("wg.underground.served_minutes", 60f, CVar.SERVERONLY);
+        CVarDef.Create("wg.underground.served_minutes", 30f, CVar.SERVERONLY);
 
     /// <summary>Minutes a pallet holds a captured member while the Underground can pay bail.</summary>
     public static readonly CVarDef<float> BailMinutes =
         CVarDef.Create("wg.underground.bail_minutes", 5f, CVar.SERVERONLY);
 
+    /// <summary>Minutes each earlier capture this round adds to a member's hold.</summary>
+    public static readonly CVarDef<float> BailRepeatMinutes =
+        CVarDef.Create("wg.underground.bail_repeat_minutes", 5f, CVar.SERVERONLY);
+
     /// <summary>Thalers of bail for each military credit of warrant.</summary>
     public static readonly CVarDef<int> BailRate =
         CVarDef.Create("wg.underground.bail_rate", 200, CVar.SERVERONLY);
+
+    /// <summary>Share each earlier capture this round adds to a member's bail, so the second costs 1.5 times the first.</summary>
+    public static readonly CVarDef<float> BailRepeat =
+        CVarDef.Create("wg.underground.bail_repeat", 0.5f, CVar.SERVERONLY);
 
     /// <summary>Thalers the treasury starts a round with.</summary>
     public static readonly CVarDef<int> TreasuryStart =

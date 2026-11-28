@@ -34,7 +34,7 @@
 <!-- WOLFGATE: rule colours readable on light and dark backgrounds -->- [color=#b8860b][bold]If you wish to launch an attack on a safezone which may lead to deaths or damage to those not involved, you must send several warnings to evacuate the safezone for a minimum of 5 minutes[/color][/bold]
 
 <!-- WOLFGATE: rule colours readable on light and dark backgrounds -->- [color=#2e9e4f][bold]Contraband is allowed in Safe Zones.[/bold][/color] It is only actionable if used or if you are causing trouble. Wearing or carrying immediate gear is tolerated; stashing or distributing is not. Destroying turrets that detect contraband is allowed, but causes your safezone protection removal.
-<!-- WOLFGATE(Underground): the Underground gets no contraband exception in a Safe Zone -->-- The Underground gets no exception. Its people can meet customers and hand out market passes here, but contraband changes hands at the market or out in the sector, not from a ship docked at the station.
+<!-- WOLFGATE(Underground): selling contraband in a Safe Zone forfeits its protection -->-- The Underground gets no exception. Its people can meet customers and hand out market passes here, but selling or unloading smuggling crates, sealed freight or narcotics here, or from a ship docked at the station, is causing trouble and forfeits protection. See [textlink="Conflict Rule 7" link="WGRuleConflictSevenUnderground"].
 
 - Entering a Safe Zone does not end ongoing fights or consequences, you [bold]may continue fights[/bold] if it moves into a safezone, while attempting to [bold]minimize[/bold] damage to the safezone.
 

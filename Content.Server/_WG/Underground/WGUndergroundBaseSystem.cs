@@ -9,7 +9,9 @@ using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WG.Underground;
 using Content.Shared.Buckle.Components;
 using Content.Shared.GameTicking;
+using Content.Shared.Popups;
 using Content.Shared.Shuttles.Components;
+using Content.Shared.Store;
 using Content.Shared.Turrets;
 using Robust.Server.Player;
 using Robust.Shared.Configuration;
@@ -23,8 +25,8 @@ using Robust.Shared.Timing;
 namespace Content.Server._WG.Underground;
 
 /// <summary>
-/// Looks after the Underground's station: arms its turrets in a raid or on the Godfather's word, parks a safehouse
-/// ship away from it as a second place to wake up, and adds Fugitive slots as the round fills.
+/// Looks after the Underground's station: arms its turrets on the Godfather's word outside a raid, locks its vend in a
+/// lockdown, parks a safehouse ship away from it as a second place to wake up, and adds Fugitive slots as the round fills.
 /// </summary>
 public sealed partial class WGUndergroundBaseSystem : EntitySystem
 {
@@ -35,6 +37,7 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private DockingSystem _dock = default!;
     [Dependency] private MapLoaderSystem _mapLoader = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedDeployableTurretSystem _turrets = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private ShuttleSystem _shuttle = default!;
@@ -56,8 +59,11 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
     /// <summary>Whether the Godfather has armed the turrets outside a raid.</summary>
     public bool Armed { get; private set; }
 
-    /// <summary>Whether the turrets should be up: armed by the Godfather, or a raid window is open.</summary>
-    public bool WantTurrets => Armed || _heat.Level == WGUndergroundHeatSystem.Raid;
+    /// <summary>Whether the turrets should be up: armed by the Godfather, and no raid window open. A raid is fought without them.</summary>
+    public bool WantTurrets => Armed && _heat.RaidEnds == null;
+
+    /// <summary>The UndergroundVend, which a lockdown keeps from selling.</summary>
+    private const string Vend = "VendingMachineSyndieContraband";
 
     /// <summary>When turrets that have been ordered up deploy, once the warning to everyone aboard has run.</summary>
     private TimeSpan? _deployAt;
@@ -75,6 +81,20 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
         SubscribeLocalEvent<WGUndergroundHeatChangedEvent>(OnHeatChanged);
         SubscribeLocalEvent<DockEvent>(OnDock);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnCleanup);
+        SubscribeLocalEvent<BoundUserInterfaceMessageAttempt>(OnUiMessageAttempt);
+    }
+
+    /// <summary>During a raid window and the lockdown after it, the UndergroundVend sells nothing.</summary>
+    private void OnUiMessageAttempt(BoundUserInterfaceMessageAttempt args)
+    {
+        if (args.Cancelled
+            || args.Message is not StoreBuyListingMessage
+            || !_heat.Lockdown
+            || MetaData(args.Target).EntityPrototype?.ID != Vend)
+            return;
+
+        args.Cancel();
+        _popup.PopupEntity(Loc.GetString("wg-underground-vend-locked"), args.Target, args.Actor);
     }
 
     public override void Update(float frameTime)
@@ -113,12 +133,16 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
         }
     }
 
-    /// <summary>Arms the station's turrets or stands them down. A raid keeps them armed either way.</summary>
-    public void SetArmed(bool armed)
+    /// <summary>Arms the station's turrets or stands them down. False when arming during a raid window, which keeps them down.</summary>
+    public bool SetArmed(bool armed)
     {
+        if (armed && _heat.RaidEnds != null)
+            return false;
+
         var were = WantTurrets;
         Armed = armed;
         OrderTurrets(were);
+        return true;
     }
 
     /// <summary>
@@ -220,8 +244,17 @@ public sealed partial class WGUndergroundBaseSystem : EntitySystem
 
     private void OnHeatChanged(WGUndergroundHeatChangedEvent ev)
     {
-        if (ev.Level == WGUndergroundHeatSystem.Raid || ev.Old == WGUndergroundHeatSystem.Raid)
-            OrderTurrets(Armed || ev.Old == WGUndergroundHeatSystem.Raid);
+        // A raid stands the Godfather's turrets down; when it closes they come back up after the usual warning.
+        if (ev.Level == WGUndergroundHeatSystem.Raid)
+        {
+            OrderTurrets(Armed);
+            if (Armed)
+                _heat.TellFaction(Loc.GetString("wg-underground-turrets-raid"));
+        }
+        else if (ev.Old == WGUndergroundHeatSystem.Raid)
+        {
+            OrderTurrets(false);
+        }
 
         if (ev.Level != WGUndergroundHeatSystem.Raid)
             return;

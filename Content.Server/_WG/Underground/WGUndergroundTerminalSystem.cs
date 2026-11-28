@@ -145,8 +145,8 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
             Priority = MarketPriority,
             Act = () =>
             {
-                if (Boss())
-                    _heat.SetClosed(close);
+                if (Boss() && !_heat.SetClosed(close))
+                    _popup.PopupEntity(Loc.GetString("wg-underground-lockdown-refused"), ent, user);
             },
         });
 
@@ -160,11 +160,15 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
                 if (!Boss() || _base.Armed == arm)
                     return;
 
-                // Arming tells everyone aboard itself, with the warning. A raid keeps the turrets up whatever
-                // the Godfather orders, and saying they were standing down would send people into them.
-                _base.SetArmed(arm);
+                // Arming tells everyone aboard itself, with the warning. A raid window keeps them down.
+                if (!_base.SetArmed(arm))
+                {
+                    _popup.PopupEntity(Loc.GetString("wg-underground-turrets-refused"), ent, user);
+                    return;
+                }
+
                 if (!arm)
-                    _heat.TellFaction(Loc.GetString(_base.WantTurrets ? "wg-underground-turrets-raid" : "wg-underground-turrets-down"));
+                    _heat.TellFaction(Loc.GetString("wg-underground-turrets-down"));
             },
         });
 
@@ -251,9 +255,10 @@ public sealed partial class WGUndergroundTerminalSystem : EntitySystem
         return Loc.GetString("wg-underground-status",
             ("level", Loc.GetString(WGUndergroundHeatSystem.LevelName(_heat.Level))),
             ("percent", _heat.Percent()),
-            ("premium", Math.Round(_heat.Premium(), 2)),
+            ("premium", Math.Round(_heat.PriceFactor(), 2)),
             ("treasury", _heat.Treasury),
-            ("market", Loc.GetString(_heat.Closed ? "wg-underground-status-closed" : "wg-underground-status-open")));
+            ("market", Loc.GetString(_heat.Lockdown ? "wg-underground-status-lockdown"
+                : _heat.Closed ? "wg-underground-status-closed" : "wg-underground-status-open")));
     }
 
     private void IssuePass(Entity<WGUndergroundTerminalComponent> ent, EntityUid user)

@@ -118,8 +118,8 @@ on them: a sale adds the crate's street price to the seller's heat, the one narc
 `WGNarcoticHeatSystem`), the chute pays a hot seller less (`wg-trade-reason-heat`, shown in their quotes only),
 Caelestinus Security, the TSF and the PDV get its tip-off, which never names anyone, and a seller who sells past the
 hot line gets its warrant, which pays whoever brings them down. `WGTradeQuoteEvent.Premium` is the one thing that pays
-more than the street price: the Underground module sets it for its own members by their faction's Heat, and keeps their
-crates' tip-off back.
+more than the street price: the Underground module sets it for its own members while their faction's Heat is low, and
+adds a factor below 1 as it runs hot.
 Each sale also drops `contrabandTelecrystals`
 telecrystals at the chute, the black market's steady source of them. It shows on radar from other grids like the PDV supply crates. It is Frontier contraband, so security can seize it at their contraband pallet for
 faction credits. Hidden markets don't buy it. While the Reaver campaign runs, every few crates sold at open chutes fund the Reavers (ReaverCampaign `.Funding`).

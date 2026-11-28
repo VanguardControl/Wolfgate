@@ -8,7 +8,6 @@ using Content.Server._NF.SectorServices;
 using Content.Server._WG.CargoSales;
 using Content.Server._WG.TradeGoods.Systems;
 using Content.Server._WG.Underground;
-using Content.Server._WG.WolfChem.Narcotics;
 using Content.Server.Access.Components;
 using Content.Server.Radio;
 using Content.Server.Power.EntitySystems;
@@ -23,6 +22,7 @@ using Content.Shared._WG.Underground;
 using Content.Shared.Access;
 using Content.Shared.Access.Systems;
 using Content.Shared.Contraband;
+using Content.Shared.FixedPoint;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
@@ -31,6 +31,7 @@ using Content.Shared.Radio;
 using Content.Shared.Roles;
 using Content.Shared.Shuttles.Components;
 using Content.Shared.Stacks;
+using Content.Shared.Store.Components;
 using Content.Shared.Turrets;
 using Content.Shared.Verbs;
 using Robust.Shared.Configuration;
@@ -164,11 +165,12 @@ public sealed class WGUndergroundTest
     }
 
     /// <summary>
-    /// A member's smuggling crate fetches more the hotter the Underground runs and isn't tipped to security; a courier's
-    /// fetches the street price. Nothing extra is paid while a raid window is open.
+    /// A member's smuggling crate fetches most while the Underground is quiet and less as it runs hot, a quarter in a
+    /// lockdown; a courier's fetches the street price. A raid shuts the market and pays the TSF, and the lockdown
+    /// outlasts the window.
     /// </summary>
     [Test]
-    public async Task HeatEarnsMembersAPremium()
+    public async Task HeatSetsMembersCratePrice()
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true, Connected = false });
         var server = pair.Server;
@@ -189,41 +191,59 @@ public sealed class WGUndergroundTest
             var courier = entMan.SpawnEntity("MobHuman", map.GridCoords);
             var crate = TradeTestWorld.Hauled(entMan, far, map.GridCoords, Smuggling);
 
+            // The TSF's uplink, which a raid pays.
+            var uplink = entMan.SpawnEntity("VendingMachineTSFMCUplink", map.GridCoords);
+            var paidBefore = entMan.GetComponent<StoreComponent>(uplink).Balance.GetValueOrDefault(WGUndergroundWarrantSystem.Credits);
+
             heat.Reset();
             var street = market.Quote(chute, Smuggling)!.Value.Amount;
-            Assert.That(market.Quote(chute, Smuggling, crate, member)!.Value.Amount, Is.EqualTo(street), "A member was paid a premium with no Heat.");
-
-            // Halfway to RAID the premium is halfway to its top.
-            heat.Add(cfg.GetCVar(WGUndergroundCVars.HeatRaid) / 2);
-            var half = 1f + (cfg.GetCVar(WGUndergroundCVars.PremiumMax) - 1f) / 2;
-            Assert.That(heat.Premium(), Is.EqualTo(half).Within(0.01));
+            var quiet = cfg.GetCVar(WGUndergroundCVars.PriceQuiet);
+            var hot = cfg.GetCVar(WGUndergroundCVars.PriceHot);
             var quote = market.Quote(chute, Smuggling, crate, member)!.Value;
             Assert.Multiple(() =>
             {
-                Assert.That(quote.Amount, Is.EqualTo((int) MathF.Round(street * half)).Within(1));
-                Assert.That(quote.Reason, Is.EqualTo((LocId) "wg-underground-reason-premium"));
-                Assert.That(market.Quote(chute, Smuggling, crate, courier)!.Value.Amount, Is.EqualTo(street), "A courier was paid the Underground's premium.");
-                Assert.That(heat.PremiumShare(), Is.LessThan(cfg.GetCVar(WGUndergroundCVars.PremiumTelecrystals)), "Telecrystals were multiplied below their line.");
+                Assert.That(quote.Amount, Is.EqualTo((int) MathF.Round(street * quiet)).Within(1), "A quiet member wasn't paid the quiet price.");
+                Assert.That(quote.Reason, Is.EqualTo((LocId) "wg-underground-reason-quiet"));
+                Assert.That(market.Quote(chute, Smuggling, crate, courier)!.Value.Amount, Is.EqualTo(street), "A courier's price moved with the Underground's Heat.");
             });
 
-            // Customs keeps a member's crates to itself, but not their narcotics or a courier's crates.
-            var tip = new WGNarcoticTipAttemptEvent(member, "wg-trade-contraband-tip-goods");
-            entMan.EventBus.RaiseEvent(EventSource.Local, ref tip);
-            var drugs = new WGNarcoticTipAttemptEvent(member, WGNarcoticHeatSystem.Narcotics);
-            entMan.EventBus.RaiseEvent(EventSource.Local, ref drugs);
-            var courierTip = new WGNarcoticTipAttemptEvent(courier, "wg-trade-contraband-tip-goods");
-            entMan.EventBus.RaiseEvent(EventSource.Local, ref courierTip);
+            // Three quarters of the way to RAID the price is three quarters of the way down to its floor.
+            heat.Add(cfg.GetCVar(WGUndergroundCVars.HeatRaid) * 0.75f);
+            var factor = quiet + (hot - quiet) * 0.75f;
+            Assert.That(heat.PriceFactor(), Is.EqualTo(factor).Within(0.01));
+            quote = market.Quote(chute, Smuggling, crate, member)!.Value;
             Assert.Multiple(() =>
             {
-                Assert.That(tip.Cancelled, Is.True, "A member's crate was tipped to security.");
-                Assert.That(drugs.Cancelled, Is.False, "A member's narcotics went untipped.");
-                Assert.That(courierTip.Cancelled, Is.False, "A courier's crate went untipped.");
+                Assert.That(quote.Amount, Is.EqualTo((int) MathF.Round(street * factor)).Within(1), "A hot member was paid as if quiet.");
+                Assert.That(quote.Reason, Is.EqualTo((LocId) "wg-underground-reason-hot"));
             });
 
+            // RAID shuts the market for the window and the lockdown after it, and pays the TSF.
             heat.Add(cfg.GetCVar(WGUndergroundCVars.HeatRaid));
             Assert.That(heat.RaidEnds, Is.Not.Null);
-            Assert.That(heat.Premium(), Is.EqualTo(1f), "A premium was paid during a raid window.");
+            Assert.Multiple(() =>
+            {
+                Assert.That(heat.Lockdown, Is.True);
+                Assert.That(heat.Closed, Is.True, "A raid left the market open.");
+                Assert.That(heat.SetClosed(false), Is.False, "The market reopened during a raid.");
+                Assert.That(heat.PriceFactor(), Is.EqualTo(cfg.GetCVar(WGUndergroundCVars.PriceLockdown)).Within(0.01));
+                Assert.That(market.Quote(chute, Smuggling, crate, member)!.Value.Reason, Is.EqualTo((LocId) "wg-underground-reason-lockdown"));
+                Assert.That(entMan.GetComponent<StoreComponent>(uplink).Balance.GetValueOrDefault(WGUndergroundWarrantSystem.Credits),
+                    Is.EqualTo(paidBefore + FixedPoint2.New(cfg.GetCVar(WGUndergroundCVars.RaidReward))), "The TSF wasn't paid for the raid.");
+            });
+
+            var closed = heat.RaidEnds!.Value;
+            heat.Tick(closed);
+            Assert.That(heat.RaidEnds, Is.Null);
+            Assert.That(heat.Lockdown, Is.True, "The lockdown ended with the raid window.");
+            Assert.That(heat.SetClosed(false), Is.False, "The market reopened during the lockdown.");
+
+            heat.Tick(closed + TimeSpan.FromMinutes(cfg.GetCVar(WGUndergroundCVars.LockdownMinutes)) + TimeSpan.FromSeconds(1));
+            Assert.That(heat.Lockdown, Is.False, "The lockdown didn't end.");
+            Assert.That(heat.SetClosed(false), Is.True);
+            Assert.That(heat.Closed, Is.False);
             heat.Reset();
+            entMan.DeleteEntity(uplink);
         });
 
         await pair.CleanReturnAsync();
@@ -319,9 +339,10 @@ public sealed class WGUndergroundTest
             Assert.That(entMan.HasComponent<FTLComponent>(grid), Is.False, "The station left during a raid window.");
             Assert.That(home.NextHop, Is.LessThanOrEqualTo(timing.CurTime), "A jump the raid called off still cost the hour.");
 
-            // The raid keeps the turrets wanted whatever the Godfather orders, which is what the console reports.
-            station.SetArmed(false);
-            Assert.That(station.WantTurrets, Is.True, "Standing the turrets down lowered them during a raid.");
+            // A raid is fought without the turrets, and the Godfather can't arm them during one.
+            Assert.That(station.WantTurrets, Is.False, "A raid brought the turrets up.");
+            Assert.That(station.SetArmed(true), Is.False, "The turrets were armed during a raid.");
+            Assert.That(station.WantTurrets, Is.False);
             Assert.That(station.TryHop((grid, home), out refusal), Is.False, "The station jumped out of a raid.");
             Assert.That(refusal, Is.EqualTo(Loc.GetString("wg-underground-hop-raid")));
             heat.Tick(heat.RaidEnds!.Value);
@@ -431,8 +452,23 @@ public sealed class WGUndergroundTest
             entMan.AddComponent<WGUndergroundMemberComponent>(next);
             warrants.Claim(next, gone);
             Assert.That(entMan.GetComponent<ContrabandComponent>(next).TurnInValues.ContainsKey(WGUndergroundWarrantSystem.Credits), Is.False);
-            Assert.That(warrants.CanTurnIn(next, WGUndergroundWarrantSystem.Credits.Id), Is.False, "The pallet would take a player still serving their hour.");
+            Assert.That(warrants.CanTurnIn(next, WGUndergroundWarrantSystem.Credits.Id), Is.False, "The pallet would take a player still serving their time.");
             Assert.That(entMan.HasComponent<WGUndergroundHeldComponent>(next), Is.False);
+
+            // Attacking the TSF ends the served time, and a second capture holds longer for dearer bail.
+            var nextMember = entMan.GetComponent<WGUndergroundMemberComponent>(next);
+            warrants.Unserve(next, nextMember);
+            Assert.That(warrants.Served(gone), Is.False, "Attacking didn't end the served time.");
+            Assert.That(warrants.CapturesOf(next), Is.EqualTo(1));
+            Assert.That(warrants.CanTurnIn(next, WGUndergroundWarrantSystem.Credits.Id), Is.False, "A second capture skipped the bail clock.");
+            var again = entMan.GetComponent<WGUndergroundHeldComponent>(next);
+            var cfg = server.ResolveDependency<IConfigurationManager>();
+            var minutes = cfg.GetCVar(WGUndergroundCVars.BailMinutes) + cfg.GetCVar(WGUndergroundCVars.BailRepeatMinutes);
+            Assert.Multiple(() =>
+            {
+                Assert.That(again.Bail, Is.EqualTo((int) MathF.Round(nextMember.BaseWarrant * 200 * (1 + cfg.GetCVar(WGUndergroundCVars.BailRepeat)))));
+                Assert.That(again.Until - server.ResolveDependency<IGameTiming>().CurTime, Is.EqualTo(TimeSpan.FromMinutes(minutes)).Within(TimeSpan.FromSeconds(1)));
+            });
             entMan.DeleteEntity(next);
         });
 
@@ -675,6 +711,18 @@ public sealed class WGUndergroundTest
         await server.WaitAssertion(() =>
         {
             Assert.That(entMan.GetComponent<DeployableTurretComponent>(first).Enabled, Is.True, "The turrets stayed down after the warning.");
+
+            // A raid stands armed turrets down and keeps them down; when it closes they come back up.
+            cfg.SetCVar(WGUndergroundCVars.TurretWarning, 0f);
+            var heat = server.System<WGUndergroundHeatSystem>();
+            heat.Add(cfg.GetCVar(WGUndergroundCVars.HeatRaid));
+            Assert.That(heat.RaidEnds, Is.Not.Null);
+            Assert.That(entMan.GetComponent<DeployableTurretComponent>(first).Enabled, Is.False, "The turrets stayed up in a raid.");
+            Assert.That(station.SetArmed(true), Is.False, "The turrets were armed during a raid.");
+            heat.Tick(heat.RaidEnds!.Value);
+            Assert.That(entMan.GetComponent<DeployableTurretComponent>(first).Enabled, Is.True, "Armed turrets didn't come back after the raid.");
+            heat.Reset();
+
             station.SetArmed(false);
             Assert.That(entMan.GetComponent<DeployableTurretComponent>(first).Enabled, Is.False);
             cfg.SetCVar(WGUndergroundCVars.TurretWarning, 30f);

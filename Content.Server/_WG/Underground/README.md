@@ -5,27 +5,30 @@ a Heat level that decides when it is hunted and when its station can be struck, 
 
 **Heat** (`WGUndergroundHeatSystem`) is one faction-wide level, shown on every PDA under the war level: QUIET,
 WATCHED, WANTED and RAID. It rises when a member sells smuggling crates at the drop, sealed freight to the fence or
-supply crates at a cargo pallet, or kills a TSF or PDV player. A sale by anyone else pays the treasury and adds no
+supply crates at a cargo pallet, or puts a TSF or PDV player into crit (`heat_crit`) or kills them (`heat_kill`). A sale by anyone else pays the treasury and adds no
 Heat (`wg.underground.heat_outsider`, never above zero for the TSF and PDV), so a courier keeps the faction quiet and
 its hunters can't run the Heat up. It cools all the time outside a raid window, twice as fast while the Godfather has
 the market closed. WATCHED (6) and WANTED (12) tell TSF security over the radio, WANTED with a bearing
-every ten minutes. RAID (20) announces the station's position to the sector and opens a 20 minute window in which it may
-be struck; afterwards Heat drops to WATCHED and can't reach RAID again for 45 minutes. A supply crate only counts when
+every ten minutes. RAID (20) announces the station's position to the sector, pays the TSF's uplinks
+`wg.underground.raid_reward` military credits (through `CurrencyInjectionSystem`) and opens a 30 minute window in which
+it may be struck; afterwards Heat drops to WATCHED and can't reach RAID again for 45 minutes. The window and the
+`lockdown_minutes` (30) after it are a lockdown: the market is shut and can't be reopened, and the UndergroundVend refuses
+purchases (`BoundUserInterfaceMessageAttempt` in `WGUndergroundBaseSystem`). A supply crate only counts when
 sold at its destination. The same system keeps the faction's treasury (5,000 thalers a job sold) and the round-end tally.
 
-**Risk premium:** a member's smuggling crate is quoted at the street price times `Premium()`, which climbs from 1 at no
-Heat to `wg.underground.premium_max` (3) at RAID, through `WGTradeQuoteEvent.Premium`. From
-`wg.underground.premium_telecrystals` (65%) of the way to RAID the premium multiplies the crate's telecrystals too. It is
-1 while a raid window is open and stops at WANTED in the 45 minutes after one, so nobody sells at the top with no raid
-to fear. Customs doesn't tip security off about a member's crate (`WGNarcoticTipAttemptEvent`); their narcotics heat,
-pay cut and warrant still apply, and their narcotics are tipped off as before.
+**Price by Heat:** a member's smuggling crate is quoted at the street price times `PriceFactor()`: `price_quiet` (1.5)
+at no Heat, falling to `price_hot` (0.5) just short of RAID, and `price_lockdown` (0.25) in a lockdown. Above 1 it is
+`WGTradeQuoteEvent.Premium`, below 1 a lowering modifier, so lying low pays and running hot costs. Customs tips off
+security about members' crates as it does anyone's.
 
 **Warrants** (`WGUndergroundWarrantSystem`, `WGUndergroundMemberComponent` on the jobs) replace the fixed bounty.
 A member starts at a base warrant that grows by 25 military credits for each job they sell themself, up to the old
 figures (150 a Fugitive, 250 a Fixer, 400 the Godfather). A TSF contraband pallet only takes a member alive. The
 first time it sees one it holds them for five minutes and tells the Underground the bail (200 thalers a credit of
 warrant); bail paid at the cargo console lands as cash beside the prisoner. A member who was handed in or bailed
-can't be handed in again for an hour, on that body or the player's next. A tagged new player is never sold at any
+can't be handed in again for `served_minutes` (30), on that body or the player's next, unless they damage a TSF or PDV
+player (`OnPlayerDamaged`). Each earlier capture of the same player that round adds `bail_repeat` (half) to the bail and
+`bail_repeat_minutes` (5) to the hold. A tagged new player is never sold at any
 pallet.
 
 **Heretic marks** (`WGHereticMarkSystem`): the marked player is told; a tagged new player is never marked; a player
@@ -34,8 +37,9 @@ half for a dead one, clears the mark and leaves the body. No other pallet takes 
 shut inside a container that is sold is put out on the pallet, not deleted with it, and counts as not handed in. The Underground's jobs no
 longer roll for a mark; the Heretic trait is open to them.
 
-**The station** (`WGUndergroundBaseSystem`): its turrets (`WGUndergroundTurretComponent`) stay retracted until a
-raid or until the Godfather arms them, and then fire on anyone without Underground access. They have no guest list:
+**The station** (`WGUndergroundBaseSystem`): its turrets (`WGUndergroundTurretComponent`) stay retracted until the
+Godfather arms them, and then fire on anyone without Underground access. A raid window stands them down and they can't be
+armed during one; when it closes, armed turrets come back up with the usual warning. They have no guest list:
 everyone on the station or docked to it gets 30 seconds' warning before they come up (`wg.underground.turret_warning`),
 and a ship that docks while they are up is told the station is closed and to undock (`Docked`). That is how the
 market truce's guests get clear: nothing exempts a guest the turrets can see, a docked ship's crew included. A safehouse ship is parked
@@ -48,12 +52,12 @@ raid window is open, and a raid that opens during the warning calls the jump off
 
 **The cargo console** (`WGUndergroundTerminalSystem`, alt-click verbs on the Underground's cargo request console):
 anyone with Underground access reads the faction's status; the Godfather and Fixers issue market passes (a pinpointer
-to the station that lasts 30 minutes) and pay bail; the Godfather opens and closes the market, arms the turrets, pays
+to the station that lasts 30 minutes) and pay bail; the Godfather opens and closes the market (not during a lockdown), arms the turrets outside a raid, pays
 the crew from the treasury, jumps the station and declares a vendetta on a ship within 1.5 km.
 
-Content: the Fixer job, the Underground's contracts board and contractor (thalers and telecrystals), the contact on
-Caelestinus Central who sells market passes, and the guidebook pages. The UndergroundVend also sells the C-20r bundle
-(55 TC) and the ship jammer (25 TC, `WGShipJammerSystem`): used in hand aboard a ship, it stops every jammable radio
+Content: the Fixer job, the Underground's contracts board and contractor (thalers), the contact on
+Caelestinus Central who sells market passes, and the guidebook pages. The UndergroundVend also sells the ship jammer
+(25 TC, `WGShipJammerSystem`): used in hand aboard a ship, it stops every jammable radio
 message and NanoChat sent from that grid for ten minutes, then is gone. It can be smashed. Settings are the `wg.underground.*` cvars in `WGUndergroundCVars`.
 
 Not done here: the treasury is the module's own counter, not a sector bank account, and the roles draw no salary;
@@ -124,7 +128,6 @@ pay is the Godfather's payroll verb.
 - [`Resources/Maps/_Mono/Outpost/caelestinus_central.yml`](../../../Resources/Maps/_Mono/Outpost/caelestinus_central.yml): The Underground's contact, who sells market passes, placed on the Central Command map.
 - [`Resources/Maps/_Mono/POI/underground.yml`](../../../Resources/Maps/_Mono/POI/underground.yml): Point-defence turrets, the Fixers' spawn markers and the Underground's contracts board with its pad.
 - [`Resources/Prototypes/_Mono/Entities/Structures/Machines/Computers/underground_computers.yml`](../../../Resources/Prototypes/_Mono/Entities/Structures/Machines/Computers/underground_computers.yml): ordering a crate is quiet, selling one adds Heat; the console also runs the faction's business
-- [`Resources/Prototypes/_Mono/Entities/Structures/Specific/TradingCrates/base.yml`](../../../Resources/Prototypes/_Mono/Entities/Structures/Specific/TradingCrates/base.yml): a supply crate is worth the Heat it draws; was 10
 - [`Resources/Prototypes/_Mono/Guidebook/factions.yml`](../../../Resources/Prototypes/_Mono/Guidebook/factions.yml): the faction page is rewritten; was /ServerInfo/_Mono/Guidebook/Factions/underground.xml
 - [`Resources/Prototypes/_Mono/Guidebook/rules.yml`](../../../Resources/Prototypes/_Mono/Guidebook/rules.yml)
 - [`Resources/Prototypes/_Mono/PointsOfInterest/underground.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/underground.yml)
@@ -146,13 +149,13 @@ pay is the Godfather's payroll verb.
   - the Underground is neutral and needs escalation
   - a heretic mark starts with a challenge
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Three_FairPlay.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Three_FairPlay.xml): bounties and heretic marks are demands too
-- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Two_NewLife.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Two_NewLife.xml): the hour also protects a player just collected for a bounty or heretic mark
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Two_NewLife.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Two_NewLife.xml): a player just collected for a bounty or heretic mark is protected too
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml): the Underground rule
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Eight_FactionRoles.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Eight_FactionRoles.xml): what abandonment means for the Underground
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Nine_CommandingRoles.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Nine_CommandingRoles.xml): the Godfather is a commander
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Seven_SafeZones.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Seven_SafeZones.xml)
   - job bounties and heretic marks are not command bounties
   - a raid window lifts the Underground's protection
-  - the Underground gets no contraband exception in a Safe Zone
+  - selling contraband in a Safe Zone forfeits its protection
 
 <!-- WOLFGATE-GENERATED END -->

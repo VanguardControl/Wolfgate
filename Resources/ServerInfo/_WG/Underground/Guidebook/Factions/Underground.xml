@@ -26,7 +26,7 @@ Your PDA shows the Underground's Heat under the war level. Heat goes up with wha
 - A smuggling crate one of you sells at the Drop adds [bold]1[/bold].
 - A load of sealed freight one of you sells to the fence adds [bold]1[/bold].
 - An Underground supply crate one of you sells adds [bold]2[/bold].
-- A TSF or PDV player killed by one of you adds [bold]3[/bold].
+- A TSF or PDV player one of you puts into critical condition adds [bold]2[/bold], and killing them adds [bold]3[/bold] more.
 - A member handed in to the TSF takes [bold]2[/bold] off.
 
 The Heat cools all the time, losing 1 every five minutes.
@@ -34,7 +34,9 @@ The Heat cools all the time, losing 1 every five minutes.
 - [color=#2e9e4f][bold]QUIET[/bold][/color]: nobody is looking for you.
 - [bold]WATCHED[/bold] (Heat 6): the TSF knows goods are moving.
 - [color=#b8860b][bold]WANTED[/bold][/color] (Heat 12): the TSF gets a bearing to the station every ten minutes. The bearing gives a direction but no distance.
-- [color=#d93c3c][bold]RAID[/bold][/color] (Heat 20): the station's position goes out to the whole sector, and it can be raided for 20 minutes. Its turrets come up after a 30 second warning to everyone aboard, and Safe Zones stop protecting you from capture until the window closes. Afterwards the Heat drops to WATCHED and can't reach RAID again for 45 minutes.
+- [color=#d93c3c][bold]RAID[/bold][/color] (Heat 20): the station's position goes out to the whole sector, the TSF is paid for it, and the station can be raided for 30 minutes. Its turrets stand down for the raid, and Safe Zones stop protecting you from capture until the window closes. Afterwards the Heat drops to WATCHED and can't reach RAID again for 45 minutes.
+
+A raid also starts a [color=#d93c3c][bold]lockdown[/bold][/color] that lasts until 30 minutes after the window closes: the market is shut, the UndergroundVend sells nothing, and your smuggling crates fetch a quarter of their price.
 
 A sale made by someone outside the UBM adds no Heat and still pays the treasury. A hired courier keeps you quiet, and the price is the courier's cut.
 
@@ -52,7 +54,7 @@ The Underground runs on [color=red]telecrystals[/color], which ship in illegal i
 
 [color=crimson]Underground supply crates[/color] full of deactivated telecrystals are ordered from the station's cargo request console for 20,000 each. Ordering one is quiet. Deactivated telecrystals give off a thermal signature, so don't carry too many.
 
-A crate sold at its destination pays the courier 30,000 and sends twenty telecrystals to the UndergroundVend. The TSFMC is informed about the sale as well, so get out quick. Each one a member sells adds Heat.
+A crate sold at its destination pays the courier 30,000 and sends ten telecrystals to the UndergroundVend. The TSFMC is informed about the sale as well, so get out quick. Each one a member sells adds Heat.
 
 ## The Fence and the Drop
 
@@ -67,7 +69,7 @@ The fence chute buys freight that still has its manifest seal, such as cargo tak
 
 Every crate sold at the Drop and every load sold to the fence pays 5,000 thalers into the Underground's treasury, and adds Heat when one of you makes the sale.
 
-A smuggling crate pays 35,000 and four telecrystals at the Drop. When one of you sells it, the buyer pays more the hotter the Underground runs: nothing extra at no Heat, rising to three times the price just short of RAID, and the telecrystals are multiplied the same way from 65% of the way to RAID. Nothing extra is paid while a raid window is open, and in the 45 minutes after one the price stops rising at WANTED. Customs doesn't tip off security about your crates, though selling too many at once still lowers what you are paid and can get you a warrant. The cargo console's status shows how far the Heat is from RAID and what your crates fetch.
+A smuggling crate pays 35,000 and two telecrystals at the Drop. When one of you sells it, the buyer pays by the Heat: half as much again while the Underground is QUIET, falling to half the price just short of RAID, and a quarter in a lockdown. Lying low pays. Customs tips off security about every crate, and selling too many at once lowers what you are paid and can get you a warrant. The cargo console's status shows how far the Heat is from RAID and what your crates fetch.
 
 ## The Cargo Console
 
@@ -80,7 +82,7 @@ Alt-click the station's cargo request console to run the faction's business.
 
 - Anyone in the Underground can read the Heat and the treasury.
 - [color=#d9730d]Fixers[/color] and the [color=purple]Godfather[/color] issue [bold]market passes[/bold] and pay [bold]bail[/bold] from the treasury.
-- The [color=purple]Godfather[/color] opens and closes the market, arms the turrets, pays the crew, jumps the station, and declares a Vendetta on a ship near the station.
+- The [color=purple]Godfather[/color] opens and closes the market, arms the turrets outside a raid, pays the crew, jumps the station, and declares a Vendetta on a ship near the station.
 
 A market pass points its holder at the station for 30 minutes. Hand one to a customer you want to dock. The Underground's contact on Caelestinus Central sells them too.
 
@@ -104,7 +106,7 @@ A second Underground ship is parked a few kilometres from the station, hidden th
 - A [color=#d9730d]Fixer[/color]'s starts at [bold]50[/bold] [color=yellow]FMC[/color] and grows to [bold]250[/bold].
 - The [color=purple]Godfather[/color]'s starts at [bold]100[/bold] [color=yellow]FMC[/color] and grows to [bold]400[/bold].
 
-A warrant grows by 25 FMC for every job its owner sells. All are paid for a live prisoner, and the pallet holds you for five minutes so the Underground can pay your bail. After a capture or bail, no pallet takes you for an hour.
+A warrant grows by 25 FMC for every job its owner sells. All are paid for a live prisoner, and the pallet holds you for five minutes so the Underground can pay your bail. Each time you are caught again in the same round, the hold is five minutes longer and the bail half as much again. After a capture or bail, no pallet takes you for 30 minutes, unless you attack a TSF or PDV player.
 
 The [color=tan]Sultanate[/color] does not mark the Underground's people by default. Take the Heretic trait if you want the [color=tan]PDV[/color] hunting you as well. As always, they have to challenge you first.
 </Document>

@@ -3,6 +3,7 @@ using Content.Server.Stack;
 using Content.Shared._WG.Newbie;
 using Content.Shared._WG.Underground;
 using Content.Shared.Contraband;
+using Content.Shared.Damage;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Mobs.Components;
@@ -19,7 +20,8 @@ namespace Content.Server._WG.Underground;
 
 /// <summary>
 /// Personal warrants on Underground members: what the TSF pays for each of them alive, how it grows with their own
-/// jobs, the bail the Underground can pay while a pallet holds them and the hour they can't be handed in again.
+/// jobs, the bail the Underground can pay while a pallet holds them, dearer with each capture in the round, and the
+/// time they can't be handed in again unless they attack the TSF or PDV.
 /// Also decides which prisoners and bodies a contraband pallet takes.
 /// </summary>
 public sealed partial class WGUndergroundWarrantSystem : EntitySystem
@@ -47,14 +49,49 @@ public sealed partial class WGUndergroundWarrantSystem : EntitySystem
     /// <summary>Players who were handed in or bailed, and until when their next body can't be.</summary>
     private readonly Dictionary<NetUserId, TimeSpan> _served = new();
 
+    /// <summary>How many times each player has been handed in or bailed this round.</summary>
+    private readonly Dictionary<NetUserId, int> _captures = new();
+
     private TimeSpan _nextStep;
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<WGUndergroundMemberComponent, ComponentStartup>(OnStartup);
+        SubscribeLocalEvent<ActorComponent, DamageChangedEvent>(OnPlayerDamaged);
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnSpawned);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnCleanup);
+    }
+
+    /// <summary>A member who hurts a TSF or PDV player gives up the time they were serving, as Rule 7 says.</summary>
+    private void OnPlayerDamaged(Entity<ActorComponent> ent, ref DamageChangedEvent args)
+    {
+        if (!args.DamageIncreased
+            || args.Origin is not { } attacker
+            || attacker == ent.Owner
+            || !TryComp<WGUndergroundMemberComponent>(attacker, out var member)
+            || !_heat.IsHunter(ent))
+            return;
+
+        Unserve(attacker, member);
+    }
+
+    /// <summary>Ends a member's served time, so pallets take them again.</summary>
+    public void Unserve(EntityUid mob, WGUndergroundMemberComponent member)
+    {
+        if (member.LockedUntil <= _timing.CurTime)
+            return;
+
+        member.LockedUntil = TimeSpan.Zero;
+        if (PlayerOf(mob) is { } user)
+            _served.Remove(user);
+        Apply(mob, member);
+    }
+
+    /// <summary>How many times a member's player has been handed in or bailed this round.</summary>
+    public int CapturesOf(EntityUid mob)
+    {
+        return PlayerOf(mob) is { } user ? _captures.GetValueOrDefault(user) : 0;
     }
 
     public override void Update(float frameTime)
@@ -259,13 +296,17 @@ public sealed partial class WGUndergroundWarrantSystem : EntitySystem
         if (TryComp<WGUndergroundHeldComponent>(mob, out var held))
             return now >= held.Until;
 
+        // Each earlier capture this round makes the hold longer and the bail dearer.
+        var repeats = CapturesOf(mob);
         var minutes = _cfg.GetCVar(WGUndergroundCVars.BailMinutes);
         if (minutes <= 0)
             return true;
 
+        minutes += repeats * Math.Max(0f, _cfg.GetCVar(WGUndergroundCVars.BailRepeatMinutes));
         held = AddComp<WGUndergroundHeldComponent>(mob);
         held.Until = now + TimeSpan.FromMinutes(minutes);
-        held.Bail = member.Warrant * _cfg.GetCVar(WGUndergroundCVars.BailRate);
+        var rate = 1f + repeats * Math.Max(0f, _cfg.GetCVar(WGUndergroundCVars.BailRepeat));
+        held.Bail = (int) MathF.Round(member.Warrant * _cfg.GetCVar(WGUndergroundCVars.BailRate) * rate);
         var place = Transform(mob).GridUid is { } grid ? Name(grid) : Loc.GetString("wg-underground-bail-somewhere");
         _heat.TellFaction(Loc.GetString("wg-underground-bail-told",
             ("name", Name(mob)), ("place", place), ("amount", held.Bail), ("minutes", (int) minutes)));
@@ -273,13 +314,16 @@ public sealed partial class WGUndergroundWarrantSystem : EntitySystem
         return false;
     }
 
-    /// <summary>Locks a member, and the player's next body, out of pallets for the served time.</summary>
+    /// <summary>Locks a member, and the player's next body, out of pallets for the served time, and counts the capture.</summary>
     private void Serve(EntityUid mob, WGUndergroundMemberComponent member)
     {
         var until = _timing.CurTime + TimeSpan.FromMinutes(_cfg.GetCVar(WGUndergroundCVars.ServedMinutes));
         member.LockedUntil = until;
-        if (PlayerOf(mob) is { } user)
-            _served[user] = until;
+        if (PlayerOf(mob) is not { } user)
+            return;
+
+        _served[user] = until;
+        _captures[user] = _captures.GetValueOrDefault(user) + 1;
     }
 
     /// <summary>Writes the warrant onto the member as the military credits a pallet pays for them.</summary>
@@ -320,5 +364,6 @@ public sealed partial class WGUndergroundWarrantSystem : EntitySystem
     private void OnCleanup(RoundRestartCleanupEvent ev)
     {
         _served.Clear();
+        _captures.Clear();
     }
 }

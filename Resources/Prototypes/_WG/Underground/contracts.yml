@@ -1,4 +1,4 @@
-# The Underground's own board: members only, no standing lost with anyone. Each pays telecrystals to its holder on top.
+# The Underground's own board: members only, no standing lost with anyone.
 # Open-space encounters keep wg.encounters.hidden_clearance (6 km) from a hidden station, so targets start past it.
 
 - type: wgContractor
@@ -25,8 +25,6 @@
   minutes: 55
   weight: 1.5
   crewBonus: 0.25
-  credits: 6
-  creditEntity: Telecrystal
   objective: !type:WGContractBounty
     encounters: [ WGContractTargetRepossession ]
     minDistance: 6500
@@ -44,8 +42,6 @@
   minutes: 55
   weight: 1.0
   crewBonus: 0.25
-  credits: 6
-  creditEntity: Telecrystal
   objective: !type:WGContractBounty
     encounters: [ WGContractTargetSmuggler ]
     minDistance: 6500
@@ -63,8 +59,6 @@
   minutes: 60
   weight: 0.8
   crewBonus: 0.25
-  credits: 12
-  creditEntity: Telecrystal
   objective: !type:WGContractBounty
     encounters: [ WGContractTargetMercHunter ]
     minDistance: 6500
@@ -81,8 +75,6 @@
   deposit: 2000
   minutes: 75
   weight: 2.0
-  credits: 6
-  creditEntity: Telecrystal
   objective: !type:WGContractCourier
     package: WGContractFreightContraband
     count: 2, 4
@@ -102,8 +94,6 @@
   reward: 14000, 18000
   minutes: 75
   weight: 1.5
-  credits: 3
-  creditEntity: Telecrystal
   objective: !type:WGContractCourier
     package: WGContractStrongbox
     from: Other
@@ -121,8 +111,6 @@
   reward: 52500, 70000
   minutes: 60
   weight: 2.0
-  credits: 6
-  creditEntity: Telecrystal
   objective: !type:WGContractSupply
     premium: 1.25
     goods:

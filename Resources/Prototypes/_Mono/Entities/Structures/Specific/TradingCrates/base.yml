@@ -29,7 +29,7 @@
     injection: 
       company: Underground
       amount:
-        Telecrystal: 20 # WOLFGATE(Underground): a supply crate is worth the Heat it draws; was 10
+        Telecrystal: 10
   - type: ExtendDescription
     descriptionList:
     - description: Selling this item will fund the Underground and notify the TSFMC.

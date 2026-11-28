@@ -152,7 +152,6 @@ client partial of `WolfmedSyntheticHudOverlaySystem`. Sticks are in `Resources/P
 - [`Content.Server/_WG/WolfChem/Narcotics/WGNarcoticMarkedComponent.cs`](Narcotics/WGNarcoticMarkedComponent.cs)
 - [`Content.Server/_WG/WolfChem/Narcotics/WGNarcoticStockComponent.cs`](Narcotics/WGNarcoticStockComponent.cs)
 - [`Content.Server/_WG/WolfChem/Narcotics/WGNarcoticStockSystem.cs`](Narcotics/WGNarcoticStockSystem.cs)
-- [`Content.Server/_WG/WolfChem/Narcotics/WGNarcoticTipAttemptEvent.cs`](Narcotics/WGNarcoticTipAttemptEvent.cs)
 - [`Content.Server/_WG/WolfChem/Narcotics/WGNodSystem.cs`](Narcotics/WGNodSystem.cs)
 - [`Content.Server/_WG/WolfChem/Narcotics/WGPilotImpairmentComponent.cs`](Narcotics/WGPilotImpairmentComponent.cs)
 - [`Content.Server/_WG/WolfChem/Narcotics/WGSecondhandSmokeSystem.cs`](Narcotics/WGSecondhandSmokeSystem.cs)
