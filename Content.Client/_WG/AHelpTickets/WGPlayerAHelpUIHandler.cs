@@ -41,6 +41,11 @@ public sealed class WGPlayerAHelpUIHandler : IAHelpUIHandler
     /// <summary>Whether a line has been said in the conversation shown, so it opens on the chat rather than the form.</summary>
     private bool _talking;
 
+    /// <summary>The player asked for the form; it stays up through status updates until they submit.</summary>
+    private bool _formRequested;
+
+    private bool _everOpened;
+
     public WGPlayerAHelpUIHandler(NetUserId owner)
     {
         IoCManager.InjectDependencies(this);
@@ -66,7 +71,20 @@ public sealed class WGPlayerAHelpUIHandler : IAHelpUIHandler
             _talking = true;
 
         ShowView();
-        _window!.OpenCentered();
+        OpenWindow();
+    }
+
+    /// <summary>Opens the window, centred only the first time so it stays where the player put it.</summary>
+    private void OpenWindow()
+    {
+        if (_window!.IsOpen)
+            return;
+
+        if (_everOpened)
+            _window.Open();
+        else
+            _window.OpenCentered();
+        _everOpened = true;
     }
 
     public void Close()
@@ -80,14 +98,14 @@ public sealed class WGPlayerAHelpUIHandler : IAHelpUIHandler
         if (_window!.IsOpen)
             _window.Close();
         else
-            _window.OpenCentered();
+            OpenWindow();
     }
 
     public void Open(NetUserId netUserId, bool relayActive)
     {
         _relayActive = relayActive;
         EnsureInit();
-        _window!.OpenCentered();
+        OpenWindow();
     }
 
     public void DiscordRelayChanged(bool active)
@@ -174,7 +192,8 @@ public sealed class WGPlayerAHelpUIHandler : IAHelpUIHandler
         newTicket.OnPressed += _ =>
         {
             _talking = false;
-            ShowView(form: true);
+            _formRequested = true;
+            ShowView();
         };
         var export = new Button { Text = Loc.GetString("wg-ahelp-tickets-export"), StyleClasses = { "OpenLeft" } };
         export.OnPressed += _ => Export();
@@ -198,6 +217,7 @@ public sealed class WGPlayerAHelpUIHandler : IAHelpUIHandler
         SendMessageAction?.Invoke(_owner, text, true, false);
         _firstMessage.TextRope = new Rope.Leaf(string.Empty);
         _talking = true;
+        _formRequested = false;
         ShowView();
         _chat?.Input.GrabKeyboardFocus();
     }
@@ -208,14 +228,19 @@ public sealed class WGPlayerAHelpUIHandler : IAHelpUIHandler
     }
 
     /// <summary>The form when nothing is going on (or asked for), otherwise the conversation.</summary>
-    private void ShowView(bool form = false)
+    private void ShowView()
     {
         if (_form == null || _chatView == null)
             return;
 
         var status = _tickets?.OwnStatus;
         var open = status != null && !status.State.IsClosed();
-        var showForm = form || !open && !_talking;
+
+        // Staff picking up a new ticket ends the form: the conversation has started.
+        if (open && _formRequested && _talking)
+            _formRequested = false;
+
+        var showForm = _formRequested && !open || !open && !_talking;
         _form.Visible = showForm;
         _chatView.Visible = !showForm;
         if (_closedNotice != null)

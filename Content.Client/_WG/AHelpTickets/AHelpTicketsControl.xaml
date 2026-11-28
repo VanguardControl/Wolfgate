@@ -20,6 +20,11 @@
                     <Label Name="Placeholder" Text="{Loc 'wg-ahelp-tickets-none-selected'}" StyleClasses="LabelSubText" VerticalExpand="True" VAlign="Center" Align="Center" />
                     <BoxContainer Name="BwoinkArea" Access="Public" VerticalExpand="True" />
                     <Label Name="Collision" Visible="False" FontColorOverride="#ffb347" />
+                    <BoxContainer Name="MacroConfirm" Orientation="Horizontal" HorizontalExpand="True" Visible="False">
+                        <Label Name="MacroConfirmLabel" HorizontalExpand="True" ClipText="True" MouseFilter="Stop" />
+                        <Button Name="MacroSend" Text="{Loc 'wg-ahelp-macro-send'}" StyleClasses="OpenRight" />
+                        <Button Name="MacroCancel" Text="{Loc 'wg-ahelp-macro-cancel'}" StyleClasses="OpenLeft" />
+                    </BoxContainer>
                     <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
                         <CheckBox Name="AdminOnly" Access="Public" Text="{Loc 'wg-ahelp-tickets-admin-only'}" />
                         <Control MinWidth="8" />

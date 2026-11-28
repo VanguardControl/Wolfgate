@@ -47,6 +47,9 @@ public sealed class LogInvestigatorEui : BaseEui
     private readonly LogReportKind? _prefillReport;
     private CancellationTokenSource _cancel = new();
 
+    /// <summary>The report being built read as many rows as it may of some kind, so it may be missing some.</summary>
+    private bool _reportCut;
+
     /// <summary>Cancels the live poll for newer logs, apart from searches and reports.</summary>
     private CancellationTokenSource _tailCancel = new();
 
@@ -277,6 +280,13 @@ public sealed class LogInvestigatorEui : BaseEui
         var stopwatch = new Robust.Shared.Timing.Stopwatch();
         stopwatch.Start();
 
+        if (!await ApplyNear(query, cancel))
+        {
+            if (!IsShutDown && Player.Status != SessionStatus.Disconnected)
+                SendMessage(new LogInvestigatorPageMsg(new List<LogRow>(), first, false, first ? 0 : null));
+            return;
+        }
+
         var page = _cfg.GetCVar(LogInvestigatorCVars.PageSize);
         var (rows, hasMore, total) = await _db.GetInvestigatorLogsAsync(query, _roundStart, msg.AfterId, page, first, cancel);
         cancel.ThrowIfCancellationRequested();
@@ -300,6 +310,9 @@ public sealed class LogInvestigatorEui : BaseEui
         _tailCancel = new CancellationTokenSource();
         var cancel = _tailCancel.Token;
 
+        if (!await ApplyNear(query, cancel))
+            return;
+
         var page = _cfg.GetCVar(LogInvestigatorCVars.PageSize);
         var (rows, hasMore, _) = await _db.GetInvestigatorLogsAsync(query, _roundStart, newest, page, false, cancel, newer: true);
         cancel.ThrowIfCancellationRequested();
@@ -314,6 +327,7 @@ public sealed class LogInvestigatorEui : BaseEui
         var cancel = Restart();
         var query = request.Query;
         query.RoundId = _roundId;
+        _reportCut = false;
 
         var report = request.Kind switch
         {
@@ -324,6 +338,15 @@ public sealed class LogInvestigatorEui : BaseEui
         };
 
         cancel.ThrowIfCancellationRequested();
+
+        // A report that hit the row cap says so first, so nobody reads a partial fight as the whole of it.
+        if (report != null && _reportCut)
+        {
+            var sections = new List<LogReportSection> { new(Loc.GetString("wg-log-report-cut-title"), new List<string> { Loc.GetString("wg-log-report-cut", ("rows", ReportRows)) }) };
+            sections.AddRange(report.Sections);
+            report = report with { Sections = sections };
+        }
+
         if (report != null && !IsShutDown && Player.Status != SessionStatus.Disconnected)
             SendMessage(new LogInvestigatorReportMsg(report));
     }
@@ -376,6 +399,9 @@ public sealed class LogInvestigatorEui : BaseEui
         return LogReports.Encounter(hits, deaths, chat, _roundStart, nearby);
     }
 
+    /// <summary>The most players one timeline report covers, each in a block of its own.</summary>
+    private const int TimelinePlayers = 5;
+
     private async Task<LogReport> Timeline(LogQuery query, CancellationToken cancel)
     {
         if (query.Players.Length == 0)
@@ -383,17 +409,6 @@ public sealed class LogInvestigatorEui : BaseEui
             return new LogReport(LogReportKind.Timeline, Loc.GetString("wg-log-report-timeline-title", ("player", "?")),
                 new List<LogReportSection> { new(Loc.GetString("wg-log-report-phases"), new List<string> { Loc.GetString("wg-log-report-pick-player") }) });
         }
-
-        var player = query.Players[0];
-        var one = new LogQuery
-        {
-            RoundId = query.RoundId,
-            Players = new[] { player },
-            FromSeconds = query.FromSeconds,
-            ToSeconds = query.ToSeconds,
-            Types = query.Types,
-            Ascending = true,
-        };
 
         var categories = new Dictionary<LogType, string>();
         foreach (var category in _proto.EnumeratePrototypes<WGLogCategoryPrototype>())
@@ -404,10 +419,40 @@ public sealed class LogInvestigatorEui : BaseEui
             }
         }
 
-        var name = _roundPlayers.FirstOrDefault(p => p.Id == player) is { } known
-            ? known.Character != null ? $"{known.Character} ({known.Username})" : known.Username
-            : player.ToString();
-        return LogReports.Timeline(name, await Rows(one, cancel), categories, _roundStart);
+        // Each chosen player gets their own block, headed by their name; past the limit the report says who was left out.
+        var players = query.Players.Take(TimelinePlayers).ToList();
+        var names = new List<string>();
+        var sections = new List<LogReportSection>();
+        foreach (var player in players)
+        {
+            var one = new LogQuery
+            {
+                RoundId = query.RoundId,
+                Players = new[] { player },
+                FromSeconds = query.FromSeconds,
+                ToSeconds = query.ToSeconds,
+                Types = query.Types,
+                Ascending = true,
+            };
+
+            var name = _roundPlayers.FirstOrDefault(p => p.Id == player) is { } known
+                ? known.Character != null ? $"{known.Character} ({known.Username})" : known.Username
+                : player.ToString();
+            names.Add(name);
+
+            var timeline = LogReports.Timeline(name, await Rows(one, cancel), categories, _roundStart);
+            if (players.Count > 1)
+                sections.Add(new LogReportSection(Loc.GetString("wg-log-report-timeline-player", ("player", name)), new List<string>()));
+            sections.AddRange(timeline.Sections);
+        }
+
+        if (query.Players.Length > players.Count)
+        {
+            sections.Add(new LogReportSection(Loc.GetString("wg-log-report-timeline-more-title"),
+                new List<string> { Loc.GetString("wg-log-report-timeline-more", ("count", query.Players.Length - players.Count)) }));
+        }
+
+        return new LogReport(LogReportKind.Timeline, Loc.GetString("wg-log-report-timeline-title", ("player", string.Join(", ", names))), sections);
     }
 
     private async Task<LogReport> Nearby(LogPoint point, int radius, CancellationToken cancel)
@@ -455,9 +500,13 @@ public sealed class LogInvestigatorEui : BaseEui
         };
     }
 
+    /// <summary>Up to <see cref="ReportRows"/> logs for a report; hitting the cap marks the report as cut short.</summary>
     private async Task<List<LogRow>> Rows(LogQuery query, CancellationToken cancel)
     {
-        var (rows, _, _) = await _db.GetInvestigatorLogsAsync(query, _roundStart, null, ReportRows, false, cancel);
+        var (rows, more, _) = await _db.GetInvestigatorLogsAsync(query, _roundStart, null, ReportRows, false, cancel);
+        if (more)
+            _reportCut = true;
+
         return rows;
     }
 
@@ -479,6 +528,33 @@ public sealed class LogInvestigatorEui : BaseEui
         }
 
         return found.Take(ReportRows).ToList();
+    }
+
+    /// <summary>
+    /// Narrows a query with a Near point to the players who came within its radius of that point: over the query's
+    /// time window, or the minute either side of the point when it has none. False when nobody did.
+    /// </summary>
+    private async Task<bool> ApplyNear(LogQuery query, CancellationToken cancel)
+    {
+        if (query.Near is not { } near || _roundStart is not { } start)
+            return true;
+
+        var from = query.FromSeconds is { } fromSeconds ? start.AddSeconds(fromSeconds) : near.At - NearbyWindow;
+        var to = query.ToSeconds is { } toSeconds
+            ? start.AddSeconds(toSeconds)
+            : query.FromSeconds != null ? DateTime.UtcNow : near.At + NearbyWindow;
+        var positions = await _db.GetPlayerPositionsAsync(_roundId, from, to, cancel);
+        var radius = Math.Clamp(query.NearRadius, 1, 200);
+        var found = LogReports.Nearby(near, radius, positions, new Dictionary<Guid, string>(), new HashSet<Guid>())
+            .Select(n => n.Player)
+            .ToHashSet();
+
+        if (query.Players.Length > 0)
+            found.IntersectWith(query.Players);
+
+        query.Players = found.ToArray();
+        query.AllPlayers = false;
+        return found.Count > 0;
     }
 
     /// <summary>Seconds since the round started, or null when the start isn't known.</summary>

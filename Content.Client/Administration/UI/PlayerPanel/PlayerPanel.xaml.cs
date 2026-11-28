@@ -57,6 +57,7 @@ public sealed partial class PlayerPanel : FancyWindow
             RejuvenateButton.OnPressed += _ => OnRejuvenate?.Invoke();
 
             JobWhitelistsButton.OnPressed += _ => OnOpenJobWhitelists?.Invoke(TargetPlayer); // DeltaV: Job whitelists
+            WGAddLoadoutButton(); // WOLFGATE(AHelpTickets): Provide loadout, as on the ticket panel
     }
 
     public void SetUsername(string player)

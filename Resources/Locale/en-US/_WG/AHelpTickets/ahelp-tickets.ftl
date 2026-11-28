@@ -23,6 +23,12 @@ wg-ahelp-loadout-given = [color=#7fd48a]{ $staff } gave the player their loadout
     [0] {" "}for free
    *[other] , charging them { $charged } credits
 }.[/color]
+wg-ahelp-assist-cooldown = You asked for help with this ticket a moment ago; ask again in { $seconds } s.
+wg-ahelp-assist-nobody = No other staff who see this ticket are online to ask.
+wg-ahelp-loadout-player = Staff gave you your job loadout again ({ $count } items){ $charged ->
+    [0] .
+   *[other] ; { $charged } credits were taken from your bank.
+}
 
 ## Ticket panel
 
@@ -83,6 +89,25 @@ wg-ahelp-export-header = Ticket #{ $number } · round { $round } · { $character
 wg-ahelp-assist-link = [Open ticket]
 wg-ahelp-chat-placeholder = Type a message and press Enter
 wg-ahelp-chat-send = Send
+wg-ahelp-tickets-filtered = No tickets match these filters.
+wg-ahelp-tickets-link-gone = That ticket isn't in this round any more. Find it with Ticket history or the search box.
+wg-ahelp-tickets-row-assignee = Claimed by { $name }
+wg-ahelp-tickets-row-notes = Has staff notes
+wg-ahelp-tickets-reopen-blocked = The player has another ticket open; close that one before reopening this.
+wg-ahelp-chat-placeholder-closed = This ticket is closed: sending opens a new one
+wg-ahelp-action-unavailable = The player is offline or not in a body.
+wg-ahelp-macro-confirm = { $name }: { $does }
+wg-ahelp-macro-does-reply = replies to the player
+wg-ahelp-macro-does-note = adds a staff note
+wg-ahelp-macro-does-Claim = claims the ticket
+wg-ahelp-macro-does-Unclaim = unclaims the ticket
+wg-ahelp-macro-does-Resolve = resolves the ticket
+wg-ahelp-macro-does-Reject = rejects the ticket
+wg-ahelp-macro-does-IcIssue = closes it as an IC issue
+wg-ahelp-macro-does-Reopen = reopens the ticket
+wg-ahelp-macro-does-command = runs a command
+wg-ahelp-macro-send = Send
+wg-ahelp-macro-cancel = Cancel
 
 ## Player card
 
@@ -99,7 +124,6 @@ wg-ahelp-card-loading = Loading…
 ## Quick actions
 
 wg-ahelp-action-follow = Follow
-wg-ahelp-action-bring = Bring
 wg-ahelp-action-respawn = Respawn
 wg-ahelp-action-aheal = Aheal
 wg-ahelp-action-notes = Notes
@@ -115,8 +139,9 @@ wg-ahelp-action-loadout-tooltip = Gives the player their job loadout again, free
 ## Provide loadout
 
 wg-ahelp-loadout-title = Provide loadout
+wg-ahelp-loadout-checking = Checking { $player }'s loadout and what it costs…
+wg-ahelp-loadout-none-client = { $player } has no loadout to give right now: they need a body, a job and a loadout picked for it.
 wg-ahelp-loadout-prompt = Give { $player } the loadout they picked for their job? { $price ->
-    [-1] The panel doesn't know its price yet.
     [0] It costs nothing.
    *[other] It costs { $price } credits.
 }

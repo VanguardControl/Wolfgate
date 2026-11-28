@@ -102,6 +102,7 @@ public sealed partial class LogInvestigatorWindow : DefaultWindow
     public void SetState(LogInvestigatorEuiState state)
     {
         var roundChanged = _state?.RoundId != state.RoundId;
+        var hadRound = _state != null;
         _state = state;
         _players.Clear();
         _players.AddRange(state.Players);
@@ -113,6 +114,10 @@ public sealed partial class LogInvestigatorWindow : DefaultWindow
         {
             _chosenPlayers.RemoveAll(p => _players.All(known => known.Id != p));
             UpdateChips();
+
+            // Another round's rows would be timed against this round's start; they go, and the round is searched anew.
+            if (hadRound)
+                ClearResults();
         }
 
         ShowPlayerMatches();
@@ -170,6 +175,27 @@ public sealed partial class LogInvestigatorWindow : DefaultWindow
         UpdateCount();
     }
 
+    /// <summary>Empties the list, the detail pane and the report, so the next search starts clean.</summary>
+    private void ClearResults()
+    {
+        _rows.Clear();
+        _pending.Clear();
+        _expanded.Clear();
+        _selected = null;
+        _total = null;
+        _hasMore = false;
+        _loadedQuery = null;
+        _reportFilter = null;
+        MoreButton.Disabled = true;
+        ReportTitle.Text = string.Empty;
+        ReportFilterButton.Visible = false;
+        Report.RemoveAllChildren();
+        ShowRows();
+        ShowDetail();
+        UpdatePending();
+        UpdateCount();
+    }
+
     /// <summary>
     /// Logs newer than the top of the list. They go straight in when the list is at the top; otherwise they wait
     /// behind a button so the rows being read don't move. Too many to fit a page means a fresh search instead.
@@ -189,7 +215,9 @@ public sealed partial class LogInvestigatorWindow : DefaultWindow
 
         var newest = Newest();
         _pending.InsertRange(0, page.Rows.Where(r => r.Id > newest));
-        if (ResultsScroll.GetScrollValue().Y <= 1)
+
+        // Rows only move on their own when nobody is reading them: at the top, nothing picked, the mouse elsewhere.
+        if (ResultsScroll.GetScrollValue().Y <= 1 && _selected == null && !Inside(UserInterfaceManager.CurrentlyHovered, ResultsScroll))
             ShowPending();
         else
             UpdatePending();
@@ -311,13 +339,41 @@ public sealed partial class LogInvestigatorWindow : DefaultWindow
         Search();
     }
 
-    /// <summary>Starts a new search. Load more waits for its first page, so it never mixes it with the rows shown.</summary>
-    private void Search()
+    /// <summary>Whether a control is the given one or inside it.</summary>
+    private static bool Inside(Control? control, Control ancestor)
     {
-        Search(BuildQuery());
+        for (var at = control; at != null; at = at.Parent)
+        {
+            if (at == ancestor)
+                return true;
+        }
+
+        return false;
     }
 
-    /// <summary>Starts a new search for this query.</summary>
+    /// <summary>
+    /// Starts a new search, unless a filter can't be read, which it says instead of quietly dropping. Load more waits
+    /// for its first page, so it never mixes it with the rows shown.
+    /// </summary>
+    private void Search()
+    {
+        var error = QueryProblem();
+        QueryError.Visible = error != null;
+        QueryError.Text = error ?? string.Empty;
+        if (error != null)
+            return;
+
+        var query = BuildQuery();
+        if (NearBox.Pressed && NearPoint() is { } near)
+        {
+            query.Near = near;
+            query.NearRadius = Radius();
+        }
+
+        Search(query);
+    }
+
+    /// <summary>Starts a new search for this query, as it is; a live refresh reruns the one on screen this way.</summary>
     private void Search(LogQuery query)
     {
         _loadedQuery = query;
@@ -337,6 +393,28 @@ public sealed partial class LogInvestigatorWindow : DefaultWindow
         _hasMore = false;
         MoreButton.Disabled = true;
         QueryRequested?.Invoke(_loadedQuery, _rows[^1].Id, false);
+    }
+
+    /// <summary>What stops the filters from being searched, if anything.</summary>
+    private string? QueryProblem()
+    {
+        if (FromEdit.Text.Trim().Length > 0 && LogInvestigatorText.ParseRoundTime(FromEdit.Text) == null)
+            return Loc.GetString("wg-log-investigator-bad-time", ("field", Loc.GetString("wg-log-investigator-from")), ("text", FromEdit.Text.Trim()));
+        if (ToEdit.Text.Trim().Length > 0 && LogInvestigatorText.ParseRoundTime(ToEdit.Text) == null)
+            return Loc.GetString("wg-log-investigator-bad-time", ("field", Loc.GetString("wg-log-investigator-to")), ("text", ToEdit.Text.Trim()));
+        if (NearBox.Pressed && NearPoint() == null)
+            return Loc.GetString("wg-log-investigator-near-none");
+        return null;
+    }
+
+    /// <summary>Where the picked log happened: its first entity with a recorded position, players first.</summary>
+    private LogPoint? NearPoint()
+    {
+        if (_selected is not { } row)
+            return null;
+
+        var placed = row.Refs.Where(r => r.Map != null && r.X != null && r.Y != null).OrderBy(r => r.Player == null).FirstOrDefault();
+        return placed is { Map: { } map, X: { } x, Y: { } y } ? new LogPoint(map, placed.Grid, x, y, row.Date) : null;
     }
 
     private LogQuery BuildQuery()
@@ -377,6 +455,7 @@ public sealed partial class LogInvestigatorWindow : DefaultWindow
             ? " " + Loc.GetString("wg-log-investigator-behind")
             : string.Empty;
         CountLabel.Text = Loc.GetString("wg-log-investigator-count", ("loaded", _rows.Count), ("total", total)) + behind;
+        CountLabel.ToolTip = CountLabel.Text;
     }
 
     /// <summary>Rebuilds the result list, each log wrapped to the list's width, folding repeats when asked.</summary>
@@ -412,7 +491,8 @@ public sealed partial class LogInvestigatorWindow : DefaultWindow
             {
                 for (var i = 0; i < run.Count; i++)
                 {
-                    controls.Add(RowControl(first + i, 1));
+                    // The first row of an unfolded run folds it back up.
+                    controls.Add(RowControl(first + i, 1, i == 0 && run.Count > 1 ? run.Count : 0));
                 }
             }
             else
@@ -424,14 +504,17 @@ public sealed partial class LogInvestigatorWindow : DefaultWindow
         return controls;
     }
 
-    /// <summary>A row for one log, or for <paramref name="count"/> folded ones from <paramref name="index"/>.</summary>
-    private LogRowControl RowControl(int index, int count)
+    /// <summary>
+    /// A row for one log, or for <paramref name="count"/> folded ones from <paramref name="index"/>. With
+    /// <paramref name="unfolded"/>, it heads an unfolded run of that many and folds it again when clicked.
+    /// </summary>
+    private LogRowControl RowControl(int index, int count, int unfolded = 0)
     {
         var row = _rows[index];
-        var prefix = count == 1
-            ? null
-            : Loc.GetString("wg-log-investigator-run", ("count", count),
-                ("seconds", (int) (_rows[index + count - 1].Date - row.Date).Duration().TotalSeconds));
+        var prefix = count > 1
+            ? Loc.GetString("wg-log-investigator-run", ("count", count),
+                ("seconds", (int) (_rows[index + count - 1].Date - row.Date).Duration().TotalSeconds))
+            : unfolded > 0 ? Loc.GetString("wg-log-investigator-refold", ("count", unfolded)) : null;
 
         var control = new LogRowControl(Time(row.Date), row, prefix) { Selected = row.Id == _selected?.Id };
         control.OnPressed += _ =>
@@ -441,6 +524,15 @@ public sealed partial class LogInvestigatorWindow : DefaultWindow
             {
                 // Found again on click: newer logs above it may have moved it down since the row was built.
                 _expanded.Add(_rows.IndexOf(row));
+                _selected = row;
+                ShowRows();
+                ShowDetail();
+                return;
+            }
+
+            if (unfolded > 0)
+            {
+                _expanded.Remove(_rows.IndexOf(row));
                 _selected = row;
                 ShowRows();
                 ShowDetail();
@@ -538,8 +630,12 @@ public sealed partial class LogInvestigatorWindow : DefaultWindow
 
             UpdateChips();
         });
-        AddButton(box, "wg-log-investigator-follow", () => _console.ExecuteCommand($"follow {net}"));
-        AddButton(box, "wg-log-investigator-vv", () => _console.ExecuteCommand($"vv {net}"));
+        // Entity ids are reused across rounds: following or viewing one from another round finds something else.
+        if (_state != null && _state.RoundId == _state.CurrentRound)
+        {
+            AddButton(box, "wg-log-investigator-follow", () => _console.ExecuteCommand($"follow {net}"));
+            AddButton(box, "wg-log-investigator-vv", () => _console.ExecuteCommand($"vv {net}"));
+        }
 
         if (reference is { Map: { } map, X: { } x, Y: { } y })
         {

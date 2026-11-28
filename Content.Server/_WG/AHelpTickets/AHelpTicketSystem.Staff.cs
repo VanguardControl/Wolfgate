@@ -39,8 +39,6 @@ public sealed partial class AHelpTicketSystem
     [Dependency] private SharedStorageSystem _storage = default!;
     [Dependency] private WGShipAdminSystem _shipAdmin = default!;
 
-    /// <summary>The sound other staff hear when someone asks for help with a ticket.</summary>
-    private const string AssistSound = "/Audio/Machines/high_tech_confirm.ogg";
 
     /// <summary>How long a ticket waits before the same request for help can go out again.</summary>
     private static readonly TimeSpan AssistCooldown = TimeSpan.FromSeconds(30);
@@ -107,10 +105,21 @@ public sealed partial class AHelpTicketSystem
             return;
 
         if (_lastAssist.TryGetValue(msg.Key, out var last) && _timing.RealTime - last < AssistCooldown)
+        {
+            var wait = (int) Math.Ceiling((AssistCooldown - (_timing.RealTime - last)).TotalSeconds);
+            _chat.DispatchServerMessage(staff, Loc.GetString("wg-ahelp-assist-cooldown", ("seconds", wait)));
             return;
+        }
+
+        var info = ticket.Info;
+        var others = _bwoink.WGTargetAdmins(info.Category).Where(c => c != staff.Channel).ToList();
+        if (others.Count == 0)
+        {
+            _chat.DispatchServerMessage(staff, Loc.GetString("wg-ahelp-assist-nobody"));
+            return;
+        }
 
         _lastAssist[msg.Key] = _timing.RealTime;
-        var info = ticket.Info;
         var name = info.Character.Length > 0 ? $"{info.Character} ({info.Username})" : info.Username;
         var text = Loc.GetString("wg-ahelp-assist-chat",
             ("staff", staff.Name),
@@ -120,8 +129,13 @@ public sealed partial class AHelpTicketSystem
             ("text", FormattedMessage.EscapeText(text)),
             ("key", info.Key.ToString()));
 
-        var others = _bwoink.WGTargetAdmins(info.Category).Where(c => c != staff.Channel).ToList();
-        _chat.ChatMessageToMany(ChatChannel.AdminChat, text, wrapped, EntityUid.Invalid, false, true, others, audioPath: AssistSound);
+        // The sound comes on its own, so staff who hide admin chat still hear it; the chat line carries the link.
+        _chat.ChatMessageToMany(ChatChannel.AdminChat, text, wrapped, EntityUid.Invalid, false, true, others);
+        var alert = new AHelpTicketAssistAlertMessage(info.Key, _cfg.GetCVar(AHelpTicketCVars.AssistSound));
+        foreach (var channel in others)
+        {
+            RaiseNetworkEvent(alert, channel);
+        }
 
         _bwoink.WGStaffLine(info.Player, Loc.GetString("wg-ahelp-assist-line", ("staff", FormattedMessage.EscapeText(staff.Name))), playSound: false);
     }
@@ -233,6 +247,9 @@ public sealed partial class AHelpTicketSystem
             ("staff", FormattedMessage.EscapeText(staff.Name)),
             ("count", count),
             ("charged", charged)), playSound: false);
+
+        // The player hears of it too, above all when it cost them.
+        _chat.DispatchServerMessage(session, Loc.GetString("wg-ahelp-loadout-player", ("count", count), ("charged", charged)));
     }
 
     #endregion

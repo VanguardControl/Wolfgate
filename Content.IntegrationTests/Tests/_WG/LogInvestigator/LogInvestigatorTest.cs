@@ -136,6 +136,7 @@ public sealed class LogInvestigatorTest
         var alice = Guid.NewGuid();
         var bob = Guid.NewGuid();
         var carol = Guid.NewGuid();
+        var dave = Guid.NewGuid();
 
         LogRef Ref(string key, int id, string name, Guid? player = null, int? grid = null)
         {
@@ -202,9 +203,10 @@ public sealed class LogInvestigatorTest
                 new() { PlayerUserId = alice, MapId = 1, GridId = 900, X = 30, Y = 40, SampledAt = start.AddSeconds(105), Alive = true, EntityName = "Alice" },
                 new() { PlayerUserId = bob, MapId = 1, GridId = 901, X = 100, Y = 0, SampledAt = start.AddSeconds(100), Alive = true, EntityName = "Bob" },
                 new() { PlayerUserId = carol, MapId = 2, GridId = null, X = 0, Y = 0, SampledAt = start.AddSeconds(100), Alive = true, EntityName = "Carol" },
+                new() { PlayerUserId = dave, MapId = 1, GridId = 900, X = 50, Y = 0, SampledAt = start.AddSeconds(100), Alive = true, EntityName = "Dave" },
             };
             var nearby = LogReports.Nearby(point, 15, positions, new Dictionary<Guid, string> { [alice] = "alice" }, new HashSet<Guid> { alice });
-            Assert.That(nearby, Has.Count.EqualTo(1), "Bob was too far and off the grid; Carol was on another map.");
+            Assert.That(nearby, Has.Count.EqualTo(1), "Bob was too far and off the grid; Carol was on another map; Dave shared the grid but was past the radius.");
             Assert.Multiple(() =>
             {
                 Assert.That(nearby[0].Player, Is.EqualTo(alice));

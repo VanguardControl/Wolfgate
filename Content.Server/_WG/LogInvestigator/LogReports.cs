@@ -212,7 +212,7 @@ public static class LogReports
     /// <summary>A player's closest approach to a point in the window.</summary>
     public sealed record LogPlayerNearby(Guid Player, string Name, float Distance, DateTime At, bool SameGrid, bool Alive, bool Spoke);
 
-    /// <summary>Players who came within the radius of the point, or were on its grid, closest first.</summary>
+    /// <summary>Players who came within the radius of the point, closest first, noting who was on its grid.</summary>
     public static List<LogPlayerNearby> Nearby(LogPoint point, int radius, IEnumerable<WolfgatePlayerPosition> positions,
         IReadOnlyDictionary<Guid, string> names, ISet<Guid> spoke)
     {
@@ -224,7 +224,8 @@ public static class LogReports
 
             var sameGrid = point.Grid != null && sample.GridId == point.Grid;
             var distance = MathF.Sqrt((sample.X - point.X) * (sample.X - point.X) + (sample.Y - point.Y) * (sample.Y - point.Y));
-            if (distance > radius && !sameGrid)
+            // The radius decides; being on the same grid is noted but doesn't pull in a whole station.
+            if (distance > radius)
                 continue;
 
             if (closest.TryGetValue(sample.PlayerUserId, out var known) && known.Distance <= distance)

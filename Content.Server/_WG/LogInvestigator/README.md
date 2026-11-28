@@ -6,18 +6,23 @@ entity Logs verb and the Player Panel's Logs button open it).
 - **Query:** a round and a round-time window, players (any of them, or only logs involving all of them), entities,
   categories of log types (`Resources/Prototypes/_WG/LogInvestigator/log_categories.yml`; every type is in one),
   impact, and text in the message. Text and ids are matched as substrings, so `18204606` and partial words are found
-  in every round. Results page by log id, newest or oldest first.
+  in every round. "Only players near the picked log" narrows it to the players who came within the radius of the
+  selected log's position. A time it can't read is reported instead of ignored. Results page by log id, newest or
+  oldest first; changing the round clears them and searches the new one.
 - **Results:** each log wraps to the list's width, its type coloured by impact. Bursts of the same event between the
   same entities fold into one row ("×14 over 6 s"); click to unfold. Picking a log lists the entities it names with
-  Filter, Follow, VV, Nearby and Timeline. On the current round a newest-first list with no end time stays live (Live,
-  on by default): newer logs arrive every 5 s, at the top or behind a "new logs" button when scrolled down. Opened
+  Filter, Follow and VV (current round only, since entity ids are reused), Nearby and Timeline. The first row of an
+  unfolded run folds it again. On the current round a newest-first list with no end time stays live (Live,
+  on by default): newer logs arrive every 5 s, at the top, or behind a "new logs" button while the list is scrolled down, hovered or
+  has a log picked. Opened
   from an open ticket, the window has no end time for the same reason.
 - **Reports** (deterministic, from the logs alone): Encounter (first strike, who hit whom with hits, damage and
   weapons, turret hits credited to whoever fired the ship's guns, deaths, what the parties said and hailed in the
-  10 minutes before, and who was nearby); Timeline (one player's round in phases, each phase's logs drawn like the
-  result list); Nearby (who came within the radius of a log's position, on the same grid, alive, and whether they
-  spoke), with a button that filters the results to those players and the minute around it. The radius box sets both
-  Nearby's and Encounter's radius.
+  10 minutes before, and who was nearby); Timeline (each chosen player's round in phases, up to 5 players, each
+  phase's logs drawn like the result list); Nearby (who came within the radius of a log's position, on the same grid, alive, and whether they
+  spoke), with a button that filters the results to those players and the minute around it. The radius box sets
+  Nearby's, Encounter's and the near filter's radius; it is a strict distance, and sharing a grid is noted but doesn't
+  count. A report that hit its 5000-row cap for a kind of log says so at the top.
 - **Positions:** the log types in `wg.admin_logs.position_types` get each entity's map, grid and position under
   `wgPos` in their JSON, and `WGPlayerPositionSystem` stores every player's position every
   `wg.admin_logs.position_interval` seconds (10) in `wolfgate_player_position`. Prune that table with `admin_log`

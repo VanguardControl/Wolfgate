@@ -46,6 +46,9 @@ public sealed partial class AHelpTicketsControl : Control
     /// <summary>How long the server holds back another request for help on a ticket; the button rests as long.</summary>
     private static readonly TimeSpan AssistCooldown = TimeSpan.FromSeconds(30);
 
+    /// <summary>With no mouse or typing in the panel this long, the staffer stops counting as looking at its ticket.</summary>
+    private static readonly TimeSpan IdleAfter = TimeSpan.FromMinutes(5);
+
     private readonly WGTicketAHelpUIHandler _handler;
     private readonly AHelpTicketClientSystem _tickets;
     private readonly AdminSystem _adminSystem;
@@ -55,8 +58,18 @@ public sealed partial class AHelpTicketsControl : Control
     private int? _selectedKey;
     private TimeSpan _sinceRefresh;
     private TimeSpan _collisionLeft;
-    private TimeSpan _assistLeft;
     private WGLoadoutGrantWindow? _loadoutWindow;
+    private WGAHelpMacroPrototype? _pendingMacro;
+
+    /// <summary>When each ticket may ask for help again, by key, so switching tickets doesn't reset it.</summary>
+    private readonly Dictionary<int, TimeSpan> _assistUntil = new();
+
+    /// <summary>Quick actions that need the player online or in a body, enabled to match.</summary>
+    private readonly List<(Button Button, Func<bool> Usable)> _actionStates = new();
+
+    private TimeSpan _now;
+    private TimeSpan _lastActive;
+    private bool _idle;
 
     /// <summary>Whether the panel is on screen, so the ticket it shows counts as being looked at.</summary>
     private bool _shown = true;
@@ -92,6 +105,8 @@ public sealed partial class AHelpTicketsControl : Control
         AssistButton.OnPressed += _ => Assist();
         ExportButton.OnPressed += _ => Export();
         AdminOnly.OnToggled += args => PlaySound.Disabled = args.Pressed;
+        MacroSend.OnPressed += _ => ConfirmMacro();
+        MacroCancel.OnPressed += _ => ShowMacroConfirm(null);
 
         // What the player is shown when staff close their ticket each way.
         ResolveButton.ToolTip = CloseTooltip("wg-bwoink-resolved-player");
@@ -134,12 +149,16 @@ public sealed partial class AHelpTicketsControl : Control
         ShowPlayer(player);
     }
 
-    /// <summary>Shows a ticket of this round by its key.</summary>
+    /// <summary>Shows a ticket of this round by its key; one from an earlier round says where to find it instead.</summary>
     public void OpenTicket(int key)
     {
         if (!_tickets.Tickets.ContainsKey(key))
+        {
+            Placeholder.Text = Loc.GetString("wg-ahelp-tickets-link-gone");
             return;
+        }
 
+        Placeholder.Text = Loc.GetString("wg-ahelp-tickets-none-selected");
         Select(key);
         TicketList.Select(new TicketRowData(key));
     }
@@ -177,6 +196,7 @@ public sealed partial class AHelpTicketsControl : Control
         base.FrameUpdate(args);
 
         var delta = TimeSpan.FromSeconds(args.DeltaSeconds);
+        _now += delta;
         if (_collisionLeft > TimeSpan.Zero)
         {
             _collisionLeft -= delta;
@@ -184,11 +204,21 @@ public sealed partial class AHelpTicketsControl : Control
                 Collision.Visible = false;
         }
 
-        if (_assistLeft > TimeSpan.Zero)
+        if (CurrentTicket() is { } shown && _assistUntil.TryGetValue(shown.Key, out var until) && _now >= until)
         {
-            _assistLeft -= delta;
-            if (_assistLeft <= TimeSpan.Zero)
-                UpdateAssist();
+            _assistUntil.Remove(shown.Key);
+            UpdateAssist();
+        }
+
+        // Looking means the mouse is over the panel or the staffer is typing in it; idle a while, they aren't.
+        if (Inside(UserInterfaceManager.CurrentlyHovered) || Inside(UserInterfaceManager.KeyboardFocused))
+            _lastActive = _now;
+
+        var idle = _now - _lastActive > IdleAfter;
+        if (idle != _idle)
+        {
+            _idle = idle;
+            ReportView();
         }
 
         _sinceRefresh += delta;
@@ -203,6 +233,16 @@ public sealed partial class AHelpTicketsControl : Control
     private void OnTicketsChanged(AHelpTicketInfo? ticket)
     {
         Repopulate();
+
+        // The chat belongs to the player, not the ticket: a line sent while a closed ticket is shown opens a new one,
+        // and the panel moves to it so its buttons act on the ticket the chat is now part of.
+        if (ticket != null && ticket.Player == SelectedPlayer && !ticket.State.IsClosed() && ticket.Key != _selectedKey
+            && (CurrentTicket() is not { } shown || shown.State.IsClosed()))
+        {
+            OpenTicket(ticket.Key);
+            return;
+        }
+
         if (ticket == null || ticket.Player == SelectedPlayer)
             UpdateSelection();
     }
@@ -222,6 +262,18 @@ public sealed partial class AHelpTicketsControl : Control
             UpdateCard();
     }
 
+    /// <summary>Whether a control is this panel or inside it.</summary>
+    private bool Inside(Control? control)
+    {
+        for (var at = control; at != null; at = at.Parent)
+        {
+            if (at == this)
+                return true;
+        }
+
+        return false;
+    }
+
     private void OnRowPressed(BaseButton.ButtonEventArgs args, ListData data)
     {
         if (data is TicketRowData row)
@@ -234,7 +286,16 @@ public sealed partial class AHelpTicketsControl : Control
             return;
 
         if (_selectedKey != key)
-            _assistLeft = TimeSpan.Zero;
+        {
+            // Admin only is a choice for one ticket; it doesn't follow the staffer to the next player.
+            AdminOnly.Pressed = false;
+            PlaySound.Disabled = false;
+            ShowMacroConfirm(null);
+
+            // The card is fetched again per ticket, so bank, notes and ships are current.
+            if (SelectedPlayer == ticket.Player)
+                _tickets.RequestCard(ticket.Player);
+        }
 
         _selectedKey = key;
         ShowPlayer(ticket.Player);
@@ -283,13 +344,13 @@ public sealed partial class AHelpTicketsControl : Control
             return;
 
         _tickets.Assist(ticket.Key);
-        _assistLeft = AssistCooldown;
+        _assistUntil[ticket.Key] = _now + AssistCooldown;
         UpdateAssist();
     }
 
     private void UpdateAssist()
     {
-        AssistButton.Disabled = _assistLeft > TimeSpan.Zero || CurrentTicket() is not { } ticket || ticket.State.IsClosed();
+        AssistButton.Disabled = CurrentTicket() is not { } ticket || ticket.State.IsClosed() || _assistUntil.ContainsKey(ticket.Key);
     }
 
     /// <summary>Saves the shown chat to a text file, headed with the ticket and player.</summary>
@@ -340,7 +401,7 @@ public sealed partial class AHelpTicketsControl : Control
     /// <summary>Tells the server which ticket is on screen, or none while the panel is closed.</summary>
     private void ReportView()
     {
-        _tickets.View(_shown && !Disposed ? CurrentTicket()?.Key : null);
+        _tickets.View(_shown && !_idle && !Disposed ? CurrentTicket()?.Key : null);
     }
 
     #region List
@@ -363,6 +424,7 @@ public sealed partial class AHelpTicketsControl : Control
 
         TicketList.PopulateList(data);
         EmptyLabel.Visible = data.Count == 0;
+        EmptyLabel.Text = Loc.GetString(_tickets.Tickets.Count == 0 ? "wg-ahelp-tickets-empty" : "wg-ahelp-tickets-filtered");
     }
 
     private bool Matches(AHelpTicketInfo ticket, string search, NetUserId? me)
@@ -411,13 +473,15 @@ public sealed partial class AHelpTicketsControl : Control
             case TicketRowData row when _tickets.Tickets.TryGetValue(row.Key, out var ticket):
                 label.Text = RowText(ticket);
                 label.FontColorOverride = RowColor(ticket);
-                button.ToolTip = ticket.Viewers.Count > 0
-                    ? $"{ticket.Character}\n{Loc.GetString("wg-ahelp-tickets-viewers", ("names", string.Join(", ", ticket.Viewers)))}"
-                    : ticket.Character;
+                button.ToolTip = RowTooltip(ticket);
                 break;
         }
     }
 
+    /// <summary>
+    /// A ticket's row: the marks that decide who picks it up come first (unread, number, age, notes, viewers, who has
+    /// it), and the name last, since a narrow list cuts the end off.
+    /// </summary>
     private string RowText(AHelpTicketInfo ticket)
     {
         var minutes = (int) Math.Max(0, (DateTime.UtcNow - ticket.Opened).TotalMinutes);
@@ -426,10 +490,23 @@ public sealed partial class AHelpTicketsControl : Control
         var notes = ticket.HasNotes ? " ✎" : string.Empty;
         var watched = ticket.Viewers.Count > 0 ? $" ◉{ticket.Viewers.Count}" : string.Empty;
         var offline = ticket.Online ? string.Empty : $" ({Loc.GetString("wg-ahelp-tickets-offline")})";
-        var assignee = ticket.State == AHelpTicketState.Claimed && ticket.AssigneeName != null ? $" · {ticket.AssigneeName}" : string.Empty;
+        var assignee = ticket.State == AHelpTicketState.Claimed && ticket.AssigneeName != null ? $" [{ticket.AssigneeName}]" : string.Empty;
         var name = ticket.Character.Length > 0 ? $"{ticket.Character} ({ticket.Username})" : ticket.Username;
 
-        return $"{unread}{NumberText(ticket)} {category}{name}{offline} · {Loc.GetString("wg-ahelp-tickets-age", ("minutes", minutes))}{assignee}{notes}{watched}";
+        return $"{unread}{NumberText(ticket)} {Loc.GetString("wg-ahelp-tickets-age", ("minutes", minutes))}{notes}{watched}{assignee} · {category}{name}{offline}";
+    }
+
+    /// <summary>Everything a row may cut off, in full.</summary>
+    private static string RowTooltip(AHelpTicketInfo ticket)
+    {
+        var lines = new List<string> { ticket.Character.Length > 0 ? $"{ticket.Character} ({ticket.Username})" : ticket.Username };
+        if (ticket.State == AHelpTicketState.Claimed && ticket.AssigneeName != null)
+            lines.Add(Loc.GetString("wg-ahelp-tickets-row-assignee", ("name", ticket.AssigneeName)));
+        if (ticket.Viewers.Count > 0)
+            lines.Add(Loc.GetString("wg-ahelp-tickets-viewers", ("names", string.Join(", ", ticket.Viewers))));
+        if (ticket.HasNotes)
+            lines.Add(Loc.GetString("wg-ahelp-tickets-row-notes"));
+        return string.Join("\n", lines);
     }
 
     private Color? RowColor(AHelpTicketInfo ticket)
@@ -466,7 +543,10 @@ public sealed partial class AHelpTicketsControl : Control
         ClaimButton.Disabled = state != AHelpTicketState.Open;
         UnclaimButton.Disabled = state != AHelpTicketState.Claimed;
         ResolveButton.Disabled = RejectButton.Disabled = IcButton.Disabled = state == null || state.Value.IsClosed();
-        ReopenButton.Disabled = state == null || !state.Value.IsClosed();
+        // Reopening needs the player to have no other ticket open; the server refuses it otherwise.
+        var otherOpen = SelectedPlayer is { } selected && _tickets.OpenFor(selected) is { } open && open.Key != ticket?.Key;
+        ReopenButton.Disabled = state == null || !state.Value.IsClosed() || otherOpen;
+        ReopenButton.ToolTip = Loc.GetString(otherOpen ? "wg-ahelp-tickets-reopen-blocked" : "wg-ahelp-tickets-reopen-tooltip");
         UpdateAssist();
         ExportButton.Disabled = !hasPlayer;
         Macros.Disabled = !hasPlayer;
@@ -487,6 +567,13 @@ public sealed partial class AHelpTicketsControl : Control
         }
 
         Header.SetMessage(header);
+
+        // On a closed ticket with nothing else open, the next line opens a new ticket; the input says so.
+        if (SelectedPlayer is { } chatPlayer && _handler.TryGetChannel(chatPlayer, out var chat))
+        {
+            var opensNew = ticket != null && ticket.State.IsClosed() && _tickets.OpenFor(chatPlayer) == null;
+            chat.Input.PlaceHolder = Loc.GetString(opensNew ? "wg-ahelp-chat-placeholder-closed" : "wg-ahelp-chat-placeholder");
+        }
 
         // Others looking at the same ticket; the staffer's own name is left out.
         var me = _player.LocalSession?.Name;
@@ -534,6 +621,18 @@ public sealed partial class AHelpTicketsControl : Control
         }
 
         Card.SetMessage(card);
+        UpdateActionStates();
+    }
+
+    /// <summary>Greys out the quick actions that can't do anything with the player offline or out of a body.</summary>
+    private void UpdateActionStates()
+    {
+        foreach (var (button, usable) in _actionStates)
+        {
+            var can = usable();
+            button.Disabled = !can;
+            button.ToolTip = can ? null : Loc.GetString("wg-ahelp-action-unavailable");
+        }
     }
 
     /// <summary>Quick actions for the selected player, each shown only when the staffer may run its command.</summary>
@@ -541,18 +640,22 @@ public sealed partial class AHelpTicketsControl : Control
     {
         Actions.RemoveAllChildren();
         _confirmations.Clear();
+        _actionStates.Clear();
         if (SelectedPlayer is not { } player)
             return;
 
-        var me = _player.LocalSession?.Name ?? string.Empty;
-        AddAction("wg-ahelp-action-follow", "follow", () => Info()?.NetEntity is { } ent ? $"follow \"{ent}\"" : null);
-        AddAction("wg-ahelp-action-bring", "tpto", () => Info() is { } info ? $"tpto \"{me}\" \"{info.Username}\"" : null);
-        AddAction("wg-ahelp-action-respawn", "respawn", () => Info() is { } info ? $"respawn \"{info.Username}\"" : null, confirm: true);
-        AddAction("wg-ahelp-action-player-panel", "playerpanel", () => Info() is { } info ? $"playerpanel \"{info.Username}\"" : null);
+        // Follow is the one way to go to the player; teleporting them to staff is left to the Player Panel.
+        AddAction("wg-ahelp-action-follow", "follow", () => Info()?.NetEntity is { } ent ? $"follow \"{ent}\"" : null,
+            usable: () => Info()?.NetEntity != null);
+        AddAction("wg-ahelp-action-respawn", "respawn", () => Info() is { } info ? $"respawn \"{info.Username}\"" : null, confirm: true,
+            usable: () => Info() is { Connected: true });
+        AddAction("wg-ahelp-action-player-panel", "playerpanel", () => Info() is { } info ? $"playerpanel \"{info.Username}\"" : null,
+            usable: () => Info() != null);
         AddAction("wg-ahelp-action-notes", "adminnotes", () => $"adminnotes \"{player}\"");
         AddAction("wg-ahelp-action-bans", "banlist", () => $"banlist \"{player}\"");
         AddAction("wg-ahelp-action-ban", "banpanel", () => $"banpanel \"{player}\"");
-        AddAction("wg-ahelp-action-kick", "kick", () => Info() is { } info ? $"kick \"{info.Username}\"" : null, confirm: true);
+        AddAction("wg-ahelp-action-kick", "kick", () => Info() is { } info ? $"kick \"{info.Username}\"" : null, confirm: true,
+            usable: () => Info() is { Connected: true });
         AddAction("wg-ahelp-action-logs", "wglogs", () => $"wglogs player {player}");
         AddAction("wg-ahelp-action-investigate", "wginvestigate", () => CurrentTicket() is { } t ? $"wginvestigate {t.Key}" : $"wglogs player {player}");
 
@@ -567,6 +670,7 @@ public sealed partial class AHelpTicketsControl : Control
             };
             loadout.OnPressed += _ => OpenLoadout();
             Actions.AddChild(loadout);
+            _actionStates.Add((loadout, () => Info() is { Connected: true, NetEntity: not null }));
         }
 
         var history = new Button { Text = Loc.GetString("wg-ahelp-history-title"), StyleClasses = { "OpenBoth" }, HorizontalExpand = true };
@@ -576,9 +680,10 @@ public sealed partial class AHelpTicketsControl : Control
                 _handler.OpenHistory().ShowPlayer(selected, Info()?.Username ?? selected.ToString());
         };
         Actions.AddChild(history);
+        UpdateActionStates();
     }
 
-    private void AddAction(string name, string command, Func<string?> line, bool confirm = false)
+    private void AddAction(string name, string command, Func<string?> line, bool confirm = false, Func<bool>? usable = null)
     {
         if (!_admin.CanCommand(command))
             return;
@@ -593,6 +698,8 @@ public sealed partial class AHelpTicketsControl : Control
                 _console.ExecuteCommand(text);
         };
         Actions.AddChild(button);
+        if (usable != null)
+            _actionStates.Add((button, usable));
     }
 
     /// <summary>A button per ship the player owns, each opening it in Shipmaster.</summary>
@@ -627,11 +734,8 @@ public sealed partial class AHelpTicketsControl : Control
             return;
 
         var name = Info() is { } info ? $"{info.CharacterName} ({info.Username})" : player.ToString();
-        var price = _tickets.Card(player)?.LoadoutPrice;
         _loadoutWindow?.Close();
-        _loadoutWindow = new WGLoadoutGrantWindow(name, price);
-        _loadoutWindow.Chosen += charge => _tickets.GiveLoadout(player, charge);
-        _loadoutWindow.OpenCentered();
+        _loadoutWindow = WGLoadoutGrantWindow.Open(_entities, player, name);
     }
 
     #endregion
@@ -652,12 +756,43 @@ public sealed partial class AHelpTicketsControl : Control
             Macros.AddItem(Loc.GetString(_macros[i].Name), i + 1);
         }
 
+        // Picking a macro only stages it; Send fires it, so a slip in the list doesn't reply or close a ticket.
         Macros.OnItemSelected += args =>
         {
             Macros.SelectId(0);
             if (args.Id > 0 && args.Id <= _macros.Count)
-                ApplyMacro(_macros[args.Id - 1]);
+                ShowMacroConfirm(_macros[args.Id - 1]);
         };
+    }
+
+    /// <summary>Shows what a staged macro will do, or hides the confirmation when given none.</summary>
+    private void ShowMacroConfirm(WGAHelpMacroPrototype? macro)
+    {
+        _pendingMacro = macro;
+        MacroConfirm.Visible = macro != null;
+        if (macro == null)
+            return;
+
+        var does = new List<string>();
+        if (macro.Text != null)
+            does.Add(Loc.GetString(AdminOnly.Pressed ? "wg-ahelp-macro-does-note" : "wg-ahelp-macro-does-reply"));
+        if (macro.Action is { } action)
+            does.Add(Loc.GetString($"wg-ahelp-macro-does-{action}"));
+        if (macro.Command != null)
+            does.Add(Loc.GetString("wg-ahelp-macro-does-command"));
+
+        MacroConfirmLabel.Text = Loc.GetString("wg-ahelp-macro-confirm",
+            ("name", Loc.GetString(macro.Name)),
+            ("does", string.Join(", ", does)));
+        MacroConfirmLabel.ToolTip = macro.Text is { } text ? Loc.GetString(text, ("player", Info()?.CharacterName ?? string.Empty)) : null;
+    }
+
+    private void ConfirmMacro()
+    {
+        if (_pendingMacro is { } macro)
+            ApplyMacro(macro);
+
+        ShowMacroConfirm(null);
     }
 
     private bool CanRun(WGAHelpMacroPrototype macro)

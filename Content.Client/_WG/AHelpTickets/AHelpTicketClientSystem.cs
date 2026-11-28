@@ -1,11 +1,16 @@
 using Content.Shared._WG.AHelpTickets;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Network;
+using Robust.Shared.Player;
 
 namespace Content.Client._WG.AHelpTickets;
 
 /// <summary>Keeps the round's tickets for the staff panel and the player's own ticket status, and sends staff actions.</summary>
 public sealed class AHelpTicketClientSystem : EntitySystem
 {
+    [Dependency] private SharedAudioSystem _audio = default!;
+
     private readonly Dictionary<int, AHelpTicketInfo> _tickets = new();
     private readonly Dictionary<NetUserId, AHelpTicketPlayerCardMessage> _cards = new();
 
@@ -36,6 +41,7 @@ public sealed class AHelpTicketClientSystem : EntitySystem
         SubscribeNetworkEvent<AHelpTicketTranscriptMessage>(msg => TranscriptReceived?.Invoke(msg));
         SubscribeNetworkEvent<AHelpTicketSearchResultsMessage>(msg => SearchResultsReceived?.Invoke(msg));
         SubscribeNetworkEvent<AHelpTicketPlayerStatusMessage>(OnOwnStatus);
+        SubscribeNetworkEvent<AHelpTicketAssistAlertMessage>(OnAssistAlert);
     }
 
     /// <summary>The newest ticket of a player this round.</summary>
@@ -149,6 +155,12 @@ public sealed class AHelpTicketClientSystem : EntitySystem
     {
         _cards[msg.Player] = msg;
         CardReceived?.Invoke(msg);
+    }
+
+    /// <summary>Another staffer asked for help with a ticket: its own sound, whether or not admin chat is shown.</summary>
+    private void OnAssistAlert(AHelpTicketAssistAlertMessage msg)
+    {
+        _audio.PlayGlobal(new SoundPathSpecifier(msg.Sound), Filter.Local(), false);
     }
 
     private void OnOwnStatus(AHelpTicketPlayerStatusMessage msg)

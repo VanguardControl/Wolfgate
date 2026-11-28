@@ -23,10 +23,10 @@ public sealed class AHelpTicketPanelTest
     private const string ResolveMacro = "WGMacroDone";
 
     /// <summary>A macro used on a player with no ticket this round applies to the ticket its reply opens.</summary>
-    [TestCase(false)]
-    [TestCase(true)]
-    public async Task MacroAppliesToTheTicketItsReplyOpens(bool adminOnly)
+    [Test]
+    public async Task MacroAppliesToTheTicketItsReplyOpens()
     {
+        const bool adminOnly = false;
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
         var client = pair.Client;
         var tickets = pair.Server.System<AHelpTicketSystem>();
@@ -184,14 +184,38 @@ public sealed class AHelpTicketPanelTest
         });
         await WaitFor(pair, () => Ticket().Viewers.Contains(staffName), "the staffer to show as looking at the ticket");
 
+        // The only staffer online has nobody to ask, so the ticket doesn't claim help was asked for.
         await client.WaitPost(() => clientTickets.Assist(key));
-        await WaitFor(pair, () => received.Any(m => m.UserId == player && m.WGSystem && m.Text.Contains(staffName) && m.Text.Contains("help")),
-            "the request for help to show in the ticket");
+        await pair.RunTicksSync(20);
+        Assert.That(received.Any(m => m.UserId == player && m.WGSystem && m.Text.Contains(staffName) && m.Text.Contains("help")), Is.False,
+            "With no other staff online, asking for help notes nothing in the ticket.");
 
         await client.WaitPost(() => ui.GetUIController<AHelpUIController>().UIHelper?.Close());
         await WaitFor(pair, () => Ticket().Viewers.Count == 0, "closing the panel to stop the staffer looking");
 
         clientBwoink.OnBwoinkTextMessageRecieved -= onReceived;
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>An admin-only note on a player with no ticket opens none, and the macro on it applies to nothing.</summary>
+    [Test]
+    public async Task AdminOnlyNoteOpensNoTicket()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var client = pair.Client;
+        var tickets = pair.Server.System<AHelpTicketSystem>();
+        var clientTickets = client.System<AHelpTicketClientSystem>();
+        var clientBwoink = client.System<ClientBwoinkSystem>();
+        var player = new NetUserId(Guid.NewGuid());
+
+        await client.WaitPost(() =>
+        {
+            clientBwoink.Send(player, "staff note", false, true);
+            clientTickets.SendMacroReply(player, "noted", false, true, ResolveMacro, AHelpTicketAction.Resolve);
+        });
+        await pair.RunTicksSync(20);
+
+        Assert.That(tickets.Tickets.Any(t => t.Player == player), Is.False, "A staff note alone mustn't open a ticket.");
         await pair.CleanReturnAsync();
     }
 

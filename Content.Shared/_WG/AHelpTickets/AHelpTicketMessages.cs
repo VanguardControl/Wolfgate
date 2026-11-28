@@ -179,6 +179,14 @@ public sealed class AHelpTicketAssistMessage(int key) : EntityEventArgs
     public readonly int Key = key;
 }
 
+/// <summary>Server to the other staff: someone asks for help with a ticket; plays <see cref="Sound"/> whatever chat shows.</summary>
+[Serializable, NetSerializable]
+public sealed class AHelpTicketAssistAlertMessage(int key, string sound) : EntityEventArgs
+{
+    public readonly int Key = key;
+    public readonly string Sound = sound;
+}
+
 /// <summary>Staff to server: give the player their job loadout again, free or paid from their bank.</summary>
 [Serializable, NetSerializable]
 public sealed class AHelpTicketLoadoutMessage(NetUserId player, bool charge) : EntityEventArgs

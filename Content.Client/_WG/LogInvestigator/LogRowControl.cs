@@ -24,7 +24,6 @@ public sealed class LogRowControl : ContainerButton
     {
         Row = row;
         HorizontalExpand = true;
-        ToolTip = row.Message;
 
         var text = new FormattedMessage();
         text.PushColor(Color.Gray);

@@ -17,9 +17,10 @@ namespace Content.Client._WG.AHelpTickets;
 /// </summary>
 public sealed class WGAHelpChatPanel : BoxContainer
 {
-    private static readonly Color OwnColor = Color.FromHex("#2f5f9e");
-    private static readonly Color SameSideColor = Color.FromHex("#3b4a66");
-    private static readonly Color OtherColor = Color.FromHex("#3a3a42");
+    // Dark fills, so names in the server's colours (red staff names among them) stay readable on every bubble.
+    private static readonly Color OwnColor = Color.FromHex("#22344d");
+    private static readonly Color SameSideColor = Color.FromHex("#2a2d36");
+    private static readonly Color OtherColor = Color.FromHex("#30303a");
     private static readonly Color AdminOnlyColor = Color.FromHex("#6b4a1f");
     private static readonly Color NoticeColor = Color.FromHex("#00000000");
     private static readonly TimeSpan TypingShown = TimeSpan.FromSeconds(10);
@@ -37,7 +38,7 @@ public sealed class WGAHelpChatPanel : BoxContainer
     /// <summary>Frames left in which to keep the view at the bottom, while layout catches up with a new line.</summary>
     private int _stickFrames;
 
-    /// <summary>Lines that came in while this panel wasn't shown; system notices don't count.</summary>
+    /// <summary>Lines that came in while this panel wasn't shown; notices and quiet lines (replays after a reconnect) don't count.</summary>
     public int Unread { get; private set; }
 
     /// <summary>When the last player or staff line came in.</summary>
@@ -124,7 +125,7 @@ public sealed class WGAHelpChatPanel : BoxContainer
     public void ReceiveLine(SharedBwoinkSystem.BwoinkTextMessage message)
     {
         var notice = message.WGSystem;
-        if (!VisibleInTree && !notice)
+        if (!VisibleInTree && !notice && message.PlaySound)
             Unread++;
         if (!notice)
             LastMessage = message.SentAt;

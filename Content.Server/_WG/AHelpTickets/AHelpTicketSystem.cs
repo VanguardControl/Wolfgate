@@ -148,9 +148,12 @@ public sealed partial class AHelpTicketSystem : EntitySystem
                 // Connects, disconnects and bans only matter to a ticket that is open.
                 case AHelpLineSource.System:
                     return;
-                // A staff note with nothing open belongs with the player's latest ticket this round.
+                // A staff note with nothing open belongs with the player's latest ticket this round. With none, it
+                // opens nothing: the player never asked for help, so they mustn't be told a ticket is waiting.
                 case AHelpLineSource.Staff or AHelpLineSource.Discord when adminOnly:
                     ticket = _tickets.Values.Where(t => !t.Retired && t.Info.Player == player).MaxBy(t => t.Info.Key);
+                    if (ticket == null)
+                        return;
                     break;
             }
 

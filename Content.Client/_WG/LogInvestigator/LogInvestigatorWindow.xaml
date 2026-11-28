@@ -18,7 +18,9 @@
                 <LineEdit Name="ToEdit" HorizontalExpand="True" PlaceHolder="{Loc 'wg-log-investigator-end'}" />
             </BoxContainer>
             <Label Text="{Loc 'wg-log-investigator-players'}" StyleClasses="LabelSubText" />
-            <BoxContainer Name="PlayerChips" Orientation="Vertical" />
+            <ScrollContainer MaxHeight="96" HScrollEnabled="False">
+                <BoxContainer Name="PlayerChips" Orientation="Vertical" />
+            </ScrollContainer>
             <LineEdit Name="PlayerSearch" PlaceHolder="{Loc 'wg-log-investigator-player-search'}" />
             <ScrollContainer MinHeight="90" MaxHeight="150" HScrollEnabled="False">
                 <BoxContainer Name="PlayerMatches" Orientation="Vertical" />
@@ -29,11 +31,13 @@
             <BoxContainer Name="ImpactButtons" Orientation="Horizontal" />
             <CheckBox Name="NonPlayersBox" Text="{Loc 'wg-log-investigator-non-players'}" Pressed="True" />
             <CheckBox Name="OldestFirstBox" Text="{Loc 'wg-log-investigator-oldest-first'}" />
+            <CheckBox Name="NearBox" Text="{Loc 'wg-log-investigator-near'}" ToolTip="{Loc 'wg-log-investigator-near-tooltip'}" />
             <Label Text="{Loc 'wg-log-investigator-categories'}" StyleClasses="LabelSubText" />
             <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
                 <BoxContainer Name="CategoryTree" Orientation="Vertical" />
             </ScrollContainer>
             <GridContainer Name="Presets" Columns="2" />
+            <Label Name="QueryError" Visible="False" FontColorOverride="#ff9f43" />
             <Button Name="SearchButton" Text="{Loc 'wg-log-investigator-search'}" StyleClasses="Caution" />
         </BoxContainer>
         <BoxContainer Orientation="Vertical" HorizontalExpand="True" SizeFlagsStretchRatio="2" Margin="4 0">
@@ -42,8 +46,7 @@
                 <BoxContainer Name="Results" Orientation="Vertical" HorizontalExpand="True" />
             </ScrollContainer>
             <BoxContainer Orientation="Horizontal">
-                <Label Name="CountLabel" />
-                <Control HorizontalExpand="True" />
+                <Label Name="CountLabel" HorizontalExpand="True" ClipText="True" MouseFilter="Stop" />
                 <CheckBox Name="LiveBox" Text="{Loc 'wg-log-investigator-live'}" ToolTip="{Loc 'wg-log-investigator-live-tooltip'}" Pressed="True" />
                 <Control MinWidth="8" />
                 <CheckBox Name="CollapseBox" Text="{Loc 'wg-log-investigator-collapse'}" Pressed="True" />

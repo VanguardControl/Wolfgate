@@ -51,6 +51,11 @@ public sealed class LogQuery
     public bool IncludeNonPlayers = true;
 
     public bool Ascending;
+
+    /// <summary>Only the players who came within <see cref="NearRadius"/> of this point in the time window.</summary>
+    public LogPoint? Near;
+
+    public int NearRadius = 15;
 }
 
 /// <summary>The scripted reports the investigator can build.</summary>
