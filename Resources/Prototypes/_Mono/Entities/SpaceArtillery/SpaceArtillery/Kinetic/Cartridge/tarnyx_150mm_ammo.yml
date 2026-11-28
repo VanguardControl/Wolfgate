@@ -212,3 +212,79 @@
     damageModifierSet: Metallic
 
 # APHE end
+
+# WolfGate Start
+
+- type: entity
+  id: ShipTarnyxHeProjectile
+  name: TARNYX 90x630mm HE projectile
+  parent: BaseBulletTrigger
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Structural: 5000
+        Blunt: 50
+  - type: Sprite
+    sprite: _Mono/Objects/SpaceArtillery/shells.rsi
+    layers:
+    - state: 150mmAP
+  - type: Ammo
+    muzzleFlash: null
+  - type: ExplodeOnTrigger
+  - type: Explosive
+    deleteAfterExplosion: false
+    explosionType: HardBomb
+    totalIntensity: 350
+    intensitySlope: 25
+    maxIntensity: 300
+    tileBreakScale: 3
+  - type: ShipWeaponProjectile
+  - type: RadarBlip
+    scale: 1.75
+    shape: triangle
+  - type: TimedDespawn
+    lifetime: 5
+
+- type: entity
+  id: 150mmHeShell
+  name: 90x630mm HE shell
+  description: A chemically-propelled HE shell for 90x630mm cannons. It'll work.
+  parent: BaseGrenade
+  components:
+  - type: Tag
+    tags:
+    - 150mmShell
+  - type: Item
+    size: Huge
+  - type: CartridgeAmmo
+    proto: ShipTarnyxHeProjectile
+    deleteOnSpawn: true
+  - type: Sprite
+    sprite: _Mono/Objects/Weapons/Guns/Ammunition/Explosives/150mmtarnyx.rsi
+    layers:
+    - state: 150mm_he
+      map: ["enum.AmmoVisualLayers.Base"]
+  - type: Appearance
+  - type: SpentAmmoVisuals
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 50
+      behaviors:
+      - !type:DoActsBehavior
+        acts: ["Destruction"]
+      - !type:ExplodeBehavior
+  - type: Explosive
+    explosionType: Default
+    maxIntensity: 100
+    intensitySlope: 3
+    totalIntensity: 30
+  - type: Damageable
+    damageContainer: Inorganic
+    damageModifierSet: Metallic
+
+# HE end
+# Wolfgate end
