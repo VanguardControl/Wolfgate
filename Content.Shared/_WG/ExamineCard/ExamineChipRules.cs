@@ -52,6 +52,7 @@ public static class ExamineChipRules
         new("comp-mind-examined-dead-and-ssd", "dormant", Warn),
         new("comp-mind-examined-dead-and-irrecoverable", "departed", Mind),
         new("sleep-examined", "asleep", Calm),
+        new("wg-mentor-examine", "mentor", Calm),
         new("rotting-rotting", "rotting", Warn),
         new("rotting-bloated", "bloated", Danger),
         new("rotting-extremely-bloated", "bloated", Danger),

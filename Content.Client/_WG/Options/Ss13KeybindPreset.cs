@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Shared._WG.MentorObserve;
 using Content.Shared._WG.PixelShift;
 using Content.Shared._WG.RMCCore.Input;
 using Content.Shared._WG.TurnInPlace;
@@ -63,6 +64,8 @@ public static class Ss13KeybindPreset
         (ContentKeyFunctions.OpenEmotesMenu, Key.N, Key.Unknown),
         (ContentKeyFunctions.OpenCraftingMenu, Key.G, Key.Shift),
         (EngineKeyFunctions.ShowDebugMonitors, Key.F3, Key.Shift),
+        // Shift+F3 is Return to body in the stock layout, and the debug monitors' here.
+        (WGMentorObserveKeys.WGMentorReturn, Key.F3, Key.Control),
         (ContentKeyFunctions.RotateObjectClockwise, Key.R, Key.Control),
         (EngineKeyFunctions.CameraRotateLeft, Key.NumpadNum7, Key.Control),
         (EngineKeyFunctions.CameraRotateRight, Key.NumpadNum9, Key.Control),

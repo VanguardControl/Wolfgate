@@ -319,6 +319,18 @@ binds:
 - function: OpenAHelp
   type: State
   key: F1
+# WOLFGATE(MentorHelp) START: Mentor Help on Shift+F1, beside the ahelp
+- function: WGOpenMentorHelp
+  type: State
+  key: F1
+  mod1: Shift
+# WOLFGATE END
+# WOLFGATE(MentorObserve) START: back to the body from watching or a critter, on Shift+F3 (D15)
+- function: WGMentorReturn
+  type: State
+  key: F3
+  mod1: Shift
+# WOLFGATE END
 - function: OpenInventoryMenu
   type: State
   key: I

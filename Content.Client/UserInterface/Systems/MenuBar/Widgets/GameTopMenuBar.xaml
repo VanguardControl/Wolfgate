@@ -1,4 +1,5 @@
-﻿<widgets:GameTopMenuBar xmlns="https://spacestation14.io"
+﻿<!-- WOLFGATE(MentorHelp): mh namespace for the Mentor Help key -->
+<widgets:GameTopMenuBar xmlns="https://spacestation14.io"
            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
            xmlns:style="clr-namespace:Content.Client.Stylesheets"
            xmlns:ic="clr-namespace:Robust.Shared.Input;assembly=Robust.Shared"
@@ -6,6 +7,7 @@
            xmlns:xe="clr-namespace:Content.Client.UserInterface.XamlExtensions"
            xmlns:ui="clr-namespace:Content.Client.UserInterface.Controls"
            xmlns:widgets="clr-namespace:Content.Client.UserInterface.Systems.MenuBar.Widgets"
+           xmlns:mh="clr-namespace:Content.Shared._WG.MentorHelp;assembly=Content.Shared"
            Name = "MenuButtons"
            VerticalExpand="False"
            Orientation="Horizontal"
@@ -170,6 +172,18 @@
         MinSize="42 64"
         HorizontalExpand="True"
         ToggleMode="False"
+        AppendStyleClass="{x:Static style:StyleBase.ButtonSquare}"
+        />
+    <!-- WOLFGATE END -->
+    <!-- WOLFGATE(MentorHelp) START: Mentor Help button beside ahelp -->
+    <ui:MenuButton
+        Name="MentorHelpButton"
+        Access="Internal"
+        Icon="{xe:Tex '/Textures/Interface/Nano/help.png'}"
+        BoundKey = "{x:Static mh:WGMentorHelpKeys.WGOpenMentorHelp}"
+        ToolTip="{Loc 'wg-mhelp-button-tooltip'}"
+        MinSize="42 64"
+        HorizontalExpand="True"
         AppendStyleClass="{x:Static style:StyleBase.ButtonSquare}"
         />
     <!-- WOLFGATE END -->

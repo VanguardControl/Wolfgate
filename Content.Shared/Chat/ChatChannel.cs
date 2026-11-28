@@ -112,13 +112,23 @@ namespace Content.Shared.Chat
         SubtleOOC = 1 << 18,
         // WOLFGATE END
 
+        // WOLFGATE(Mentors) START: mentor chat
+        /// <summary>
+        ///     Mentors and staff
+        /// </summary>
+        MentorChat = 1 << 19,
+        // WOLFGATE END
+
         /// <summary>
         ///     Channels considered to be IC.
         /// </summary>
         IC = Local | Whisper | Radio | Dead | Emotes | Damage | Visual | CollectiveMind | Notifications
             | Subtle, // WOLFGATE(Subtle)
 
-        AdminRelated = Admin | AdminAlert | AdminChat | EventChat, // WOLFGATE(EventStaff): keep event chat out of replays
+        // WOLFGATE(Mentors) START: keep mentor chat out of replays too
+        // AdminRelated = Admin | AdminAlert | AdminChat | EventChat, // WOLFGATE(EventStaff): keep event chat out of replays
+        AdminRelated = Admin | AdminAlert | AdminChat | EventChat | MentorChat,
+        // WOLFGATE END
     }
 
     /// <summary>
@@ -138,6 +148,7 @@ namespace Content.Shared.Chat
                 ChatChannel.AdminChat => Loc.GetString("chat-channel-humanized-admin"),
                 ChatChannel.Dead => Loc.GetString("chat-channel-humanized-dead"),
                 ChatChannel.EventChat => Loc.GetString("wg-chat-channel-humanized-event"), // WOLFGATE(EventStaff)
+                ChatChannel.MentorChat => Loc.GetString("wg-chat-channel-humanized-mentor"), // WOLFGATE(Mentors)
                 _ => throw new ArgumentOutOfRangeException(nameof(channel), channel, null)
             };
         }

@@ -12,6 +12,9 @@ get the staff ahelp window and receive and answer only gameplay ahelps; they can
 who has none, which makes it a gameplay one. Every ahelp line, in game and on Discord, is tagged `(GAMEPLAY)` or
 `(PLAYER)`. Categories reset at round restart.
 
+The picker has a third entry, **How do I…?**, for the MentorHelp module: text sent under it goes to Mentor Help
+instead of staff (`AHelpCategorySelector.HowTo`).
+
 Admin chat and admin alerts now go only to `ADMINCHAT` holders (the client already hid them from everyone else), so
 an event-only rank never receives them.
 

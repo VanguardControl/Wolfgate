@@ -33,6 +33,8 @@ public sealed partial class BwoinkSystem
     private void WgClearHistory()
     {
         _wgHistory.Clear();
+        _wgResolvedLine.Clear();
+        _wgFromMentorHelp.Clear();
     }
 
     /// <summary>Keeps a line of an ahelp so staff and the player see it again after connecting.</summary>
