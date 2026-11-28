@@ -19,6 +19,9 @@ unmarked:
   - path: Resources/Maps/_Mono/POI/anomalouslab.yml
     module: null
     reason: Caelestinus Expansion I (#675) reverted.
+  - path: Resources/Maps/_Mono/POI/sevastopol.yml
+    module: PoiArrivals
+    reason: The vault's 30-minute timed seal is removed, as the station now arrives mid-shift.
   - path: Resources/Textures/_Mono/Structures/Decoration/banner.rsi/
     module: null
     reason: Caelestinus Expansion I (#675) reverted.

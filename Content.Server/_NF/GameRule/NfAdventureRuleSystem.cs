@@ -8,6 +8,7 @@ using Content.Server._Mono.GameRule.Systems;
 using Content.Server._NF.Bank;
 using Content.Server._NF.GameRule.Components;
 using Content.Server._NF.GameTicking.Events;
+using Content.Server._WG.PoiArrivals; // WOLFGATE(PoiArrivals)
 using Content.Server.Cargo.Components;
 using Content.Server.GameTicking;
 using Content.Server.GameTicking.Presets;
@@ -41,6 +42,7 @@ public sealed partial class NFAdventureRuleSystem : GameRuleSystem<NFAdventureRu
     [Dependency] private IBaseServer _baseServer = default!;
     [Dependency] private IEntitySystemManager _entSys = default!;
     [Dependency] private HyperwarRuleSystem _hyperwar = default!;
+    [Dependency] private WGPoiArrivalSystem _wgArrivals = default!; // WOLFGATE(PoiArrivals)
 
     private readonly HttpClient _httpClient = new();
 
@@ -331,6 +333,9 @@ public sealed partial class NFAdventureRuleSystem : GameRuleSystem<NFAdventureRu
             // Check if any preset is accepted (empty) or if current preset is supported.
             var protoIds = location.SpawnGamePreset.ToList();
             if (location.SpawnGamePreset.Length > 0 && !protoIds.Contains(currentPreset))
+                continue;
+
+            if (_wgArrivals.Defer(location, mapUid)) // WOLFGATE(PoiArrivals): jumps into the sector later in the shift instead
                 continue;
 
             switch (location.SpawnGroup)
