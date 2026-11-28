@@ -54,7 +54,7 @@ public sealed partial class WGContractSystem
     private int? FreeSite(WGPlanetPoiComponent record)
     {
         var free = Enumerable.Range(0, record.Sites.Count)
-            .Where(i => record.Sites[i] is { Expeditions: true, ExpeditionClaim: null, ContractClaim: null, Cleared: false, City: false })
+            .Where(i => record.Sites[i] is { Expeditions: true, ExpeditionClaim: null, ContractClaim: null, BlueprintClaim: null, Cleared: false, City: false })
             .ToList();
         return free.Count == 0 ? null : _random.Pick(free);
     }

@@ -93,7 +93,7 @@ public sealed partial class SalvageSystem
                     site.Leftovers.Clear();
                 }
 
-                if (site.Expeditions && site.ExpeditionClaim == null && site.ContractClaim == null && !site.Cleared)
+                if (site.Expeditions && site.ExpeditionClaim == null && site.ContractClaim == null && site.BlueprintClaim == null && !site.Cleared)
                     free.Add((ground, i));
             }
         }
@@ -138,7 +138,7 @@ public sealed partial class SalvageSystem
 
         if (!TryComp<WGPlanetPoiComponent>(offer.Ground, out var record)
             || offer.SiteIndex >= record.Sites.Count
-            || record.Sites[offer.SiteIndex] is not { ExpeditionClaim: null, ContractClaim: null, Cleared: false } site)
+            || record.Sites[offer.SiteIndex] is not { ExpeditionClaim: null, ContractClaim: null, BlueprintClaim: null, Cleared: false } site)
         {
             // Another crew got there first; fresh offers next tick.
             PlayDenySound(console, component);
