@@ -1,0 +1,155 @@
+# cyber organs
+
+- type: entity
+  id: POrganCyber
+  parent: BaseHumanOrganUnGibbable
+  abstract: true
+  components:
+  - type: Cybernetics
+
+- type: entity
+  id: POrganCyberEyes
+  parent: [POrganCyber, WGWolfmedOrganEyes]
+  name: cybernetic eyes
+  description: "A pair of unenhanced cybernetic eyes."
+  components:
+  - type: Sprite
+    sprite: _Mono/Objects/Misc/cybernetics.rsi
+    state: corrective_lenses
+  - type: Organ
+    slotId: eyes
+  - type: Item
+    size: Small
+    heldPrefix: eyeballs
+
+- type: entity
+  id: POrganCyberHeart
+  parent: [POrganCyber, WGWolfmedOrganHeart]
+  name: cybernetic heart
+  description: "An unenhanced cybernetic heart."
+  components:
+  - type: Heart
+  - type: Sprite
+    sprite: _Mono/Objects/Misc/cybernetics.rsi
+    state: leuko
+  - type: Organ
+    slotId: heart
+  - type: Metabolizer
+    maxReagents: 4
+    metabolizerTypes: [Human]
+    groups:
+    - id: Medicine
+    - id: Cryogenic
+    - id: Narcotic
+  - type: Item
+    size: Small
+    heldPrefix: heart
+
+- type: entity
+  id: POrganCyberLungs
+  parent: [POrganCyber, WGWolfmedOrganLungs]
+  name: cybernetic lungs
+  description: "A pair of unenhanced cybernetic lungs."
+  components:
+  - type: Lung
+  - type: Sprite
+    sprite: _Mono/Objects/Misc/cybernetics.rsi
+    state: internal_air_system
+  - type: Organ
+    slotId: lungs
+  - type: Metabolizer # human metabolism
+    removeEmpty: true
+    solutionOnBody: false
+    solution: "Lung"
+    metabolizerTypes: [ Human ]
+    groups:
+    - id: Gas
+      rateModifier: 100.0
+  - type: SolutionContainerManager
+    solutions:
+      organ:
+        reagents:
+        - ReagentId: Zinc
+          Quantity: 10
+      Lung:
+        maxVol: 100.0
+        canReact: false
+      food:
+        maxVol: 5
+        reagents:
+        - ReagentId: Lead
+          Quantity: 5
+  - type: Item
+    size: Small
+    heldPrefix: lungs
+
+- type: entity
+  id: POrganCyberLiver
+  parent: [POrganCyber, WGWolfmedOrganLiver]
+  name: cybernetic liver
+  description: "An unenhanced cybernetic liver."
+  components:
+  - type: Liver
+  - type: Sprite
+    sprite: _Mono/Objects/Misc/cybernetics.rsi
+    state: cranial_aug
+  - type: Metabolizer
+    maxReagents: 1
+    metabolizerTypes: [Human]
+    groups:
+    - id: Alcohol
+      rateModifier: 0.1
+    - id: Poison
+  - type: Item
+    size: Small
+    heldPrefix: liver
+
+- type: entity
+  id: POrganCyberStomach
+  parent: [POrganCyber, WGWolfmedOrganStomach]
+  name: cybernetic stomach
+  description: "An unenhanced cybernetic stomach."
+  components:
+  - type: Stomach
+  - type: Sprite
+    sprite: _HL/Mobs/Species/Synth/organs.rsi
+    state: stomach
+  - type: Organ
+    slotId: stomach
+  - type: SolutionContainerManager
+    solutions:
+      stomach:
+        maxVol: 50
+      food:
+        maxVol: 5
+        reagents:
+        - ReagentId: Zinc
+          Quantity: 5
+  - type: Metabolizer
+    maxReagents: 3
+    metabolizerTypes: [Human]
+    groups:
+    - id: Food
+    - id: Drink
+  - type: Item
+    size: Small
+    heldPrefix: stomach
+
+- type: entity # PRIV - kidneys aren't in the augment list sorry these are admeme
+  id: POrganCyberKidneys
+  parent: [POrganCyber, WGWolfmedOrganKidneys]
+  name: cybernetic kidneys
+  description: "A pair of unenhanced cybernetic kidneys."
+  components:
+  - type: Sprite
+    sprite: _HL/Mobs/Species/Synth/organs.rsi
+    state: kidneys
+  - type: Organ
+    slotId: kidneys
+  - type: Metabolizer
+    maxReagents: 5
+    metabolizerTypes: [Human]
+    removeEmpty: true
+  - type: Item
+    size: Small
+    heldPrefix: kidneys
