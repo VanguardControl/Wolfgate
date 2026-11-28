@@ -1,0 +1,33 @@
+- type: vessel
+  id: ERPCentral
+  parent: BaseVessel
+  name: 'ERP Central'
+  description: 'A mid-sized space yacht with a fully stocked bar, pool, library, master bedroom, and crew sleeping quarters. It features sizeable engines with respectable acceleration. Now with Sexvend.'
+  price: 74000 # appraised at 64269, 15% civilian markup
+  category: Medium # 343 tiles
+  group: Shipyard
+  shuttlePath: /SharedMaps/_WG/Community/executive2.yml
+  guidebookPage: null
+  class:
+  - Cargo
+  - Civilian
+  engine:
+  - Plasma
+
+- type: gameMap
+  id: ERPCentral
+  mapName: 'ZPB Bratan'
+  mapPath: /SharedMaps/_WG/Community/executive2.yml
+  minPlayers: 0
+  stations:
+    ERPCentral:
+      stationProto: StandardFrontierVessel
+      components:
+      - type: StationNameSetup
+        mapNameTemplate: 'ERP Central CIV{1}'
+        nameGenerator:
+          !type:NanotrasenNameGenerator
+          prefixCreator: '14'
+      - type: StationJobs
+        availableJobs:
+          Contractor: [ 0, 0 ]
