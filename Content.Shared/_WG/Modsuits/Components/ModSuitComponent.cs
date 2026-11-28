@@ -19,6 +19,10 @@ public sealed partial class ModSuitComponent : Component
     [DataField]
     public Dictionary<string, EntProtoId> Parts = new();
 
+    /// <summary>The pattern last applied by <see cref="ModSuitSystem.TryReplate"/>; null for a suit still on its prototype's parts.</summary>
+    [DataField, AutoNetworkedField]
+    public ProtoId<ModPatternPrototype>? Pattern;
+
     [DataField, AutoNetworkedField]
     public Dictionary<string, EntityUid> PartEntities = new();
 

@@ -32,6 +32,13 @@ installed into the unit and spend the core's charge while they run.
   the DNA-lock state, cover state, a module table with per-module icons and power/complexity columns, hardware
   rows for each part and a toggle-all control. It uses the restored `icons.rsi` icon set and sends activate,
   deploy, toggle, pin and eject messages.
+- **Patterns.** A `modPattern` (players say "plate") names a theme, four parts, inbuilt modules and the
+  plating tag that teaches it. `patterns.yml` and the plate names are generated from the control units by
+  `Tools/_WG/Modsuits/patterns.py`; run it after adding or changing a control unit (`--check` reports stale
+  output), and `ModPatternTest` fails until you do. `ModSuitSystem.TryReplate` regrows an inactive, retracted
+  suit as another pattern: the old parts and inbuilt modules go, and removable modules the new theme forbids or
+  can't fit leave newest first (never storage modules) into the suit's storage or next to it. Groundwork for
+  Proteans, who grow their own plates.
 
 Entry points: `ModSuitComponent`, `ModModuleComponent`, `ModPartComponent`, `ModThemePrototype`,
 `ModSuitSystem` (parts, activation, power, modules, UI), the module systems under
@@ -82,6 +89,7 @@ module that grips the void like magboots grip a hull.
 - [`Content.Shared/_WG/Modsuits/Components/ModPartComponent.cs`](../../../Content.Shared/_WG/Modsuits/Components/ModPartComponent.cs)
 - [`Content.Shared/_WG/Modsuits/Components/ModSealedComponentsComponent.cs`](../../../Content.Shared/_WG/Modsuits/Components/ModSealedComponentsComponent.cs)
 - [`Content.Shared/_WG/Modsuits/Components/ModSuitComponent.cs`](../../../Content.Shared/_WG/Modsuits/Components/ModSuitComponent.cs)
+- [`Content.Shared/_WG/Modsuits/ModPatternPrototype.cs`](../../../Content.Shared/_WG/Modsuits/ModPatternPrototype.cs)
 - [`Content.Shared/_WG/Modsuits/ModSuitEvents.cs`](../../../Content.Shared/_WG/Modsuits/ModSuitEvents.cs)
 - [`Content.Shared/_WG/Modsuits/ModSuitUi.cs`](../../../Content.Shared/_WG/Modsuits/ModSuitUi.cs)
 - [`Content.Shared/_WG/Modsuits/ModThemePrototype.cs`](../../../Content.Shared/_WG/Modsuits/ModThemePrototype.cs)
@@ -137,6 +145,7 @@ module that grips the void like magboots grip a hull.
 - [`Content.Shared/_WG/Modsuits/Systems/ModSuitSystem.cs`](../../../Content.Shared/_WG/Modsuits/Systems/ModSuitSystem.cs)
 - [`Content.Shared/_WG/Modsuits/Systems/ModSuitSystem.Modules.cs`](../../../Content.Shared/_WG/Modsuits/Systems/ModSuitSystem.Modules.cs)
 - [`Content.Shared/_WG/Modsuits/Systems/ModSuitSystem.Parts.cs`](../../../Content.Shared/_WG/Modsuits/Systems/ModSuitSystem.Parts.cs)
+- [`Content.Shared/_WG/Modsuits/Systems/ModSuitSystem.Patterns.cs`](../../../Content.Shared/_WG/Modsuits/Systems/ModSuitSystem.Patterns.cs)
 - [`Content.Shared/_WG/Modsuits/Systems/ModSuitSystem.Power.cs`](../../../Content.Shared/_WG/Modsuits/Systems/ModSuitSystem.Power.cs)
 - [`Content.Shared/_WG/Modsuits/Systems/ModSuitSystem.Ui.cs`](../../../Content.Shared/_WG/Modsuits/Systems/ModSuitSystem.Ui.cs)
 
@@ -165,6 +174,8 @@ module that grips the void like magboots grip a hull.
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WG/Modsuits/ModPatternTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Modsuits/ModPatternTest.cs)
+- [`Content.IntegrationTests/Tests/_WG/Modsuits/ModReplateTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Modsuits/ModReplateTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Modsuits/ModsuitModulesContentTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Modsuits/ModsuitModulesContentTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Modsuits/ModsuitModuleTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Modsuits/ModsuitModuleTest.cs)
 - [`Content.IntegrationTests/Tests/_WG/Modsuits/ModSuitWindowTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Modsuits/ModSuitWindowTest.cs)
@@ -184,6 +195,7 @@ module that grips the void like magboots grip a hull.
 - [`Resources/Prototypes/_WG/Modsuits/lathe.yml`](../../../Resources/Prototypes/_WG/Modsuits/lathe.yml)
 - [`Resources/Prototypes/_WG/Modsuits/mod_modules.yml`](../../../Resources/Prototypes/_WG/Modsuits/mod_modules.yml)
 - [`Resources/Prototypes/_WG/Modsuits/modsuit_parts.yml`](../../../Resources/Prototypes/_WG/Modsuits/modsuit_parts.yml)
+- [`Resources/Prototypes/_WG/Modsuits/patterns.yml`](../../../Resources/Prototypes/_WG/Modsuits/patterns.yml)
 - [`Resources/Prototypes/_WG/Modsuits/research.yml`](../../../Resources/Prototypes/_WG/Modsuits/research.yml)
 - [`Resources/Prototypes/_WG/Modsuits/shaders.yml`](../../../Resources/Prototypes/_WG/Modsuits/shaders.yml)
 - [`Resources/Prototypes/_WG/Modsuits/suits.yml`](../../../Resources/Prototypes/_WG/Modsuits/suits.yml)
@@ -194,6 +206,7 @@ module that grips the void like magboots grip a hull.
 ### Localization
 
 - [`Resources/Locale/en-US/_WG/Modsuits/modsuit.ftl`](../../../Resources/Locale/en-US/_WG/Modsuits/modsuit.ftl)
+- [`Resources/Locale/en-US/_WG/Modsuits/patterns.ftl`](../../../Resources/Locale/en-US/_WG/Modsuits/patterns.ftl)
 
 ### Textures
 
@@ -204,6 +217,10 @@ module that grips the void like magboots grip a hull.
 ### Guidebook
 
 - [`Resources/ServerInfo/_WG/Modsuits/Guidebook/Modsuits.xml`](../../../Resources/ServerInfo/_WG/Modsuits/Guidebook/Modsuits.xml)
+
+### Tools
+
+- [`Tools/_WG/Modsuits/patterns.py`](../../../Tools/_WG/Modsuits/patterns.py)
 
 ## Non-modular edits
 
