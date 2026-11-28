@@ -7,7 +7,7 @@ namespace Content.Client.Audio;
 
 /// <summary>
 /// A Lattice band with music plays it once on entry and holds other ambient music off while the player stays in it.
-/// The piece re-arms once the player is back inside the band's edge.
+/// The piece re-arms once the player is back inside the band's edge. The Coda's song outranks it.
 /// </summary>
 public sealed partial class ContentAudioSystem
 {
@@ -61,7 +61,11 @@ public sealed partial class ContentAudioSystem
         }
 
         _wgBandHolding = true;
-        if (_isCombatMusicPlaying || _state.CurrentState is not GameplayState)
+        // The Coda's song comes first: the band's piece waits, unplayed, until the song lets the listener go. One the
+        // song cut short plays again then.
+        if (WgCodaSongHolding && _wgBandStream is { } cut && _ambientMusicStream == cut)
+            _wgBandMusicPlayed.Remove(_wgBand);
+        if (_isCombatMusicPlaying || WgCodaSongHolding || _state.CurrentState is not GameplayState)
             return;
 
         if (!_wgBandMusicPlayed.Contains(_wgBand) &&

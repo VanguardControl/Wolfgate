@@ -1,5 +1,7 @@
 using System.Linq;
 using System.Numerics;
+using Robust.Shared.Utility;
+using Content.Server._Mono.Cleanup;
 using Content.Server._Mono.Store;
 using Content.Server._WG.AdminVessels;
 using Content.Server._NF.Bank;
@@ -182,12 +184,67 @@ public sealed partial class WGFragmentRuleSystem : StationEventSystem<WGFragment
             comp.Participants[session.UserId] = slot;
     }
 
+    /// <summary>
+    /// Picks the fragment's grid from every size, and if it belongs to a larger size takes that size's waves, heart,
+    /// payouts and announcements over the defaults.
+    /// </summary>
+    private void ChooseSize(EntityUid uid, WGFragmentRuleComponent comp)
+    {
+        var pool = new List<(ResPath Path, WGFragmentSize? Size)>();
+        pool.AddRange(comp.Grids.Select(g => (g, (WGFragmentSize?) null)));
+        foreach (var size in comp.Sizes)
+        {
+            pool.AddRange(size.Grids.Select(g => (g, (WGFragmentSize?) size)));
+        }
+
+        if (pool.Count == 0)
+            return;
+
+        var (path, chosen) = RobustRandom.Pick(pool);
+        comp.Chosen = path;
+        if (chosen is not { } s)
+            return;
+
+        // Chosen before the event starts, which is when its end is set from this.
+        if (s.Duration is { } duration && TryComp<StationEventComponent>(uid, out var stationEvent))
+        {
+            stationEvent.Duration = duration;
+            stationEvent.MaxDuration = duration;
+        }
+
+        comp.GridName = s.GridName ?? comp.GridName;
+        comp.Heart = s.Heart ?? comp.Heart;
+        comp.Garrison = s.Garrison ?? comp.Garrison;
+        comp.GarrisonElites = s.GarrisonElites ?? comp.GarrisonElites;
+        comp.WaveBase = s.WaveBase ?? comp.WaveBase;
+        comp.PlayersPerExtra = s.PlayersPerExtra ?? comp.PlayersPerExtra;
+        comp.WaveInterval = s.WaveInterval ?? comp.WaveInterval;
+        comp.EliteEvery = s.EliteEvery ?? comp.EliteEvery;
+        comp.MaxAlive = s.MaxAlive ?? comp.MaxAlive;
+        comp.DecorCount = s.DecorCount ?? comp.DecorCount;
+        if (s.Scatter.Count > 0)
+            comp.Scatter = s.Scatter;
+        comp.ScatterCount = s.ScatterCount ?? comp.ScatterCount;
+        comp.ParticipantReward = s.ParticipantReward ?? comp.ParticipantReward;
+        foreach (var id in comp.Rewards.Keys.ToList())
+        {
+            comp.Rewards[id] = (int) MathF.Round(comp.Rewards[id] * s.RewardScale);
+        }
+
+        comp.Sighted = s.Sighted ?? comp.Sighted;
+        comp.Arrived = s.Arrived ?? comp.Arrived;
+        comp.Warning = s.Warning ?? comp.Warning;
+        comp.Broken = s.Broken ?? comp.Broken;
+        comp.Lost = s.Lost ?? comp.Lost;
+        comp.Departed = s.Departed ?? comp.Departed;
+    }
+
     protected override void Started(EntityUid uid, WGFragmentRuleComponent comp, GameRuleComponent gameRule, GameRuleStartedEvent args)
     {
         base.Started(uid, comp, gameRule, args);
 
         var mapId = GameTicker.DefaultMap;
-        if (!MapSystem.MapExists(mapId) || comp.Grids.Count == 0)
+        if (!MapSystem.MapExists(mapId) || comp.Chosen == null && comp.Grids.Count == 0)
             return;
 
         if (PickSite(comp, mapId) is not { } site)
@@ -196,7 +253,7 @@ public sealed partial class WGFragmentRuleSystem : StationEventSystem<WGFragment
             return;
         }
 
-        var path = RobustRandom.Pick(comp.Grids);
+        var path = comp.Chosen ?? RobustRandom.Pick(comp.Grids);
         if (!_loader.TryLoadGrid(mapId, path, out var grid, offset: site))
         {
             Log.Error($"Fragment failed to load {path}");
@@ -205,7 +262,9 @@ public sealed partial class WGFragmentRuleSystem : StationEventSystem<WGFragment
 
         comp.Grid = grid.Value;
         comp.Site = new MapCoordinates(site, mapId);
-        _metaData.SetEntityName(grid.Value, Loc.GetString("wg-fragment-grid-name"));
+        _metaData.SetEntityName(grid.Value, Loc.GetString(comp.GridName));
+        // It waits out in the open with no IFF and no APCs, which grid cleanup would take; the rule removes it at the end.
+        EnsureComp<CleanupImmuneComponent>(grid.Value);
 
         SealHull(grid.Value);
 
@@ -230,13 +289,15 @@ public sealed partial class WGFragmentRuleSystem : StationEventSystem<WGFragment
         var heartAt = tiles.MinBy(t => (t.Position - centre).LengthSquared());
         comp.HeartUid = Spawn(comp.Heart, heartAt);
 
+        // The rest lands over the next few ticks rather than all in this one.
         for (var i = 0; i < comp.DecorCount && comp.Decor.Count > 0; i++)
-            Spawn(RobustRandom.Pick(comp.Decor), RobustRandom.Pick(tiles));
-
+            comp.Pending.Add((RobustRandom.Pick(comp.Decor), RobustRandom.Pick(tiles), false));
+        for (var i = 0; i < comp.ScatterCount && comp.Scatter.Count > 0; i++)
+            comp.Pending.Add((RobustRandom.Pick(comp.Scatter), RobustRandom.Pick(tiles), false));
         for (var i = 0; i < comp.Garrison && comp.Common.Count > 0; i++)
-            comp.Remade.Add(SpawnRemade(RobustRandom.Pick(comp.Common), RobustRandom.Pick(tiles)));
+            comp.Pending.Add((RobustRandom.Pick(comp.Common), RobustRandom.Pick(tiles), true));
         for (var i = 0; i < comp.GarrisonElites && comp.Elites.Count > 0; i++)
-            comp.Remade.Add(SpawnRemade(RobustRandom.Pick(comp.Elites), RobustRandom.Pick(tiles)));
+            comp.Pending.Add((RobustRandom.Pick(comp.Elites), RobustRandom.Pick(tiles), true));
 
         comp.NextWave = Timing.CurTime + comp.WaveInterval;
         Announce(comp, comp.Arrived, comp.Site);
@@ -254,6 +315,7 @@ public sealed partial class WGFragmentRuleSystem : StationEventSystem<WGFragment
             Announce(comp, comp.Warning, comp.Site, calm: comp.HeartBroken);
         }
 
+        SpawnPending(comp);
         if (comp.Cleared || comp.Grid is not { } grid || !Exists(grid) || Timing.CurTime < comp.NextCheck)
             return;
         comp.NextCheck = Timing.CurTime + TimeSpan.FromSeconds(1);
@@ -304,7 +366,7 @@ public sealed partial class WGFragmentRuleSystem : StationEventSystem<WGFragment
                 return true;
             return xform.MapID == heartPos.MapId
                    && (_transform.GetWorldPosition(xform) - heartPos.Position).Length() <= comp.SpawnRadius;
-        });
+        }) + comp.Pending.Count(p => p.Remade);
         var size = WaveSize(near.Count, alive, comp.WaveBase, comp.PlayersPerExtra, comp.MaxAlive);
         if (size == 0 || comp.Common.Count == 0)
             return;
@@ -320,10 +382,10 @@ public sealed partial class WGFragmentRuleSystem : StationEventSystem<WGFragment
             return;
 
         for (var i = 0; i < size; i++)
-            comp.Remade.Add(SpawnRemade(RobustRandom.Pick(comp.Common), WaveSpot(comp, own, nearby)));
+            comp.Pending.Add((RobustRandom.Pick(comp.Common), WaveSpot(comp, own, nearby), true));
 
         if (elite)
-            comp.Remade.Add(SpawnRemade(RobustRandom.Pick(comp.Elites), WaveSpot(comp, own, nearby)));
+            comp.Pending.Add((RobustRandom.Pick(comp.Elites), WaveSpot(comp, own, nearby), true));
     }
 
     /// <summary>A spot for one Remade: a nearby grid by <see cref="WGFragmentRuleComponent.NearbyShare"/>, else the fragment.</summary>
@@ -525,6 +587,41 @@ public sealed partial class WGFragmentRuleSystem : StationEventSystem<WGFragment
 
         var furthest = mid + across * (minAcross + maxOffset);
         return Valid(furthest) ? furthest : null;
+    }
+
+    /// <summary>
+    /// Spawns the next few of the landing's pending entities; drops them if the fragment is gone, and drops pending Remade
+    /// once it is cleared.
+    /// </summary>
+    private void SpawnPending(WGFragmentRuleComponent comp)
+    {
+        if (comp.Pending.Count == 0)
+            return;
+
+        if (comp.Grid is not { } grid || TerminatingOrDeleted(grid))
+        {
+            comp.Pending.Clear();
+            return;
+        }
+
+        // Once the heart breaks, Remade still queued never arrive; the landing's decor still does.
+        if (comp.Cleared)
+            comp.Pending.RemoveAll(p => p.Remade);
+
+        var count = Math.Min(WGFragmentRuleComponent.SpawnsPerTick, comp.Pending.Count);
+        for (var i = 0; i < count; i++)
+        {
+            var (proto, at, remade) = comp.Pending[i];
+            if (!at.IsValid(EntityManager))
+                continue;
+
+            if (remade)
+                comp.Remade.Add(SpawnRemade(proto, at));
+            else
+                Spawn(proto, at);
+        }
+
+        comp.Pending.RemoveRange(0, count);
     }
 
     /// <summary>A Remade answering to no Monolith: it never starves, and nothing it kills turns.</summary>

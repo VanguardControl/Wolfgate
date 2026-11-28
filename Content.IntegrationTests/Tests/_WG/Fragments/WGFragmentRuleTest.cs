@@ -40,6 +40,8 @@ public sealed class WGFragmentRuleTest
             Assert.That(ticker.IsGameRuleActive(rule), "rule not active");
             Assert.That(comp.Grid, Is.Not.Null, "the fragment never arrived.");
             grid = comp.Grid!.Value;
+            Assert.That(entMan.HasComponent<Content.Server._Mono.Cleanup.CleanupImmuneComponent>(grid), Is.True,
+                "grid cleanup can take the fragment before anyone reaches it.");
             Assert.That(comp.HeartUid is { } heart && entMan.GetComponent<TransformComponent>(heart).GridUid == grid,
                 "the heart isn't on the fragment.");
             Assert.That(entMan.EntityQuery<WGMonolithComponent>(), Is.Empty, "a fragment holds a Monolith.");
@@ -61,6 +63,27 @@ public sealed class WGFragmentRuleTest
         await pair.RunTicksSync(5);
 
         await server.WaitAssertion(() => Assert.That(entMan.Deleted(grid) || entMan.IsQueuedForDeletion(grid), "the fragment outlived its rule."));
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A greater fragment runs for its own, longer time, set when its size is chosen before it starts.</summary>
+    [Test]
+    public async Task GreaterFragmentTakesLonger()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+
+        await server.WaitAssertion(() =>
+        {
+            var ticker = entMan.System<GameTicker>();
+            var rule = ticker.AddGameRule("WGFragmentEventGreater");
+            var stationEvent = entMan.GetComponent<Content.Server.StationEvents.Components.StationEventComponent>(rule);
+            Assert.That(stationEvent.Duration, Is.EqualTo(System.TimeSpan.FromMinutes(45)), "a greater fragment kept the lesser one's time.");
+            Assert.That(stationEvent.MaxDuration, Is.EqualTo(System.TimeSpan.FromMinutes(45)));
+            ticker.EndGameRule(rule);
+        });
+
         await pair.CleanReturnAsync();
     }
 
