@@ -1,0 +1,161 @@
+# Underground
+
+The Underground Black Market as a faction: a neutral broker under the Godfather, with its own rule (Conflict Rule 7),
+a Heat level that decides when it is hunted and when its station can be struck, and work of its own to do.
+
+**Heat** (`WGUndergroundHeatSystem`) is one faction-wide level, shown on every PDA under the war level: QUIET,
+WATCHED, WANTED and RAID. It rises when a member sells smuggling crates at the drop, sealed freight to the fence or
+supply crates at a cargo pallet, or puts a TSF or PDV player into crit (`heat_crit`) or kills them (`heat_kill`). A sale by anyone else pays the treasury and adds no
+Heat (`wg.underground.heat_outsider`, never above zero for the TSF and PDV), so a courier keeps the faction quiet and
+its hunters can't run the Heat up. It cools all the time outside a raid window, twice as fast while the Godfather has
+the market closed. WATCHED (6) and WANTED (12) tell TSF security over the radio, WANTED with a bearing
+every ten minutes. RAID (20) announces the station's position to the sector, pays the TSF's uplinks
+`wg.underground.raid_reward` military credits (through `CurrencyInjectionSystem`) and opens a 30 minute window in which
+it may be struck; afterwards Heat drops to WATCHED and can't reach RAID again for 45 minutes. The window and the
+`lockdown_minutes` (30) after it are a lockdown: the market is shut and can't be reopened, and the UndergroundVend refuses
+purchases (`BoundUserInterfaceMessageAttempt` in `WGUndergroundBaseSystem`). A supply crate only counts when
+sold at its destination. The same system keeps the faction's treasury (5,000 thalers a job sold) and the round-end tally.
+
+**Price by Heat:** a member's smuggling crate is quoted at the street price times `PriceFactor()`: `price_quiet` (1.5)
+at no Heat, falling to `price_hot` (0.5) just short of RAID, and `price_lockdown` (0.25) in a lockdown. Above 1 it is
+`WGTradeQuoteEvent.Premium`, below 1 a lowering modifier, so lying low pays and running hot costs. Customs tips off
+security about members' crates as it does anyone's.
+
+**Warrants** (`WGUndergroundWarrantSystem`, `WGUndergroundMemberComponent` on the jobs) replace the fixed bounty.
+A member starts at a base warrant that grows by 25 military credits for each job they sell themself, up to the old
+figures (150 a Fugitive, 250 a Fixer, 400 the Godfather). A TSF contraband pallet only takes a member alive. The
+first time it sees one it holds them for five minutes and tells the Underground the bail (200 thalers a credit of
+warrant); bail paid at the cargo console lands as cash beside the prisoner. A member who was handed in or bailed
+can't be handed in again for `served_minutes` (30), on that body or the player's next, unless they damage a TSF or PDV
+player (`OnPlayerDamaged`). Each earlier capture of the same player that round adds `bail_repeat` (half) to the bail and
+`bail_repeat_minutes` (5) to the hold. A tagged new player is never sold at any
+pallet.
+
+**Heretic marks** (`WGHereticMarkSystem`): the marked player is told; a tagged new player is never marked; a player
+handed in or killed as a heretic isn't marked again that round. The PDV's pallet pays in full for a live heretic and
+half for a dead one, clears the mark and leaves the body. No other pallet takes a body. A marked heretic or a member
+shut inside a container that is sold is put out on the pallet, not deleted with it, and counts as not handed in. The Underground's jobs no
+longer roll for a mark; the Heretic trait is open to them.
+
+**The station** (`WGUndergroundBaseSystem`): its turrets (`WGUndergroundTurretComponent`) stay retracted until the
+Godfather arms them, and then fire on anyone without Underground access. A raid window stands them down and they can't be
+armed during one; when it closes, armed turrets come back up with the usual warning. They have no guest list:
+everyone on the station or docked to it gets 30 seconds' warning before they come up (`wg.underground.turret_warning`),
+and a ship that docks while they are up is told the station is closed and to undock (`Docked`). That is how the
+market truce's guests get clear: nothing exempts a guest the turrets can see, a docked ship's crew included. A safehouse ship is parked
+6 to 9 km away as part of the station, with spawn markers on its seats, so a raid can't hold everyone who joins.
+Fugitive slots grow by one for every 15 players in the round, up to five more. Once an hour the Godfather can jump
+the station (`TryHop`): after a minute's warning it goes through FTL to a new place 18 to 25 km out, at least 10 km
+from where it was and clear of other grids, and is refused at no cost when no such place turns up. Docked ships with
+their FTL lock on come along, one that can't jump is cast off, and the safehouse stays. The drive won't fire while a
+raid window is open, and a raid that opens during the warning calls the jump off and gives the hour back.
+
+**The cargo console** (`WGUndergroundTerminalSystem`, alt-click verbs on the Underground's cargo request console):
+anyone with Underground access reads the faction's status; the Godfather and Fixers issue market passes (a pinpointer
+to the station that lasts 30 minutes) and pay bail; the Godfather opens and closes the market (not during a lockdown), arms the turrets outside a raid, pays
+the crew from the treasury, jumps the station and declares a vendetta on a ship within 1.5 km.
+
+Content: the Fixer job, the Underground's contracts board and contractor (thalers), the contact on
+Caelestinus Central who sells market passes, and the guidebook pages. The UndergroundVend also sells the ship jammer
+(25 TC, `WGShipJammerSystem`): used in hand aboard a ship, it stops every jammable radio
+message and NanoChat sent from that grid for ten minutes, then is gone. It can be smashed. Settings are the `wg.underground.*` cvars in `WGUndergroundCVars`.
+
+Not done here: the treasury is the module's own counter, not a sector bank account, and the roles draw no salary;
+pay is the Godfather's payroll verb.
+
+<!-- WOLFGATE-GENERATED START -->
+<!-- Generated by python Tools/_WG/Ci/modules.py --write. Don't edit by hand. -->
+
+## Files
+
+### Server
+
+- [`Content.Server/_WG/Underground/ContrabandTurnInSystem.Underground.cs`](ContrabandTurnInSystem.Underground.cs)
+- [`Content.Server/_WG/Underground/PdaSystem.Underground.cs`](PdaSystem.Underground.cs)
+- [`Content.Server/_WG/Underground/WGHereticMarkSystem.cs`](WGHereticMarkSystem.cs)
+- [`Content.Server/_WG/Underground/WGShipJammerSystem.cs`](WGShipJammerSystem.cs)
+- [`Content.Server/_WG/Underground/WGUndergroundBaseSystem.cs`](WGUndergroundBaseSystem.cs)
+- [`Content.Server/_WG/Underground/WGUndergroundComponents.cs`](WGUndergroundComponents.cs)
+- [`Content.Server/_WG/Underground/WGUndergroundEvents.cs`](WGUndergroundEvents.cs)
+- [`Content.Server/_WG/Underground/WGUndergroundHeatSystem.cs`](WGUndergroundHeatSystem.cs)
+- [`Content.Server/_WG/Underground/WGUndergroundTerminalSystem.cs`](WGUndergroundTerminalSystem.cs)
+- [`Content.Server/_WG/Underground/WGUndergroundWarrantSystem.cs`](WGUndergroundWarrantSystem.cs)
+
+### Shared
+
+- [`Content.Shared/_WG/Underground/WGUndergroundCVars.cs`](../../../Content.Shared/_WG/Underground/WGUndergroundCVars.cs)
+
+### Integration tests
+
+- [`Content.IntegrationTests/Tests/_WG/Underground/WGUndergroundTest.cs`](../../../Content.IntegrationTests/Tests/_WG/Underground/WGUndergroundTest.cs)
+
+### Prototypes
+
+- [`Resources/Prototypes/_WG/Underground/contracts.yml`](../../../Resources/Prototypes/_WG/Underground/contracts.yml)
+- [`Resources/Prototypes/_WG/Underground/entities.yml`](../../../Resources/Prototypes/_WG/Underground/entities.yml)
+- [`Resources/Prototypes/_WG/Underground/fixer.yml`](../../../Resources/Prototypes/_WG/Underground/fixer.yml)
+- [`Resources/Prototypes/_WG/Underground/front.yml`](../../../Resources/Prototypes/_WG/Underground/front.yml)
+- [`Resources/Prototypes/_WG/Underground/guidebook.yml`](../../../Resources/Prototypes/_WG/Underground/guidebook.yml)
+- [`Resources/Prototypes/_WG/Underground/uplink.yml`](../../../Resources/Prototypes/_WG/Underground/uplink.yml)
+
+### Localization
+
+- [`Resources/Locale/en-US/_WG/Underground/contracts.ftl`](../../../Resources/Locale/en-US/_WG/Underground/contracts.ftl)
+- [`Resources/Locale/en-US/_WG/Underground/entities.ftl`](../../../Resources/Locale/en-US/_WG/Underground/entities.ftl)
+- [`Resources/Locale/en-US/_WG/Underground/front.ftl`](../../../Resources/Locale/en-US/_WG/Underground/front.ftl)
+- [`Resources/Locale/en-US/_WG/Underground/jobs.ftl`](../../../Resources/Locale/en-US/_WG/Underground/jobs.ftl)
+- [`Resources/Locale/en-US/_WG/Underground/underground.ftl`](../../../Resources/Locale/en-US/_WG/Underground/underground.ftl)
+
+### Guidebook
+
+- [`Resources/ServerInfo/_WG/Underground/Guidebook/Factions/Underground.xml`](../../../Resources/ServerInfo/_WG/Underground/Guidebook/Factions/Underground.xml)
+- [`Resources/ServerInfo/_WG/Underground/Guidebook/Rules/Conflict/Seven_Underground.xml`](../../../Resources/ServerInfo/_WG/Underground/Guidebook/Rules/Conflict/Seven_Underground.xml)
+
+## Non-modular edits
+
+- [`Content.Server/_Mono/PDV/EntitySystems/AddComponentsAfterTimeSystem.cs`](../../_Mono/PDV/EntitySystems/AddComponentsAfterTimeSystem.cs): a mark can be refused, such as for a new player or one already hunted this round
+- [`Content.Server/_NF/Contraband/Systems/ContrabandTurnInSystem.cs`](../../_NF/Contraband/Systems/ContrabandTurnInSystem.cs)
+  - record the prisoners sold and keep the bodies the pallet doesn't take away
+  - the pallet's currency decides which prisoners it takes
+  - a heretic's body pays half
+  - which prisoners and bodies a pallet takes is the Underground module's call
+- [`Content.Server/PDA/PdaSystem.cs`](../../PDA/PdaSystem.cs)
+  - refresh PDAs when the Underground's Heat changes
+  - Heat line under the DEFCON
+- [`Resources/Locale/en-US/_Mono/job/department.ftl`](../../../Resources/Locale/en-US/_Mono/job/department.ftl): the Underground is a faction with work to do
+- [`Resources/Locale/en-US/_Mono/job/job-description.ftl`](../../../Resources/Locale/en-US/_Mono/job/job-description.ftl): the Underground is a neutral faction under the Godfather; fugitives are wanted alive
+- [`Resources/Locale/en-US/_Mono/poi/stations.ftl`](../../../Resources/Locale/en-US/_Mono/poi/stations.ftl): a neutral faction, not just enemies of the TSF
+- [`Resources/Maps/_Mono/Outpost/caelestinus_central.yml`](../../../Resources/Maps/_Mono/Outpost/caelestinus_central.yml): The Underground's contact, who sells market passes, placed on the Central Command map.
+- [`Resources/Maps/_Mono/POI/underground.yml`](../../../Resources/Maps/_Mono/POI/underground.yml): Point-defence turrets, the Fixers' spawn markers and the Underground's contracts board with its pad.
+- [`Resources/Prototypes/_Mono/Entities/Structures/Machines/Computers/underground_computers.yml`](../../../Resources/Prototypes/_Mono/Entities/Structures/Machines/Computers/underground_computers.yml): ordering a crate is quiet, selling one adds Heat; the console also runs the faction's business
+- [`Resources/Prototypes/_Mono/Guidebook/factions.yml`](../../../Resources/Prototypes/_Mono/Guidebook/factions.yml): the faction page is rewritten; was /ServerInfo/_Mono/Guidebook/Factions/underground.xml
+- [`Resources/Prototypes/_Mono/Guidebook/rules.yml`](../../../Resources/Prototypes/_Mono/Guidebook/rules.yml)
+- [`Resources/Prototypes/_Mono/PointsOfInterest/underground.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/underground.yml)
+  - the station's safehouse, scaling slots and turrets
+  - the Godfather's lieutenants
+- [`Resources/Prototypes/_Mono/Roles/Jobs/departments.yml`](../../../Resources/Prototypes/_Mono/Roles/Jobs/departments.yml): the Godfather's lieutenant
+- [`Resources/Prototypes/_Mono/Roles/Jobs/Underground/fugitive.yml`](../../../Resources/Prototypes/_Mono/Roles/Jobs/Underground/fugitive.yml)
+  - the job no longer rolls for a heretic mark, so the trait is open to it
+  - fugitives answer to the Godfather; was job-supervisors-nobody
+  - the warrant is kept by the Underground module and grows with the member's jobs; was a fixed 150
+  - no automatic heretic mark; the Heretic trait is how a member gets one
+- [`Resources/Prototypes/_Mono/Roles/Jobs/Underground/godfather.yml`](../../../Resources/Prototypes/_Mono/Roles/Jobs/Underground/godfather.yml)
+  - the job no longer rolls for a heretic mark, so the trait is open to it
+  - the warrant is kept by the Underground module and grows with the member's jobs; was a fixed 400
+  - no automatic heretic mark; the Heretic trait is how a member gets one
+- [`Resources/Prototypes/_NF/Entities/Markers/Spawners/syndicate.yml`](../../../Resources/Prototypes/_NF/Entities/Markers/Spawners/syndicate.yml): random loot no longer points at the Underground station; was "- PinpointerSyndicatePOI # make rarer"
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Four_PortStriking.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Four_PortStriking.xml): the Underground station is an outpost the war level never opens
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/One_RandomDeathmatch.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/One_RandomDeathmatch.xml)
+  - the Underground is neutral and needs escalation
+  - a heretic mark starts with a challenge
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Three_FairPlay.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Three_FairPlay.xml): bounties and heretic marks are demands too
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Two_NewLife.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Two_NewLife.xml): a player just collected for a bounty or heretic mark is protected too
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml): the Underground rule
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Eight_FactionRoles.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Eight_FactionRoles.xml): what abandonment means for the Underground
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Nine_CommandingRoles.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Nine_CommandingRoles.xml): the Godfather is a commander
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Seven_SafeZones.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Seven_SafeZones.xml)
+  - job bounties and heretic marks are not command bounties
+  - a raid window lifts the Underground's protection
+  - selling contraband in a Safe Zone forfeits its protection
+
+<!-- WOLFGATE-GENERATED END -->

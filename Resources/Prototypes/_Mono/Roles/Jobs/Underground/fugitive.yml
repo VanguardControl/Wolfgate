@@ -6,13 +6,15 @@
   requirements:
   - !type:OverallPlaytimeRequirement
     time: 10800 # 3 hours # mono
-  - !type:TraitsRequirement # already a heretic by default
-    inverted: true
-    traits:
-    - Heretic
+  # WOLFGATE(Underground) START: the job no longer rolls for a heretic mark, so the trait is open to it
+  # - !type:TraitsRequirement # already a heretic by default
+  #   inverted: true
+  #   traits:
+  #   - Heretic
+  # WOLFGATE END
   startingGear: FugitiveGear
   icon: JobIconFugitive
-  supervisors: job-supervisors-nobody
+  supervisors: job-supervisors-wg-underground-godfather # WOLFGATE(Underground): fugitives answer to the Godfather; was job-supervisors-nobody
   # WOLFGATE(ReaverCampaign): Underground crew fly the neutral WGUnderground company, so the Reavers leave them alone
   assignedCompany: WGUnderground
   displayWeight: 100
@@ -34,20 +36,27 @@
       - NanoTrasen
       - WGUnderground
     # WOLFGATE END
-    - type: Contraband
-      hideValues: true
-      turnInValues:
-        FederationMilitaryCredit: 150 # bounty on your head
+    # WOLFGATE(Underground) START: the warrant is kept by the Underground module and grows with the member's jobs; was a fixed 150
+    # - type: Contraband
+    #   hideValues: true
+    #   turnInValues:
+    #     FederationMilitaryCredit: 150 # bounty on your head
+    - type: WGUndergroundMember
+      baseWarrant: 25
+      maxWarrant: 150
+    # WOLFGATE END
     - type: RadioOnCryosleep
       radioChannel: Syndicate # Syndicate = Underground
-    - type: AddComponentsAfterTime # heresy
-      addComponentsOnSelection:
-      - type: Contraband
-        hideValues: true
-        turnInValues:
-          FederationMilitaryCredit: 150 # heresy
-          Doubloon: 250
-      - type: Heretic
+    # WOLFGATE(Underground) START: no automatic heretic mark; the Heretic trait is how a member gets one
+    # - type: AddComponentsAfterTime # heresy
+    #   addComponentsOnSelection:
+    #   - type: Contraband
+    #     hideValues: true
+    #     turnInValues:
+    #       FederationMilitaryCredit: 150 # heresy
+    #       Doubloon: 250
+    #   - type: Heretic
+    # WOLFGATE END
   - !type:AddImplantSpecial
     implants: [ DeathRattleImplant, RadioImplant ]
   - !type:AddLanguageSpecial

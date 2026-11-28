@@ -1,0 +1,11 @@
+# What the UndergroundVend sells beyond the stock uplink.
+
+- type: listing
+  id: WGUplinkShipJammer
+  name: wg-uplink-ship-jammer-name
+  description: wg-uplink-ship-jammer-desc
+  productEntity: WGShipJammer
+  cost:
+    Telecrystal: 25
+  categories:
+  - UplinkDisruption

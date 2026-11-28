@@ -14,4 +14,7 @@ department-Medical = Medical Dispatch
 department-Viper = Viper Group
 
 department-Underground = Underground Black Market
-department-Underground-description = Evade the TSFMC and the bounty hunters they send after you. Reap the rewards of your dangerous lifestyle.
+# WOLFGATE(Underground) START: the Underground is a faction with work to do
+# department-Underground-description = Evade the TSFMC and the bounty hunters they send after you. Reap the rewards of your dangerous lifestyle.
+department-Underground-description = The sector's black market. Smuggle and fence goods, take work from anyone who pays, and stay out of TSF hands.
+# WOLFGATE END

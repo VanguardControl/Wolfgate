@@ -23,7 +23,7 @@ public static class WGFactionCrewPolicy
     /// <summary>USSP ranks.</summary>
     public static readonly string[] UsspJobs = { "USSPRifleman", "USSPSergeant", "USSPCommissar" };
     /// <summary>Underground ranks.</summary>
-    public static readonly string[] UndergroundJobs = { "Fugitive", "Godfather" };
+    public static readonly string[] UndergroundJobs = { "Fugitive", "WGUndergroundFixer", "Godfather" };
 
     /// <summary>Only explicitly supported jobs can establish a faction or recruitment ceiling.</summary>
     public static int Rank(WGCrewFaction faction, string? job) => (faction, job) switch
@@ -44,7 +44,8 @@ public static class WGFactionCrewPolicy
         (WGCrewFaction.USSP, "USSPSergeant") => 2,
         (WGCrewFaction.USSP, "USSPCommissar") => 3,
         (WGCrewFaction.Underground, "Fugitive") => 1,
-        (WGCrewFaction.Underground, "Godfather") => 2,
+        (WGCrewFaction.Underground, "WGUndergroundFixer") => 2,
+        (WGCrewFaction.Underground, "Godfather") => 3,
         _ => -1,
     };
 

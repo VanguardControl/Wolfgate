@@ -100,7 +100,7 @@
       rarePrototypes:
         - ClothingBackpackDuffelSyndicateHardsuitBundle
         - ClothingBackpackDuffelSyndicateMedicHardsuitBundle
-        - PinpointerSyndicatePOI # make rarer
+        # WOLFGATE(Underground): random loot no longer points at the Underground station; was "- PinpointerSyndicatePOI # make rarer"
     #   - PinpointerSyndicatePOI
       rareChance: 0.2 # Mono
       offset: 0

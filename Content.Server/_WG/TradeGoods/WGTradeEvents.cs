@@ -23,6 +23,15 @@ public sealed class WGTradeQuoteEvent(EntityUid grid, EntityUid chute, string go
 
     /// <summary>Set when the station wants this crate outright, at a flat price however full its shelf is.</summary>
     public bool NoGlut;
+
+    /// <summary>
+    /// What the seller's own risk earns on top: it multiplies the final price past every cap, a contraband street price
+    /// included. Applied after the modifiers below 1.
+    /// </summary>
+    public float Premium = 1f;
+
+    /// <summary>The reason players see for <see cref="Premium"/> when nothing lowers the price.</summary>
+    public LocId? PremiumReason;
 }
 
 /// <summary>

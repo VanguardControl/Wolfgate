@@ -121,6 +121,7 @@ public sealed partial class ContrabandTurnInSystem : SharedContrabandTurnInSyste
             RaiseLocalEvent(ref ev);
         }
 
+        WgTurnedIn(toSell); // WOLFGATE(Underground): record the prisoners sold and keep the bodies the pallet doesn't take away
         foreach (var ent in toSell)
         {
             Del(ent);
@@ -132,6 +133,7 @@ public sealed partial class ContrabandTurnInSystem : SharedContrabandTurnInSyste
         amount = 0;
         toSell = new HashSet<EntityUid>();
         var street = 0.0; // WOLFGATE(WolfChem): the street value of the narcotics handed in, summed over the pallets
+        _wgRewardType = console.RewardType; // WOLFGATE(Underground): the pallet's currency decides which prisoners it takes
 
         foreach (var (palletUid, _) in GetContrabandPallets(gridUid))
         {
@@ -159,6 +161,7 @@ public sealed partial class ContrabandTurnInSystem : SharedContrabandTurnInSyste
 
                     var value = comp.TurnInValues[console.RewardType];
                     value = EntityManager.System<Content.Server._WG.WolfChem.Narcotics.WGNarcoticGoodsSystem>().TurnIn(ent, value, ref street, toSell); // WOLFGATE(WolfChem): narcotics hand in for what they hold together
+                    value = WgTurnInValue(ent, value); // WOLFGATE(Underground): a heretic's body pays half
                     // Mono Begin - Accounting for stacks of contraband
                     if (TryComp<StackComponent>(ent, out var stackcomp))
                         value *= stackcomp.Count;
@@ -176,12 +179,14 @@ public sealed partial class ContrabandTurnInSystem : SharedContrabandTurnInSyste
     {
         if (_mobQuery.HasComponent(uid))
         {
-            // WOLFGATE: an executed heretic's body is what the Sultanate pays for
-            if (_mobQuery.GetComponent(uid).CurrentState == MobState.Dead && !HasComp<Content.Server._Mono.PDV.Components.HereticComponent>(uid)) // Allow selling alive prisoners
-            {
-                return false;
-            }
-            return true;
+            // WOLFGATE(Underground) START: which prisoners and bodies a pallet takes is the Underground module's call
+            // if (_mobQuery.GetComponent(uid).CurrentState == MobState.Dead) // Allow selling alive prisoners
+            // {
+            //     return false;
+            // }
+            // return true;
+            return WgCanTurnIn(uid);
+            // WOLFGATE END
         }
 
         // Recursively check for mobs at any point.

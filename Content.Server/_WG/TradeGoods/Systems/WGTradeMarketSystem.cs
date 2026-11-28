@@ -206,8 +206,10 @@ public sealed partial class WGTradeMarketSystem : EntitySystem
             stock = 1f;
         }
 
-        var amount = (int) MathF.Round(raised * lower);
+        var premium = MathF.Max(1f, ev.Premium);
+        var amount = (int) MathF.Round(raised * lower * premium);
         var reason = lowerReason
+                     ?? (premium > 1f ? ev.PremiumReason : null)
                      ?? raiseReason
                      ?? (restocking ? "wg-trade-reason-restock"
                          : crate == null && IsSealedOnly(chute) ? "wg-trade-reason-sealed-only"

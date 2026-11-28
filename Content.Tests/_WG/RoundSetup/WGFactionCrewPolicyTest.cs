@@ -40,6 +40,8 @@ public sealed class WGFactionCrewPolicyTest
     [TestCase(WGCrewFaction.USSP, "USSPSergeant", "VGInfanteer", false)]
     [TestCase(WGCrewFaction.Underground, "Godfather", "Fugitive", true)]
     [TestCase(WGCrewFaction.Underground, "Fugitive", "Godfather", false)]
+    [TestCase(WGCrewFaction.Underground, "WGUndergroundFixer", "Fugitive", true)]
+    [TestCase(WGCrewFaction.Underground, "WGUndergroundFixer", "Godfather", false)]
     [TestCase(WGCrewFaction.None, "Sheriff", "Deputy", false)]
     [TestCase(WGCrewFaction.TSF, null, "Deputy", false)]
     [TestCase(WGCrewFaction.TSF, "Sheriff", null, false)]

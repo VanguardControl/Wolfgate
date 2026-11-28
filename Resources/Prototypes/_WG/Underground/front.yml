@@ -1,0 +1,68 @@
+# Nell Okafor, the Underground's contact on a civilian station: sells market passes.
+- type: humanoidProfile
+  id: WGTraderUndergroundContactProfile
+  profile:
+    name: Nell Okafor
+    species: Human
+    age: 41
+    sex: Female
+    gender: Female
+    appearance:
+      hair: HumanHairBun
+      hairColor: "#2B1D14"
+      facialHair: FacialHairShaved
+      facialHairColor: "#2B1D14"
+      eyeColor: "#4A3524"
+      skinColor: "#8C5A3C"
+
+- type: startingGear
+  id: WGTraderUndergroundContactGear
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitColorBrown
+    outerClothing: ClothingOuterCoatTrench
+    gloves: ClothingHandsGlovesColorBlack
+    shoes: ClothingShoesColorBlack
+
+- type: traderDialogue
+  id: WGTraderUndergroundContactDialogue
+  greeting: trader-underground-contact-greeting
+  farewell: trader-underground-contact-farewell
+  options:
+  - prompt: trader-underground-contact-prompt-shop
+    response: trader-underground-contact-response-shop
+    action: OpenShop
+  - prompt: trader-underground-contact-prompt-who
+    response: trader-underground-contact-response-who
+    action: None
+
+- type: entity
+  id: WGTraderUndergroundContact
+  parent: WGBaseTrader
+  suffix: Trader, Underground contact
+  components:
+  - type: HumanoidAppearance
+    species: Human
+    initial: WGTraderUndergroundContactProfile
+  - type: Loadout
+    prototypes: [ WGTraderUndergroundContactGear ]
+  - type: Trader
+    dialogue: WGTraderUndergroundContactDialogue
+  - type: TraderShop
+    vendors: [ WGTraderStockUndergroundContact ]
+
+- type: vendingMachineInventory
+  id: WGTraderUndergroundContactInventory
+  startingInventory:
+    WGUndergroundMarketPass: 5
+
+# A pass costs what it appraises for; the parent machine's own modifier is 10.
+- type: entity
+  id: WGTraderStockUndergroundContact
+  parent: VendingMachineAmmo
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VendingMachine
+    pack: WGTraderUndergroundContactInventory
+    requiresCash: true
+  - type: MarketModifier
+    mod: 1

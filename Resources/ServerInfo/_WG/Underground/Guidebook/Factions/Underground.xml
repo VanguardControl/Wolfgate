@@ -1,0 +1,112 @@
+<Document>
+# The Underground
+
+<Box>
+<GuideEntityEmbed Entity="WeaponSubMachineGunTypewriter"/>
+<GuideEntityEmbed Entity="ClothingOuterHardsuitSyndie"/>
+</Box>
+The [color=#d93c3c]Underground[/color] is the sector's black market. It is a neutral faction working out of a hidden station deep in the [color=orange]Outer Cloud[/color]. It sells to anyone and answers to no one.
+
+It is led by the [color=purple]Godfather[/color], who has two [color=#d9730d]Fixers[/color] and five or more [color=crimson]Fugitives[/color] working for them. They move goods the Trans-Solarian Federation has banned, for profit and to wear down the TSF's hold on the sector.
+
+## Where You Stand
+
+- The [color=cyan]TSFMC[/color] pays a bounty for you [bold]alive[/bold]. They have to make a demand first, and they can only raid the station while your Heat is RAID. You can still invite them to dock and sell to them.
+- [color=#2e9e4f]Safe Zones[/color] protect you like anyone else, except while your Heat is RAID. Don't sell contraband from a ship docked at one. Meet your customers there and send them to the market.
+- The [color=tan]PDV[/color] buys from you and hires you.
+- Civilians are your customers. Invite them to dock and they are under the market truce.
+- The Reavers leave your ships, your crews, and your station alone. That is an arrangement, not an alliance, and what you know about them is yours to sell.
+
+[bold]Read [textlink="Conflict Rule 7" link="WGRuleConflictSevenUnderground"]. It covers captures, bail, the station, the market truce, and what you can be hired for.[/bold]
+
+## Heat
+
+Your PDA shows the Underground's Heat under the war level. Heat goes up with what you and the rest of the UBM do:
+
+- A smuggling crate one of you sells at the Drop adds [bold]1[/bold].
+- A load of sealed freight one of you sells to the fence adds [bold]1[/bold].
+- An Underground supply crate one of you sells adds [bold]2[/bold].
+- A TSF or PDV player one of you puts into critical condition adds [bold]2[/bold], and killing them adds [bold]3[/bold] more.
+- A member handed in to the TSF takes [bold]2[/bold] off.
+
+The Heat cools all the time, losing 1 every five minutes.
+
+- [color=#2e9e4f][bold]QUIET[/bold][/color]: nobody is looking for you.
+- [bold]WATCHED[/bold] (Heat 6): the TSF knows goods are moving.
+- [color=#b8860b][bold]WANTED[/bold][/color] (Heat 12): the TSF gets a bearing to the station every ten minutes. The bearing gives a direction but no distance.
+- [color=#d93c3c][bold]RAID[/bold][/color] (Heat 20): the station's position goes out to the whole sector, the TSF is paid for it, and the station can be raided for 30 minutes. Its turrets stand down for the raid, and Safe Zones stop protecting you from capture until the window closes. Afterwards the Heat drops to WATCHED and can't reach RAID again for 45 minutes.
+
+A raid also starts a [color=#d93c3c][bold]lockdown[/bold][/color] that lasts until 30 minutes after the window closes: the market is shut, the UndergroundVend sells nothing, and your smuggling crates fetch a quarter of their price.
+
+A sale made by someone outside the UBM adds no Heat and still pays the treasury. A hired courier keeps you quiet, and the price is the courier's cut.
+
+The Godfather can close the market to cool off twice as fast. While it is closed, no market passes go out.
+
+## Smuggling
+
+<Box>
+<GuideEntityEmbed Entity="Telecrystal"/>
+<GuideEntityEmbed Entity="CrateTradeContrabandSecureUnderground"/>
+<GuideEntityEmbed Entity="Telecrystal"/>
+</Box>
+
+The Underground runs on [color=red]telecrystals[/color], which ship in illegal items from the greater Perseus Arm. The UndergroundVend in the armory holds the TC and sells those restricted items, among them the C-20r and the [bold]ship jammer[/bold]: switch it on aboard a ship and nobody on that ship can radio for help for ten minutes. It works once, and it can be found and smashed. Jobs on the Underground's contracts board pay telecrystals as well as thalers.
+
+[color=crimson]Underground supply crates[/color] full of deactivated telecrystals are ordered from the station's cargo request console for 20,000 each. Ordering one is quiet. Deactivated telecrystals give off a thermal signature, so don't carry too many.
+
+A crate sold at its destination pays the courier 30,000 and sends ten telecrystals to the UndergroundVend. The TSFMC is informed about the sale as well, so get out quick. Each one a member sells adds Heat.
+
+## The Fence and the Drop
+
+<Box>
+<GuideEntityEmbed Entity="WGVendingMachineFence"/>
+<GuideEntityEmbed Entity="WGCargoChuteUnderground"/>
+</Box>
+
+The fence vendor sells [color=crimson]smuggling crates[/color]. Only one station in the sector buys them at a time: this is known as the [bold]drop[/bold]. Your Market app on your PDA names the Drop under its Underground tab and tells you when it moves. There is a ten minute delay before other parties hear where it has moved to.
+
+The fence chute buys freight that still has its manifest seal, such as cargo taken off NPC haulers, at full price and off the books.
+
+Every crate sold at the Drop and every load sold to the fence pays 5,000 thalers into the Underground's treasury, and adds Heat when one of you makes the sale.
+
+A smuggling crate pays 35,000 and two telecrystals at the Drop. When one of you sells it, the buyer pays by the Heat: half as much again while the Underground is QUIET, falling to half the price just short of RAID, and a quarter in a lockdown. Lying low pays. Customs tips off security about every crate, and selling too many at once lowers what you are paid and can get you a warrant. The cargo console's status shows how far the Heat is from RAID and what your crates fetch.
+
+## The Cargo Console
+
+<Box>
+<GuideEntityEmbed Entity="ComputerTabletopCargoOrdersUnderground"/>
+<GuideEntityEmbed Entity="WGUndergroundMarketPass"/>
+</Box>
+
+Alt-click the station's cargo request console to run the faction's business.
+
+- Anyone in the Underground can read the Heat and the treasury.
+- [color=#d9730d]Fixers[/color] and the [color=purple]Godfather[/color] issue [bold]market passes[/bold] and pay [bold]bail[/bold] from the treasury.
+- The [color=purple]Godfather[/color] opens and closes the market, arms the turrets outside a raid, pays the crew, jumps the station, and declares a Vendetta on a ship near the station.
+
+A market pass points its holder at the station for 30 minutes. Hand one to a customer you want to dock. The Underground's contact on Caelestinus Central sells them too.
+
+## Moving the Station
+
+The station has a jump drive. Once an hour the [color=purple]Godfather[/color] can jump it to a new place in the [color=orange]Outer Cloud[/color] from the cargo console.
+
+- Everyone aboard and everyone in a docked ship gets a minute's warning.
+- Docked ships with their FTL lock on come along. The rest are cast off.
+- The safehouse stays where it is. Market passes keep pointing at the station.
+- The drive won't fire while a raid window is open. If one opens during the warning, the jump is called off and the drive is ready again.
+- A jump doesn't cool the Heat. While you are WANTED, the TSF's next bearing points at the new place.
+
+## The Safehouse
+
+A second Underground ship is parked a few kilometres from the station, hidden the same way. Some of you wake up aboard it, so a raid on the station never catches everyone.
+
+## The Price on Your Head
+
+- A [color=crimson]Fugitive[/color]'s warrant starts at [bold]25[/bold] [color=yellow]FMC[/color] and grows to [bold]150[/bold].
+- A [color=#d9730d]Fixer[/color]'s starts at [bold]50[/bold] [color=yellow]FMC[/color] and grows to [bold]250[/bold].
+- The [color=purple]Godfather[/color]'s starts at [bold]100[/bold] [color=yellow]FMC[/color] and grows to [bold]400[/bold].
+
+A warrant grows by 25 FMC for every job its owner sells. All are paid for a live prisoner, and the pallet holds you for five minutes so the Underground can pay your bail. Each time you are caught again in the same round, the hold is five minutes longer and the bail half as much again. After a capture or bail, no pallet takes you for 30 minutes, unless you attack a TSF or PDV player.
+
+The [color=tan]Sultanate[/color] does not mark the Underground's people by default. Take the Heretic trait if you want the [color=tan]PDV[/color] hunting you as well. As always, they have to challenge you first.
+</Document>

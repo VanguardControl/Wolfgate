@@ -9,18 +9,22 @@
   - !type:RoleTimeRequirement
     role: JobFugitive
     time: 18000 # 5 hours
-  - !type:TraitsRequirement # already a heretic by default
-    inverted: true
-    traits:
-    - Heretic
+  # WOLFGATE(Underground) START: the job no longer rolls for a heretic mark, so the trait is open to it
+  # - !type:TraitsRequirement # already a heretic by default
+  #   inverted: true
+  #   traits:
+  #   - Heretic
+  # WOLFGATE END
   alternateRequirementSets:
     longerPlaytimeLessFugitive:
     - !type:OverallPlaytimeRequirement
       time: 216000 # 60 hours
-    - !type:TraitsRequirement # already a heretic by default
-      inverted: true
-      traits:
-      - Heretic
+    # WOLFGATE(Underground) START: the job no longer rolls for a heretic mark, so the trait is open to it
+    # - !type:TraitsRequirement # already a heretic by default
+    #   inverted: true
+    #   traits:
+    #   - Heretic
+    # WOLFGATE END
   whitelisted: true # I am NOT trusting regular players to not just use this role to frag out.
   startingGear: GodfatherGear
   icon: JobIconGodfather
@@ -48,20 +52,27 @@
       - NanoTrasen
       - WGUnderground
     # WOLFGATE END
-    - type: Contraband
-      hideValues: true
-      turnInValues:
-        FederationMilitaryCredit: 400 # bounty on your head
+    # WOLFGATE(Underground) START: the warrant is kept by the Underground module and grows with the member's jobs; was a fixed 400
+    # - type: Contraband
+    #   hideValues: true
+    #   turnInValues:
+    #     FederationMilitaryCredit: 400 # bounty on your head
+    - type: WGUndergroundMember
+      baseWarrant: 100
+      maxWarrant: 400
+    # WOLFGATE END
     - type: RadioOnCryosleep
       radioChannel: Syndicate # Syndicate = Underground
-    - type: AddComponentsAfterTime # heresy
-      addComponentsOnSelection:
-      - type: Contraband
-        hideValues: true
-        turnInValues:
-          FederationMilitaryCredit: 400
-          Doubloon: 250
-      - type: Heretic
+    # WOLFGATE(Underground) START: no automatic heretic mark; the Heretic trait is how a member gets one
+    # - type: AddComponentsAfterTime # heresy
+    #   addComponentsOnSelection:
+    #   - type: Contraband
+    #     hideValues: true
+    #     turnInValues:
+    #       FederationMilitaryCredit: 400
+    #       Doubloon: 250
+    #   - type: Heretic
+    # WOLFGATE END
   - !type:AddImplantSpecial
     implants: [ DeathRattleImplant, RadioImplant ]
   - !type:AddLanguageSpecial

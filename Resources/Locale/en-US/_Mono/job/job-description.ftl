@@ -29,11 +29,12 @@ job-description-mmc-security = Protect MMC assets and employees in the area from
 job-description-mmc-employee = Work under your liason for the sake of the MMC company board. Make money, give it to the company, and repeat.
 
 # MARK: UNDERGROUND/BLACK MARKET
-# WOLFGATE START: fugitives are wanted for arrest, not kill on sight
+# WOLFGATE(Underground) START: the Underground is a neutral faction under the Godfather; fugitives are wanted alive
 # job-description-fugitive = You are a known enemy of the TSF. Evade the TSFMC and the bounty hunters they send after you. Reap the rewards of your dangerous lifestyle.
-job-description-fugitive = You are wanted by the TSF. Evade arrest by the TSFMC and the bounty hunters they send after you. Reap the rewards of your dangerous lifestyle.
+job-description-fugitive = You work for the Underground, a neutral black market, and answer to the Godfather. The TSF pays a bounty for you alive. Smuggle, fence, and take jobs. Don't get caught.
+# job-description-godfather = Maintain your hold on the Underground through coercion and fear. Don't get assassinated.
+job-description-godfather = You lead the Underground. Keep the market running and hidden, and keep your people out of TSF hands.
 # WOLFGATE END
-job-description-godfather = Maintain your hold on the Underground through coercion and fear. Don't get assassinated.
 
 # MARK: CROCUS
 job-description-crocus-dockworker = Try to survive being in the crossfire between 2 sides. You've only got your basic work gear.

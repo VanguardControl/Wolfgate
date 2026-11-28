@@ -1,4 +1,4 @@
-# Contractors and their stations. Helios and the Underground post no station work.
+# Contractors and their stations. Helios posts no station work; the Underground's own contractor is in the Underground module.
 
 - type: wgContractor
   id: WGContractorCaelPort

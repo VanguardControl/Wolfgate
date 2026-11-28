@@ -9,13 +9,16 @@
     - market 
     - underground
     announcementChannel: Command
-    alertOnPurchase: 
-    - CrateTradeContrabandSecureUnderground
-  - type: ExtendDescription
-    descriptionList: 
-    - description: Purchasing Underground Black Market supply crates will notify the TSFMC.
-      color: "#4f94ad"
-      requireDetailRange: true
+  # WOLFGATE(Underground) START: ordering a crate is quiet, selling one adds Heat; the console also runs the faction's business
+  #   alertOnPurchase:
+  #   - CrateTradeContrabandSecureUnderground
+  # - type: ExtendDescription
+  #   descriptionList:
+  #   - description: Purchasing Underground Black Market supply crates will notify the TSFMC.
+  #     color: "#4f94ad"
+  #     requireDetailRange: true
+  - type: WGUndergroundTerminal
+  # WOLFGATE END
   - type: CompanyAccessReader
     requiredCompanies: 
     - TSF

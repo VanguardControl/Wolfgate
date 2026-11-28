@@ -36,6 +36,16 @@ public sealed partial class AddComponentsAfterTimeSystem : EntitySystem
             if (comp.SelectionTime > curTime)
                 continue;
 
+            // WOLFGATE(Underground) START: a mark can be refused, such as for a new player or one already hunted this round
+            var attempt = new Content.Server._WG.Underground.WGMarkAttemptEvent();
+            RaiseLocalEvent(ent, ref attempt);
+            if (attempt.Cancelled)
+            {
+                RemComp<AddComponentsAfterTimeComponent>(ent);
+                continue;
+            }
+            // WOLFGATE END
+
             EntityManager.AddComponents(ent, comp.AddComponentsOnSelection, true);
 
             RemComp<AddComponentsAfterTimeComponent>(ent);

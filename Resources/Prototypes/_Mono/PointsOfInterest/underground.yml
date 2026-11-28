@@ -31,6 +31,7 @@
     - maxDistance: 1500
       prob: 0.3
   - type: SyndicateFOB
+  - type: WGUndergroundBase # WOLFGATE(Underground): the station's safehouse, scaling slots and turrets
 
 - type: gameMap
   id: Underground
@@ -62,6 +63,7 @@
         - type: StationJobs
           availableJobs:
             Godfather: [ 1, 1 ]
+            WGUndergroundFixer: [ 2, 2 ] # WOLFGATE(Underground): the Godfather's lieutenants
             Fugitive: [ 5, 5 ]
           tags:
           - CentralCommand # no changing these slots

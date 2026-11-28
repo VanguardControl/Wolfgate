@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 11/15/2026 11:38:48
-  entityCount: 11240
+  entityCount: 11241
 maps:
 - 2838
 grids:
@@ -78010,6 +78010,14 @@ entities:
     missingComponents:
     - InteractionPopup
     - MobCollision
+- proto: WGTraderUndergroundContact
+  entities:
+  - uid: 11263
+    components:
+    - type: Transform
+      parent: 1
+      rot: 3.141592653589793 rad
+      pos: 2.5,-2.5
 - proto: WGTraderUsedShips
   entities:
   - uid: 10007

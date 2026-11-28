@@ -71,6 +71,7 @@ namespace Content.Server.PDA
             SubscribeLocalEvent<AlertLevelChangedEvent>(OnAlertLevelChanged);
             SubscribeLocalEvent<WarLevelChangedEvent>(OnWarLevelChanged);
             InitializeDefcon(); // WOLFGATE(Defcon): refresh PDAs on a DEFCON change
+            InitializeUnderground(); // WOLFGATE(Underground): refresh PDAs when the Underground's Heat changes
 
             // Begin DeltaV additions
             Subs.CVar(_config,
@@ -397,6 +398,7 @@ namespace Content.Server.PDA
                 return;
             pda.WarLevel = warComp.PostWar ? Loc.GetString("comp-pda-ui-station-war-level-post") : Loc.GetString("comp-pda-ui-station-war-level-pre");
             pda.WarLevel = WithDefcon(pda.WarLevel); // WOLFGATE(Defcon): DEFCON line under the war level
+            pda.WarLevel = WithUnderground(pda.WarLevel); // WOLFGATE(Underground): Heat line under the DEFCON
         }
 
         private string? GetDeviceNetAddress(EntityUid uid)

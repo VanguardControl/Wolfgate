@@ -76,7 +76,9 @@ public sealed class PlayerReportFixesTest
 
         await server.WaitAssertion(() =>
         {
-            Assert.That(entMan.Deleted(heretic), Is.True, "The heretic's body didn't sell.");
+            // The Sultanate pays and lifts the mark; the body stays (Underground module).
+            Assert.That(entMan.Deleted(heretic), Is.False, "The heretic's body was taken away.");
+            Assert.That(entMan.HasComponent<HereticComponent>(heretic), Is.False, "The heretic's body didn't sell.");
             Assert.That(entMan.Deleted(corpse), Is.False, "An ordinary corpse sold.");
         });
 

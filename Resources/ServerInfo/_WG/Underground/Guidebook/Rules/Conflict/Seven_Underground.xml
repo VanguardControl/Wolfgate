@@ -1,0 +1,57 @@
+<Document>
+# Conflict Rule 7
+## The Underground is a Faction
+
+[italic][color=#b8860b]The Underground Black Market is a neutral faction led by the Godfather. The TSF is incentivized through Bounties to go after the UBM's members. The PDV considers some of them to be heretics.[/color][/italic]
+
+- [color=#d93c3c][bold]Being Underground is not a reason to attack.[/bold][/color] You need an RP reason and escalation, like in any other conflict.
+-- The UBM's dealings with the Reavers are not a reason either.
+
+- [bold]Heat.[/bold] Your PDA shows the Underground's Heat: QUIET, WATCHED, WANTED, or RAID. Heat rises with what the UBM's own members do and falls when the UBM lies low.
+-- Heat rises when a member sells a smuggling crate at the Drop, sells sealed freight to the fence, sells an Underground supply crate, or puts a TSF or PDV player into critical condition or kills them.
+-- A sale made by someone outside the UBM adds no Heat. The UBM can hire couriers to stay quiet, and nobody else can run its Heat up.
+-- The warrant on each member grows with the jobs they sell themself.
+-- [bold]Lockdown.[/bold] While a raid window is open, and for [color=#b8860b][bold]30 minutes[/bold][/color] after it closes, the market is shut, the UndergroundVend sells nothing, and a member's smuggling crates fetch a quarter of their price.
+
+- [bold]Wanted means alive.[/bold] The TSF bounty on a Fugitive, a Fixer, or the Godfather is paid for a live prisoner. Make a [textlink="clear demand" link="MonolithRuleConflictThreeFairPlay"] and give them [color=#b8860b][bold]10 seconds[/bold][/color].
+-- Use force if they refuse or run. Use lethal force only if they fight back.
+-- You can disable a ship that runs. Don't destroy it or kill its crew unless they shoot back.
+-- The one exception is a raid on the UBM while its Heat is RAID, or a strike that admins have allowed. Its defenders can be killed like any faction outpost's members.
+
+- [bold]Bail Comes First.[/bold] The first time a TSF pallet sees a captured member it holds them for [color=#b8860b][bold]5 minutes[/bold][/color] and informs the Underground of the bail. If the bail is paid, the thalers land beside the prisoner. Take them and let the prisoner go.
+-- Bail is 200 thalers for each military credit of the warrant: at most [color=#b8860b][bold]30,000 thalers[/bold][/color] for a Fugitive, [color=#b8860b][bold]50,000 thalers[/bold][/color] for a Fixer, and [color=#b8860b][bold]80,000 thalers[/bold][/color] for the Godfather.
+-- Every earlier capture of the same player this round adds [color=#b8860b][bold]half again[/bold][/color] to the bail and [color=#b8860b][bold]5 minutes[/bold][/color] to the hold.
+
+- [bold]A Break After Capture.[/bold] After an Underground member is turned in, bailed out, or killed, leave that player alone for [color=#b8860b][bold]30 minutes[/bold][/color].
+-- No pallet takes them during that time.
+-- This ends as soon as they attack a TSF or PDV player. The pallet takes them again from then on.
+
+- [bold]The Underground Station is a Faction Outpost.[/bold] It falls under [textlink="Conflict Rule 4" link="MonolithRuleConflictFourPortStriking"], but the war level never opens it. It can only be struck while the Underground's Heat is [color=#d93c3c][bold]RAID[/bold][/color], or with [color=#b8860b]admin permission[/color].
+-- A raid window lasts 30 minutes and is announced to the sector. When it closes, break off and leave.
+-- The TSF's uplinks are paid military credits when a raid window opens.
+-- RAID opens the station, but it is not a reason to attack. The raid is the TSF's, for its bounties.
+-- The PDV, Caelestinus Judges, and everyone else can only join with an RP reason of their own against the UBM, or when hired by someone who has one. The UBM's trade in contraband is not such a reason.
+-- Hail the station on the radio before you fire on it or board it.
+-- A raid is a boarding action. Fight the defenders, make captures, and take what you can carry. Don't shell the station to rubble, and don't camp or wreck its cryo and spawn rooms.
+-- Outside a raid, going aboard to make a capture is a strike. Catch them out in the sector.
+-- The Godfather can jump the station to a new place once an hour, but never while a raid window is open.
+
+- [bold]Safe Zones.[/bold] Selling or unloading smuggling crates, sealed freight or narcotics in a [textlink="Safe Zone" link="MonolithRuleRoleplaySevenSafeZones"], Caelestinus Central included, or from a ship docked at one, is causing trouble there. Whoever does it forfeits protection and may be detained for the Judges or the Overseer.
+- [bold]Safe Zones During a Raid.[/bold] While the Heat is [color=#d93c3c][bold]RAID[/bold][/color], Underground members are not protected by a [textlink="Safe Zone" link="MonolithRuleRoleplaySevenSafeZones"], the same as a player with a command bounty.
+-- It is still a capture for the bounty. Make the demand, take them alive, and keep bystanders out of it.
+-- Protection returns when the raid window closes. A capture already under way can finish.
+
+- [bold]Market Truce.[/bold] Any ship the Underground has invited to dock or given a market pass is a guest, TSF and PDV ships included. Guests and the Underground don't attack each other while the ship is there.
+-- The station's turrets can't tell a guest from a raider. When the Godfather arms them, everyone aboard gets a [color=#b8860b][bold]30 second[/bold][/color] warning before they come up, and a ship that docks while they are up is told the station is closed. The truce binds the Underground's people, not its turrets. Once they are up, no guest is protected from them, on the station or in a docked ship they can see into. Undock and stand off.
+-- The turrets stand down while a raid window is open, and can't be armed until it closes.
+-- If a guest breaks the truce, the Underground can declare a Vendetta on the radio and attack that crew without further escalation for [color=#b8860b][bold]30 minutes[/bold][/color].
+
+- [bold]The Underground is for Hire.[/bold] Anyone can hire it for smuggling, theft, extraction, information and sabotage of ships, even while the war level is COLD.
+-- It can't be hired to kill faction members or to strike an outpost (see [textlink="Conflict Rule 5" link="WGRuleConflictFiveDeclaringWar"]).
+
+- [bold]The Godfather is the UBM's Faction Leader.[/bold] Fixers and Fugitives answer to the Godfather, who falls under the [textlink="commander rule" link="MonolithRuleRoleplayNineCommandingRoles"]. Fixers are next in line.
+-- Don't give away or sell the station's position, and don't hand your own people in for the bounty. That is [textlink="role abandonment" link="MonolithRuleRoleplayEightFactionRoles"].
+
+- [bold]Marked Heretics.[/bold] An Underground member the PDV has marked is covered by the heretic lines in [textlink="Conflict Rule 1" link="MonolithRuleConflictOneRandomDeathmatch"].
+
+</Document>

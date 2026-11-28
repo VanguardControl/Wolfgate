@@ -25,7 +25,10 @@ frontier-lobby-crocus-description = This is a map for the Crocus mode. You may h
    - Civilians in this mode (for now) are considered [bold]free agents[/bold], and do not have a specific objective. Treat it as a neutral "do-whatever" role.
 # WOLFGATE END
 
-frontier-lobby-underground-subtext = A hideout harboring enemies of the Trans-Solarian Federation.
+# WOLFGATE(Underground) START: a neutral faction, not just enemies of the TSF
+# frontier-lobby-underground-subtext = A hideout harboring enemies of the Trans-Solarian Federation.
+frontier-lobby-underground-subtext = A neutral black market that sells to anyone and answers to no one.
+# WOLFGATE END
 # WOLFGATE START: the map has one UndergroundVend, not four; its roles are wanted, not kill on sight
 # frontier-lobby-underground-description = A hideout with its IFF disabled in the Outer Cloud, containing a medbay, manufactory and four UndergroundVends that serve as a direct link to a distant Persean black market.
 #

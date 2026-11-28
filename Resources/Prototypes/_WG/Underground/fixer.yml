@@ -1,0 +1,139 @@
+# The Fixer, the Godfather's lieutenant.
+
+- type: job
+  id: WGUndergroundFixer
+  name: job-name-wg-underground-fixer
+  description: job-description-wg-underground-fixer
+  playTimeTracker: JobWGUndergroundFixer
+  requirements:
+  - !type:OverallPlaytimeRequirement
+    time: 36000 # 10 hours
+  - !type:RoleTimeRequirement
+    role: JobFugitive
+    time: 7200 # 2 hours
+  startingGear: WGUndergroundFixerGear
+  icon: JobIconWGUndergroundFixer
+  supervisors: job-supervisors-wg-underground-godfather
+  assignedCompany: WGUnderground
+  displayWeight: 125
+  accessGroups:
+  - GeneralAccess
+  access:
+  - Underground
+  - WGUndergroundFixer
+  guides:
+  - Underground
+  special:
+  - !type:GiveItemOnHolidaySpecial
+    holiday: FrontierBirthday
+    prototype: FrontierBirthdayGift
+  - !type:AddComponentSpecial
+    components:
+    - type: NpcFactionMember
+      factions:
+      - NanoTrasen
+      - WGUnderground
+    - type: WGUndergroundMember
+      baseWarrant: 50
+      maxWarrant: 250
+    - type: RadioOnCryosleep
+      radioChannel: Syndicate # the Underground's channel
+  - !type:AddImplantSpecial
+    implants: [ DeathRattleImplant, RadioImplant ]
+  - !type:AddLanguageSpecial
+    languagesSpoken:
+    - UndergroundCodespeak
+    languagesUnderstood:
+    - UndergroundCodespeak
+  alwaysUseSpawner: true
+
+- type: startingGear
+  id: WGUndergroundFixerGear
+  storage:
+    back:
+    - Telecrystal25
+    - ContractorIDCard
+
+- type: playTimeTracker
+  id: JobWGUndergroundFixer
+
+- type: jobIcon
+  parent: JobIcon
+  id: JobIconWGUndergroundFixer
+  icon:
+    sprite: /Textures/_Mono/Interface/Misc/job_icons.rsi
+    state: fugitive
+  jobName: job-name-wg-underground-fixer
+
+- type: accessLevel
+  id: WGUndergroundFixer
+  name: id-card-access-level-wg-underground-fixer
+
+- type: entity
+  id: WGSpawnPointUndergroundFixer
+  parent: SpawnPointJobBase
+  name: Underground Fixer
+  components:
+  - type: SpawnPoint
+    job_id: WGUndergroundFixer
+  - type: Sprite
+    sprite: _NF/Markers/jobs.rsi
+    layers:
+    - state: green
+
+- type: entity
+  parent: FugitiveIDCard
+  id: WGUndergroundFixerIDCard
+  components:
+  - type: PresetIdCard
+    job: WGUndergroundFixer
+
+- type: entity
+  parent: ContractorPDA
+  id: WGUndergroundFixerPDA
+  components:
+  - type: Pda
+    id: WGUndergroundFixerIDCard
+
+# The Fugitive's loadout with the Fixer's own PDA.
+- type: roleLoadout
+  id: JobWGUndergroundFixer
+  groups:
+  - MercenaryHead
+  - ContractorNeck
+  - MercenaryJumpsuit
+  - MercenaryGloves
+  - MercenaryBackpack
+  - FugitiveOuterClothing
+  - MercenaryShoes
+  - MercenaryFace
+  - MercenaryGlasses
+  - MercenaryBelt
+  - FugitiveEars
+  - ContractorEncryptionKey
+  - ContractorBoxSurvival
+  - WGUndergroundFixerPDA
+  - ContractorWallet
+  - ContractorCartridge
+  - ContractorImplanter
+  - ContractorUtility
+  - ContractorFun
+  - ContractorTrinkets
+  - ContractorBureaucracy
+  - NFSpeciesSpecific
+  - MercenaryBalaclava
+  - FugitiveFirearm
+  - MercenaryMag
+  - CivGunCaseSpecial
+
+- type: loadout
+  id: WGUndergroundFixerPDA
+  equipment:
+    id: WGUndergroundFixerPDA
+
+- type: loadoutGroup
+  id: WGUndergroundFixerPDA
+  name: loadout-group-contractor-id
+  minLimit: 1
+  loadouts:
+  - WGUndergroundFixerPDA
